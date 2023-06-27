@@ -1,4 +1,4 @@
-package httprouter
+package router
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"go.uber.org/fx"
 	"golang.org/x/exp/slog"
 )
@@ -19,8 +20,8 @@ type MuxHandler interface {
 	String() string
 }
 
-func NewServer(lc fx.Lifecycle, mux *http.ServeMux, log *slog.Logger) *http.Server {
-	srv := &http.Server{Addr: ":8080", Handler: mux}
+func NewServer(lc fx.Lifecycle, handler *chi.Mux, log *slog.Logger) *http.Server {
+	srv := &http.Server{Addr: ":8080", Handler: handler}
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			ln, err := net.Listen("tcp", srv.Addr)
