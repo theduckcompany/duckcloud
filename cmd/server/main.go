@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"net/http"
-	"net/url"
 
 	"github.com/Peltoche/neurone/src/service/dav"
 	"github.com/Peltoche/neurone/src/tools/httprouter"
@@ -26,14 +25,7 @@ func main() {
 	fx.New(
 		// fx.WithLogger(func(log *logger.Logger) fxevent.Logger { return fxevent.NopLogger }),
 		fx.Provide(
-			func() Config {
-				storageURL, _ := url.Parse("sqlite://./dev.db")
-				return Config{
-					Storage: storage.Config{
-						URL: *storageURL,
-					},
-				}
-			},
+			NewDefaultConfig,
 			logger.NewSLogger,
 			storage.NewSQliteDBWithMigrate,
 
