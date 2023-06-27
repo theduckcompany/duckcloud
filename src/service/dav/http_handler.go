@@ -5,17 +5,17 @@ import (
 	"net/http"
 
 	"github.com/Peltoche/neurone/src/service/dav/internal"
-	"github.com/Peltoche/neurone/src/tools/logger"
+	"golang.org/x/exp/slog"
 	"golang.org/x/net/webdav"
 )
 
 // HTTPHandler serve files via the Webdav protocol over http.
 type HTTPHandler struct {
-	log *logger.Logger
+	log *slog.Logger
 }
 
 // NewHTTPHandler builds a new EchoHandler.
-func NewHTTPHandler(log *logger.Logger) *HTTPHandler {
+func NewHTTPHandler(log *slog.Logger) *HTTPHandler {
 	return &HTTPHandler{log}
 }
 

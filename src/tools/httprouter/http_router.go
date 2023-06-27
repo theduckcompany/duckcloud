@@ -6,8 +6,8 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/Peltoche/neurone/src/tools/logger"
 	"go.uber.org/fx"
+	"golang.org/x/exp/slog"
 )
 
 // MuxHandler is an http.Handler that knows the mux pattern
@@ -19,7 +19,7 @@ type MuxHandler interface {
 	String() string
 }
 
-func NewServer(lc fx.Lifecycle, mux *http.ServeMux, log *logger.Logger) *http.Server {
+func NewServer(lc fx.Lifecycle, mux *http.ServeMux, log *slog.Logger) *http.Server {
 	srv := &http.Server{Addr: ":8080", Handler: mux}
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {

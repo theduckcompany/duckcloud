@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Peltoche/neurone/src/tools/logger"
+	"golang.org/x/exp/slog"
 )
 
 // NewServeMux builds a ServeMux that will route requests
 // to the given EchoHandler.
-func NewServeMux(handlers []MuxHandler, log *logger.Logger) *http.ServeMux {
+func NewServeMux(handlers []MuxHandler, log *slog.Logger) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	for _, handler := range handlers {

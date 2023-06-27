@@ -6,10 +6,6 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-type Logger struct {
-	*slog.Logger
-}
-
-func NewSLogger() *Logger {
-	return &Logger{slog.New(slog.NewTextHandler(os.Stderr, nil))}
+func NewSLogger() *slog.Logger {
+	return slog.New(slog.NewTextHandler(os.Stderr, nil))
 }
