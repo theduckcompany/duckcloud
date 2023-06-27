@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/Peltoche/neurone/src/tools/logger"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/sqlite"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	_ "github.com/mattn/go-sqlite3"
+	"golang.org/x/exp/slog"
 )
 
 type Config struct {
@@ -22,7 +22,7 @@ type Config struct {
 //go:embed db/migration/*.sql
 var fs embed.FS
 
-func NewSQliteDBWithMigrate(cfg Config, logger *logger.Logger) (*sql.DB, error) {
+func NewSQliteDBWithMigrate(cfg Config, logger *slog.Logger) (*sql.DB, error) {
 	d, err := iofs.New(fs, "db/migration")
 	if err != nil {
 		return nil, fmt.Errorf("failed to load the migrated files: %w", err)
@@ -52,7 +52,7 @@ func NewSQliteDBWithMigrate(cfg Config, logger *logger.Logger) (*sql.DB, error) 
 }
 
 type migrateLogger struct {
-	Logger *logger.Logger
+	Logger *slog.Logger
 }
 
 func (t *migrateLogger) Printf(format string, v ...any) {

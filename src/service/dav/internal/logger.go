@@ -3,11 +3,10 @@ package internal
 import (
 	"net/http"
 
-	"github.com/Peltoche/neurone/src/tools/logger"
 	"golang.org/x/exp/slog"
 )
 
-func NewLogger(log *logger.Logger) func(r *http.Request, err error) {
+func NewLogger(log *slog.Logger) func(r *http.Request, err error) {
 	return func(r *http.Request, err error) {
 		if err != nil {
 			log.WithGroup("dav").
