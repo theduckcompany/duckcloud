@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Peltoche/neurone/src/service/dav/internal"
+	"github.com/go-chi/chi"
 	"golang.org/x/exp/slog"
 	"golang.org/x/net/webdav"
 )
@@ -19,7 +20,7 @@ func NewHTTPHandler(log *slog.Logger) *HTTPHandler {
 	return &HTTPHandler{log}
 }
 
-func (h *HTTPHandler) Register(mux *http.ServeMux) {
+func (h *HTTPHandler) Register(r *chi.Mux) {
 	dav := webdav.Handler{
 		Prefix:     "/dav/",
 		FileSystem: webdav.Dir("./testdata"),
@@ -27,7 +28,7 @@ func (h *HTTPHandler) Register(mux *http.ServeMux) {
 		Logger:     internal.NewLogger(h.log),
 	}
 
-	mux.Handle("/dav/", &dav)
+	r.Handle("/dav/", &dav)
 }
 
 func (h *HTTPHandler) String() string {
