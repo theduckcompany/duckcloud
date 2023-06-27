@@ -4,21 +4,30 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/Peltoche/neurone/pkg/service/dav/internal"
 	"github.com/Peltoche/neurone/pkg/tools/logger"
+	"golang.org/x/net/webdav"
 )
 
 // HTTPHandler serve files via the Webdav protocol over http.
 type HTTPHandler struct {
-	logger *logger.Logger
+	log *logger.Logger
 }
 
 // NewHTTPHandler builds a new EchoHandler.
-func NewHTTPHandler(logger *logger.Logger) *HTTPHandler {
-	return &HTTPHandler{logger}
+func NewHTTPHandler(log *logger.Logger) *HTTPHandler {
+	return &HTTPHandler{log}
 }
 
 func (h *HTTPHandler) Register(mux *http.ServeMux) {
-	mux.HandleFunc("/dav", h.echoHandler)
+	dav := webdav.Handler{
+		Prefix:     "/dav/",
+		FileSystem: webdav.Dir("./testdata"),
+		LockSystem: webdav.NewMemLS(),
+		Logger:     internal.NewLogger(h.log),
+	}
+
+	mux.Handle("/dav/", &dav)
 }
 
 func (h *HTTPHandler) String() string {
@@ -27,6 +36,6 @@ func (h *HTTPHandler) String() string {
 
 func (h *HTTPHandler) echoHandler(w http.ResponseWriter, r *http.Request) {
 	if _, err := io.Copy(w, r.Body); err != nil {
-		h.logger.ErrorCtx(r.Context(), "Failed to handle request:", err)
+		h.log.ErrorCtx(r.Context(), "Failed to handle request:", err)
 	}
 }
