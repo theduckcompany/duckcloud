@@ -5,6 +5,7 @@ import (
 
 	"github.com/Peltoche/neurone/src/service/dav"
 	"github.com/Peltoche/neurone/src/service/oauthclients"
+	"github.com/Peltoche/neurone/src/service/oauthcodes"
 	"github.com/Peltoche/neurone/src/service/users"
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/logger"
@@ -36,6 +37,7 @@ func main() {
 			fx.Annotate(tools.Init, fx.As(new(tools.Tools))),
 
 			fx.Annotate(users.Init, fx.As(new(users.Service))),
+			fx.Annotate(oauthcodes.Init, fx.As(new(oauthcodes.Service))),
 			fx.Annotate(oauthclients.Init, fx.As(new(oauthclients.Service))),
 
 			AsRoute(dav.NewHTTPHandler),
