@@ -5,7 +5,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
-	"net/url"
+	"path"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/sqlite"
@@ -16,7 +16,7 @@ import (
 )
 
 type Config struct {
-	URL url.URL `mapstructure:"url"`
+	Path string `mapstructure:"url"`
 }
 
 //go:embed db/migration/*.sql
@@ -28,25 +28,24 @@ func NewSQliteDBWithMigrate(cfg Config, logger *slog.Logger) (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to load the migrated files: %w", err)
 	}
 
-	m, err := migrate.NewWithSourceInstance("iofs", d, cfg.URL.String())
+	dbPath := path.Clean(cfg.Path)
+
+	m, err := migrate.NewWithSourceInstance("iofs", d, "sqlite://"+dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a migrate manager: %w", err)
 	}
 
 	m.Log = &migrateLogger{logger}
 	err = m.Up()
-	if errors.Is(err, migrate.ErrNoChange) {
-		return nil, nil
-	}
-
-	if err != nil {
+	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return nil, fmt.Errorf("database migration error: %w", err)
 	}
 
-	db, err := sql.Open("sqlite3", cfg.URL.String())
+	db, err := sql.Open("sqlite", "file:"+dbPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create the sqlite3 db: %w", err)
+		return nil, fmt.Errorf("failed to create the sqlite db: %w", err)
 	}
+	fmt.Printf("db: %v\n\n", db)
 
 	return db, nil
 }
