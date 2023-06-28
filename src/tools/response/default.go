@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/Peltoche/neurone/src/tools/errs"
 	"golang.org/x/exp/slog"
 )
 
@@ -35,16 +36,19 @@ func (t *Default) Write(w http.ResponseWriter, r *http.Request, res any, statusC
 
 // WriteError write the given error into the ResponseWriter.
 func (t *Default) WriteError(err error, w http.ResponseWriter, r *http.Request) {
-	var ierr *Error
+	var ierr *errs.Error
 
-	if errors.As(err, &ierr) {
-		_ = json.NewEncoder(w).Encode(ierr)
-		w.WriteHeader(ierr.Code)
-		t.log.WithGroup("http").ErrorCtx(
-			r.Context(),
-			"",
-			slog.Int("status", ierr.Code),
-			slog.String("error", ierr.Internal.Error()),
-		)
+	if !errors.As(err, &ierr) {
+		ierr = errs.Unhandled(err).(*errs.Error)
 	}
+
+	w.WriteHeader(ierr.Code())
+	_ = json.NewEncoder(w).Encode(ierr)
+
+	t.log.WithGroup("http").ErrorCtx(
+		r.Context(),
+		"",
+		slog.Int("status", ierr.Code()),
+		slog.String("error", ierr.Error()),
+	)
 }
