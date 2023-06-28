@@ -6,6 +6,10 @@ import (
 	"github.com/Peltoche/neurone/src/tools/uuid"
 )
 
+type Config struct {
+	Key string `mapstructure:"key"`
+}
+
 type AccessToken struct {
 	ClientID uuid.UUID
 	UserID   uuid.UUID
