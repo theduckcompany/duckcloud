@@ -40,7 +40,7 @@ func (suite *StorageTestSuite) SetupSuite() {
 	db, err := storage.NewSQliteDBWithMigrate(storage.Config{Path: t.TempDir() + "/test.db"}, logger.NewNoop())
 	require.NoError(t, err)
 
-	suite.storage = NewStorage(db)
+	suite.storage = newSqlStorage(db)
 }
 
 func (suite *StorageTestSuite) Test_Save() {
