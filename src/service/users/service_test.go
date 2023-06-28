@@ -6,15 +6,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Peltoche/neurone/src/tools"
+	"github.com/Peltoche/neurone/src/tools/errs"
 	"github.com/Peltoche/neurone/src/tools/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_Service_Create_success(t *testing.T) {
-	app := app.NewMock(t)
-	storage := NewMockUserStorage(t)
-	coloniesMock := NewMockColonyBootstraper(t)
-	service := NewService(app, storage, coloniesMock)
+	tools := tools.NewMock(t)
+	storage := NewMockStorage(t)
+	service := NewService(tools, storage)
 
 	now := time.Now()
 	ctx := context.Background()
@@ -30,12 +31,10 @@ func Test_Service_Create_success(t *testing.T) {
 	storage.On("GetByEmail", ctx, "some@email.com").Return(nil, nil).Once()
 	storage.On("GetByUsername", ctx, "some-username").Return(nil, nil).Once()
 
-	app.UUIDMock.On("New").Return(uuid.UUID("some-id")).Once()
-	app.ClockMock.On("Now").Return(now)
+	tools.UUIDMock.On("New").Return(uuid.UUID("some-id")).Once()
+	tools.ClockMock.On("Now").Return(now)
 
 	storage.On("Save", ctx, &user).Return(nil).Once()
-
-	coloniesMock.On("BootstrapUser", ctx, user.ID).Return(&colonies.Colony{}, nil).Once()
 
 	res, err := service.Create(ctx, &CreateUserRequest{
 		Username: "some-username",
@@ -47,10 +46,9 @@ func Test_Service_Create_success(t *testing.T) {
 }
 
 func Test_Service_Create_with_email_already_exists(t *testing.T) {
-	app := app.NewMock(t)
-	storage := NewMockUserStorage(t)
-	coloniesMock := NewMockColonyBootstraper(t)
-	service := NewService(app, storage, coloniesMock)
+	tools := tools.NewMock(t)
+	storage := NewMockStorage(t)
+	service := NewService(tools, storage)
 	ctx := context.Background()
 
 	storage.On("GetByEmail", ctx, "some@email.com").Return(&User{}, nil).Once()
@@ -61,15 +59,14 @@ func Test_Service_Create_with_email_already_exists(t *testing.T) {
 		Password: "some-password",
 	})
 	assert.ErrorIs(t, err, ErrAlreadyExists)
-	assert.ErrorIs(t, err, response.ErrBadRequest)
+	assert.ErrorIs(t, err, errs.ErrBadRequest)
 	assert.Nil(t, res)
 }
 
 func Test_Service_Create_with_username_taken(t *testing.T) {
-	app := app.NewMock(t)
-	storage := NewMockUserStorage(t)
-	coloniesMock := NewMockColonyBootstraper(t)
-	service := NewService(app, storage, coloniesMock)
+	tools := tools.NewMock(t)
+	storage := NewMockStorage(t)
+	service := NewService(tools, storage)
 	ctx := context.Background()
 
 	storage.On("GetByEmail", ctx, "some@email.com").Return(nil, nil).Once()
@@ -81,15 +78,14 @@ func Test_Service_Create_with_username_taken(t *testing.T) {
 		Password: "some-password",
 	})
 	assert.ErrorIs(t, err, ErrUsernameTaken)
-	assert.ErrorIs(t, err, response.ErrBadRequest)
+	assert.ErrorIs(t, err, errs.ErrBadRequest)
 	assert.Nil(t, res)
 }
 
 func Test_Service_Create_with_a_database_error(t *testing.T) {
-	app := app.NewMock(t)
-	storage := NewMockUserStorage(t)
-	coloniesMock := NewMockColonyBootstraper(t)
-	service := NewService(app, storage, coloniesMock)
+	tools := tools.NewMock(t)
+	storage := NewMockStorage(t)
+	service := NewService(tools, storage)
 	ctx := context.Background()
 
 	storage.On("GetByEmail", ctx, "some@email.com").Return(nil, fmt.Errorf("some-error")).Once()
@@ -104,10 +100,9 @@ func Test_Service_Create_with_a_database_error(t *testing.T) {
 }
 
 func Test_Service_Authenticate_success(t *testing.T) {
-	app := app.NewMock(t)
-	storage := NewMockUserStorage(t)
-	coloniesMock := NewMockColonyBootstraper(t)
-	service := NewService(app, storage, coloniesMock)
+	tools := tools.NewMock(t)
+	storage := NewMockStorage(t)
+	service := NewService(tools, storage)
 	ctx := context.Background()
 
 	user := User{
@@ -126,10 +121,9 @@ func Test_Service_Authenticate_success(t *testing.T) {
 }
 
 func Test_Service_Authenticate_with_invalid_username(t *testing.T) {
-	app := app.NewMock(t)
-	storage := NewMockUserStorage(t)
-	coloniesMock := NewMockColonyBootstraper(t)
-	service := NewService(app, storage, coloniesMock)
+	tools := tools.NewMock(t)
+	storage := NewMockStorage(t)
+	service := NewService(tools, storage)
 	ctx := context.Background()
 
 	storage.On("GetByUsername", ctx, "some-username").Return(nil, nil).Once()
@@ -140,10 +134,9 @@ func Test_Service_Authenticate_with_invalid_username(t *testing.T) {
 }
 
 func Test_Service_Authenticate_with_invalid_password(t *testing.T) {
-	app := app.NewMock(t)
-	storage := NewMockUserStorage(t)
-	coloniesMock := NewMockColonyBootstraper(t)
-	service := NewService(app, storage, coloniesMock)
+	tools := tools.NewMock(t)
+	storage := NewMockStorage(t)
+	service := NewService(tools, storage)
 	ctx := context.Background()
 
 	user := User{
@@ -163,10 +156,9 @@ func Test_Service_Authenticate_with_invalid_password(t *testing.T) {
 }
 
 func Test_Service_GetByID_success(t *testing.T) {
-	app := app.NewMock(t)
-	storage := NewMockUserStorage(t)
-	coloniesMock := NewMockColonyBootstraper(t)
-	service := NewService(app, storage, coloniesMock)
+	tools := tools.NewMock(t)
+	storage := NewMockStorage(t)
+	service := NewService(tools, storage)
 	ctx := context.Background()
 
 	user := User{

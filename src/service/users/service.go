@@ -35,7 +35,7 @@ type (
 
 // NewService create a new user service.
 func NewService(tools tools.Tools, storage Storage) *UserService {
-	return &UserService{storage, tools.Clock, tools.UUID}
+	return &UserService{storage, tools.Clock(), tools.UUID()}
 }
 
 // Create will create and register a new user.
