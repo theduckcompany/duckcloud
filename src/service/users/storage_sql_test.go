@@ -36,9 +36,7 @@ func (suite *SqlStorageTestSuite) SetupSuite() {
 		CreatedAt: suite.nowData,
 	}
 
-	db, err := storage.NewSQliteDBWithMigrate(storage.Config{
-		Path: t.TempDir() + "/test.db",
-	}, logger.NewNoop())
+	db, err := storage.NewSQliteDBWithMigrate(storage.Config{Path: t.TempDir() + "/test.db"}, logger.NewNoop())
 	require.NoError(t, err)
 
 	suite.storage = newSqlStorage(db)

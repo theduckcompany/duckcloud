@@ -18,7 +18,7 @@ type HTTPHandler struct {
 	jwt      jwt.Parser
 }
 
-func NewHTTPHandler(tools tools.Default, service Service) *HTTPHandler {
+func NewHTTPHandler(tools tools.Tools, service Service) *HTTPHandler {
 	return &HTTPHandler{
 		service:  service,
 		response: tools.ResWriter(),

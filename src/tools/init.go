@@ -17,8 +17,8 @@ type Tools interface {
 	JWT() jwt.Parser
 }
 
-func Init(jwtCfg jwt.Config, log *slog.Logger) Default {
-	return Default{
+func Init(jwtCfg jwt.Config, log *slog.Logger) Tools {
+	return &Default{
 		clock:     clock.NewDefault(),
 		uuid:      uuid.NewProvider(),
 		log:       log,
