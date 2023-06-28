@@ -8,20 +8,21 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-type Tools struct {
-	Clock     clock.Clock
-	UUID      uuid.Service
-	Log       *slog.Logger
-	ResWriter response.Writer
-	JWT       jwt.Parser
+// Tools regroup all the utilities required for a working server.
+type Tools interface {
+	Clock() clock.Clock
+	UUID() uuid.Service
+	Logger() *slog.Logger
+	ResWriter() response.Writer
+	JWT() jwt.Parser
 }
 
-func Init(jwtCfg jwt.Config, log *slog.Logger) Tools {
-	return Tools{
-		Clock:     clock.New(),
-		UUID:      uuid.NewProvider(),
-		Log:       log,
-		ResWriter: response.New(log),
-		JWT:       jwt.NewDefault(jwtCfg),
+func Init(jwtCfg jwt.Config, log *slog.Logger) Default {
+	return Default{
+		clock:     clock.NewDefault(),
+		uuid:      uuid.NewProvider(),
+		log:       log,
+		resWriter: response.New(log),
+		jwt:       jwt.NewDefault(jwtCfg),
 	}
 }

@@ -5,8 +5,8 @@ import "time"
 // Default is a Clock implementation base ton time.Now()
 type Default struct{}
 
-// New create a new Clock.
-func New() *Default {
+// NewDefault create a new Clock.
+func NewDefault() *Default {
 	return &Default{}
 }
 

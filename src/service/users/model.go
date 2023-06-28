@@ -22,16 +22,16 @@ type User struct {
 
 // CreateUserRequest represents an user creation request.
 type CreateUserRequest struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Username string
+	Email    string
+	Password string
 }
 
 // Validate the CreateUserRequest fields.
 func (t CreateUserRequest) Validate() error {
 	return v.ValidateStruct(&t,
-		v.Field(&t.Username, v.Required, v.Length(3, 20), v.Match(UsernameRegexp)),
-		v.Field(&t.Email, v.Required, is.EmailFormat),
+		v.Field(&t.Username, v.Required, v.Length(1, 20), v.Match(UsernameRegexp)),
+		v.Field(&t.Email, v.Required, is.EmailFormat, v.Length(1, 1000)),
 		v.Field(&t.Password, v.Required, v.Length(8, 200)),
 	)
 }

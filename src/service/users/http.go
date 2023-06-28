@@ -18,11 +18,11 @@ type HTTPHandler struct {
 	jwt      jwt.Parser
 }
 
-func NewHTTPHandler(tools tools.Tools, service Service) *HTTPHandler {
+func NewHTTPHandler(tools tools.Default, service Service) *HTTPHandler {
 	return &HTTPHandler{
 		service:  service,
-		response: tools.ResWriter,
-		jwt:      tools.JWT,
+		response: tools.ResWriter(),
+		jwt:      tools.JWT(),
 	}
 }
 
@@ -37,7 +37,13 @@ func (h *HTTPHandler) String() string {
 }
 
 func (t *HTTPHandler) createUser(w http.ResponseWriter, r *http.Request) {
-	var input CreateUserRequest
+	type req struct {
+		Username string `json:"username"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	var input req
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
@@ -45,7 +51,11 @@ func (t *HTTPHandler) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := t.service.Create(r.Context(), &input)
+	user, err := t.service.Create(r.Context(), &CreateUserRequest{
+		Username: input.Username,
+		Email:    input.Email,
+		Password: input.Password,
+	})
 	if err != nil {
 		t.response.WriteError(err, w, r)
 		return
