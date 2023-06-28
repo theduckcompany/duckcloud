@@ -1,10 +1,10 @@
 package main
 
 import (
-	"database/sql"
 	"net/http"
 
 	"github.com/Peltoche/neurone/src/service/dav"
+	"github.com/Peltoche/neurone/src/service/users"
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/logger"
 	"github.com/Peltoche/neurone/src/tools/router"
@@ -30,10 +30,14 @@ func main() {
 		fx.Provide(
 			NewDefaultConfig,
 
-			tools.Init,
 			storage.NewSQliteDBWithMigrate,
+			logger.NewSLogger,
+			tools.Init,
+
+			fx.Annotate(users.Init, fx.As(new(users.Service))),
 
 			AsRoute(dav.NewHTTPHandler),
+			AsRoute(users.NewHTTPHandler),
 
 			fx.Annotate(
 				router.NewChiRouter,
@@ -41,6 +45,6 @@ func main() {
 			),
 			router.NewServer,
 		),
-		fx.Invoke(func(*http.Server, *sql.DB) {}),
+		fx.Invoke(func(*http.Server) {}),
 	).Run()
 }

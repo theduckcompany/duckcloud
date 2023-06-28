@@ -43,8 +43,8 @@ func (_m *MockParser) FetchAccessToken(r *http.Request, permissions ...string) (
 	return r0, r1
 }
 
-// GetSignature provides a mock function with given fields:
-func (_m *MockParser) GetSignature() string {
+// getSignature provides a mock function with given fields:
+func (_m *MockParser) getSignature() string {
 	ret := _m.Called()
 
 	var r0 string

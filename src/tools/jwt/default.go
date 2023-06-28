@@ -1,13 +1,21 @@
 package jwt
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
+	"github.com/Peltoche/neurone/src/tools/errs"
 	"github.com/Peltoche/neurone/src/tools/uuid"
 	"github.com/dgrijalva/jwt-go"
 	"gopkg.in/oauth2.v3/generates"
+)
+
+var (
+	ErrInvalidAccessToken = fmt.Errorf("invalid access token")
+	ErrMissingAccessToken = fmt.Errorf("missing access token")
+	ErrInvalidFormat      = fmt.Errorf("invalid format")
 )
 
 type Default struct {
@@ -34,7 +42,7 @@ func (d *Default) FetchAccessToken(r *http.Request, permissions ...string) (*Acc
 	}
 
 	if rawToken == "" {
-		return nil, &Error{ErrInvalidAccessToken}
+		return nil, errs.Unauthorized(ErrInvalidAccessToken, "invalid access token")
 	}
 
 	// Parse and verify jwt access token
@@ -45,12 +53,12 @@ func (d *Default) FetchAccessToken(r *http.Request, permissions ...string) (*Acc
 		return []byte(d.signature), nil
 	})
 	if err != nil {
-		return nil, &Error{fmt.Errorf("%w: %w", ErrInvalidFormat, err)}
+		return nil, errs.Unauthorized(errors.Join(ErrInvalidFormat, err), "invalid access token")
 	}
 
 	claims, ok := token.Claims.(*generates.JWTAccessClaims)
 	if !ok || !token.Valid {
-		return nil, &Error{ErrInvalidAccessToken}
+		return nil, errs.Unauthorized(ErrInvalidAccessToken, "invalid access token")
 	}
 
 	return &AccessToken{
