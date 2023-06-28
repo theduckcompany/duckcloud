@@ -3,6 +3,7 @@ module github.com/Peltoche/neurone
 go 1.20
 
 require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-chi/chi v1.5.4
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/google/uuid v1.3.0
@@ -11,6 +12,7 @@ require (
 	go.uber.org/fx v1.20.0
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
 	golang.org/x/net v0.11.0
+	gopkg.in/oauth2.v3 v3.12.0
 )
 
 require (
