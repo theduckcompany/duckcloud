@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/Peltoche/neurone/src/tools/router/internal"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"golang.org/x/exp/slog"
 )
 
@@ -16,8 +17,10 @@ type Registerer interface {
 
 // NewChiRouter return a new mux.Router with the basic setup.
 func NewChiRouter(routes []Registerer, log *slog.Logger) *chi.Mux {
+
 	r := chi.NewMux()
 	r.Use(
+		internal.NewStructuredLogger(log),
 		middleware.Recoverer,
 		middleware.AllowContentType("application/json", "application/x-www-form-urlencoded"),
 		middleware.StripSlashes,

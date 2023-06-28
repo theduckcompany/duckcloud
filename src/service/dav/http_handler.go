@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Peltoche/neurone/src/service/dav/internal"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"golang.org/x/exp/slog"
 	"golang.org/x/net/webdav"
 )
