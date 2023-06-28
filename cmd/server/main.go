@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Peltoche/neurone/src/service/dav"
+	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/logger"
 	"github.com/Peltoche/neurone/src/tools/router"
 	"github.com/Peltoche/neurone/src/tools/storage"
@@ -29,7 +30,7 @@ func main() {
 		fx.Provide(
 			NewDefaultConfig,
 
-			logger.NewSLogger,
+			tools.Init,
 			storage.NewSQliteDBWithMigrate,
 
 			AsRoute(dav.NewHTTPHandler),

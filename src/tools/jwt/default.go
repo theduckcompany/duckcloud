@@ -14,8 +14,8 @@ type Default struct {
 	signature string
 }
 
-func NewDefault(signature string) *Default {
-	return &Default{signature}
+func NewDefault(cfg Config) *Default {
+	return &Default{cfg.Key}
 }
 
 func (d *Default) getSignature() string {

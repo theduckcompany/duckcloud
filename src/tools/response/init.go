@@ -18,6 +18,6 @@ func (e *Error) Unwrap() error {
 }
 
 type Writer interface {
-	Write(w http.ResponseWriter, res any, statusCode int)
-	WriteError(err error, w http.ResponseWriter)
+	Write(w http.ResponseWriter, r *http.Request, res any, statusCode int)
+	WriteError(err error, w http.ResponseWriter, r *http.Request)
 }
