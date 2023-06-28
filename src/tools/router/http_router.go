@@ -6,7 +6,7 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"go.uber.org/fx"
 	"golang.org/x/exp/slog"
 )

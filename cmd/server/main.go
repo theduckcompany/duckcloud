@@ -9,6 +9,8 @@ import (
 	"github.com/Peltoche/neurone/src/tools/router"
 	"github.com/Peltoche/neurone/src/tools/storage"
 	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
+	"golang.org/x/exp/slog"
 )
 
 // AsRoute annotates the given constructor to state that
@@ -23,7 +25,7 @@ func AsRoute(f any) any {
 
 func main() {
 	fx.New(
-		// fx.WithLogger(func(log *logger.Logger) fxevent.Logger { return fxevent.NopLogger }),
+		fx.WithLogger(func(log *slog.Logger) fxevent.Logger { return logger.NewFxLogger(log) }),
 		fx.Provide(
 			NewDefaultConfig,
 
