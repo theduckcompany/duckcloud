@@ -45,7 +45,6 @@ func NewSQliteDBWithMigrate(cfg Config, logger *slog.Logger) (*sql.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create the sqlite db: %w", err)
 	}
-	fmt.Printf("db: %v\n\n", db)
 
 	return db, nil
 }
