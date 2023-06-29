@@ -13,14 +13,19 @@ type MockWriter struct {
 	mock.Mock
 }
 
-// Write provides a mock function with given fields: w, r, res, statusCode
-func (_m *MockWriter) Write(w http.ResponseWriter, r *http.Request, res interface{}, statusCode int) {
-	_m.Called(w, r, res, statusCode)
+// WriteHTML provides a mock function with given fields: w, status, template, args
+func (_m *MockWriter) WriteHTML(w http.ResponseWriter, status int, template string, args interface{}) {
+	_m.Called(w, status, template, args)
 }
 
-// WriteError provides a mock function with given fields: err, w, r
-func (_m *MockWriter) WriteError(err error, w http.ResponseWriter, r *http.Request) {
-	_m.Called(err, w, r)
+// WriteJSON provides a mock function with given fields: w, statusCode, res
+func (_m *MockWriter) WriteJSON(w http.ResponseWriter, statusCode int, res interface{}) {
+	_m.Called(w, statusCode, res)
+}
+
+// WriteJSONError provides a mock function with given fields: w, err
+func (_m *MockWriter) WriteJSONError(w http.ResponseWriter, err error) {
+	_m.Called(w, err)
 }
 
 // NewMockWriter creates a new instance of MockWriter. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

@@ -47,7 +47,7 @@ func (t *HTTPHandler) createUser(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
-		t.response.WriteError(err, w, r)
+		t.response.WriteJSONError(w, err)
 		return
 	}
 
@@ -57,11 +57,11 @@ func (t *HTTPHandler) createUser(w http.ResponseWriter, r *http.Request) {
 		Password: input.Password,
 	})
 	if err != nil {
-		t.response.WriteError(err, w, r)
+		t.response.WriteJSONError(w, err)
 		return
 	}
 
-	t.response.Write(w, r, &user, http.StatusCreated)
+	t.response.WriteJSON(w, http.StatusCreated, &user)
 }
 
 func (t *HTTPHandler) getMyUser(w http.ResponseWriter, r *http.Request) {
@@ -74,20 +74,20 @@ func (t *HTTPHandler) getMyUser(w http.ResponseWriter, r *http.Request) {
 
 	token, err := t.jwt.FetchAccessToken(r)
 	if err != nil {
-		t.response.WriteError(err, w, r)
+		t.response.WriteJSONError(w, err)
 		return
 	}
 
 	user, err := t.service.GetByID(r.Context(), token.UserID)
 	if err != nil {
-		t.response.WriteError(err, w, r)
+		t.response.WriteJSONError(w, err)
 		return
 	}
 
-	t.response.Write(w, r, &response{
+	t.response.WriteJSON(w, http.StatusOK, &response{
 		ID:        string(user.ID),
 		Username:  user.Username,
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
-	}, http.StatusOK)
+	})
 }

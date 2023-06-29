@@ -3,6 +3,7 @@ package response
 import "net/http"
 
 type Writer interface {
-	Write(w http.ResponseWriter, r *http.Request, res any, statusCode int)
-	WriteError(err error, w http.ResponseWriter, r *http.Request)
+	WriteJSON(w http.ResponseWriter, statusCode int, res any)
+	WriteJSONError(w http.ResponseWriter, err error)
+	WriteHTML(w http.ResponseWriter, status int, template string, args any)
 }

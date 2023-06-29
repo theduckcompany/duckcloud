@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Peltoche/neurone/src/service/dav"
+	"github.com/Peltoche/neurone/src/service/oauth2"
 	"github.com/Peltoche/neurone/src/service/oauthclients"
 	"github.com/Peltoche/neurone/src/service/oauthcodes"
 	"github.com/Peltoche/neurone/src/service/oauthsessions"
@@ -44,6 +45,7 @@ func main() {
 
 			AsRoute(dav.NewHTTPHandler),
 			AsRoute(users.NewHTTPHandler),
+			AsRoute(oauth2.NewHTTPHandler),
 
 			fx.Annotate(
 				router.NewChiRouter,
