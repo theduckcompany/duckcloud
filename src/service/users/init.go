@@ -12,6 +12,7 @@ import (
 type Service interface {
 	Create(ctx context.Context, user *CreateUserRequest) (*User, error)
 	GetByID(ctx context.Context, userID uuid.UUID) (*User, error)
+	Authenticate(ctx context.Context, username, password string) (*User, error)
 }
 
 func Init(tools tools.Tools, db *sql.DB) Service {

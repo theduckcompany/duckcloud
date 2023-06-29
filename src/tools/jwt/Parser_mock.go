@@ -5,6 +5,8 @@ package jwt
 import (
 	http "net/http"
 
+	generates "gopkg.in/oauth2.v3/generates"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -46,15 +48,17 @@ func (_m *MockParser) FetchAccessToken(r *http.Request, permissions ...string) (
 	return r0, r1
 }
 
-// getSignature provides a mock function with given fields:
-func (_m *MockParser) getSignature() string {
+// GenerateAccess provides a mock function with given fields:
+func (_m *MockParser) GenerateAccess() *generates.JWTAccessGenerate {
 	ret := _m.Called()
 
-	var r0 string
-	if rf, ok := ret.Get(0).(func() string); ok {
+	var r0 *generates.JWTAccessGenerate
+	if rf, ok := ret.Get(0).(func() *generates.JWTAccessGenerate); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*generates.JWTAccessGenerate)
+		}
 	}
 
 	return r0

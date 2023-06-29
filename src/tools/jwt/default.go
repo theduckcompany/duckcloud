@@ -26,10 +26,6 @@ func NewDefault(cfg Config) *Default {
 	return &Default{cfg.Key}
 }
 
-func (d *Default) getSignature() string {
-	return d.signature
-}
-
 func (d *Default) FetchAccessToken(r *http.Request, permissions ...string) (*AccessToken, error) {
 	auth := r.Header.Get("Authorization")
 	prefix := "Bearer "
@@ -66,4 +62,8 @@ func (d *Default) FetchAccessToken(r *http.Request, permissions ...string) (*Acc
 		UserID:   uuid.UUID(claims.Subject),
 		Raw:      rawToken,
 	}, nil
+}
+
+func (d *Default) GenerateAccess() *generates.JWTAccessGenerate {
+	return generates.NewJWTAccessGenerate([]byte(d.signature), jwt.SigningMethodHS512)
 }

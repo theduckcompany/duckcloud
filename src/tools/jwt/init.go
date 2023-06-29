@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Peltoche/neurone/src/tools/uuid"
+	"gopkg.in/oauth2.v3/generates"
 )
 
 type Config struct {
@@ -18,5 +19,5 @@ type AccessToken struct {
 
 type Parser interface {
 	FetchAccessToken(r *http.Request, permissions ...string) (*AccessToken, error)
-	getSignature() string
+	GenerateAccess() *generates.JWTAccessGenerate
 }
