@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/Peltoche/neurone/src/tools"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/sqlite"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -22,7 +23,7 @@ type Config struct {
 //go:embed db/migration/*.sql
 var fs embed.FS
 
-func NewSQliteDBWithMigrate(cfg Config, logger *slog.Logger) (*sql.DB, error) {
+func NewSQliteDBWithMigrate(cfg Config, tools tools.Tools) (*sql.DB, error) {
 	d, err := iofs.New(fs, "db/migration")
 	if err != nil {
 		return nil, fmt.Errorf("failed to load the migrated files: %w", err)
@@ -35,7 +36,7 @@ func NewSQliteDBWithMigrate(cfg Config, logger *slog.Logger) (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to create a migrate manager: %w", err)
 	}
 
-	m.Log = &migrateLogger{logger}
+	m.Log = &migrateLogger{tools.Logger()}
 	err = m.Up()
 	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return nil, fmt.Errorf("database migration error: %w", err)

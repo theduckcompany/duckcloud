@@ -16,12 +16,7 @@ type Default struct {
 }
 
 // New return a new Default.
-func New(log *slog.Logger) *Default {
-	render := render.New(render.Options{
-		Directory: "public/html",
-		Layout:    "layout.html",
-	})
-
+func New(log *slog.Logger, render *render.Render) *Default {
 	return &Default{log, render}
 }
 

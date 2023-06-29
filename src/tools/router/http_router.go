@@ -6,9 +6,9 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/Peltoche/neurone/src/tools"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/fx"
-	"golang.org/x/exp/slog"
 )
 
 // MuxHandler is an http.Handler that knows the mux pattern
@@ -20,15 +20,20 @@ type MuxHandler interface {
 	String() string
 }
 
-func NewServer(lc fx.Lifecycle, handler *chi.Mux, log *slog.Logger) *http.Server {
+func NewServer(lc fx.Lifecycle, handler *chi.Mux, tools tools.Tools) *http.Server {
+	logger := tools.Logger()
+
 	srv := &http.Server{Addr: ":8080", Handler: handler}
+
 	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
+		OnStart: func(_ context.Context) error {
 			ln, err := net.Listen("tcp", srv.Addr)
 			if err != nil {
 				return err
 			}
-			log.Info(fmt.Sprintf("Starting HTTP server at %s", srv.Addr))
+
+			logger.Info(fmt.Sprintf("Starting HTTP server at %s", srv.Addr))
+
 			go srv.Serve(ln)
 			return nil
 		},
