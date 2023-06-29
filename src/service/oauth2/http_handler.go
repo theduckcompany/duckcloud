@@ -29,8 +29,8 @@ const (
 	WebAppBaseURL = "http://localhost:8080"
 )
 
-// Oauth2Server handle all the oauth2 requests.
-type Oauth2Server struct {
+// HTTPHandler handle all the oauth2 requests.
+type HTTPHandler struct {
 	logger          *slog.Logger
 	uuid            uuid.Service
 	jwt             jwt.Parser
@@ -42,13 +42,13 @@ type Oauth2Server struct {
 	sessionsStorage *sync.Map
 }
 
-// NewServer setup a new Oauth2Server.
-func NewServer(
+// NewHTTPHandler setup a new Oauth2Server.
+func NewHTTPHandler(
 	tools tools.Tools,
 	users users.Service,
 	client oauthclients.Service,
 	code oauthcodes.Service,
-	session oauthsessions.Service) *Oauth2Server {
+	session oauthsessions.Service) *HTTPHandler {
 	manager := manage.NewDefaultManager()
 	manager.SetAuthorizeCodeTokenCfg(manage.DefaultAuthorizeCodeTokenCfg)
 
@@ -68,7 +68,7 @@ func NewServer(
 	}, manager)
 	srv.SetClientInfoHandler(server.ClientFormHandler)
 
-	res := &Oauth2Server{
+	res := &HTTPHandler{
 		sessionsStorage: new(sync.Map),
 		uuid:            uuid,
 		logger:          tools.Logger(),
@@ -88,14 +88,19 @@ func NewServer(
 }
 
 // Register the http endpoints into the given mux server.
-func (t *Oauth2Server) Register(r chi.Router) {
-	r.Post("/login", t.handleLoginEndpoint)
-	r.Post("/logout", t.handleLogoutEndpoint)
-	r.HandleFunc("/oauth2/token", t.handleTokenEndpoint)
-	r.HandleFunc("/oauth2/authorization", t.handleAuthorizationEndpoint)
+func (h *HTTPHandler) Register(r *chi.Mux) {
+	r.Get("/login", h.printLoginPage)
+	r.Post("/login", h.handleLoginEndpoint)
+	r.Post("/logout", h.handleLogoutEndpoint)
+	r.HandleFunc("/oauth2/token", h.handleTokenEndpoint)
+	r.HandleFunc("/oauth2/authorization", h.handleAuthorizationEndpoint)
 }
 
-func (t *Oauth2Server) userAuthorizationHandler(w http.ResponseWriter, r *http.Request) (string, error) {
+func (h *HTTPHandler) String() string {
+	return "oauth2"
+}
+
+func (h *HTTPHandler) userAuthorizationHandler(w http.ResponseWriter, r *http.Request) (string, error) {
 	if r.Form == nil {
 		err := r.ParseForm()
 		if err != nil {
@@ -114,8 +119,8 @@ func (t *Oauth2Server) userAuthorizationHandler(w http.ResponseWriter, r *http.R
 		//
 		// Create a new session with a session_id, save all the form arguments in it
 		// and redirect the user to the login with the session_id as argument
-		sessionID = string(t.uuid.New())
-		t.sessionsStorage.Store(sessionID, r.Form)
+		sessionID = string(h.uuid.New())
+		h.sessionsStorage.Store(sessionID, r.Form)
 	}
 
 	q := url.Values{}
@@ -128,23 +133,27 @@ func (t *Oauth2Server) userAuthorizationHandler(w http.ResponseWriter, r *http.R
 	return "", nil
 }
 
-func (t *Oauth2Server) handleLogoutEndpoint(w http.ResponseWriter, r *http.Request) {
-	token, err := t.jwt.FetchAccessToken(r)
+func (h *HTTPHandler) handleLogoutEndpoint(w http.ResponseWriter, r *http.Request) {
+	token, err := h.jwt.FetchAccessToken(r)
 	if err != nil {
-		t.response.WriteError(err, w, r)
+		h.response.WriteJSONError(w, err)
 		return
 	}
 
-	err = t.session.RemoveByAccessToken(r.Context(), token.Raw)
+	err = h.session.RemoveByAccessToken(r.Context(), token.Raw)
 	if err != nil {
-		t.response.WriteError(err, w, r)
+		h.response.WriteJSONError(w, err)
 		return
 	}
 
-	t.response.Write(w, r, nil, http.StatusOK)
+	h.response.WriteJSON(w, http.StatusOK, nil)
 }
 
-func (t *Oauth2Server) handleLoginEndpoint(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPHandler) printLoginPage(w http.ResponseWriter, r *http.Request) {
+	h.response.WriteHTML(w, http.StatusOK, "login.html", nil)
+}
+
+func (h *HTTPHandler) handleLoginEndpoint(w http.ResponseWriter, r *http.Request) {
 	type req struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -158,19 +167,19 @@ func (t *Oauth2Server) handleLoginEndpoint(w http.ResponseWriter, r *http.Reques
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
-		t.response.WriteError(err, w, r)
+		h.response.WriteJSONError(w, err)
 		return
 	}
 
-	user, err := t.users.Authenticate(r.Context(), input.Username, input.Password)
+	user, err := h.users.Authenticate(r.Context(), input.Username, input.Password)
 	if err != nil {
-		t.response.WriteError(err, w, r)
+		h.response.WriteJSONError(w, err)
 		return
 	}
 
 	err = r.ParseForm()
 	if err != nil {
-		t.response.WriteError(errs.BadRequest(err, "invalid form url"), w, r)
+		h.response.WriteJSONError(w, errs.BadRequest(err, "invalid form url"))
 		return
 	}
 
@@ -183,13 +192,13 @@ func (t *Oauth2Server) handleLoginEndpoint(w http.ResponseWriter, r *http.Reques
 		// In that case we assume that the user want to connect to the web app and so we
 		// will create the session with the correct client.
 
-		client, err := t.client.GetByID(r.Context(), oauthclients.WebAppClientID)
+		client, err := h.client.GetByID(r.Context(), oauthclients.WebAppClientID)
 		if err != nil {
-			t.response.WriteError(err, w, r)
+			h.response.WriteJSONError(w, err)
 			return
 		}
 
-		sessionID = string(t.uuid.New())
+		sessionID = string(h.uuid.New())
 		form := url.Values{}
 		form.Add("client_id", string(client.ID))
 		form.Add("response_type", "code")
@@ -198,30 +207,30 @@ func (t *Oauth2Server) handleLoginEndpoint(w http.ResponseWriter, r *http.Reques
 		form.Add("session_id", sessionID)
 		form.Add("scope", client.Scopes.String())
 
-		t.sessionsStorage.Store(sessionID, form)
+		h.sessionsStorage.Store(sessionID, form)
 	} else {
-		res, ok := t.sessionsStorage.Load(sessionID)
+		res, ok := h.sessionsStorage.Load(sessionID)
 		if !ok {
 			w.WriteHeader(http.StatusConflict)
 			return
 		}
 		form := res.(url.Values)
 		form.Add("user_id", string(user.ID))
-		t.sessionsStorage.Store(sessionID, form)
+		h.sessionsStorage.Store(sessionID, form)
 
 	}
 
-	t.response.Write(w, r, &res{sessionID}, http.StatusOK)
+	h.response.WriteJSON(w, http.StatusOK, &res{sessionID})
 }
 
-func (t *Oauth2Server) handleTokenEndpoint(w http.ResponseWriter, r *http.Request) {
-	err := t.srv.HandleTokenRequest(w, r)
+func (h *HTTPHandler) handleTokenEndpoint(w http.ResponseWriter, r *http.Request) {
+	err := h.srv.HandleTokenRequest(w, r)
 	if err != nil {
-		t.logger.Error("OAUTH2 token failure: %s", err)
+		h.logger.Error("OAUTH2 token failure: %s", err)
 	}
 }
 
-func (t *Oauth2Server) handleAuthorizationEndpoint(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPHandler) handleAuthorizationEndpoint(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, errors.ErrInvalidRequest.Error(), http.StatusBadRequest)
@@ -234,7 +243,7 @@ func (t *Oauth2Server) handleAuthorizationEndpoint(w http.ResponseWriter, r *htt
 		// login page or directy by the login handler if the connexion page have been directly called.
 		// In that case the login handler have assume that the client is the web app have a automatically
 		// created a session for it.
-		form, ok := t.sessionsStorage.Load(sessionID)
+		form, ok := h.sessionsStorage.Load(sessionID)
 		if !ok {
 			http.Error(w, errors.ErrInvalidRequest.Error(), http.StatusBadRequest)
 			return
@@ -242,18 +251,18 @@ func (t *Oauth2Server) handleAuthorizationEndpoint(w http.ResponseWriter, r *htt
 		r.Form = form.(url.Values)
 	}
 
-	err = t.srv.HandleAuthorizeRequest(w, r)
+	err = h.srv.HandleAuthorizeRequest(w, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
 
-func (t *Oauth2Server) responseErrorHandler(res *errors.Response) {
-	t.logger.Error("OAUTH2 response error: %s: %s", res.Error, res.Description)
+func (h *HTTPHandler) responseErrorHandler(res *errors.Response) {
+	h.logger.Error("OAUTH2 response error: %s: %s", res.Error, res.Description)
 }
 
-func (t *Oauth2Server) errorHandler(err error) *errors.Response {
-	t.logger.Error("Internal Error: %s", err)
+func (h *HTTPHandler) errorHandler(err error) *errors.Response {
+	h.logger.Error("Internal Error: %s", err)
 	return errors.NewResponse(fmt.Errorf("internal error"), http.StatusInternalServerError)
 }
 
@@ -261,6 +270,6 @@ type debugLogger struct {
 	logger *slog.Logger
 }
 
-func (t *debugLogger) Printf(format string, v ...interface{}) {
-	t.logger.Debug(format, v...)
+func (l *debugLogger) Printf(format string, v ...interface{}) {
+	l.logger.Debug(format, v...)
 }

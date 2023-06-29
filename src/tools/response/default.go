@@ -1,54 +1,57 @@
 package response
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 
 	"github.com/Peltoche/neurone/src/tools/errs"
+	"github.com/unrolled/render"
 	"golang.org/x/exp/slog"
 )
 
 // Default is used to write the response into an http.ResponseWriter and log the error.
 type Default struct {
-	log *slog.Logger
+	log    *slog.Logger
+	render *render.Render
 }
 
 // New return a new Default.
 func New(log *slog.Logger) *Default {
-	return &Default{log}
+	render := render.New(render.Options{
+		Directory: "public/html",
+		Layout:    "layout.html",
+	})
+
+	return &Default{log, render}
 }
 
 // Write the given res as a json body and statusCode.
-func (t *Default) Write(w http.ResponseWriter, r *http.Request, res any, statusCode int) {
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
+func (t *Default) WriteJSON(w http.ResponseWriter, statusCode int, res any) {
+	if err, ok := res.(error); ok {
+		t.WriteJSONError(w, err)
+		return
+	}
 
-	if res != nil {
-		_ = json.NewEncoder(w).Encode(res)
-		t.log.WithGroup("http").ErrorCtx(
-			r.Context(),
-			"",
-			slog.Int("status", statusCode),
-		)
+	if err := t.render.JSON(w, statusCode, res); err != nil {
+		t.log.Error("failed to render a json response", slog.String("error", err.Error()))
 	}
 }
 
-// WriteError write the given error into the ResponseWriter.
-func (t *Default) WriteError(err error, w http.ResponseWriter, r *http.Request) {
+// WriteJSONError write the given error into the ResponseWriter.
+func (t *Default) WriteJSONError(w http.ResponseWriter, err error) {
 	var ierr *errs.Error
 
 	if !errors.As(err, &ierr) {
 		ierr = errs.Unhandled(err).(*errs.Error)
 	}
 
-	w.WriteHeader(ierr.Code())
-	_ = json.NewEncoder(w).Encode(ierr)
+	if rerr := t.render.JSON(w, ierr.Code(), ierr); rerr != nil {
+		t.log.Error("failed to render a json response error", slog.String("error", err.Error()))
+	}
+}
 
-	t.log.WithGroup("http").ErrorCtx(
-		r.Context(),
-		"",
-		slog.Int("status", ierr.Code()),
-		slog.String("error", ierr.Error()),
-	)
+func (t *Default) WriteHTML(w http.ResponseWriter, status int, template string, args any) {
+	if err := t.render.HTML(w, status, template, args); err != nil {
+		t.log.Error("failed to render a json response", slog.String("error", err.Error()))
+	}
 }

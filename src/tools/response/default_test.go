@@ -15,11 +15,10 @@ import (
 func TestWriteError(t *testing.T) {
 	resWriter := New(logger.NewNoop())
 
-	req := httptest.NewRequest("GET", "http://example.com/foo", nil)
 	w := httptest.NewRecorder()
 
 	err := errs.BadRequest(errors.New("some detailed error"), "invalid stuff")
-	resWriter.WriteError(err, w, req)
+	resWriter.WriteJSONError(w, err)
 
 	res := w.Result()
 	body, _ := io.ReadAll(res.Body)
@@ -32,11 +31,10 @@ func TestWriteError(t *testing.T) {
 func TestWriteUnhandledError(t *testing.T) {
 	resWriter := New(logger.NewNoop())
 
-	req := httptest.NewRequest("GET", "http://example.com/foo", nil)
 	w := httptest.NewRecorder()
 
 	err := errors.New("some unknown error")
-	resWriter.WriteError(err, w, req)
+	resWriter.WriteJSONError(w, err)
 
 	res := w.Result()
 	body, _ := io.ReadAll(res.Body)
