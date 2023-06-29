@@ -13,14 +13,19 @@ func main() {
 	cfg := server.NewDefaultConfig()
 
 	var debug bool
+	var dev bool
 
-	flag.BoolVar(&cfg.Dev, "dev", false, "Run in dev mode and make json prettier")
+	flag.BoolVar(&dev, "dev", false, "Run in dev mode and make json prettier")
 	flag.BoolVar(&debug, "debug", false, "Force the debug level")
 
 	flag.Parse()
 
+	if dev {
+		cfg.Tools.Response.PrettyRender = true
+	}
+
 	if debug {
-		cfg.Log.Level = slog.LevelDebug
+		cfg.Tools.Log.Level = slog.LevelDebug
 	}
 
 	err := server.Start(cfg)

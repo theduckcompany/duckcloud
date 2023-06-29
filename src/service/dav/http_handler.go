@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Peltoche/neurone/src/service/dav/internal"
+	"github.com/Peltoche/neurone/src/tools"
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/exp/slog"
 	"golang.org/x/net/webdav"
@@ -16,8 +17,8 @@ type HTTPHandler struct {
 }
 
 // NewHTTPHandler builds a new EchoHandler.
-func NewHTTPHandler(log *slog.Logger) *HTTPHandler {
-	return &HTTPHandler{log}
+func NewHTTPHandler(tools tools.Tools) *HTTPHandler {
+	return &HTTPHandler{log: tools.Logger()}
 }
 
 func (h *HTTPHandler) Register(r *chi.Mux) {

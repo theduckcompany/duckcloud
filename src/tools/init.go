@@ -16,13 +16,3 @@ type Tools interface {
 	ResWriter() response.Writer
 	JWT() jwt.Parser
 }
-
-func Init(jwtCfg jwt.Config, log *slog.Logger) Tools {
-	return &Default{
-		clock:     clock.NewDefault(),
-		uuid:      uuid.NewProvider(),
-		log:       log,
-		resWriter: response.New(log),
-		jwt:       jwt.NewDefault(jwtCfg),
-	}
-}
