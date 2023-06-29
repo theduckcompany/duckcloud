@@ -22,6 +22,7 @@ func main() {
 
 	if dev {
 		cfg.Tools.Response.PrettyRender = true
+		cfg.Tools.Response.HotReload = true
 	}
 
 	if debug {

@@ -9,6 +9,7 @@ import (
 
 type Config struct {
 	PrettyRender bool `mapstructure:"prettyRender"`
+	HotReload    bool `mapstructure:"hotReload"`
 }
 
 type Writer interface {
@@ -19,8 +20,9 @@ type Writer interface {
 
 func Init(cfg Config, log *slog.Logger) Writer {
 	opts := render.Options{
-		Directory: "public/html",
-		Layout:    "layout.html",
+		Directory:     "assets/html",
+		Layout:        "layout.html",
+		IsDevelopment: cfg.HotReload,
 	}
 
 	if cfg.PrettyRender {
