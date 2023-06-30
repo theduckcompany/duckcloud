@@ -1,19 +1,18 @@
-
-    <div class="container">
-        <h1>Login In</h1>
-        <form action="/login" method="POST">
-            <div class="mb-3">
-                <label for="username" class="form-label">User Name</label>
-                <input type="text" value="{{ .inputs.username }}" class="form-control {{ if .errors.username }}is-invalid{{ end }}" name="username" required 
-                placeholder="Please enter your user name" aria-describedby="validationUsername">
-                <div id="validationUsername", class="invalid-feedback">{{ .errors.username }}</div>
-            </div>
-            <div class="mb-3">
-                <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control {{ if .errors.password }}is-invalid{{ end }}" name="password" placeholder="Please enter your password" 
-                aria-describedby="validationPassword" required>
-                <div id="validationPassword", class="invalid-feedback">{{ .errors.password }}</div>
-            </div>
-            <button type="submit" class="btn btn-primary">Login</button>
-        </form>
-    </div>
+<div class="container">
+    <h1>Login In</h1>
+    <form action="/auth/login" method="POST">
+        <div class="mb-3">
+            <label for="username" class="form-label">User Name</label>
+            <input type="text" value="{{ .inputs.username }}" class="form-control {{ if .errors.username }}is-invalid{{ end }}" name="username" required 
+            placeholder="Please enter your user name" aria-describedby="validationUsername">
+            <div id="validationUsername", class="invalid-feedback">{{ .errors.username }}</div>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control {{ if .errors.password }}is-invalid{{ end }}" name="password" placeholder="Please enter your password" 
+            aria-describedby="validationPassword" required>
+            <div id="validationPassword", class="invalid-feedback">{{ .errors.password }}</div>
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+</div>
