@@ -11,9 +11,10 @@ import (
 )
 
 var (
-	ErrAlreadyExists       = fmt.Errorf("user already exists")
-	ErrUsernameTaken       = fmt.Errorf("username taken")
-	ErrInvalidUserPassword = fmt.Errorf("invalid pair user/password")
+	ErrAlreadyExists   = fmt.Errorf("user already exists")
+	ErrUsernameTaken   = fmt.Errorf("username taken")
+	ErrInvalidUsername = fmt.Errorf("invalid username")
+	ErrInvalidPassword = fmt.Errorf("invalid password")
 )
 
 // Storage encapsulates the logic to access user from the data source.
@@ -84,8 +85,12 @@ func (t *UserService) Authenticate(ctx context.Context, username, password strin
 		return nil, fmt.Errorf("failed to retrieve the user by its username: %w", err)
 	}
 
-	if user == nil || user.password != password {
-		return nil, ErrInvalidUserPassword
+	if user == nil {
+		return nil, ErrInvalidUsername
+	}
+
+	if user.password != password {
+		return nil, ErrInvalidPassword
 	}
 
 	return user, nil

@@ -36,6 +36,8 @@ func (t *Default) WriteJSON(w http.ResponseWriter, statusCode int, res any) {
 func (t *Default) WriteJSONError(w http.ResponseWriter, err error) {
 	var ierr *errs.Error
 
+	t.log.Error("request failed", slog.String("error", err.Error()))
+
 	if !errors.As(err, &ierr) {
 		ierr = errs.Unhandled(err).(*errs.Error)
 	}
