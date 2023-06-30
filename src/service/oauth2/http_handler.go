@@ -1,7 +1,7 @@
 package oauth2
 
 import (
-	"encoding/json"
+	stderrors "errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -90,10 +90,13 @@ func NewHTTPHandler(
 // Register the http endpoints into the given mux server.
 func (h *HTTPHandler) Register(r *chi.Mux) {
 	r.Get("/login", h.printLoginPage)
-	r.Post("/login", h.handleLoginEndpoint)
+	r.Post("/login", h.handleLoginForm)
+
+	r.Get("/permissions", h.printPermissionsPage)
+
 	r.Post("/logout", h.handleLogoutEndpoint)
-	r.HandleFunc("/oauth2/token", h.handleTokenEndpoint)
 	r.HandleFunc("/oauth2/authorization", h.handleAuthorizationEndpoint)
+	r.HandleFunc("/oauth2/token", h.handleTokenEndpoint)
 }
 
 func (h *HTTPHandler) String() string {
@@ -149,37 +152,49 @@ func (h *HTTPHandler) handleLogoutEndpoint(w http.ResponseWriter, r *http.Reques
 	h.response.WriteJSON(w, http.StatusOK, nil)
 }
 
-func (h *HTTPHandler) printLoginPage(w http.ResponseWriter, r *http.Request) {
-	h.response.WriteHTML(w, http.StatusOK, "login.html", nil)
+func (h *HTTPHandler) printPermissionsPage(w http.ResponseWriter, r *http.Request) {
+	h.response.WriteHTML(w, http.StatusOK, "auth/permissions.html", nil)
 }
 
-func (h *HTTPHandler) handleLoginEndpoint(w http.ResponseWriter, r *http.Request) {
-	type req struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
+func (h *HTTPHandler) printLoginPage(w http.ResponseWriter, r *http.Request) {
+	h.response.WriteHTML(w, http.StatusOK, "auth/login.html", nil)
+}
 
-	type res struct {
-		SessionID string `json:"sessionID"`
-	}
-
-	var input req
-
-	err := json.NewDecoder(r.Body).Decode(&input)
-	if err != nil {
-		h.response.WriteJSONError(w, err)
-		return
-	}
-
-	user, err := h.users.Authenticate(r.Context(), input.Username, input.Password)
-	if err != nil {
-		h.response.WriteJSONError(w, err)
-		return
-	}
-
-	err = r.ParseForm()
+func (h *HTTPHandler) handleLoginForm(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
 	if err != nil {
 		h.response.WriteJSONError(w, errs.BadRequest(err, "invalid form url"))
+		return
+	}
+
+	inputs := map[string]string{}
+	loginErrors := map[string]string{}
+
+	inputs["username"] = r.Form.Get("username")
+
+	user, err := h.users.Authenticate(r.Context(), r.Form.Get("username"), r.Form.Get("password"))
+	var status int
+	switch {
+	case err == nil:
+		// continue
+	case stderrors.Is(err, users.ErrInvalidUsername):
+		loginErrors["username"] = "User doesn't exists"
+		status = http.StatusBadRequest
+	case stderrors.Is(err, users.ErrInvalidPassword):
+		loginErrors["password"] = "Invalid password"
+		status = http.StatusBadRequest
+	default:
+		loginErrors["notif"] = "Unexpected error"
+		status = http.StatusBadRequest
+	}
+
+	fmt.Printf("errs: %+v\n\n", loginErrors)
+
+	if len(loginErrors) > 0 {
+		h.response.WriteHTML(w, status, "auth/login.html", map[string]interface{}{
+			"inputs": inputs,
+			"errors": loginErrors,
+		})
 		return
 	}
 
@@ -220,7 +235,8 @@ func (h *HTTPHandler) handleLoginEndpoint(w http.ResponseWriter, r *http.Request
 
 	}
 
-	h.response.WriteJSON(w, http.StatusOK, &res{sessionID})
+	w.Header().Set("Locaction", "/auth")
+	w.WriteHeader(http.StatusFound)
 }
 
 func (h *HTTPHandler) handleTokenEndpoint(w http.ResponseWriter, r *http.Request) {

@@ -1,7 +1,10 @@
 package response
 
 import (
+	"fmt"
 	"net/http"
+	"os"
+	"path"
 
 	"github.com/unrolled/render"
 	"golang.org/x/exp/slog"
@@ -19,8 +22,13 @@ type Writer interface {
 }
 
 func Init(cfg Config, log *slog.Logger) Writer {
+	dir, err := os.Getwd()
+	if err != nil {
+		panic(fmt.Sprintf("failed to fetch the curent workind dir: %s", err))
+	}
+
 	opts := render.Options{
-		Directory:     "assets/html",
+		Directory:     path.Join(dir, "templates/html"),
 		Layout:        "layout.html",
 		IsDevelopment: cfg.HotReload,
 	}
