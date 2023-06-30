@@ -89,18 +89,16 @@ func NewHTTPHandler(
 
 // Register the http endpoints into the given mux server.
 func (h *HTTPHandler) Register(r *chi.Mux) {
-	r.Get("/login", h.printLoginPage)
-	r.Post("/login", h.handleLoginForm)
-
-	r.Get("/permissions", h.printPermissionsPage)
-
-	r.Post("/logout", h.handleLogoutEndpoint)
-	r.HandleFunc("/oauth2/authorization", h.handleAuthorizationEndpoint)
-	r.HandleFunc("/oauth2/token", h.handleTokenEndpoint)
+	r.Get("/auth/login", h.printLoginPage)
+	r.Post("/auth/login", h.handleLoginForm)
+	r.Get("/auth/permissions", h.printAuthorizePage)
+	r.Post("/auth/logout", h.handleLogoutEndpoint)
+	r.HandleFunc("/auth/authorize", h.handleAuthorizationEndpoint)
+	r.HandleFunc("/auth/token", h.handleTokenEndpoint)
 }
 
 func (h *HTTPHandler) String() string {
-	return "oauth2"
+	return "auth"
 }
 
 func (h *HTTPHandler) userAuthorizationHandler(w http.ResponseWriter, r *http.Request) (string, error) {
@@ -152,8 +150,8 @@ func (h *HTTPHandler) handleLogoutEndpoint(w http.ResponseWriter, r *http.Reques
 	h.response.WriteJSON(w, http.StatusOK, nil)
 }
 
-func (h *HTTPHandler) printPermissionsPage(w http.ResponseWriter, r *http.Request) {
-	h.response.WriteHTML(w, http.StatusOK, "auth/permissions.html", nil)
+func (h *HTTPHandler) printAuthorizePage(w http.ResponseWriter, r *http.Request) {
+	h.response.WriteHTML(w, http.StatusOK, "auth/authorize.html", nil)
 }
 
 func (h *HTTPHandler) printLoginPage(w http.ResponseWriter, r *http.Request) {
@@ -201,7 +199,7 @@ func (h *HTTPHandler) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 	sessionID := r.Form.Get("session_id")
 	if sessionID == "" {
 		// There is not session created yet. This append when a user land directly on
-		// /login page without calling the /oauth2/redirect first (which would have
+		// /login page without calling the /auth/redirect first (which would have
 		// redirect him to the /login page).
 		//
 		// In that case we assume that the user want to connect to the web app and so we
@@ -235,7 +233,7 @@ func (h *HTTPHandler) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	w.Header().Set("Locaction", "/auth")
+	w.Header().Set("Location", "/auth/permissions")
 	w.WriteHeader(http.StatusFound)
 }
 
