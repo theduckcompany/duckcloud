@@ -10,13 +10,13 @@ import (
 )
 
 const (
-	WebAppClientID            = uuid.UUID("940de227-0cfc-4d77-9d99-d9b74fc635f8")
-	WebAppClientSecret string = "6e1302fb-c68c-4240-8ad1-b84b26e96723"
+	WebAppClientID     = "neurone-web-ui"
+	WebAppClientSecret = "6e1302fb-c68c-4240-8ad1-b84b26e96723"
 )
 
 type Storage interface {
 	Save(ctx context.Context, client *Client) error
-	GetByID(ctx context.Context, id uuid.UUID) (*Client, error)
+	GetByID(ctx context.Context, id string) (*Client, error)
 }
 
 type OauthClientService struct {
@@ -57,8 +57,8 @@ func (t *OauthClientService) BootstrapWebApp(ctx context.Context) error {
 	return nil
 }
 
-func (t *OauthClientService) GetByID(ctx context.Context, uuid uuid.UUID) (*Client, error) {
-	client, err := t.storage.GetByID(ctx, uuid)
+func (t *OauthClientService) GetByID(ctx context.Context, clientID string) (*Client, error) {
+	client, err := t.storage.GetByID(ctx, clientID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get by ID: %w", err)
 	}

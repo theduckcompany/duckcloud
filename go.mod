@@ -8,6 +8,7 @@ require (
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
+	github.com/go-session/session v3.1.2+incompatible
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/google/uuid v1.3.0
 	github.com/mattn/go-sqlite3 v1.14.17

@@ -5,7 +5,6 @@ package oauthclients
 import (
 	context "context"
 
-	uuid "github.com/Peltoche/neurone/src/tools/uuid"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -28,25 +27,25 @@ func (_m *MockService) BootstrapWebApp(ctx context.Context) error {
 	return r0
 }
 
-// GetByID provides a mock function with given fields: ctx, _a1
-func (_m *MockService) GetByID(ctx context.Context, _a1 uuid.UUID) (*Client, error) {
-	ret := _m.Called(ctx, _a1)
+// GetByID provides a mock function with given fields: ctx, clientID
+func (_m *MockService) GetByID(ctx context.Context, clientID string) (*Client, error) {
+	ret := _m.Called(ctx, clientID)
 
 	var r0 *Client
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (*Client, error)); ok {
-		return rf(ctx, _a1)
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*Client, error)); ok {
+		return rf(ctx, clientID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) *Client); ok {
-		r0 = rf(ctx, _a1)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *Client); ok {
+		r0 = rf(ctx, clientID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*Client)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
-		r1 = rf(ctx, _a1)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, clientID)
 	} else {
 		r1 = ret.Error(1)
 	}

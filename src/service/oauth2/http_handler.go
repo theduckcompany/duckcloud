@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"sync"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-session/session"
 	"golang.org/x/exp/slog"
 	"gopkg.in/oauth2.v3"
 	"gopkg.in/oauth2.v3/errors"
@@ -31,15 +32,14 @@ const (
 
 // HTTPHandler handle all the oauth2 requests.
 type HTTPHandler struct {
-	logger          *slog.Logger
-	uuid            uuid.Service
-	jwt             jwt.Parser
-	users           users.Service
-	client          oauthclients.Service
-	response        response.Writer
-	srv             *server.Server
-	session         oauthsessions.Service
-	sessionsStorage *sync.Map
+	logger   *slog.Logger
+	uuid     uuid.Service
+	jwt      jwt.Parser
+	users    users.Service
+	client   oauthclients.Service
+	response response.Writer
+	srv      *server.Server
+	session  oauthsessions.Service
 }
 
 // NewHTTPHandler setup a new Oauth2Server.
@@ -55,7 +55,7 @@ func NewHTTPHandler(
 	uuid := tools.UUID()
 
 	manager.MapTokenStorage(&tokenStorage{uuid, code, session})
-	manager.MapClientStorage(&clientStorage{uuid: tools.UUID(), client: client})
+	manager.MapClientStorage(&clientStorage{client: client})
 	manager.MapAccessGenerate(tools.JWT().GenerateAccess())
 
 	srv := server.NewServer(&server.Config{
@@ -69,15 +69,14 @@ func NewHTTPHandler(
 	srv.SetClientInfoHandler(server.ClientFormHandler)
 
 	res := &HTTPHandler{
-		sessionsStorage: new(sync.Map),
-		uuid:            uuid,
-		logger:          tools.Logger(),
-		response:        tools.ResWriter(),
-		jwt:             tools.JWT(),
-		users:           users,
-		client:          client,
-		srv:             srv,
-		session:         session,
+		uuid:     uuid,
+		logger:   tools.Logger(),
+		response: tools.ResWriter(),
+		jwt:      tools.JWT(),
+		users:    users,
+		client:   client,
+		srv:      srv,
+		session:  session,
 	}
 
 	srv.SetInternalErrorHandler(res.errorHandler)
@@ -91,7 +90,7 @@ func NewHTTPHandler(
 func (h *HTTPHandler) Register(r *chi.Mux) {
 	r.Get("/auth/login", h.printLoginPage)
 	r.Post("/auth/login", h.handleLoginForm)
-	r.Get("/auth/permissions", h.printAuthorizePage)
+	r.Get("/auth/permissions", h.printPermissionsPage)
 	r.Post("/auth/logout", h.handleLogoutEndpoint)
 	r.HandleFunc("/auth/authorize", h.handleAuthorizationEndpoint)
 	r.HandleFunc("/auth/token", h.handleTokenEndpoint)
@@ -102,36 +101,32 @@ func (h *HTTPHandler) String() string {
 }
 
 func (h *HTTPHandler) userAuthorizationHandler(w http.ResponseWriter, r *http.Request) (string, error) {
-	if r.Form == nil {
-		err := r.ParseForm()
-		if err != nil {
-			return "", errors.ErrInvalidRequest
-		}
+	store, err := session.Start(r.Context(), w, r)
+	if err != nil {
+		return "", err
 	}
 
-	if userID := r.Form.Get("user_id"); userID != "" {
-		// A session exists and the user have been setup after a successful connexion.
-		return userID, nil
-	}
-
-	sessionID := r.Form.Get("session_id")
-	if sessionID == "" {
+	userID, ok := store.Get("LoggedInUserID")
+	if !ok {
 		// There is no session_id so it's the first call to the authorization handler.
 		//
 		// Create a new session with a session_id, save all the form arguments in it
 		// and redirect the user to the login with the session_id as argument
-		sessionID = string(h.uuid.New())
-		h.sessionsStorage.Store(sessionID, r.Form)
+		if r.Form == nil {
+			r.ParseForm()
+		}
+
+		store.Set("ReturnUri", r.Form)
+		store.Save()
+
+		w.Header().Set("Location", "/auth/login")
+		w.WriteHeader(http.StatusFound)
+		fmt.Printf("user auth first call: %+v\n", r.Form)
+		return "", nil
 	}
 
-	q := url.Values{}
-	u, _ := url.Parse(WebAppBaseURL + "/login")
-	q.Add("session_id", string(sessionID))
-	u.RawQuery = q.Encode()
-
-	w.Header().Set("Location", u.String())
-	w.WriteHeader(http.StatusFound)
-	return "", nil
+	fmt.Printf("foobar %q\n\n\n", string(userID.(uuid.UUID)))
+	return string(userID.(uuid.UUID)), nil
 }
 
 func (h *HTTPHandler) handleLogoutEndpoint(w http.ResponseWriter, r *http.Request) {
@@ -150,8 +145,40 @@ func (h *HTTPHandler) handleLogoutEndpoint(w http.ResponseWriter, r *http.Reques
 	h.response.WriteJSON(w, http.StatusOK, nil)
 }
 
-func (h *HTTPHandler) printAuthorizePage(w http.ResponseWriter, r *http.Request) {
-	h.response.WriteHTML(w, http.StatusOK, "auth/authorize.html", nil)
+func (h *HTTPHandler) printPermissionsPage(w http.ResponseWriter, r *http.Request) {
+	store, err := session.Start(r.Context(), w, r)
+	if err != nil {
+		h.response.WriteJSONError(w, err)
+		return
+	}
+
+	session, ok := store.Get("ReturnUri")
+	if !ok {
+		// This is not session created yet. This append whan a user land directy on
+		// the /auth/permissions without calling /auth/login first.
+		w.Header().Set("Location", "/auth/login")
+		w.WriteHeader(http.StatusFound)
+		return
+	}
+
+	form := session.(url.Values)
+
+	userID, ok := store.Get("LoggedInUserID")
+	if !ok {
+		h.response.WriteJSON(w, http.StatusBadRequest, stderrors.New("user not authenticated"))
+		return
+	}
+
+	user, err := h.users.GetByID(r.Context(), userID.(uuid.UUID))
+	if err != nil || user == nil {
+		h.response.WriteJSON(w, http.StatusBadRequest, fmt.Errorf("failed to find the user %q: %w", userID, err))
+		return
+	}
+
+	h.response.WriteHTML(w, http.StatusOK, "auth/permissions.html", map[string]interface{}{
+		"username": user.Username,
+		"scope":    strings.Split(form.Get("scope"), ","),
+	})
 }
 
 func (h *HTTPHandler) printLoginPage(w http.ResponseWriter, r *http.Request) {
@@ -186,8 +213,6 @@ func (h *HTTPHandler) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 		status = http.StatusBadRequest
 	}
 
-	fmt.Printf("errs: %+v\n\n", loginErrors)
-
 	if len(loginErrors) > 0 {
 		h.response.WriteHTML(w, status, "auth/login.html", map[string]interface{}{
 			"inputs": inputs,
@@ -196,41 +221,50 @@ func (h *HTTPHandler) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionID := r.Form.Get("session_id")
-	if sessionID == "" {
+	store, err := session.Start(r.Context(), w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	store.Set("LoggedInUserID", user.ID)
+	store.Save()
+
+	_, ok := store.Get("ReturnUri")
+	if !ok {
 		// There is not session created yet. This append when a user land directly on
-		// /login page without calling the /auth/redirect first (which would have
+		// /auth/login page without calling the /auth/authorize first (which would have
 		// redirect him to the /login page).
 		//
 		// In that case we assume that the user want to connect to the web app and so we
 		// will create the session with the correct client.
-
 		client, err := h.client.GetByID(r.Context(), oauthclients.WebAppClientID)
 		if err != nil {
 			h.response.WriteJSONError(w, err)
 			return
 		}
 
-		sessionID = string(h.uuid.New())
+		if client == nil {
+			h.response.WriteJSONError(w, err)
+			return
+		}
+
+		sessionID := string(h.uuid.New())
 		form := url.Values{}
 		form.Add("client_id", string(client.ID))
 		form.Add("response_type", "code")
-		form.Add("redirect_uri", client.RedirectURI)
+		// form.Add("redirect_uri", client.RedirectURI)
 		form.Add("user_id", string(user.ID))
 		form.Add("session_id", sessionID)
 		form.Add("scope", client.Scopes.String())
+		form.Add("state", string(h.uuid.New()))
 
-		h.sessionsStorage.Store(sessionID, form)
-	} else {
-		res, ok := h.sessionsStorage.Load(sessionID)
-		if !ok {
-			w.WriteHeader(http.StatusConflict)
-			return
-		}
-		form := res.(url.Values)
-		form.Add("user_id", string(user.ID))
-		h.sessionsStorage.Store(sessionID, form)
+		r.Form = form
 
+		fmt.Printf("create a new web form: %+v\n", r.Form)
+		store.Set("ReturnUri", r.Form)
+
+		store.Save()
 	}
 
 	w.Header().Set("Location", "/auth/permissions")
@@ -245,25 +279,24 @@ func (h *HTTPHandler) handleTokenEndpoint(w http.ResponseWriter, r *http.Request
 }
 
 func (h *HTTPHandler) handleAuthorizationEndpoint(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
+	store, err := session.Start(r.Context(), w, r)
 	if err != nil {
-		http.Error(w, errors.ErrInvalidRequest.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if sessionID := r.Form.Get("session_id"); sessionID != "" {
-		// A session_id is found. This means that a session already exists. This session have
-		// been created by a first call to the authorization handler which have redirected to the
-		// login page or directy by the login handler if the connexion page have been directly called.
-		// In that case the login handler have assume that the client is the web app have a automatically
-		// created a session for it.
-		form, ok := h.sessionsStorage.Load(sessionID)
-		if !ok {
-			http.Error(w, errors.ErrInvalidRequest.Error(), http.StatusBadRequest)
-			return
-		}
-		r.Form = form.(url.Values)
+	session, ok := store.Get("ReturnUri")
+	if ok {
+		r.Form = session.(url.Values)
+		store.Delete("ReturnUri")
+		store.Save()
 	}
+
+	fmt.Printf("authorize form: %+v\n", r.Form)
+
+	redirectURI := r.FormValue("redirect_uri")
+	clientID := r.FormValue("client_id")
+	fmt.Printf("red: %q / client: %q / %q\n\n", redirectURI, clientID, r.Method)
 
 	err = h.srv.HandleAuthorizeRequest(w, r)
 	if err != nil {
@@ -272,11 +305,11 @@ func (h *HTTPHandler) handleAuthorizationEndpoint(w http.ResponseWriter, r *http
 }
 
 func (h *HTTPHandler) responseErrorHandler(res *errors.Response) {
-	h.logger.Error("OAUTH2 response error: %s: %s", res.Error, res.Description)
+	h.logger.Error("OAUTH2 response error", slog.String("error", res.Error.Error()), slog.String("description", res.Description))
 }
 
 func (h *HTTPHandler) errorHandler(err error) *errors.Response {
-	h.logger.Error("Internal Error: %s", err)
+	h.logger.Error("OAUTH2 internal Error", slog.String("error", err.Error()))
 	return errors.NewResponse(fmt.Errorf("internal error"), http.StatusInternalServerError)
 }
 
