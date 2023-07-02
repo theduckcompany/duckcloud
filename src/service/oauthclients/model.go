@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	"github.com/Peltoche/neurone/src/tools/uuid"
 )
 
 // Client client model
 type Client struct {
-	ID             uuid.UUID
+	ID             string
 	Secret         string
 	RedirectURI    string
 	UserID         *string

@@ -5,16 +5,20 @@ import (
 	"database/sql"
 
 	"github.com/Peltoche/neurone/src/tools"
-	"github.com/Peltoche/neurone/src/tools/uuid"
+	"go.uber.org/fx"
 )
 
 type Service interface {
 	BootstrapWebApp(ctx context.Context) error
-	GetByID(ctx context.Context, uuid uuid.UUID) (*Client, error)
+	GetByID(ctx context.Context, clientID string) (*Client, error)
 }
 
-func Init(tools tools.Tools, db *sql.DB) Service {
+func Init(lc fx.Lifecycle, tools tools.Tools, db *sql.DB) Service {
 	storage := newSqlStorage(db)
 
-	return NewService(tools, storage)
+	svc := NewService(tools, storage)
+
+	lc.Append(fx.Hook{OnStart: svc.BootstrapWebApp})
+
+	return svc
 }

@@ -5,7 +5,6 @@ package oauthclients
 import (
 	context "context"
 
-	uuid "github.com/Peltoche/neurone/src/tools/uuid"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -15,15 +14,15 @@ type MockStorage struct {
 }
 
 // GetByID provides a mock function with given fields: ctx, id
-func (_m *MockStorage) GetByID(ctx context.Context, id uuid.UUID) (*Client, error) {
+func (_m *MockStorage) GetByID(ctx context.Context, id string) (*Client, error) {
 	ret := _m.Called(ctx, id)
 
 	var r0 *Client
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (*Client, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*Client, error)); ok {
 		return rf(ctx, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) *Client); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) *Client); ok {
 		r0 = rf(ctx, id)
 	} else {
 		if ret.Get(0) != nil {
@@ -31,7 +30,7 @@ func (_m *MockStorage) GetByID(ctx context.Context, id uuid.UUID) (*Client, erro
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
