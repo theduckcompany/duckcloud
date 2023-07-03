@@ -9,7 +9,7 @@ import (
 )
 
 type Service interface {
-	BootstrapWebApp(ctx context.Context) error
+	Create(ctx context.Context, cmd *CreateCmd) error
 	GetByID(ctx context.Context, clientID string) (*Client, error)
 }
 
@@ -18,7 +18,7 @@ func Init(lc fx.Lifecycle, tools tools.Tools, db *sql.DB) Service {
 
 	svc := NewService(tools, storage)
 
-	lc.Append(fx.Hook{OnStart: svc.BootstrapWebApp})
+	// lc.Append(fx.Hook{OnStart: svc.BootstrapWebApp})
 
 	return svc
 }

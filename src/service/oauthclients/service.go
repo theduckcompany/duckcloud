@@ -2,6 +2,7 @@ package oauthclients
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/Peltoche/neurone/src/tools"
@@ -10,8 +11,11 @@ import (
 )
 
 const (
-	WebAppClientID     = "neurone-web-ui"
-	WebAppClientSecret = "6e1302fb-c68c-4240-8ad1-b84b26e96723"
+	WebAppClientID = "neurone-web-ui"
+)
+
+var (
+	ErrClientIDTaken = errors.New("clientID already exists")
 )
 
 type Storage interface {
@@ -29,26 +33,25 @@ func NewService(app tools.Tools, storage Storage) *OauthClientService {
 	return &OauthClientService{storage, app.Clock(), app.UUID()}
 }
 
-func (t *OauthClientService) BootstrapWebApp(ctx context.Context) error {
-	res, err := t.GetByID(ctx, WebAppClientID)
+func (s *OauthClientService) Create(ctx context.Context, cmd *CreateCmd) error {
+	client, err := s.storage.GetByID(ctx, cmd.ID)
 	if err != nil {
 		return fmt.Errorf("failed to get by id: %w", err)
 	}
 
-	if res != nil {
-		// Already setup
-		return nil
+	if client != nil {
+		return ErrClientIDTaken
 	}
 
-	err = t.storage.Save(ctx, &Client{
-		ID:             WebAppClientID,
-		Secret:         WebAppClientSecret,
-		RedirectURI:    "http://localhost:9094/oauth2",
-		UserID:         nil,
-		CreatedAt:      t.clock.Now(),
-		Scopes:         Scopes{"app"},
-		Public:         true,
-		SkipValidation: true,
+	err = s.storage.Save(ctx, &Client{
+		ID:             cmd.ID,
+		Secret:         string(s.uuid.New()),
+		RedirectURI:    cmd.RedirectURI,
+		UserID:         cmd.UserID,
+		CreatedAt:      s.clock.Now(),
+		Scopes:         cmd.Scopes,
+		Public:         cmd.Public,
+		SkipValidation: cmd.SkipValidation,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to save the client: %w", err)
@@ -57,8 +60,8 @@ func (t *OauthClientService) BootstrapWebApp(ctx context.Context) error {
 	return nil
 }
 
-func (t *OauthClientService) GetByID(ctx context.Context, clientID string) (*Client, error) {
-	client, err := t.storage.GetByID(ctx, clientID)
+func (s *OauthClientService) GetByID(ctx context.Context, clientID string) (*Client, error) {
+	client, err := s.storage.GetByID(ctx, clientID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get by ID: %w", err)
 	}

@@ -3,8 +3,12 @@ package oauthclients
 import (
 	"database/sql/driver"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
+
+	v "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/is"
 )
 
 // Client client model
@@ -12,11 +16,30 @@ type Client struct {
 	ID             string
 	Secret         string
 	RedirectURI    string
-	UserID         *string
+	UserID         string
 	CreatedAt      time.Time
 	Scopes         Scopes
 	Public         bool
 	SkipValidation bool
+}
+
+type CreateCmd struct {
+	ID             string
+	RedirectURI    string
+	UserID         string
+	Scopes         Scopes
+	Public         bool
+	SkipValidation bool
+}
+
+// Validate the fields.
+func (cmd CreateCmd) Validate() error {
+	return v.ValidateStruct(&cmd,
+		v.Field(&cmd.ID, v.Length(3, 40), v.Match(regexp.MustCompile("^[0-9a-zA-Z-]+$"))),
+		v.Field(&cmd.RedirectURI, is.URL),
+		v.Field(&cmd.UserID, is.UUIDv4),
+		v.Field(&cmd.Scopes, v.Required),
+	)
 }
 
 // GetID client id
@@ -40,11 +63,7 @@ func (c *Client) IsPublic() bool {
 
 // GetUserID user id
 func (c *Client) GetUserID() string {
-	if c.UserID == nil {
-		return ""
-	}
-
-	return *c.UserID
+	return c.UserID
 }
 
 type Scopes []string
