@@ -43,11 +43,11 @@ func (t *OauthClientService) BootstrapWebApp(ctx context.Context) error {
 	err = t.storage.Save(ctx, &Client{
 		ID:             WebAppClientID,
 		Secret:         WebAppClientSecret,
-		RedirectURI:    "http://localhost:8080/oauth_callback",
+		RedirectURI:    "http://localhost:9094/oauth2",
 		UserID:         nil,
 		CreatedAt:      t.clock.Now(),
 		Scopes:         Scopes{"app"},
-		IsPublic:       true,
+		Public:         true,
 		SkipValidation: true,
 	})
 	if err != nil {

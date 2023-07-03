@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Peltoche/neurone/src/tools/uuid"
-	"gopkg.in/oauth2.v3/generates"
+	"github.com/go-oauth2/oauth2/v4/generates"
 )
 
 type Config struct {

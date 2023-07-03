@@ -35,7 +35,7 @@ func (t *sqlStorage) Save(ctx context.Context, account *Client) error {
 			account.RedirectURI,
 			account.UserID,
 			account.Scopes,
-			account.IsPublic,
+			account.Public,
 			account.SkipValidation,
 			account.CreatedAt).
 		RunWith(t.db).
@@ -67,7 +67,7 @@ func (t *sqlStorage) GetByID(ctx context.Context, id string) (*Client, error) {
 			&res.RedirectURI,
 			&res.UserID,
 			&res.Scopes,
-			&res.IsPublic,
+			&res.Public,
 			&res.SkipValidation,
 			&res.CreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {

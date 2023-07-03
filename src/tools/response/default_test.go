@@ -10,10 +10,11 @@ import (
 	"github.com/Peltoche/neurone/src/tools/errs"
 	"github.com/Peltoche/neurone/src/tools/logger"
 	"github.com/stretchr/testify/assert"
+	"github.com/unrolled/render"
 )
 
 func TestWriteError(t *testing.T) {
-	resWriter := New(logger.NewNoop())
+	resWriter := New(logger.NewNoop(), render.New())
 
 	w := httptest.NewRecorder()
 
@@ -29,7 +30,7 @@ func TestWriteError(t *testing.T) {
 }
 
 func TestWriteUnhandledError(t *testing.T) {
-	resWriter := New(logger.NewNoop())
+	resWriter := New(logger.NewNoop(), render.New())
 
 	w := httptest.NewRecorder()
 

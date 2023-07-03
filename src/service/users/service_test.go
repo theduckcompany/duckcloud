@@ -129,7 +129,7 @@ func Test_Service_Authenticate_with_invalid_username(t *testing.T) {
 	storage.On("GetByUsername", ctx, "some-username").Return(nil, nil).Once()
 
 	res, err := service.Authenticate(ctx, "some-username", "some-password")
-	assert.ErrorIs(t, err, ErrInvalidUserPassword)
+	assert.ErrorIs(t, err, ErrInvalidUsername)
 	assert.Nil(t, res)
 }
 
@@ -151,7 +151,7 @@ func Test_Service_Authenticate_with_invalid_password(t *testing.T) {
 
 	// Invalid password here
 	res, err := service.Authenticate(ctx, "some-username", "some-invalid-password")
-	assert.ErrorIs(t, err, ErrInvalidUserPassword)
+	assert.ErrorIs(t, err, ErrInvalidPassword)
 	assert.Nil(t, res)
 }
 

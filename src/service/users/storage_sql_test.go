@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Peltoche/neurone/src/tools/logger"
+	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/storage"
 	"github.com/Peltoche/neurone/src/tools/uuid"
 	"github.com/stretchr/testify/require"
@@ -25,6 +25,7 @@ func TestUserSqlStorageSuite(t *testing.T) {
 
 func (suite *SqlStorageTestSuite) SetupSuite() {
 	t := suite.T()
+	tools := tools.NewMock(t)
 
 	suite.nowData = time.Now().UTC()
 
@@ -36,7 +37,7 @@ func (suite *SqlStorageTestSuite) SetupSuite() {
 		CreatedAt: suite.nowData,
 	}
 
-	db, err := storage.NewSQliteDBWithMigrate(storage.Config{Path: t.TempDir() + "/test.db"}, logger.NewNoop())
+	db, err := storage.NewSQliteDBWithMigrate(storage.Config{Path: t.TempDir() + "/test.db"}, tools)
 	require.NoError(t, err)
 
 	suite.storage = newSqlStorage(db)
