@@ -1,6 +1,7 @@
 package oauthsessions
 
 import (
+	"regexp"
 	"time"
 
 	v "github.com/go-ozzo/ozzo-validation"
@@ -36,7 +37,7 @@ func (t CreateSessionRequest) Validate() error {
 		v.Field(&t.AccessExpiresAt, v.Required),
 		v.Field(&t.RefreshToken, v.Required),
 		v.Field(&t.RefreshExpiresAt, v.Required),
-		v.Field(&t.ClientID, is.UUIDv4),
+		v.Field(&t.ClientID, v.Length(3, 40), v.Match(regexp.MustCompile("^[0-9a-zA-Z-]+$"))),
 		v.Field(&t.UserID, is.UUIDv4),
 	)
 }

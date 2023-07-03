@@ -5,7 +5,7 @@ package jwt
 import (
 	http "net/http"
 
-	generates "gopkg.in/oauth2.v3/generates"
+	generates "github.com/go-oauth2/oauth2/v4/generates"
 
 	mock "github.com/stretchr/testify/mock"
 )

@@ -9,7 +9,7 @@ import (
 	"github.com/Peltoche/neurone/src/tools/errs"
 	"github.com/Peltoche/neurone/src/tools/uuid"
 	"github.com/dgrijalva/jwt-go"
-	"gopkg.in/oauth2.v3/generates"
+	"github.com/go-oauth2/oauth2/v4/generates"
 )
 
 var (
@@ -65,5 +65,5 @@ func (d *Default) FetchAccessToken(r *http.Request, permissions ...string) (*Acc
 }
 
 func (d *Default) GenerateAccess() *generates.JWTAccessGenerate {
-	return generates.NewJWTAccessGenerate([]byte(d.signature), jwt.SigningMethodHS512)
+	return generates.NewJWTAccessGenerate("", []byte(d.signature), jwt.SigningMethodHS512)
 }

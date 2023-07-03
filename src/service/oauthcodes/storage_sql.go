@@ -30,6 +30,8 @@ func (t *sqlStorage) Save(ctx context.Context, code *Code) error {
 			"user_id",
 			"redirect_uri",
 			"scope",
+			"challenge",
+			"challenge_method",
 		).
 		Values(
 			code.Code,
@@ -39,6 +41,8 @@ func (t *sqlStorage) Save(ctx context.Context, code *Code) error {
 			code.UserID,
 			code.RedirectURI,
 			code.Scope,
+			code.Challenge,
+			code.ChallengeMethod,
 		).
 		RunWith(t.db).
 		ExecContext(ctx)
@@ -74,6 +78,8 @@ func (t *sqlStorage) GetByCode(ctx context.Context, code string) (*Code, error) 
 			"user_id",
 			"redirect_uri",
 			"scope",
+			"challenge",
+			"challenge_method",
 		).
 		From(tableName).
 		Where(sq.Eq{"code": code}).
@@ -86,6 +92,8 @@ func (t *sqlStorage) GetByCode(ctx context.Context, code string) (*Code, error) 
 			&res.UserID,
 			&res.RedirectURI,
 			&res.Scope,
+			&res.Challenge,
+			&res.ChallengeMethod,
 		)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil

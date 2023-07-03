@@ -15,7 +15,7 @@ type Client struct {
 	UserID         *string
 	CreatedAt      time.Time
 	Scopes         Scopes
-	IsPublic       bool
+	Public         bool
 	SkipValidation bool
 }
 
@@ -32,6 +32,10 @@ func (c *Client) GetSecret() string {
 // GetDomain client domain
 func (c *Client) GetDomain() string {
 	return c.RedirectURI
+}
+
+func (c *Client) IsPublic() bool {
+	return c.Public
 }
 
 // GetUserID user id

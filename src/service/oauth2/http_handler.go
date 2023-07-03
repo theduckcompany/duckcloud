@@ -8,12 +8,12 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-oauth2/oauth2/v4"
+	"github.com/go-oauth2/oauth2/v4/errors"
+	"github.com/go-oauth2/oauth2/v4/manage"
+	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/go-session/session"
 	"golang.org/x/exp/slog"
-	"gopkg.in/oauth2.v3"
-	"gopkg.in/oauth2.v3/errors"
-	"gopkg.in/oauth2.v3/manage"
-	"gopkg.in/oauth2.v3/server"
 
 	"github.com/Peltoche/neurone/src/service/oauthclients"
 	"github.com/Peltoche/neurone/src/service/oauthcodes"
@@ -56,6 +56,7 @@ func NewHTTPHandler(
 
 	manager.MapTokenStorage(&tokenStorage{uuid, code, session})
 	manager.MapClientStorage(&clientStorage{client: client})
+
 	manager.MapAccessGenerate(tools.JWT().GenerateAccess())
 
 	srv := server.NewServer(&server.Config{
@@ -64,6 +65,10 @@ func NewHTTPHandler(
 		AllowedGrantTypes: []oauth2.GrantType{
 			oauth2.AuthorizationCode,
 			oauth2.Refreshing,
+		},
+		AllowedCodeChallengeMethods: []oauth2.CodeChallengeMethod{
+			oauth2.CodeChallengePlain,
+			oauth2.CodeChallengeS256,
 		},
 	}, manager)
 	srv.SetClientInfoHandler(server.ClientFormHandler)
@@ -121,11 +126,9 @@ func (h *HTTPHandler) userAuthorizationHandler(w http.ResponseWriter, r *http.Re
 
 		w.Header().Set("Location", "/auth/login")
 		w.WriteHeader(http.StatusFound)
-		fmt.Printf("user auth first call: %+v\n", r.Form)
 		return "", nil
 	}
 
-	fmt.Printf("foobar %q\n\n\n", string(userID.(uuid.UUID)))
 	return string(userID.(uuid.UUID)), nil
 }
 
@@ -285,18 +288,17 @@ func (h *HTTPHandler) handleAuthorizationEndpoint(w http.ResponseWriter, r *http
 		return
 	}
 
-	session, ok := store.Get("ReturnUri")
-	if ok {
-		r.Form = session.(url.Values)
-		store.Delete("ReturnUri")
-		store.Save()
+	var form url.Values
+	if v, ok := store.Get("ReturnUri"); ok {
+		form = v.(url.Values)
 	}
 
-	fmt.Printf("authorize form: %+v\n", r.Form)
+	r.Form = form
 
-	redirectURI := r.FormValue("redirect_uri")
-	clientID := r.FormValue("client_id")
-	fmt.Printf("red: %q / client: %q / %q\n\n", redirectURI, clientID, r.Method)
+	store.Delete("ReturnUri")
+	store.Save()
+
+	r.ParseForm()
 
 	err = h.srv.HandleAuthorizeRequest(w, r)
 	if err != nil {
