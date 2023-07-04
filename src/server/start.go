@@ -50,8 +50,7 @@ func start(cfg *Config, invoke fx.Option) *fx.App {
 
 			// HTTP Router / HTTP Server
 			router.InitMiddlewares,
-			fx.Annotate(router.NewChiRouter, fx.ParamTags(`group:"routes"`)),
-			router.NewServer,
+			fx.Annotate(router.NewServer, fx.ParamTags(`group:"routes"`)),
 		),
 
 		// Start the command

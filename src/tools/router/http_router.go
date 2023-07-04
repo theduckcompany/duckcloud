@@ -5,41 +5,84 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strconv"
 
 	"github.com/Peltoche/neurone/src/tools"
-	"github.com/go-chi/chi/v5"
+	chi "github.com/go-chi/chi/v5"
 	"go.uber.org/fx"
+	"golang.org/x/exp/slog"
 )
 
-// MuxHandler is an http.Handler that knows the mux pattern
-// under which it will be registered.
-type MuxHandler interface {
-	Register(*http.ServeMux)
+type API struct{}
 
-	// Strings reports the handler name
+type Config struct {
+	Port          int      `mapstructure:"port"`
+	TLS           bool     `mapstructure:"tls"`
+	BindAddresses []string `json:"bindAddresses"`
+	Services      []string `json:"services"`
+}
+
+type Registerer interface {
+	Register(r chi.Router, mids Middlewares)
 	String() string
 }
 
-func NewServer(lc fx.Lifecycle, handler *chi.Mux, tools tools.Tools) *http.Server {
-	logger := tools.Logger()
+func NewServer(routes []Registerer, cfgs []Config, lc fx.Lifecycle, mids Middlewares, tools tools.Tools) (*API, error) {
+	for idx, cfg := range cfgs {
+		handler, err := createHandler(cfg, routes, mids)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create the listener n'%d: %w", idx, err)
+		}
 
-	srv := &http.Server{Addr: ":8080", Handler: handler}
+		for _, addr := range cfg.BindAddresses {
+			hostPort := net.JoinHostPort(addr, strconv.Itoa(cfg.Port))
 
-	lc.Append(fx.Hook{
-		OnStart: func(_ context.Context) error {
-			ln, err := net.Listen("tcp", srv.Addr)
-			if err != nil {
-				return err
+			srv := &http.Server{Addr: hostPort, Handler: handler}
+
+			lc.Append(fx.Hook{
+				OnStart: func(_ context.Context) error {
+					ln, err := net.Listen("tcp", hostPort)
+					if err != nil {
+						return err
+					}
+
+					go srv.Serve(ln)
+
+					tools.Logger().Info("start listening", slog.String("host", ln.Addr().String()), slog.Int("routes", len(handler.Routes())))
+					for _, route := range handler.Routes() {
+						tools.Logger().Debug("expose endpoint", slog.String("host", ln.Addr().String()), slog.String("route", route.Pattern))
+					}
+
+					return nil
+				},
+				OnStop: func(ctx context.Context) error {
+					return srv.Shutdown(ctx)
+				},
+			})
+		}
+
+	}
+
+	return &API{}, nil
+}
+
+func createHandler(cfg Config, routes []Registerer, mids Middlewares) (chi.Router, error) {
+	r := chi.NewMux()
+
+	for _, svc := range cfg.Services {
+		svcIdx := -1
+		for idx, route := range routes {
+			if route.String() == svc {
+				svcIdx = idx
+				break
 			}
+		}
+		if svcIdx == -1 {
+			return nil, fmt.Errorf("unknown service %q", svc)
+		}
 
-			logger.Info(fmt.Sprintf("Starting HTTP server at %s", srv.Addr))
+		routes[svcIdx].Register(r, mids)
+	}
 
-			go srv.Serve(ln)
-			return nil
-		},
-		OnStop: func(ctx context.Context) error {
-			return srv.Shutdown(ctx)
-		},
-	})
-	return srv
+	return r, nil
 }
