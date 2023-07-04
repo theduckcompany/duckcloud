@@ -20,7 +20,7 @@ func NewFxLogger(logger *slog.Logger) *FxLogger {
 }
 
 func (l *FxLogger) logError(msg string, fields ...slog.Attr) {
-	l.Logger.LogAttrs(context.Background(), slog.LevelError, msg, fields...)
+	l.Logger.LogAttrs(context.Background(), slog.LevelWarn, msg, fields...)
 }
 
 func (l *FxLogger) logEvent(msg string, fields ...slog.Attr) {

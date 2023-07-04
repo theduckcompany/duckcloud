@@ -1,21 +1,19 @@
 package server
 
 import (
-	"os"
-
 	"github.com/Peltoche/neurone/src/server"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slog"
 )
 
-func NewStartCmd() *cobra.Command {
+func NewRunCmd() *cobra.Command {
 	var debug bool
 	var dev bool
 
 	cmd := cobra.Command{
-		Short: "Start your server",
+		Short: "Run your server",
 		Args:  cobra.NoArgs,
-		Use:   "start",
+		Use:   "run",
 		Run: func(cmd *cobra.Command, _ []string) {
 			cfg := server.NewDefaultConfig()
 
@@ -29,11 +27,7 @@ func NewStartCmd() *cobra.Command {
 				cfg.Tools.Log.Level = slog.LevelDebug
 			}
 
-			err := server.Start(cfg)
-			if err != nil {
-				cmd.PrintErrln(err)
-				os.Exit(1)
-			}
+			server.Run(cfg)
 		},
 	}
 

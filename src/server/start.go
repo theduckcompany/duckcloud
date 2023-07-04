@@ -1,10 +1,6 @@
 package server
 
 import (
-	"errors"
-	"fmt"
-	"net/http"
-
 	"github.com/Peltoche/neurone/src/service/assets"
 	"github.com/Peltoche/neurone/src/service/dav"
 	"github.com/Peltoche/neurone/src/service/oauth2"
@@ -30,43 +26,36 @@ func AsRoute(f any) any {
 	)
 }
 
-func Start(cfg *Config) error {
-	if cfg == nil {
-		return errors.New("config is nil")
-	}
-
+func start(cfg *Config, invoke fx.Option) *fx.App {
 	app := fx.New(
 		fx.WithLogger(func(tools tools.Tools) fxevent.Logger { return logger.NewFxLogger(tools.Logger()) }),
 		fx.Provide(
 			func() Config { return *cfg },
 
+			// Tools
 			storage.NewSQliteDBWithMigrate,
 			fx.Annotate(tools.NewToolbox, fx.As(new(tools.Tools))),
 
+			// Services
 			fx.Annotate(users.Init, fx.As(new(users.Service))),
 			fx.Annotate(oauthcodes.Init, fx.As(new(oauthcodes.Service))),
 			fx.Annotate(oauthsessions.Init, fx.As(new(oauthsessions.Service))),
 			fx.Annotate(oauthclients.Init, fx.As(new(oauthclients.Service))),
 
+			// HTTP handlers
 			AsRoute(dav.NewHTTPHandler),
 			AsRoute(users.NewHTTPHandler),
 			AsRoute(oauth2.NewHTTPHandler),
 			AsRoute(assets.NewHTTPHandler),
 
-			fx.Annotate(
-				router.NewChiRouter,
-				fx.ParamTags(`group:"routes"`),
-			),
+			// HTTP Router / HTTP Server
+			fx.Annotate(router.NewChiRouter, fx.ParamTags(`group:"routes"`)),
 			router.NewServer,
 		),
-		fx.Invoke(func(*http.Server) {}),
+
+		// Start the command
+		invoke,
 	)
 
-	if err := app.Err(); err != nil {
-		return fmt.Errorf("failed to start the server: %w", err)
-	}
-
-	app.Run()
-
-	return nil
+	return app
 }

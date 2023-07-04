@@ -8,7 +8,8 @@ func NewServerCmd() *cobra.Command {
 		Short: "Interact with your server",
 	}
 
-	cmd.AddCommand(NewStartCmd())
+	cmd.AddCommand(NewRunCmd())
+	cmd.AddCommand(NewBootstrapCmd())
 
 	return cmd
 }
