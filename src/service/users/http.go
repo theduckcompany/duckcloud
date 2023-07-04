@@ -8,6 +8,7 @@ import (
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/jwt"
 	"github.com/Peltoche/neurone/src/tools/response"
+	"github.com/Peltoche/neurone/src/tools/router"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -27,9 +28,11 @@ func NewHTTPHandler(tools tools.Tools, service Service) *HTTPHandler {
 }
 
 // Register the http endpoints into the given mux server.
-func (t *HTTPHandler) Register(r *chi.Mux) {
-	r.Post("/users", t.createUser)
-	r.Get("/users/me", t.getMyUser)
+func (t *HTTPHandler) Register(r chi.Router, mids router.Middlewares) {
+	users := r.With(mids.StripSlashed, mids.Logger, mids.OnlyJSON)
+
+	users.Post("/users", t.createUser)
+	users.Get("/users/me", t.getMyUser)
 }
 
 func (h *HTTPHandler) String() string {
