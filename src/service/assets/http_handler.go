@@ -4,6 +4,7 @@ import (
 	"embed"
 	"net/http"
 
+	"github.com/Peltoche/neurone/src/tools/router"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -23,7 +24,7 @@ func NewHTTPHandler(cfg Config) *HTTPHandler {
 }
 
 // Register the http endpoints into the given mux server.
-func (h *HTTPHandler) Register(r *chi.Mux) {
+func (h *HTTPHandler) Register(r chi.Router, _ router.Middlewares) {
 	var server http.Handler
 
 	switch h.cfg.HotReload {
@@ -35,6 +36,7 @@ func (h *HTTPHandler) Register(r *chi.Mux) {
 		server = http.FileServer(fs)
 	}
 
+	// No logger, no compression
 	r.Get("/assets/*", http.HandlerFunc(server.ServeHTTP))
 
 }

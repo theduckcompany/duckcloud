@@ -23,6 +23,7 @@ import (
 	"github.com/Peltoche/neurone/src/tools/errs"
 	"github.com/Peltoche/neurone/src/tools/jwt"
 	"github.com/Peltoche/neurone/src/tools/response"
+	"github.com/Peltoche/neurone/src/tools/router"
 	"github.com/Peltoche/neurone/src/tools/uuid"
 )
 
@@ -92,13 +93,15 @@ func NewHTTPHandler(
 }
 
 // Register the http endpoints into the given mux server.
-func (h *HTTPHandler) Register(r *chi.Mux) {
-	r.Get("/auth/login", h.printLoginPage)
-	r.Post("/auth/login", h.handleLoginForm)
-	r.Get("/auth/permissions", h.printPermissionsPage)
-	r.Post("/auth/logout", h.handleLogoutEndpoint)
-	r.HandleFunc("/auth/authorize", h.handleAuthorizationEndpoint)
-	r.HandleFunc("/auth/token", h.handleTokenEndpoint)
+func (h *HTTPHandler) Register(r chi.Router, mids router.Middlewares) {
+	auth := r.With(mids.StripSlashed, mids.Logger)
+
+	auth.Get("/auth/login", h.printLoginPage)
+	auth.Post("/auth/login", h.handleLoginForm)
+	auth.Get("/auth/permissions", h.printPermissionsPage)
+	auth.Post("/auth/logout", h.handleLogoutEndpoint)
+	auth.HandleFunc("/auth/authorize", h.handleAuthorizationEndpoint)
+	auth.HandleFunc("/auth/token", h.handleTokenEndpoint)
 }
 
 func (h *HTTPHandler) String() string {
@@ -264,7 +267,6 @@ func (h *HTTPHandler) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 
 		r.Form = form
 
-		fmt.Printf("create a new web form: %+v\n", r.Form)
 		store.Set("ReturnUri", r.Form)
 
 		store.Save()

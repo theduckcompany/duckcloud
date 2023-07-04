@@ -49,6 +49,7 @@ func start(cfg *Config, invoke fx.Option) *fx.App {
 			AsRoute(assets.NewHTTPHandler),
 
 			// HTTP Router / HTTP Server
+			router.InitMiddlewares,
 			fx.Annotate(router.NewChiRouter, fx.ParamTags(`group:"routes"`)),
 			router.NewServer,
 		),
