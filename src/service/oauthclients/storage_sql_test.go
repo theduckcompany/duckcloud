@@ -33,7 +33,7 @@ func (suite *StorageTestSuite) SetupSuite() {
 		ID:             "some-client-id",
 		Secret:         "some-secret",
 		RedirectURI:    "some-url",
-		UserID:         &userID,
+		UserID:         userID,
 		CreatedAt:      suite.nowData,
 		Scopes:         []string{"scope-a"},
 		Public:         true,

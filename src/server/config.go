@@ -27,7 +27,7 @@ func NewDefaultConfig() *Config {
 				Port:          8080,
 				TLS:           false,
 				BindAddresses: []string{"::1", "127.0.0.1"},
-				Services:      []string{"dav", "users", "auth", "assets", "web"},
+				Services:      []string{"dav", "users", "auth", "assets"},
 			},
 		},
 		Assets: assets.Config{
