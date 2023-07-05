@@ -8,7 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-//go:embed assets
+//go:embed public
 var staticsFS embed.FS
 
 type Config struct {
@@ -29,7 +29,7 @@ func (h *HTTPHandler) Register(r chi.Router, _ router.Middlewares) {
 
 	switch h.cfg.HotReload {
 	case true:
-		fs := http.Dir("./src/web/assets/assets")
+		fs := http.Dir("./assets/public")
 		server = http.StripPrefix("/assets", http.FileServer(fs))
 	case false:
 		fs := http.FS(staticsFS)

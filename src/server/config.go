@@ -1,13 +1,13 @@
 package server
 
 import (
+	"github.com/Peltoche/neurone/assets"
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/jwt"
 	"github.com/Peltoche/neurone/src/tools/logger"
 	"github.com/Peltoche/neurone/src/tools/response"
 	"github.com/Peltoche/neurone/src/tools/router"
 	"github.com/Peltoche/neurone/src/tools/storage"
-	"github.com/Peltoche/neurone/src/web/assets"
 	"go.uber.org/fx"
 	"golang.org/x/exp/slog"
 )
