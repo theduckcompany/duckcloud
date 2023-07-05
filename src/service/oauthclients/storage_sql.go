@@ -19,10 +19,11 @@ func newSqlStorage(db *sql.DB) *sqlStorage {
 	return &sqlStorage{db}
 }
 
-func (t *sqlStorage) Save(ctx context.Context, account *Client) error {
+func (t *sqlStorage) Save(ctx context.Context, client *Client) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns("id",
+			"name",
 			"secret",
 			"redirect_uri",
 			"user_id",
@@ -30,14 +31,15 @@ func (t *sqlStorage) Save(ctx context.Context, account *Client) error {
 			"is_public",
 			"skip_validation",
 			"created_at").
-		Values(account.ID,
-			account.Secret,
-			account.RedirectURI,
-			account.UserID,
-			account.Scopes,
-			account.Public,
-			account.SkipValidation,
-			account.CreatedAt).
+		Values(client.ID,
+			client.Name,
+			client.Secret,
+			client.RedirectURI,
+			client.UserID,
+			client.Scopes,
+			client.Public,
+			client.SkipValidation,
+			client.CreatedAt).
 		RunWith(t.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -52,6 +54,7 @@ func (t *sqlStorage) GetByID(ctx context.Context, id string) (*Client, error) {
 
 	err := sq.
 		Select("id",
+			"name",
 			"secret",
 			"redirect_uri",
 			"user_id",
@@ -63,6 +66,7 @@ func (t *sqlStorage) GetByID(ctx context.Context, id string) (*Client, error) {
 		Where(sq.Eq{"id": id}).
 		RunWith(t.db).
 		ScanContext(ctx, &res.ID,
+			&res.Name,
 			&res.Secret,
 			&res.RedirectURI,
 			&res.UserID,

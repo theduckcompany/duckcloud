@@ -1,13 +1,13 @@
 package server
 
 import (
-	"github.com/Peltoche/neurone/src/service/assets"
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/jwt"
 	"github.com/Peltoche/neurone/src/tools/logger"
 	"github.com/Peltoche/neurone/src/tools/response"
 	"github.com/Peltoche/neurone/src/tools/router"
 	"github.com/Peltoche/neurone/src/tools/storage"
+	"github.com/Peltoche/neurone/src/web/assets"
 	"go.uber.org/fx"
 	"golang.org/x/exp/slog"
 )
@@ -27,7 +27,7 @@ func NewDefaultConfig() *Config {
 				Port:          8080,
 				TLS:           false,
 				BindAddresses: []string{"::1", "127.0.0.1"},
-				Services:      []string{"dav", "users", "auth", "assets"},
+				Services:      []string{"dav", "users", "auth", "assets", "web"},
 			},
 		},
 		Assets: assets.Config{

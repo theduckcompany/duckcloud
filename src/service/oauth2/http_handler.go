@@ -1,11 +1,9 @@
 package oauth2
 
 import (
-	stderrors "errors"
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-oauth2/oauth2/v4"
@@ -20,7 +18,6 @@ import (
 	"github.com/Peltoche/neurone/src/service/oauthsessions"
 	"github.com/Peltoche/neurone/src/service/users"
 	"github.com/Peltoche/neurone/src/tools"
-	"github.com/Peltoche/neurone/src/tools/errs"
 	"github.com/Peltoche/neurone/src/tools/jwt"
 	"github.com/Peltoche/neurone/src/tools/response"
 	"github.com/Peltoche/neurone/src/tools/router"
@@ -96,9 +93,6 @@ func NewHTTPHandler(
 func (h *HTTPHandler) Register(r chi.Router, mids router.Middlewares) {
 	auth := r.With(mids.StripSlashed, mids.Logger)
 
-	auth.Get("/auth/login", h.printLoginPage)
-	auth.Post("/auth/login", h.handleLoginForm)
-	auth.Get("/auth/permissions", h.printPermissionsPage)
 	auth.Post("/auth/logout", h.handleLogoutEndpoint)
 	auth.HandleFunc("/auth/authorize", h.handleAuthorizationEndpoint)
 	auth.HandleFunc("/auth/token", h.handleTokenEndpoint)
@@ -127,7 +121,7 @@ func (h *HTTPHandler) userAuthorizationHandler(w http.ResponseWriter, r *http.Re
 		store.Set("ReturnUri", r.Form)
 		store.Save()
 
-		w.Header().Set("Location", "/auth/login")
+		w.Header().Set("Location", "/login")
 		w.WriteHeader(http.StatusFound)
 		return "", nil
 	}
@@ -149,131 +143,6 @@ func (h *HTTPHandler) handleLogoutEndpoint(w http.ResponseWriter, r *http.Reques
 	}
 
 	h.response.WriteJSON(w, http.StatusOK, nil)
-}
-
-func (h *HTTPHandler) printPermissionsPage(w http.ResponseWriter, r *http.Request) {
-	store, err := session.Start(r.Context(), w, r)
-	if err != nil {
-		h.response.WriteJSONError(w, err)
-		return
-	}
-
-	session, ok := store.Get("ReturnUri")
-	if !ok {
-		// This is not session created yet. This append whan a user land directy on
-		// the /auth/permissions without calling /auth/login first.
-		w.Header().Set("Location", "/auth/login")
-		w.WriteHeader(http.StatusFound)
-		return
-	}
-
-	form := session.(url.Values)
-
-	userID, ok := store.Get("LoggedInUserID")
-	if !ok {
-		h.response.WriteJSON(w, http.StatusBadRequest, stderrors.New("user not authenticated"))
-		return
-	}
-
-	user, err := h.users.GetByID(r.Context(), userID.(uuid.UUID))
-	if err != nil || user == nil {
-		h.response.WriteJSON(w, http.StatusBadRequest, fmt.Errorf("failed to find the user %q: %w", userID, err))
-		return
-	}
-
-	h.response.WriteHTML(w, http.StatusOK, "auth/permissions.html", map[string]interface{}{
-		"username": user.Username,
-		"scope":    strings.Split(form.Get("scope"), ","),
-	})
-}
-
-func (h *HTTPHandler) printLoginPage(w http.ResponseWriter, r *http.Request) {
-	h.response.WriteHTML(w, http.StatusOK, "auth/login.html", nil)
-}
-
-func (h *HTTPHandler) handleLoginForm(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		h.response.WriteJSONError(w, errs.BadRequest(err, "invalid form url"))
-		return
-	}
-
-	inputs := map[string]string{}
-	loginErrors := map[string]string{}
-
-	inputs["username"] = r.Form.Get("username")
-
-	user, err := h.users.Authenticate(r.Context(), r.Form.Get("username"), r.Form.Get("password"))
-	var status int
-	switch {
-	case err == nil:
-		// continue
-	case stderrors.Is(err, users.ErrInvalidUsername):
-		loginErrors["username"] = "User doesn't exists"
-		status = http.StatusBadRequest
-	case stderrors.Is(err, users.ErrInvalidPassword):
-		loginErrors["password"] = "Invalid password"
-		status = http.StatusBadRequest
-	default:
-		loginErrors["notif"] = "Unexpected error"
-		status = http.StatusBadRequest
-	}
-
-	if len(loginErrors) > 0 {
-		h.response.WriteHTML(w, status, "auth/login.html", map[string]interface{}{
-			"inputs": inputs,
-			"errors": loginErrors,
-		})
-		return
-	}
-
-	store, err := session.Start(r.Context(), w, r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	store.Set("LoggedInUserID", user.ID)
-	store.Save()
-
-	_, ok := store.Get("ReturnUri")
-	if !ok {
-		// There is not session created yet. This append when a user land directly on
-		// /auth/login page without calling the /auth/authorize first (which would have
-		// redirect him to the /login page).
-		//
-		// In that case we assume that the user want to connect to the web app and so we
-		// will create the session with the correct client.
-		client, err := h.client.GetByID(r.Context(), oauthclients.WebAppClientID)
-		if err != nil {
-			h.response.WriteJSONError(w, err)
-			return
-		}
-
-		if client == nil {
-			h.response.WriteJSONError(w, err)
-			return
-		}
-
-		sessionID := string(h.uuid.New())
-		form := url.Values{}
-		form.Add("client_id", string(client.ID))
-		form.Add("response_type", "code")
-		// form.Add("redirect_uri", client.RedirectURI)
-		form.Add("user_id", string(user.ID))
-		form.Add("session_id", sessionID)
-		form.Add("scope", client.Scopes.String())
-		form.Add("state", string(h.uuid.New()))
-
-		r.Form = form
-
-		store.Set("ReturnUri", r.Form)
-
-		store.Save()
-	}
-
-	w.Header().Set("Location", "/auth/permissions")
-	w.WriteHeader(http.StatusFound)
 }
 
 func (h *HTTPHandler) handleTokenEndpoint(w http.ResponseWriter, r *http.Request) {

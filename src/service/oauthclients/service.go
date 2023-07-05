@@ -45,6 +45,7 @@ func (s *OauthClientService) Create(ctx context.Context, cmd *CreateCmd) error {
 
 	err = s.storage.Save(ctx, &Client{
 		ID:             cmd.ID,
+		Name:           cmd.Name,
 		Secret:         string(s.uuid.New()),
 		RedirectURI:    cmd.RedirectURI,
 		UserID:         cmd.UserID,
