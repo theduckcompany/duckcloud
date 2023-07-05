@@ -12,7 +12,6 @@ import (
 	"github.com/Peltoche/neurone/src/tools/logger"
 	"github.com/Peltoche/neurone/src/tools/router"
 	"github.com/Peltoche/neurone/src/tools/storage"
-	"github.com/Peltoche/neurone/src/web"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 )
@@ -48,9 +47,6 @@ func start(cfg *Config, invoke fx.Option) *fx.App {
 			AsRoute(users.NewHTTPHandler),
 			AsRoute(oauth2.NewHTTPHandler),
 			AsRoute(assets.NewHTTPHandler),
-
-			// Web app
-			AsRoute(web.NewHTTPHandler),
 
 			// HTTP Router / HTTP Server
 			router.InitMiddlewares,

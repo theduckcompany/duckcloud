@@ -1,9 +1,9 @@
 package server
 
 import (
-	"net/http"
 	"testing"
 
+	"github.com/Peltoche/neurone/src/tools/router"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/fx"
 )
@@ -11,6 +11,6 @@ import (
 func TestServerStart(t *testing.T) {
 	cfg := NewDefaultConfig()
 
-	app := start(cfg, fx.Invoke(func(*http.Server) {}))
+	app := start(cfg, fx.Invoke(func(*router.API) {}))
 	assert.NoError(t, app.Err())
 }
