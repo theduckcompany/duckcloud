@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/Peltoche/neurone/src/service/assets"
 	"github.com/Peltoche/neurone/src/service/dav"
 	"github.com/Peltoche/neurone/src/service/oauth2"
 	"github.com/Peltoche/neurone/src/service/oauthclients"
@@ -12,6 +11,8 @@ import (
 	"github.com/Peltoche/neurone/src/tools/logger"
 	"github.com/Peltoche/neurone/src/tools/router"
 	"github.com/Peltoche/neurone/src/tools/storage"
+	"github.com/Peltoche/neurone/src/web"
+	"github.com/Peltoche/neurone/src/web/assets"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 )
@@ -41,12 +42,16 @@ func start(cfg *Config, invoke fx.Option) *fx.App {
 			fx.Annotate(oauthcodes.Init, fx.As(new(oauthcodes.Service))),
 			fx.Annotate(oauthsessions.Init, fx.As(new(oauthsessions.Service))),
 			fx.Annotate(oauthclients.Init, fx.As(new(oauthclients.Service))),
+			fx.Annotate(oauth2.Init, fx.As(new(oauth2.Service))),
 
 			// HTTP handlers
 			AsRoute(dav.NewHTTPHandler),
 			AsRoute(users.NewHTTPHandler),
 			AsRoute(oauth2.NewHTTPHandler),
 			AsRoute(assets.NewHTTPHandler),
+
+			// Web app
+			AsRoute(web.NewHTTPHandler),
 
 			// HTTP Router / HTTP Server
 			router.InitMiddlewares,

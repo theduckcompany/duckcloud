@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS oauth_clients (
   "id" TEXT  NOT NULL PRIMARY KEY,
+  "name" TEXT NOT NULL,
   "secret" TEXT NOT NULL,
   "redirect_uri" TEXT NOT NULL,
   "user_id" TEXT,

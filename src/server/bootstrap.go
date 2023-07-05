@@ -43,6 +43,7 @@ func bootstrap(cmd users.CreateUserRequest) bootstrapFunc {
 
 		err = oauthClients.Create(ctx, &oauthclients.CreateCmd{
 			ID:             oauthclients.WebAppClientID,
+			Name:           "Neurone Web App",
 			RedirectURI:    "http://localhost:8080",
 			UserID:         string(user.ID),
 			Scopes:         oauthclients.Scopes{"users"},

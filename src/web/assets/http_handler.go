@@ -29,7 +29,7 @@ func (h *HTTPHandler) Register(r chi.Router, _ router.Middlewares) {
 
 	switch h.cfg.HotReload {
 	case true:
-		fs := http.Dir("./src/service/assets/assets")
+		fs := http.Dir("./src/web/assets/assets")
 		server = http.StripPrefix("/assets", http.FileServer(fs))
 	case false:
 		fs := http.FS(staticsFS)

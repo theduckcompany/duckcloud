@@ -14,6 +14,7 @@ import (
 // Client client model
 type Client struct {
 	ID             string
+	Name           string
 	Secret         string
 	RedirectURI    string
 	UserID         string
@@ -25,6 +26,7 @@ type Client struct {
 
 type CreateCmd struct {
 	ID             string
+	Name           string
 	RedirectURI    string
 	UserID         string
 	Scopes         Scopes
@@ -35,7 +37,8 @@ type CreateCmd struct {
 // Validate the fields.
 func (cmd CreateCmd) Validate() error {
 	return v.ValidateStruct(&cmd,
-		v.Field(&cmd.ID, v.Length(3, 40), v.Match(regexp.MustCompile("^[0-9a-zA-Z-]+$"))),
+		v.Field(&cmd.ID, v.Length(3, 20), v.Match(regexp.MustCompile("^[0-9a-zA-Z-]+$"))),
+		v.Field(&cmd.Name, v.Length(3, 20), is.ASCII),
 		v.Field(&cmd.RedirectURI, is.URL),
 		v.Field(&cmd.UserID, is.UUIDv4),
 		v.Field(&cmd.Scopes, v.Required),
