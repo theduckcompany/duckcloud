@@ -28,9 +28,10 @@ func Init(cfg Config, log *slog.Logger) Writer {
 	}
 
 	opts := render.Options{
-		Directory:     path.Join(dir, "templates/html"),
+		Directory:     path.Join(dir, "assets/html"),
 		Layout:        "layout.html",
 		IsDevelopment: cfg.HotReload,
+		Extensions:    []string{".tmpl", ".html"},
 	}
 
 	if cfg.PrettyRender {
