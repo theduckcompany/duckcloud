@@ -14,11 +14,11 @@ type MockService struct {
 }
 
 // CreateSession provides a mock function with given fields: ctx, input
-func (_m *MockService) CreateSession(ctx context.Context, input *CreateSessionRequest) error {
+func (_m *MockService) CreateSession(ctx context.Context, input *CreateCmd) error {
 	ret := _m.Called(ctx, input)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *CreateSessionRequest) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *CreateCmd) error); ok {
 		r0 = rf(ctx, input)
 	} else {
 		r0 = ret.Error(0)

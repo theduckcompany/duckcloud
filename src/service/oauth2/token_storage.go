@@ -24,7 +24,7 @@ type tokenStorage struct {
 // create and store the new token information
 func (t *tokenStorage) Create(ctx context.Context, info oauth2.TokenInfo) error {
 	if code := info.GetCode(); code != "" {
-		err := t.code.CreateCode(ctx, &oauthcodes.CreateCodeRequest{
+		err := t.code.CreateCode(ctx, &oauthcodes.CreateCmd{
 			Code:            code,
 			ExpiresAt:       info.GetCodeCreateAt().Add(info.GetCodeExpiresIn()),
 			ClientID:        info.GetClientID(),
@@ -42,7 +42,7 @@ func (t *tokenStorage) Create(ctx context.Context, info oauth2.TokenInfo) error 
 		return nil
 	}
 
-	err := t.session.CreateSession(ctx, &oauthsessions.CreateSessionRequest{
+	err := t.session.CreateSession(ctx, &oauthsessions.CreateCmd{
 		AccessToken:      info.GetAccess(),
 		AccessExpiresAt:  info.GetAccessCreateAt().Add(info.GetAccessExpiresIn()),
 		RefreshToken:     info.GetRefresh(),

@@ -20,7 +20,7 @@ type Session struct {
 	Scope            string
 }
 
-type CreateSessionRequest struct {
+type CreateCmd struct {
 	AccessToken      string
 	AccessExpiresAt  time.Time
 	RefreshToken     string
@@ -31,7 +31,7 @@ type CreateSessionRequest struct {
 }
 
 // Validate the fields.
-func (t CreateSessionRequest) Validate() error {
+func (t CreateCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.AccessToken, v.Required),
 		v.Field(&t.AccessExpiresAt, v.Required),

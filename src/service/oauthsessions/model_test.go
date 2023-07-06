@@ -9,11 +9,11 @@ import (
 )
 
 func Test_CreateSessionRequest_is_validatable(t *testing.T) {
-	assert.Implements(t, (*validation.Validatable)(nil), new(CreateSessionRequest))
+	assert.Implements(t, (*validation.Validatable)(nil), new(CreateCmd))
 }
 
 func Test_CreateSessionRequest_Validate_success(t *testing.T) {
-	err := CreateSessionRequest{
+	err := CreateCmd{
 		AccessToken:      "some-access-session",
 		AccessExpiresAt:  time.Now(),
 		RefreshToken:     "some-refresh-session",

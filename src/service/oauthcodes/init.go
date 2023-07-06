@@ -8,7 +8,7 @@ import (
 )
 
 type Service interface {
-	CreateCode(ctx context.Context, input *CreateCodeRequest) error
+	CreateCode(ctx context.Context, input *CreateCmd) error
 	RemoveByCode(ctx context.Context, code string) error
 	GetByCode(ctx context.Context, code string) (*Code, error)
 }

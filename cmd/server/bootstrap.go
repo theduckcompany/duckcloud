@@ -59,7 +59,7 @@ func NewBootstrapCmd() *cobra.Command {
 				cfg.Tools.Log.Level = slog.LevelDebug
 			}
 
-			bootCmd := users.CreateUserRequest{
+			bootCmd := users.CreateCmd{
 				Username: answers.Username,
 				Email:    answers.Email,
 				Password: answers.Password,

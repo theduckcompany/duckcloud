@@ -20,15 +20,15 @@ type User struct {
 	password  string    `json:"-"`
 }
 
-// CreateUserRequest represents an user creation request.
-type CreateUserRequest struct {
+// CreateCmd represents an user creation request.
+type CreateCmd struct {
 	Username string
 	Email    string
 	Password string
 }
 
 // Validate the CreateUserRequest fields.
-func (t CreateUserRequest) Validate() error {
+func (t CreateCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.Username, v.Required, v.Length(1, 20), v.Match(UsernameRegexp)),
 		v.Field(&t.Email, v.Required, is.EmailFormat, v.Length(1, 1000)),
