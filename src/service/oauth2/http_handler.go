@@ -1,19 +1,19 @@
 package oauth2
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
+	"html/template"
 	"net/http"
-	"net/url"
-	"strconv"
 	"strings"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-oauth2/oauth2/v4"
 	oerrors "github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/manage"
 	"github.com/go-oauth2/oauth2/v4/server"
-	"github.com/go-session/session"
 	"golang.org/x/exp/slog"
 
 	"github.com/Peltoche/neurone/src/service/oauthclients"
@@ -21,7 +21,6 @@ import (
 	"github.com/Peltoche/neurone/src/service/oauthsessions"
 	"github.com/Peltoche/neurone/src/service/users"
 	"github.com/Peltoche/neurone/src/tools"
-	"github.com/Peltoche/neurone/src/tools/errs"
 	"github.com/Peltoche/neurone/src/tools/jwt"
 	"github.com/Peltoche/neurone/src/tools/response"
 	"github.com/Peltoche/neurone/src/tools/router"
@@ -42,25 +41,30 @@ type HTTPHandler struct {
 	srv     *server.Server
 	manager *manage.Manager
 
-	users   users.Service
-	clients oauthclients.Service
-	code    oauthcodes.Service
-	session oauthsessions.Service
+	users        users.Service
+	clients      oauthclients.Service
+	code         oauthcodes.Service
+	oauthSession oauthsessions.Service
+	webSession   *scs.SessionManager
 }
 
 // NewHTTPHandler setup a new Oauth2Server.
 func NewHTTPHandler(
+	db *sql.DB,
 	tools tools.Tools,
 	users users.Service,
 	clients oauthclients.Service,
 	code oauthcodes.Service,
-	session oauthsessions.Service,
+	oauthSession oauthsessions.Service,
 ) *HTTPHandler {
 	manager := manage.NewDefaultManager()
 	manager.SetAuthorizeCodeTokenCfg(manage.DefaultAuthorizeCodeTokenCfg)
-	manager.MapTokenStorage(&tokenStorage{tools.UUID(), code, session})
+	manager.MapTokenStorage(&tokenStorage{tools.UUID(), code, oauthSession})
 	manager.MapClientStorage(&clientStorage{client: clients})
 	manager.MapAccessGenerate(tools.JWT().GenerateAccess())
+
+	webSession := scs.New()
+	webSession.Store = newWebSessionStorage(db)
 
 	srv := server.NewServer(&server.Config{
 		TokenType:            "Bearer",
@@ -84,10 +88,11 @@ func NewHTTPHandler(
 		srv:     srv,
 		manager: manager,
 
-		users:   users,
-		clients: clients,
-		code:    code,
-		session: session,
+		users:        users,
+		clients:      clients,
+		code:         code,
+		oauthSession: oauthSession,
+		webSession:   webSession,
 	}
 
 	srv.SetInternalErrorHandler(res.errorHandler)
@@ -100,7 +105,8 @@ func NewHTTPHandler(
 
 // Register the http endpoints into the given mux server.
 func (h *HTTPHandler) Register(r chi.Router, mids router.Middlewares) {
-	auth := r.With(mids.StripSlashed, mids.Logger)
+	// NOTE: There is the LoadAndSave session middleware here.
+	auth := r.With(mids.StripSlashed, mids.Logger, h.webSession.LoadAndSave)
 
 	// Web pages
 	auth.HandleFunc("/login", h.handleLoginPage)
@@ -119,14 +125,14 @@ func (h *HTTPHandler) String() string {
 }
 
 func (h *HTTPHandler) userAuthorizationHandler(w http.ResponseWriter, r *http.Request) (string, error) {
-	store, err := session.Start(r.Context(), w, r)
+	client, err := h.clients.GetByID(r.Context(), r.FormValue("client_id"))
 	if err != nil {
-		return "", err
+		return "", oerrors.ErrInvalidClient
 	}
 
-	userID, ok := store.Get("LoggedInUserID")
-	if !ok {
-		// There is no session_id so it's the first call to the authorization handler.
+	userID := h.webSession.GetString(r.Context(), "userID")
+	if userID == "" {
+		// There is no available session so it's the first call to the authorization handler.
 		//
 		// Create a new session with a session_id, save all the form arguments in it
 		// and redirect the user to the login with the session_id as argument
@@ -134,15 +140,23 @@ func (h *HTTPHandler) userAuthorizationHandler(w http.ResponseWriter, r *http.Re
 			r.ParseForm()
 		}
 
-		store.Set("ReturnUri", r.Form)
-		store.Save()
-
-		w.Header().Set("Location", "/login")
+		w.Header().Set("Location", "/login?"+r.Form.Encode())
 		w.WriteHeader(http.StatusFound)
+
 		return "", nil
 	}
 
-	return string(userID.(uuid.UUID)), nil
+	// The user already have a session with a userID. This means that it have been
+	// authenticated in the past and we saved it.
+	clientIDConsent := h.webSession.GetString(r.Context(), r.FormValue("consent"))
+	if client.SkipValidation || clientIDConsent == r.FormValue("client_id") {
+		// We can skip the validation so we directly authorize the user
+		return userID, nil
+	}
+
+	w.Header().Set("Location", "/consent?"+r.Form.Encode())
+	w.WriteHeader(http.StatusFound)
+	return "", nil
 }
 
 func (h *HTTPHandler) handleLogoutEndpoint(w http.ResponseWriter, r *http.Request) {
@@ -158,6 +172,8 @@ func (h *HTTPHandler) handleLogoutEndpoint(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	h.webSession.Destroy(r.Context())
+
 	h.response.WriteJSON(w, http.StatusOK, nil)
 }
 
@@ -169,25 +185,7 @@ func (h *HTTPHandler) handleTokenEndpoint(w http.ResponseWriter, r *http.Request
 }
 
 func (h *HTTPHandler) handleAuthorizationEndpoint(w http.ResponseWriter, r *http.Request) {
-	store, err := session.Start(r.Context(), w, r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	var form url.Values
-	if v, ok := store.Get("ReturnUri"); ok {
-		form = v.(url.Values)
-	}
-
-	r.Form = form
-
-	store.Delete("ReturnUri")
-	store.Save()
-
-	r.ParseForm()
-
-	err = h.srv.HandleAuthorizeRequest(w, r)
+	err := h.srv.HandleAuthorizeRequest(w, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
@@ -209,18 +207,12 @@ func (h *HTTPHandler) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseForm()
-	if err != nil {
-		h.response.WriteJSONError(w, errs.BadRequest(err, "invalid form url"))
-		return
-	}
-
 	inputs := map[string]string{}
 	loginErrors := map[string]string{}
 
-	inputs["username"] = r.Form.Get("username")
+	inputs["username"] = r.FormValue("username")
 
-	user, err := h.users.Authenticate(r.Context(), r.Form.Get("username"), r.Form.Get("password"))
+	user, err := h.users.Authenticate(r.Context(), r.FormValue("username"), r.FormValue("password"))
 	var status int
 	switch {
 	case err == nil:
@@ -244,49 +236,15 @@ func (h *HTTPHandler) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	store, err := session.Start(r.Context(), w, r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	h.webSession.Put(r.Context(), "userID", string(user.ID))
+
+	client, err := h.clients.GetByID(r.Context(), r.FormValue("client_id"))
+	if err != nil || client == nil {
+		h.response.WriteJSON(w, http.StatusBadRequest, oerrors.ErrInvalidClient)
 		return
 	}
-	_, ok := store.Get("ReturnUri")
-	if !ok {
-		// There is not session created yet. This append when a user land directly on
-		// /login page without calling the /auth/authorize first (which would have
-		// redirect him to the /login page).
-		// In that case we assume that the user want to connect to the web app and so we
-		// will create the session with the correct client.
-		client, err := h.clients.GetByID(r.Context(), oauthclients.WebAppClientID)
-		if err != nil {
-			h.response.WriteJSONError(w, err)
-			return
-		}
 
-		if client == nil {
-			h.response.WriteJSONError(w, err)
-			return
-		}
-
-		sessionID := string(h.uuid.New())
-		form := url.Values{}
-		form.Add("client_id", string(client.ID))
-		form.Add("response_type", "code")
-		form.Add("redirect_uri", client.RedirectURI)
-		form.Add("user_id", string(user.ID))
-		form.Add("session_id", sessionID)
-		form.Add("scope", client.Scopes.String())
-		form.Add("state", string(h.uuid.New()))
-
-		r.Form = form
-		store.Set("ReturnUri", r.Form)
-	}
-
-	store.Set("LoggedInUserID", user.ID)
-	store.Save()
-
-	r.ParseForm()
-
-	if ok, _ := strconv.ParseBool(r.Form.Get("skipValidation")); ok {
+	if client.SkipValidation {
 		w.Header().Set("Location", "/auth/authorize")
 		w.WriteHeader(http.StatusFound)
 		return
@@ -297,51 +255,38 @@ func (h *HTTPHandler) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HTTPHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) {
-	store, err := session.Start(r.Context(), w, r)
-	if err != nil {
-		h.response.WriteJSONError(w, err)
+	r.ParseForm()
+
+	rawUserID := h.webSession.GetString(r.Context(), "userID")
+	if rawUserID == "" {
+		h.response.WriteJSON(w, http.StatusBadRequest, oerrors.ErrInvalidRequest)
 		return
 	}
 
-	session, ok := store.Get("ReturnUri")
-	if !ok {
-		// This is not session created yet. This append whan a user land directy on
-		// the /consent without calling /login first.
-		w.Header().Set("Location", "/login")
-		w.WriteHeader(http.StatusFound)
-		return
-	}
+	userID, _ := h.uuid.Parse(rawUserID)
 
-	form := session.(url.Values)
-
-	userID, ok := store.Get("LoggedInUserID")
-	if !ok {
-		h.response.WriteJSON(w, http.StatusBadRequest, errors.New("user not authenticated"))
-		return
-	}
-
-	user, err := h.users.GetByID(r.Context(), userID.(uuid.UUID))
+	user, err := h.users.GetByID(r.Context(), userID)
 	if err != nil || user == nil {
 		h.response.WriteJSON(w, http.StatusBadRequest, fmt.Errorf("failed to find the user %q: %w", userID, err))
 		return
 	}
 
-	clientID := form.Get("client_id")
+	clientID := r.FormValue("client_id")
 	client, err := h.clients.GetByID(r.Context(), clientID)
-	if err != nil {
-		h.response.WriteJSON(w, http.StatusBadRequest, fmt.Errorf("failed to find the client %q: %w", clientID, err))
+	if err != nil || client == nil {
+		h.response.WriteJSON(w, http.StatusBadRequest, oerrors.ErrInvalidRequest)
 		return
 	}
 
-	if client == nil {
-		h.response.WriteJSON(w, http.StatusBadRequest, fmt.Errorf("client %q doesn't exists", clientID))
-		return
-	}
+	consentToken := string(h.uuid.New())
+	h.webSession.Put(r.Context(), consentToken, client.ID)
+	r.Form.Add("consent", consentToken)
 
 	h.response.WriteHTML(w, http.StatusOK, "auth/consent.html", map[string]interface{}{
 		"clientName": client.Name,
 		"username":   user.Username,
-		"scope":      strings.Split(form.Get("scope"), ","),
+		"scope":      strings.Split(r.FormValue("scope"), ","),
+		"redirect":   template.URL("/auth/authorize?" + r.Form.Encode()),
 	})
 }
 
