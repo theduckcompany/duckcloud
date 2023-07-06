@@ -1,0 +1,5 @@
+all: True
+inpackage: True
+recursive: True
+inpackage-suffix: True
+log-level: error
