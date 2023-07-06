@@ -38,7 +38,6 @@ func (h *HTTPHandler) Register(r chi.Router, _ router.Middlewares) {
 
 	// No logger, no compression
 	r.Get("/assets/*", http.HandlerFunc(server.ServeHTTP))
-
 }
 
 func (h *HTTPHandler) String() string {

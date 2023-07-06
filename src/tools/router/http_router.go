@@ -60,7 +60,6 @@ func NewServer(routes []Registerer, cfgs []Config, lc fx.Lifecycle, mids Middlew
 				},
 			})
 		}
-
 	}
 
 	return &API{}, nil

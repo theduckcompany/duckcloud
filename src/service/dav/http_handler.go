@@ -1,9 +1,6 @@
 package dav
 
 import (
-	"io"
-	"net/http"
-
 	"github.com/Peltoche/neurone/src/service/dav/internal"
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/router"
@@ -35,10 +32,4 @@ func (h *HTTPHandler) Register(r chi.Router, mids router.Middlewares) {
 
 func (h *HTTPHandler) String() string {
 	return "dav"
-}
-
-func (h *HTTPHandler) echoHandler(w http.ResponseWriter, r *http.Request) {
-	if _, err := io.Copy(w, r.Body); err != nil {
-		h.log.ErrorCtx(r.Context(), "Failed to handle request:", err)
-	}
 }

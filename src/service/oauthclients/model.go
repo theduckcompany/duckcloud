@@ -47,7 +47,7 @@ func (cmd CreateCmd) Validate() error {
 
 // GetID client id
 func (c *Client) GetID() string {
-	return string(c.ID)
+	return c.ID
 }
 
 // GetSecret client domain
