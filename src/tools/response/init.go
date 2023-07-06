@@ -24,7 +24,7 @@ type Writer interface {
 func Init(cfg Config, log *slog.Logger) Writer {
 	dir, err := os.Getwd()
 	if err != nil {
-		panic(fmt.Sprintf("failed to fetch the curent workind dir: %s", err))
+		panic(fmt.Sprintf("failed to fetch the current workind dir: %s", err))
 	}
 
 	opts := render.Options{

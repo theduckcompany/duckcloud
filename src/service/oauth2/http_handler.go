@@ -298,11 +298,3 @@ func (h *HTTPHandler) errorHandler(err error) *oerrors.Response {
 	h.logger.Error("OAUTH2 internal Error", slog.String("error", err.Error()))
 	return oerrors.NewResponse(fmt.Errorf("internal error"), http.StatusInternalServerError)
 }
-
-type debugLogger struct {
-	logger *slog.Logger
-}
-
-func (l *debugLogger) Printf(format string, v ...interface{}) {
-	l.logger.Debug(format, v...)
-}
