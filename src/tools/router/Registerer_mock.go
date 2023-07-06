@@ -12,9 +12,9 @@ type MockRegisterer struct {
 	mock.Mock
 }
 
-// Register provides a mock function with given fields: r
-func (_m *MockRegisterer) Register(r *chi.Mux) {
-	_m.Called(r)
+// Register provides a mock function with given fields: r, mids
+func (_m *MockRegisterer) Register(r chi.Router, mids Middlewares) {
+	_m.Called(r, mids)
 }
 
 // String provides a mock function with given fields:

@@ -13,13 +13,13 @@ type MockService struct {
 	mock.Mock
 }
 
-// BootstrapWebApp provides a mock function with given fields: ctx
-func (_m *MockService) BootstrapWebApp(ctx context.Context) error {
-	ret := _m.Called(ctx)
+// Create provides a mock function with given fields: ctx, cmd
+func (_m *MockService) Create(ctx context.Context, cmd *CreateCmd) error {
+	ret := _m.Called(ctx, cmd)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, *CreateCmd) error); ok {
+		r0 = rf(ctx, cmd)
 	} else {
 		r0 = ret.Error(0)
 	}
