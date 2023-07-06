@@ -17,7 +17,7 @@ type sqlStorage struct {
 	db *sql.DB
 }
 
-// newSqlStorage instanciate a new Storage based on sql.
+// newSqlStorage instantiates a new Storage based on sql.
 func newSqlStorage(db *sql.DB) *sqlStorage {
 	return &sqlStorage{db}
 }
