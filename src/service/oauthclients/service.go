@@ -18,6 +18,7 @@ var (
 	ErrClientIDTaken = errors.New("clientID already exists")
 )
 
+//go:generate mockery --name Storage
 type Storage interface {
 	Save(ctx context.Context, client *Client) error
 	GetByID(ctx context.Context, id string) (*Client, error)

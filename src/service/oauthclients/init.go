@@ -7,6 +7,7 @@ import (
 	"github.com/Peltoche/neurone/src/tools"
 )
 
+//go:generate mockery --name Service
 type Service interface {
 	Create(ctx context.Context, cmd *CreateCmd) error
 	GetByID(ctx context.Context, clientID string) (*Client, error)

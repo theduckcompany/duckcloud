@@ -9,6 +9,8 @@ import (
 )
 
 // UserService encapsulates usecase logic for users.
+//
+//go:generate mockery --name Service
 type Service interface {
 	Create(ctx context.Context, user *CreateCmd) (*User, error)
 	GetByID(ctx context.Context, userID uuid.UUID) (*User, error)

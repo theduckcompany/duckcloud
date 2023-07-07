@@ -1,5 +1,5 @@
-all: True
 inpackage: True
 recursive: True
+case: underscore
 inpackage-suffix: True
 log-level: error
