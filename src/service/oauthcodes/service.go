@@ -13,6 +13,7 @@ import (
 var ErrInvalidExpirationDate = fmt.Errorf("invalid expiration date")
 
 type (
+	//go:generate mockery --name Storage
 	Storage interface {
 		Save(ctx context.Context, code *Code) error
 		RemoveByCode(ctx context.Context, code string) error
