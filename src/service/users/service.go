@@ -40,7 +40,7 @@ func NewService(tools tools.Tools, storage Storage) *UserService {
 }
 
 // Create will create and register a new user.
-func (t *UserService) Create(ctx context.Context, input *CreateUserRequest) (*User, error) {
+func (t *UserService) Create(ctx context.Context, input *CreateCmd) (*User, error) {
 	err := input.Validate()
 	if err != nil {
 		return nil, errs.ValidationError(err)

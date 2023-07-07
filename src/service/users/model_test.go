@@ -8,11 +8,11 @@ import (
 )
 
 func Test_CreateUserRequest_is_validatable(t *testing.T) {
-	assert.Implements(t, (*validation.Validatable)(nil), new(CreateUserRequest))
+	assert.Implements(t, (*validation.Validatable)(nil), new(CreateCmd))
 }
 
 func Test_CreateUserRequest_Validate_success(t *testing.T) {
-	err := CreateUserRequest{
+	err := CreateCmd{
 		Username: "some-username",
 		Email:    "some@email.com",
 		Password: "myLittleSecret",

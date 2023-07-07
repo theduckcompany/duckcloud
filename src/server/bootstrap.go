@@ -15,7 +15,7 @@ type BootstrapCmd struct {
 	Password string
 }
 
-func Bootstrap(ctx context.Context, cfg *Config, user users.CreateUserRequest) error {
+func Bootstrap(ctx context.Context, cfg *Config, user users.CreateCmd) error {
 	app := start(cfg, fx.Invoke(bootstrap(user)))
 
 	err := app.Start(ctx)
@@ -28,11 +28,11 @@ func Bootstrap(ctx context.Context, cfg *Config, user users.CreateUserRequest) e
 
 type bootstrapFunc = func(usersSvc users.Service, oauthClients oauthclients.Service) error
 
-func bootstrap(cmd users.CreateUserRequest) bootstrapFunc {
+func bootstrap(cmd users.CreateCmd) bootstrapFunc {
 	return func(usersSvc users.Service, oauthClients oauthclients.Service) error {
 		ctx := context.Background()
 
-		user, err := usersSvc.Create(ctx, &users.CreateUserRequest{
+		user, err := usersSvc.Create(ctx, &users.CreateCmd{
 			Username: cmd.Username,
 			Email:    cmd.Email,
 			Password: cmd.Password,
