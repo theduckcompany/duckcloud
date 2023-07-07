@@ -33,7 +33,7 @@ func NewService(tools tools.Tools, storage Storage) *OauthSessionsService {
 	return &OauthSessionsService{storage, tools.Clock()}
 }
 
-func (t *OauthSessionsService) CreateSession(ctx context.Context, input *CreateSessionRequest) error {
+func (t *OauthSessionsService) CreateSession(ctx context.Context, input *CreateCmd) error {
 	err := input.Validate()
 	if err != nil {
 		return errs.ValidationError(err)

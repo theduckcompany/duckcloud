@@ -10,7 +10,7 @@ import (
 
 // UserService encapsulates usecase logic for users.
 type Service interface {
-	Create(ctx context.Context, user *CreateUserRequest) (*User, error)
+	Create(ctx context.Context, user *CreateCmd) (*User, error)
 	GetByID(ctx context.Context, userID uuid.UUID) (*User, error)
 	Authenticate(ctx context.Context, username, password string) (*User, error)
 }

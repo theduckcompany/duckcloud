@@ -20,7 +20,7 @@ type Code struct {
 	ChallengeMethod string
 }
 
-type CreateCodeRequest struct {
+type CreateCmd struct {
 	Code            string
 	ExpiresAt       time.Time
 	ClientID        string
@@ -32,7 +32,7 @@ type CreateCodeRequest struct {
 }
 
 // Validate the fields.
-func (t CreateCodeRequest) Validate() error {
+func (t CreateCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.Code, v.Required, v.Length(0, 200)),
 		v.Field(&t.ExpiresAt, v.Required),

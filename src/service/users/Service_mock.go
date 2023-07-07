@@ -41,15 +41,15 @@ func (_m *MockService) Authenticate(ctx context.Context, username string, passwo
 }
 
 // Create provides a mock function with given fields: ctx, user
-func (_m *MockService) Create(ctx context.Context, user *CreateUserRequest) (*User, error) {
+func (_m *MockService) Create(ctx context.Context, user *CreateCmd) (*User, error) {
 	ret := _m.Called(ctx, user)
 
 	var r0 *User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *CreateUserRequest) (*User, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *CreateCmd) (*User, error)); ok {
 		return rf(ctx, user)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *CreateUserRequest) *User); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *CreateCmd) *User); ok {
 		r0 = rf(ctx, user)
 	} else {
 		if ret.Get(0) != nil {
@@ -57,7 +57,7 @@ func (_m *MockService) Create(ctx context.Context, user *CreateUserRequest) (*Us
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *CreateUserRequest) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *CreateCmd) error); ok {
 		r1 = rf(ctx, user)
 	} else {
 		r1 = ret.Error(1)

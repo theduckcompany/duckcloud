@@ -54,7 +54,7 @@ func (t *HTTPHandler) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := t.service.Create(r.Context(), &CreateUserRequest{
+	user, err := t.service.Create(r.Context(), &CreateCmd{
 		Username: input.Username,
 		Email:    input.Email,
 		Password: input.Password,

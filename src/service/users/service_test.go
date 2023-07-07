@@ -36,7 +36,7 @@ func Test_Service_Create_success(t *testing.T) {
 
 	storage.On("Save", ctx, &user).Return(nil).Once()
 
-	res, err := service.Create(ctx, &CreateUserRequest{
+	res, err := service.Create(ctx, &CreateCmd{
 		Username: "some-username",
 		Email:    "some@email.com",
 		Password: "some-password",
@@ -53,7 +53,7 @@ func Test_Service_Create_with_email_already_exists(t *testing.T) {
 
 	storage.On("GetByEmail", ctx, "some@email.com").Return(&User{}, nil).Once()
 
-	res, err := service.Create(ctx, &CreateUserRequest{
+	res, err := service.Create(ctx, &CreateCmd{
 		Username: "some-username",
 		Email:    "some@email.com",
 		Password: "some-password",
@@ -72,7 +72,7 @@ func Test_Service_Create_with_username_taken(t *testing.T) {
 	storage.On("GetByEmail", ctx, "some@email.com").Return(nil, nil).Once()
 	storage.On("GetByUsername", ctx, "some-username").Return(&User{}, nil).Once()
 
-	res, err := service.Create(ctx, &CreateUserRequest{
+	res, err := service.Create(ctx, &CreateCmd{
 		Username: "some-username",
 		Email:    "some@email.com",
 		Password: "some-password",
@@ -90,7 +90,7 @@ func Test_Service_Create_with_a_database_error(t *testing.T) {
 
 	storage.On("GetByEmail", ctx, "some@email.com").Return(nil, fmt.Errorf("some-error")).Once()
 
-	res, err := service.Create(ctx, &CreateUserRequest{
+	res, err := service.Create(ctx, &CreateCmd{
 		Username: "some-username",
 		Email:    "some@email.com",
 		Password: "some-password",
