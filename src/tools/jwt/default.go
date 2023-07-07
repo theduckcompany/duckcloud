@@ -8,8 +8,8 @@ import (
 
 	"github.com/Peltoche/neurone/src/tools/errs"
 	"github.com/Peltoche/neurone/src/tools/uuid"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/go-oauth2/oauth2/v4/generates"
+	"github.com/golang-jwt/jwt"
 )
 
 var (
