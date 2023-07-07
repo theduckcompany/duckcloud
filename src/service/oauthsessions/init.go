@@ -7,6 +7,7 @@ import (
 	"github.com/Peltoche/neurone/src/tools"
 )
 
+//go:generate mockery --name Service
 type Service interface {
 	CreateSession(ctx context.Context, input *CreateCmd) error
 	RemoveByAccessToken(ctx context.Context, access string) error

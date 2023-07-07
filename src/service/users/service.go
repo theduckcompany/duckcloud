@@ -18,6 +18,8 @@ var (
 )
 
 // Storage encapsulates the logic to access user from the data source.
+//
+//go:generate mockery --name Storage
 type (
 	Storage interface {
 		Save(ctx context.Context, user *User) error
