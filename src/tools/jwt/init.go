@@ -17,6 +17,7 @@ type AccessToken struct {
 	Raw      string
 }
 
+//go:generate mockery --name Parser
 type Parser interface {
 	FetchAccessToken(r *http.Request, permissions ...string) (*AccessToken, error)
 	GenerateAccess() *generates.JWTAccessGenerate
