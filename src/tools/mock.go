@@ -5,6 +5,7 @@ import (
 
 	"github.com/Peltoche/neurone/src/tools/clock"
 	"github.com/Peltoche/neurone/src/tools/jwt"
+	"github.com/Peltoche/neurone/src/tools/logger"
 	"github.com/Peltoche/neurone/src/tools/response"
 	"github.com/Peltoche/neurone/src/tools/uuid"
 	"github.com/neilotoole/slogt"
@@ -12,22 +13,25 @@ import (
 )
 
 type Mock struct {
-	ClockMock     *clock.MockClock
-	UUIDMock      *uuid.MockService
-	LogTest       *slog.Logger
-	ResWriterMock *response.MockWriter
-	JWTMock       *jwt.MockParser
+	ClockMock *clock.MockClock
+	UUIDMock  *uuid.MockService
+	LogTest   *slog.Logger
+	resWriter response.Writer
+	JWTMock   *jwt.MockParser
 }
 
 func NewMock(t *testing.T) *Mock {
 	t.Helper()
 
 	return &Mock{
-		ClockMock:     clock.NewMockClock(t),
-		UUIDMock:      uuid.NewMockService(t),
-		LogTest:       slogt.New(t),
-		ResWriterMock: response.NewMockWriter(t),
-		JWTMock:       jwt.NewMockParser(t),
+		ClockMock: clock.NewMockClock(t),
+		UUIDMock:  uuid.NewMockService(t),
+		LogTest:   slogt.New(t),
+		resWriter: response.Init(response.Config{
+			PrettyRender: true,
+			HotReload:    false,
+		}, logger.NewNoop()),
+		JWTMock: jwt.NewMockParser(t),
 	}
 }
 
@@ -51,5 +55,5 @@ func (m *Mock) Logger() *slog.Logger {
 }
 
 func (m *Mock) ResWriter() response.Writer {
-	return m.ResWriterMock
+	return m.resWriter
 }

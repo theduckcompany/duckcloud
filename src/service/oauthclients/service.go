@@ -30,8 +30,8 @@ type OauthClientService struct {
 	uuid    uuid.Service
 }
 
-func NewService(app tools.Tools, storage Storage) *OauthClientService {
-	return &OauthClientService{storage, app.Clock(), app.UUID()}
+func NewService(tools tools.Tools, storage Storage) *OauthClientService {
+	return &OauthClientService{storage, tools.Clock(), tools.UUID()}
 }
 
 func (s *OauthClientService) Create(ctx context.Context, cmd *CreateCmd) error {

@@ -7,34 +7,21 @@ import (
 
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/storage"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 )
 
-type StorageTestSuite struct {
-	suite.Suite
-	storage    *sqlStorage
-	nowData    time.Time
-	clientData Client
-}
-
-func TestClientStorageSuite(t *testing.T) {
-	suite.Run(t, new(StorageTestSuite))
-}
-
-func (suite *StorageTestSuite) SetupSuite() {
-	t := suite.T()
+func TestOauthClientsSQLStorage(t *testing.T) {
+	ctx := context.Background()
 	tools := tools.NewMock(t)
 
-	suite.nowData = time.Now().UTC()
-
-	userID := "some-userID"
-	suite.clientData = Client{
+	now := time.Now().UTC()
+	clientExample := Client{
 		ID:             "some-client-id",
 		Secret:         "some-secret",
 		RedirectURI:    "some-url",
-		UserID:         userID,
-		CreatedAt:      suite.nowData,
+		UserID:         "some-user-id",
+		CreatedAt:      now,
 		Scopes:         []string{"scope-a"},
 		Public:         true,
 		SkipValidation: true,
@@ -43,28 +30,22 @@ func (suite *StorageTestSuite) SetupSuite() {
 	db, err := storage.NewSQliteDBWithMigrate(storage.Config{Path: t.TempDir() + "/test.db"}, tools)
 	require.NoError(t, err)
 
-	suite.storage = newSqlStorage(db)
-}
+	storage := newSqlStorage(db)
 
-func (suite *StorageTestSuite) Test_Create() {
-	err := suite.storage.Save(context.Background(), &suite.clientData)
+	t.Run("GetByID not found", func(t *testing.T) {
+		res, err := storage.GetByID(ctx, "some-invalid-id")
+		assert.NoError(t, err)
+		assert.Nil(t, res)
+	})
 
-	suite.Assert().NoError(err)
-}
+	t.Run("Create", func(t *testing.T) {
+		err := storage.Save(context.Background(), &clientExample)
+		assert.NoError(t, err)
+	})
 
-func (suite *StorageTestSuite) Test_GetByID() {
-	res, err := suite.storage.GetByID(context.Background(), "some-client-id")
-
-	suite.Require().NotNil(res)
-	res.CreatedAt = res.CreatedAt.UTC()
-
-	suite.NoError(err)
-	suite.Equal(&suite.clientData, res)
-}
-
-func (suite *StorageTestSuite) Test_GetByEmail_invalid_return_nil() {
-	res, err := suite.storage.GetByID(context.Background(), "some-inval##id-uuid")
-
-	suite.NoError(err)
-	suite.Nil(res)
+	t.Run("GetByID success", func(t *testing.T) {
+		res, err := storage.GetByID(ctx, "some-client-id")
+		assert.NoError(t, err)
+		assert.EqualValues(t, &clientExample, res)
+	})
 }
