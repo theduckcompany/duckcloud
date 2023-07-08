@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCodeStorage(t *testing.T) {
+func TestOauthCodeSQLStorage(t *testing.T) {
 	ctx := context.Background()
 	now := time.Now().UTC()
 

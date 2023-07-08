@@ -3,7 +3,6 @@ package oauthcodes
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/clock"
@@ -12,20 +11,18 @@ import (
 
 var ErrInvalidExpirationDate = fmt.Errorf("invalid expiration date")
 
-type (
-	//go:generate mockery --name Storage
-	Storage interface {
-		Save(ctx context.Context, code *Code) error
-		RemoveByCode(ctx context.Context, code string) error
-		GetByCode(ctx context.Context, code string) (*Code, error)
-	}
+//go:generate mockery --name Storage
+type Storage interface {
+	Save(ctx context.Context, code *Code) error
+	RemoveByCode(ctx context.Context, code string) error
+	GetByCode(ctx context.Context, code string) (*Code, error)
+}
 
-	// OauthCodeService handling all the logic.
-	OauthCodeService struct {
-		storage Storage
-		clock   clock.Clock
-	}
-)
+// OauthCodeService handling all the logic.
+type OauthCodeService struct {
+	storage Storage
+	clock   clock.Clock
+}
 
 // NewService create a new code service.
 func NewService(tools tools.Tools, storage Storage) *OauthCodeService {
@@ -39,7 +36,7 @@ func (t *OauthCodeService) CreateCode(ctx context.Context, input *CreateCmd) err
 		return errs.ValidationError(err)
 	}
 
-	now := time.Now()
+	now := t.clock.Now()
 
 	if input.ExpiresAt.Before(now) {
 		return errs.BadRequest(ErrInvalidExpirationDate, "invalid expiration date")
