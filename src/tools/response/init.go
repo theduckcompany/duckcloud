@@ -15,6 +15,7 @@ type Config struct {
 	HotReload    bool `mapstructure:"hotReload"`
 }
 
+//go:generate mockery --name Writer
 type Writer interface {
 	WriteJSON(w http.ResponseWriter, statusCode int, res any)
 	WriteJSONError(w http.ResponseWriter, err error)
