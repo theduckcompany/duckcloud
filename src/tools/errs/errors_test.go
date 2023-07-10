@@ -8,6 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Most of the code is tested in [../response] package
+
 func Test_ValidationError_match_ErrValidation(t *testing.T) {
 	err := BadRequest(fmt.Errorf("some-error"), "super message")
 
