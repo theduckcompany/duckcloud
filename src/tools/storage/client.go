@@ -22,5 +22,10 @@ func NewSQliteClient(cfg Config) (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to create the sqlite db: %w", err)
 	}
 
+	err = db.Ping()
+	if err != nil {
+		return nil, err
+	}
+
 	return db, nil
 }

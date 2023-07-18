@@ -17,10 +17,8 @@ import (
 var fs embed.FS
 
 func RunMigrations(cfg Config, tools tools.Tools) error {
-	d, err := iofs.New(fs, "migration")
-	if err != nil {
-		return fmt.Errorf("failed to load the migrated files: %w", err)
-	}
+	// Error not possible
+	d, _ := iofs.New(fs, "migration")
 
 	m, err := migrate.NewWithSourceInstance("iofs", d, cfg.DSN)
 	if err != nil {
