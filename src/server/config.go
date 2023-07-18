@@ -34,7 +34,7 @@ func NewDefaultConfig() *Config {
 			HotReload: false,
 		},
 		Storage: storage.Config{
-			Path: "./dev.db",
+			DSN: "sqlite://./dev.db",
 		},
 		Tools: tools.Config{
 			JWT: jwt.Config{

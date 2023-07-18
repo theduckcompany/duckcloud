@@ -5,15 +5,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/storage"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestOauthClientsSQLStorage(t *testing.T) {
 	ctx := context.Background()
-	tools := tools.NewMock(t)
 
 	now := time.Now().UTC()
 	clientExample := Client{
@@ -27,8 +24,7 @@ func TestOauthClientsSQLStorage(t *testing.T) {
 		SkipValidation: true,
 	}
 
-	db, err := storage.NewSQliteDBWithMigrate(storage.Config{Path: t.TempDir() + "/test.db"}, tools)
-	require.NoError(t, err)
+	db := storage.NewTestStorage(t)
 
 	storage := newSqlStorage(db)
 

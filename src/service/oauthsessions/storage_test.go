@@ -5,17 +5,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/storage"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestSessionStorageStorage(t *testing.T) {
-	tools := tools.NewMock(t)
-
-	db, err := storage.NewSQliteDBWithMigrate(storage.Config{Path: t.TempDir() + "/test.db"}, tools)
-	require.NoError(t, err)
+	db := storage.NewTestStorage(t)
+	storage := newSqlStorage(db)
 
 	nowData := time.Now().UTC()
 
@@ -30,8 +26,6 @@ func TestSessionStorageStorage(t *testing.T) {
 		UserID:           "some-user-id",
 		Scope:            "some-scope",
 	}
-
-	storage := newSqlStorage(db)
 
 	t.Run("Save success", func(t *testing.T) {
 		err := storage.Save(context.Background(), &sessionData)

@@ -33,7 +33,7 @@ func start(cfg *Config, invoke fx.Option) *fx.App {
 			func() Config { return *cfg },
 
 			// Tools
-			storage.NewSQliteDBWithMigrate,
+			storage.Init,
 			fx.Annotate(tools.NewToolbox, fx.As(new(tools.Tools))),
 
 			// Services
