@@ -1,63 +1,41 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
-	"embed"
-	"errors"
 	"fmt"
-	"path"
 
 	"github.com/Peltoche/neurone/src/tools"
-	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/sqlite"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/golang-migrate/migrate/v4/source/iofs"
-	_ "github.com/mattn/go-sqlite3"
-	"golang.org/x/exp/slog"
+	"go.uber.org/fx"
 )
 
-type Config struct {
-	Path string `mapstructure:"url"`
+type Params struct {
+	fx.In
+	LC    fx.Lifecycle
+	Cfg   Config
+	Tools tools.Tools
 }
 
-//go:embed migration/*.sql
-var fs embed.FS
-
-func NewSQliteDBWithMigrate(cfg Config, tools tools.Tools) (*sql.DB, error) {
-	d, err := iofs.New(fs, "migration")
+func Init(p Params) (*sql.DB, error) {
+	db, err := NewSQliteClient(p.Cfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load the migrated files: %w", err)
+		return nil, fmt.Errorf("sqlite error: %w", err)
 	}
 
-	dbPath := path.Clean(cfg.Path)
+	p.LC.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			return db.PingContext(ctx)
+		},
+		OnStop: func(context.Context) error {
+			return db.Close()
+		},
+	})
 
-	m, err := migrate.NewWithSourceInstance("iofs", d, "sqlite://"+dbPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create a migrate manager: %w", err)
-	}
-
-	m.Log = &migrateLogger{tools.Logger()}
-	err = m.Up()
-	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return nil, fmt.Errorf("database migration error: %w", err)
-	}
-
-	db, err := sql.Open("sqlite", "file:"+dbPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create the sqlite db: %w", err)
-	}
+	p.LC.Append(fx.Hook{
+		OnStart: func(context.Context) error {
+			return RunMigrations(p.Cfg, p.Tools)
+		},
+	})
 
 	return db, nil
-}
-
-type migrateLogger struct {
-	Logger *slog.Logger
-}
-
-func (t *migrateLogger) Printf(format string, v ...any) {
-	t.Logger.Debug(fmt.Sprintf(format, v...))
-}
-
-func (t *migrateLogger) Verbose() bool {
-	return true
 }
