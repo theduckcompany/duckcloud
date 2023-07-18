@@ -20,11 +20,11 @@ type Config struct {
 	Path string `mapstructure:"url"`
 }
 
-//go:embed db/migration/*.sql
+//go:embed migration/*.sql
 var fs embed.FS
 
 func NewSQliteDBWithMigrate(cfg Config, tools tools.Tools) (*sql.DB, error) {
-	d, err := iofs.New(fs, "db/migration")
+	d, err := iofs.New(fs, "migration")
 	if err != nil {
 		return nil, fmt.Errorf("failed to load the migrated files: %w", err)
 	}
