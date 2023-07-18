@@ -7,47 +7,34 @@ import (
 
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/storage"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 )
 
-type StorageTestSuite struct {
-	suite.Suite
-	storage     *sqlStorage
-	nowData     time.Time
-	sessionData Session
-}
-
-func TestSessionStorageSuite(t *testing.T) {
-	suite.Run(t, new(StorageTestSuite))
-}
-
-func (suite *StorageTestSuite) SetupSuite() {
-	t := suite.T()
+func TestSessionStorageStorage(t *testing.T) {
 	tools := tools.NewMock(t)
 
-	suite.nowData = time.Now().UTC()
+	db, err := storage.NewSQliteDBWithMigrate(storage.Config{Path: t.TempDir() + "/test.db"}, tools)
+	require.NoError(t, err)
 
-	suite.sessionData = Session{
+	nowData := time.Now().UTC()
+
+	sessionData := Session{
 		AccessToken:      "some-access-token",
-		AccessCreatedAt:  suite.nowData,
-		AccessExpiresAt:  suite.nowData.Add(time.Hour),
+		AccessCreatedAt:  nowData,
+		AccessExpiresAt:  nowData.Add(time.Hour),
 		RefreshToken:     "some-refresh-token",
-		RefreshCreatedAt: suite.nowData,
-		RefreshExpiresAt: suite.nowData.Add(10 * time.Hour),
+		RefreshCreatedAt: nowData,
+		RefreshExpiresAt: nowData.Add(10 * time.Hour),
 		ClientID:         "some-client-id",
 		UserID:           "some-user-id",
 		Scope:            "some-scope",
 	}
 
-	db, err := storage.NewSQliteDBWithMigrate(storage.Config{Path: t.TempDir() + "/test.db"}, tools)
-	require.NoError(t, err)
+	storage := newSqlStorage(db)
 
-	suite.storage = newSqlStorage(db)
-}
-
-func (suite *StorageTestSuite) Test_Save() {
-	err := suite.storage.Save(context.Background(), &suite.sessionData)
-
-	suite.Assert().NoError(err)
+	t.Run("Save success", func(t *testing.T) {
+		err := storage.Save(context.Background(), &sessionData)
+		assert.NoError(t, err)
+	})
 }
