@@ -28,3 +28,22 @@ func TestRunMigration(t *testing.T) {
 	// There is more than 3 tables
 	assert.Greater(t, res, 3)
 }
+
+func TestRunMigrationWithAnInvalidDSN(t *testing.T) {
+	cfg := Config{DSN: "sqlite3:///foo/some-invali-path"}
+
+	tools := tools.NewMock(t)
+	err := RunMigrations(cfg, tools)
+	require.EqualError(t, err, "failed to create a migrate manager: unable to open database file: no such file or directory")
+}
+
+func TestRunMigrationTwice(t *testing.T) {
+	cfg := Config{DSN: "sqlite3://" + t.TempDir() + "/db.sqlite"}
+
+	tools := tools.NewMock(t)
+	err := RunMigrations(cfg, tools)
+	require.NoError(t, err)
+
+	err = RunMigrations(cfg, tools)
+	require.NoError(t, err)
+}
