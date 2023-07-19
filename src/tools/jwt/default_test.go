@@ -3,25 +3,114 @@ package jwt
 import (
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/Peltoche/neurone/src/tools/uuid"
+	"github.com/go-oauth2/oauth2/v4/generates"
+	"github.com/golang-jwt/jwt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestJWT(t *testing.T) {
-	jwtSvc := NewDefault(Config{Key: "A very bad key"})
+	t.Run("decode Authorization header success", func(t *testing.T) {
+		oneHour := time.Now().Add(time.Hour)
 
-	req, err := http.NewRequest(http.MethodGet, "http://some-url", nil)
-	require.NoError(t, err)
+		// Create a token
+		tok := jwt.NewWithClaims(jwt.SigningMethodHS512, &generates.JWTAccessClaims{
+			StandardClaims: jwt.StandardClaims{
+				Audience:  "some-client-id",
+				Subject:   "some-user-id",
+				ExpiresAt: oneHour.Unix(),
+			},
+		})
+		rawToken, err := tok.SignedString([]byte("some-super-secret"))
+		require.NoError(t, err)
 
-	req.Header.Set("Authorization", "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJuZXVyb25lLXdlYi11aSIsImV4cCI6MTY4OTcxMzM4OSwic3ViIjoiOGYwNmI5MGMtNWM4MS00Nzc5LWE5MjctMTU3MmNmYjIwNTg2In0.2PZIl9yD8bQmJnYg1kIQCfonEn9XL3jDCuCTzepWxocF1LRpB8MHe6fzNMKR-AVfT-Nqv-MMKIF9sKL1ki2dtA")
+		req, err := http.NewRequest(http.MethodGet, "http://some-url", nil)
+		require.NoError(t, err)
+		req.Header.Set("Authorization", "Bearer "+rawToken)
 
-	token, err := jwtSvc.FetchAccessToken(req)
-	require.NoError(t, err)
-	assert.EqualValues(t, &AccessToken{
-		ClientID: "neurone-web-ui",
-		UserID:   uuid.UUID("8f06b90c-5c81-4779-a927-1572cfb20586"),
-		Raw:      "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJuZXVyb25lLXdlYi11aSIsImV4cCI6MTY4OTcxMzM4OSwic3ViIjoiOGYwNmI5MGMtNWM4MS00Nzc5LWE5MjctMTU3MmNmYjIwNTg2In0.2PZIl9yD8bQmJnYg1kIQCfonEn9XL3jDCuCTzepWxocF1LRpB8MHe6fzNMKR-AVfT-Nqv-MMKIF9sKL1ki2dtA",
-	}, token)
+		jwtSvc := NewDefault(Config{Key: "some-super-secret"})
+		token, err := jwtSvc.FetchAccessToken(req)
+		require.NoError(t, err)
+		assert.EqualValues(t, &AccessToken{
+			ClientID: "some-client-id",
+			UserID:   uuid.UUID("some-user-id"),
+			Raw:      rawToken,
+		}, token)
+	})
+
+	t.Run("decode path parameter success", func(t *testing.T) {
+		oneHour := time.Now().Add(time.Hour)
+
+		// Create a token
+		tok := jwt.NewWithClaims(jwt.SigningMethodHS512, &generates.JWTAccessClaims{
+			StandardClaims: jwt.StandardClaims{
+				Audience:  "some-client-id",
+				Subject:   "some-user-id",
+				ExpiresAt: oneHour.Unix(),
+			},
+		})
+		rawToken, err := tok.SignedString([]byte("some-super-secret"))
+		require.NoError(t, err)
+
+		req, err := http.NewRequest(http.MethodGet, "http://some-url?access_token="+rawToken, nil)
+		require.NoError(t, err)
+
+		jwtSvc := NewDefault(Config{Key: "some-super-secret"})
+		token, err := jwtSvc.FetchAccessToken(req)
+		require.NoError(t, err)
+		assert.EqualValues(t, &AccessToken{
+			ClientID: "some-client-id",
+			UserID:   uuid.UUID("some-user-id"),
+			Raw:      rawToken,
+		}, token)
+	})
+
+	t.Run("decode with an invalid signature", func(t *testing.T) {
+		oneHour := time.Now().Add(time.Hour)
+
+		// Create a token
+		tok := jwt.NewWithClaims(jwt.SigningMethodHS512, &generates.JWTAccessClaims{
+			StandardClaims: jwt.StandardClaims{
+				Audience:  "some-client-id",
+				Subject:   "some-user-id",
+				ExpiresAt: oneHour.Unix(),
+			},
+		})
+		rawToken, err := tok.SignedString([]byte("Invalid Key $$$")) // Must be "some-super-token"
+		require.NoError(t, err)
+
+		req, err := http.NewRequest(http.MethodGet, "http://some-url?access_token="+rawToken, nil)
+		require.NoError(t, err)
+
+		jwtSvc := NewDefault(Config{Key: "some-super-secret"})
+		token, err := jwtSvc.FetchAccessToken(req)
+		assert.Nil(t, token)
+		assert.EqualError(t, err, "unauthorized: invalid format\nsignature is invalid")
+	})
+
+	t.Run("decode with an expired token", func(t *testing.T) {
+		oneHourAgo := time.Now().Add(-time.Hour)
+
+		// Create a token
+		tok := jwt.NewWithClaims(jwt.SigningMethodHS512, &generates.JWTAccessClaims{
+			StandardClaims: jwt.StandardClaims{
+				Audience:  "some-client-id",
+				Subject:   "some-user-id",
+				ExpiresAt: oneHourAgo.Unix(),
+			},
+		})
+		rawToken, err := tok.SignedString([]byte("some-super-secret"))
+		require.NoError(t, err)
+
+		req, err := http.NewRequest(http.MethodGet, "http://some-url?access_token="+rawToken, nil)
+		require.NoError(t, err)
+
+		jwtSvc := NewDefault(Config{Key: "some-super-secret"})
+		token, err := jwtSvc.FetchAccessToken(req)
+		assert.Nil(t, token)
+		assert.EqualError(t, err, "unauthorized: invalid format\ninvalid access token")
+	})
 }
