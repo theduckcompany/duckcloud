@@ -11,6 +11,8 @@ import (
 	"github.com/go-ozzo/ozzo-validation/is"
 )
 
+var ClientIDRegexp = regexp.MustCompile("^[0-9a-zA-Z-]+$")
+
 // Client client model
 type Client struct {
 	ID             string
@@ -37,7 +39,7 @@ type CreateCmd struct {
 // Validate the fields.
 func (cmd CreateCmd) Validate() error {
 	return v.ValidateStruct(&cmd,
-		v.Field(&cmd.ID, v.Length(3, 20), v.Match(regexp.MustCompile("^[0-9a-zA-Z-]+$"))),
+		v.Field(&cmd.ID, v.Length(3, 20), v.Match(ClientIDRegexp)),
 		v.Field(&cmd.Name, v.Length(3, 20), is.ASCII),
 		v.Field(&cmd.RedirectURI, is.URL),
 		v.Field(&cmd.UserID, is.UUIDv4),

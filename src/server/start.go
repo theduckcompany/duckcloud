@@ -6,8 +6,10 @@ import (
 	"github.com/Peltoche/neurone/src/service/oauth2"
 	"github.com/Peltoche/neurone/src/service/oauthclients"
 	"github.com/Peltoche/neurone/src/service/oauthcodes"
+	"github.com/Peltoche/neurone/src/service/oauthconsents"
 	"github.com/Peltoche/neurone/src/service/oauthsessions"
 	"github.com/Peltoche/neurone/src/service/users"
+	"github.com/Peltoche/neurone/src/service/websessions"
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/logger"
 	"github.com/Peltoche/neurone/src/tools/router"
@@ -41,6 +43,8 @@ func start(cfg *Config, invoke fx.Option) *fx.App {
 			fx.Annotate(oauthcodes.Init, fx.As(new(oauthcodes.Service))),
 			fx.Annotate(oauthsessions.Init, fx.As(new(oauthsessions.Service))),
 			fx.Annotate(oauthclients.Init, fx.As(new(oauthclients.Service))),
+			fx.Annotate(oauthconsents.Init, fx.As(new(oauthconsents.Service))),
+			fx.Annotate(websessions.Init, fx.As(new(websessions.Service))),
 
 			// HTTP handlers
 			AsRoute(dav.NewHTTPHandler),
