@@ -2,7 +2,6 @@ package tools
 
 import (
 	"github.com/Peltoche/neurone/src/tools/clock"
-	"github.com/Peltoche/neurone/src/tools/jwt"
 	"github.com/Peltoche/neurone/src/tools/response"
 	"github.com/Peltoche/neurone/src/tools/uuid"
 	"golang.org/x/exp/slog"
@@ -14,5 +13,4 @@ type Tools interface {
 	UUID() uuid.Service
 	Logger() *slog.Logger
 	ResWriter() response.Writer
-	JWT() jwt.Parser
 }

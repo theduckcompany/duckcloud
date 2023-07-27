@@ -2,7 +2,6 @@ package tools
 
 import (
 	"github.com/Peltoche/neurone/src/tools/clock"
-	"github.com/Peltoche/neurone/src/tools/jwt"
 	"github.com/Peltoche/neurone/src/tools/logger"
 	"github.com/Peltoche/neurone/src/tools/response"
 	"github.com/Peltoche/neurone/src/tools/uuid"
@@ -10,7 +9,6 @@ import (
 )
 
 type Config struct {
-	JWT      jwt.Config      `mapstructure:"jwt"`
 	Response response.Config `mapstructure:"response"`
 	Log      logger.Config   `mapstructure:"log"`
 }
@@ -20,7 +18,6 @@ type Prod struct {
 	uuid      uuid.Service
 	resWriter response.Writer
 	log       *slog.Logger
-	jwt       jwt.Parser
 }
 
 func NewToolbox(cfg Config) *Prod {
@@ -31,12 +28,7 @@ func NewToolbox(cfg Config) *Prod {
 		uuid:      uuid.NewProvider(),
 		log:       log,
 		resWriter: response.Init(cfg.Response, log),
-		jwt:       jwt.NewDefault(cfg.JWT),
 	}
-}
-
-func (d *Prod) JWT() jwt.Parser {
-	return d.jwt
 }
 
 // Clock implements App.
