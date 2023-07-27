@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Peltoche/neurone/src/service/oauth2"
 	"github.com/Peltoche/neurone/src/tools"
-	"github.com/Peltoche/neurone/src/tools/jwt"
 	"github.com/Peltoche/neurone/src/tools/response"
 	"github.com/Peltoche/neurone/src/tools/router"
 	"github.com/go-chi/chi/v5"
@@ -14,16 +14,16 @@ import (
 
 // HTTPHandler handle all the HTTP request for the users
 type HTTPHandler struct {
-	service  Service
-	response response.Writer
-	jwt      jwt.Parser
+	service   Service
+	response  response.Writer
+	oauth2Svc oauth2.Service
 }
 
-func NewHTTPHandler(tools tools.Tools, service Service) *HTTPHandler {
+func NewHTTPHandler(tools tools.Tools, service Service, oauth2Svc oauth2.Service) *HTTPHandler {
 	return &HTTPHandler{
-		service:  service,
-		response: tools.ResWriter(),
-		jwt:      tools.JWT(),
+		service:   service,
+		response:  tools.ResWriter(),
+		oauth2Svc: oauth2Svc,
 	}
 }
 
@@ -75,7 +75,7 @@ func (t *HTTPHandler) getMyUser(w http.ResponseWriter, r *http.Request) {
 		CreatedAt time.Time `json:"createdAt"`
 	}
 
-	token, err := t.jwt.FetchAccessToken(r)
+	token, err := t.oauth2Svc.GetFromReq(r)
 	if err != nil {
 		t.response.WriteJSONError(w, err)
 		return

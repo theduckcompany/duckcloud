@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/Peltoche/neurone/src/tools/clock"
-	"github.com/Peltoche/neurone/src/tools/jwt"
 	"github.com/Peltoche/neurone/src/tools/logger"
 	"github.com/Peltoche/neurone/src/tools/response"
 	"github.com/Peltoche/neurone/src/tools/uuid"
@@ -17,7 +16,6 @@ type Mock struct {
 	UUIDMock  *uuid.MockService
 	LogTest   *slog.Logger
 	resWriter response.Writer
-	JWTMock   *jwt.MockParser
 }
 
 func NewMock(t *testing.T) *Mock {
@@ -31,17 +29,12 @@ func NewMock(t *testing.T) *Mock {
 			PrettyRender: true,
 			HotReload:    false,
 		}, logger.NewNoop()),
-		JWTMock: jwt.NewMockParser(t),
 	}
 }
 
 // Clock implements App.
 func (m *Mock) Clock() clock.Clock {
 	return m.ClockMock
-}
-
-func (m *Mock) JWT() jwt.Parser {
-	return m.JWTMock
 }
 
 // UUID implements App.
