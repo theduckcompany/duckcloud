@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Peltoche/neurone/src/service/oauth2"
 	"github.com/Peltoche/neurone/src/tools"
-	"github.com/Peltoche/neurone/src/tools/jwt"
 	"github.com/Peltoche/neurone/src/tools/router"
 	"github.com/Peltoche/neurone/src/tools/uuid"
 	"github.com/gavv/httpexpect/v2"
@@ -17,7 +17,7 @@ import (
 
 func TestHTTHandler(t *testing.T) {
 	t.Run("createUser success", func(t *testing.T) {
-		_, service, e := setupRouter(t)
+		service, _, e := setupRouter(t)
 
 		now := time.Now()
 
@@ -56,14 +56,12 @@ func TestHTTHandler(t *testing.T) {
 	})
 
 	t.Run("getMyUser success", func(t *testing.T) {
-		tools, service, e := setupRouter(t)
+		service, oauth2Svc, e := setupRouter(t)
 
 		now := time.Now()
 
-		tools.JWTMock.On("FetchAccessToken", mock.Anything).Return(&jwt.AccessToken{
-			ClientID: uuid.UUID("some-client-id"),
-			UserID:   uuid.UUID("some-user-id"),
-			Raw:      "some-raw-token",
+		oauth2Svc.On("GetFromReq", mock.Anything).Return(&oauth2.Token{
+			UserID: uuid.UUID("some-user-id"),
 		}, nil).Once()
 
 		service.On("GetByID", mock.Anything, uuid.UUID("some-user-id")).Return(&User{
@@ -92,11 +90,12 @@ func TestHTTHandler(t *testing.T) {
 	})
 }
 
-func setupRouter(t *testing.T) (*tools.Mock, *MockService, *httpexpect.Expect) {
+func setupRouter(t *testing.T) (*MockService, *oauth2.MockService, *httpexpect.Expect) {
 	tools := tools.NewMock(t)
+	oauth2Svc := oauth2.NewMockService(t)
 	service := NewMockService(t)
 
-	handler := NewHTTPHandler(tools, service)
+	handler := NewHTTPHandler(tools, service, oauth2Svc)
 	r := chi.NewRouter()
 	handler.Register(r, router.InitMiddlewares(tools))
 	server := httptest.NewServer(r)
@@ -104,5 +103,5 @@ func setupRouter(t *testing.T) (*tools.Mock, *MockService, *httpexpect.Expect) {
 
 	e := httpexpect.Default(t, server.URL)
 
-	return tools, service, e
+	return service, oauth2Svc, e
 }

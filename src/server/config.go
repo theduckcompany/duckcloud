@@ -3,7 +3,6 @@ package server
 import (
 	"github.com/Peltoche/neurone/assets"
 	"github.com/Peltoche/neurone/src/tools"
-	"github.com/Peltoche/neurone/src/tools/jwt"
 	"github.com/Peltoche/neurone/src/tools/logger"
 	"github.com/Peltoche/neurone/src/tools/response"
 	"github.com/Peltoche/neurone/src/tools/router"
@@ -37,9 +36,6 @@ func NewDefaultConfig() *Config {
 			DSN: "sqlite3://./dev.db",
 		},
 		Tools: tools.Config{
-			JWT: jwt.Config{
-				Key: "A very bad key",
-			},
 			Response: response.Config{
 				PrettyRender: false,
 			},
