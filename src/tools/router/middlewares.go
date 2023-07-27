@@ -14,6 +14,7 @@ type Middlewares struct {
 	StripSlashed Middleware
 	Logger       Middleware
 	OnlyJSON     Middleware
+	RealIP       Middleware
 }
 
 func InitMiddlewares(tools tools.Tools) Middlewares {
@@ -21,5 +22,6 @@ func InitMiddlewares(tools tools.Tools) Middlewares {
 		StripSlashed: middleware.StripSlashes,
 		Logger:       internal.NewStructuredLogger(tools.Logger()),
 		OnlyJSON:     middleware.AllowContentType("application/json"),
+		RealIP:       middleware.RealIP,
 	}
 }
