@@ -15,12 +15,23 @@ import (
 func TestOauthClientsService(t *testing.T) {
 	ctx := context.Background()
 
+	now := time.Now()
+	client := Client{
+		ID:             "some-id",
+		Name:           "some-name",
+		Secret:         "some-secret-uuid",
+		RedirectURI:    "http://some-url",
+		UserID:         "some-user-id",
+		CreatedAt:      now,
+		Scopes:         Scopes{"foo", "bar"},
+		Public:         true,
+		SkipValidation: true,
+	}
+
 	t.Run("Create success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storage := NewMockStorage(t)
 		svc := NewService(tools, storage)
-
-		now := time.Now()
 
 		// Check that the client name is not already taken
 		storage.On("GetByID", mock.Anything, "some-id").Return(nil, nil).Once()
@@ -28,19 +39,9 @@ func TestOauthClientsService(t *testing.T) {
 		tools.ClockMock.On("Now").Return(now).Once()                          // Client.CreatedAt
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-secret-uuid")).Once() // Client.Secret
 
-		storage.On("Save", mock.Anything, &Client{
-			ID:             "some-id",
-			Name:           "some-name",
-			Secret:         "some-secret-uuid",
-			RedirectURI:    "http://some-url",
-			UserID:         "some-user-id",
-			CreatedAt:      now,
-			Scopes:         Scopes{"foo", "bar"},
-			Public:         true,
-			SkipValidation: true,
-		}).Return(nil).Once()
+		storage.On("Save", mock.Anything, &client).Return(nil).Once()
 
-		err := svc.Create(ctx, &CreateCmd{
+		res, err := svc.Create(ctx, &CreateCmd{
 			ID:             "some-id",
 			Name:           "some-name",
 			RedirectURI:    "http://some-url",
@@ -49,7 +50,9 @@ func TestOauthClientsService(t *testing.T) {
 			Public:         true,
 			SkipValidation: true,
 		})
+
 		assert.NoError(t, err)
+		assert.EqualValues(t, &client, res)
 	})
 
 	t.Run("Create with a client id already taken", func(t *testing.T) {
@@ -59,7 +62,7 @@ func TestOauthClientsService(t *testing.T) {
 
 		storage.On("GetByID", mock.Anything, "some-id").Return(&Client{ /* some fields */ }, nil).Once()
 
-		err := svc.Create(ctx, &CreateCmd{
+		res, err := svc.Create(ctx, &CreateCmd{
 			ID:             "some-id",
 			Name:           "some-name",
 			RedirectURI:    "http://some-url",
@@ -68,15 +71,15 @@ func TestOauthClientsService(t *testing.T) {
 			Public:         true,
 			SkipValidation: true,
 		})
+
 		assert.ErrorIs(t, err, ErrClientIDTaken)
+		assert.Nil(t, res)
 	})
 
 	t.Run("Create with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storage := NewMockStorage(t)
 		svc := NewService(tools, storage)
-
-		now := time.Now()
 
 		// Check that the client name is not already taken
 		storage.On("GetByID", mock.Anything, "some-id").Return(nil, nil).Once()
@@ -86,7 +89,7 @@ func TestOauthClientsService(t *testing.T) {
 
 		storage.On("Save", mock.Anything, mock.Anything).Return(fmt.Errorf("some-error")).Once()
 
-		err := svc.Create(ctx, &CreateCmd{
+		res, err := svc.Create(ctx, &CreateCmd{
 			ID:             "some-id",
 			Name:           "some-name",
 			RedirectURI:    "http://some-url",
@@ -95,25 +98,15 @@ func TestOauthClientsService(t *testing.T) {
 			Public:         true,
 			SkipValidation: true,
 		})
+
 		assert.EqualError(t, err, "failed to save the client: some-error")
+		assert.Nil(t, res)
 	})
 
 	t.Run("GetByID success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storage := NewMockStorage(t)
 		svc := NewService(tools, storage)
-
-		client := Client{
-			ID:             "some-id",
-			Name:           "some-name",
-			Secret:         "some-secret-uuid",
-			RedirectURI:    "http://some-url",
-			UserID:         "some-user-id",
-			CreatedAt:      time.Now(),
-			Scopes:         Scopes{"foo", "bar"},
-			Public:         true,
-			SkipValidation: true,
-		}
 
 		storage.On("GetByID", mock.Anything, "some-id").Return(&client, nil).Once()
 

@@ -14,17 +14,29 @@ type MockService struct {
 }
 
 // Create provides a mock function with given fields: ctx, cmd
-func (_m *MockService) Create(ctx context.Context, cmd *CreateCmd) error {
+func (_m *MockService) Create(ctx context.Context, cmd *CreateCmd) (*Client, error) {
 	ret := _m.Called(ctx, cmd)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *CreateCmd) error); ok {
+	var r0 *Client
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *CreateCmd) (*Client, error)); ok {
+		return rf(ctx, cmd)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *CreateCmd) *Client); ok {
 		r0 = rf(ctx, cmd)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*Client)
+		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, *CreateCmd) error); ok {
+		r1 = rf(ctx, cmd)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetByID provides a mock function with given fields: ctx, clientID
