@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	WebAppClientID = "neurone-web-ui"
+	WebAppClientID = "web"
 )
 
 var (

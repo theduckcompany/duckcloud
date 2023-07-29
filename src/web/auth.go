@@ -104,9 +104,25 @@ func (h *authHandler) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	client, err := h.clients.GetByID(r.Context(), r.FormValue("client_id"))
-	if err != nil || client == nil {
+	if err != nil {
 		h.response.WriteJSONError(w, errs.BadRequest(oauth2.ErrClientNotFound, "client not found"))
 		return
+	}
+
+	isWebAuthentication := false
+
+	if client == nil {
+		isWebAuthentication = true
+		client, err = h.clients.GetByID(r.Context(), oauthclients.WebAppClientID)
+		if err != nil {
+			h.response.WriteJSONError(w, fmt.Errorf("failed to fetch the web app client: %w", err))
+			return
+		}
+
+		if client == nil {
+			h.response.WriteJSONError(w, errors.New("web client doesn't exists"))
+			return
+		}
 	}
 
 	session, err := h.webSession.Create(r.Context(), &websessions.CreateCmd{
@@ -130,14 +146,17 @@ func (h *authHandler) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, &c)
 
-	if client.SkipValidation {
+	switch {
+	case isWebAuthentication:
+		w.Header().Set("Location", client.RedirectURI)
+		w.WriteHeader(http.StatusFound)
+	case client.SkipValidation:
 		w.Header().Set("Location", "/auth/authorize")
 		w.WriteHeader(http.StatusFound)
-		return
+	default:
+		w.Header().Set("Location", "/consent?"+r.Form.Encode())
+		w.WriteHeader(http.StatusFound)
 	}
-
-	w.Header().Set("Location", "/consent?"+r.Form.Encode())
-	w.WriteHeader(http.StatusFound)
 }
 
 func (h *authHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) {
