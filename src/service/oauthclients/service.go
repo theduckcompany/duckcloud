@@ -34,17 +34,17 @@ func NewService(tools tools.Tools, storage Storage) *OauthClientService {
 	return &OauthClientService{storage, tools.Clock(), tools.UUID()}
 }
 
-func (s *OauthClientService) Create(ctx context.Context, cmd *CreateCmd) error {
-	client, err := s.storage.GetByID(ctx, cmd.ID)
+func (s *OauthClientService) Create(ctx context.Context, cmd *CreateCmd) (*Client, error) {
+	existingClient, err := s.storage.GetByID(ctx, cmd.ID)
 	if err != nil {
-		return fmt.Errorf("failed to get by id: %w", err)
+		return nil, fmt.Errorf("failed to get by id: %w", err)
 	}
 
-	if client != nil {
-		return ErrClientIDTaken
+	if existingClient != nil {
+		return nil, ErrClientIDTaken
 	}
 
-	err = s.storage.Save(ctx, &Client{
+	client := Client{
 		ID:             cmd.ID,
 		Name:           cmd.Name,
 		Secret:         string(s.uuid.New()),
@@ -54,12 +54,14 @@ func (s *OauthClientService) Create(ctx context.Context, cmd *CreateCmd) error {
 		Scopes:         cmd.Scopes,
 		Public:         cmd.Public,
 		SkipValidation: cmd.SkipValidation,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to save the client: %w", err)
 	}
 
-	return nil
+	err = s.storage.Save(ctx, &client)
+	if err != nil {
+		return nil, fmt.Errorf("failed to save the client: %w", err)
+	}
+
+	return &client, nil
 }
 
 func (s *OauthClientService) GetByID(ctx context.Context, clientID string) (*Client, error) {
