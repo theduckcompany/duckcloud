@@ -14,7 +14,7 @@ import (
 func TestOauthCodeService(t *testing.T) {
 	ctx := context.Background()
 
-	t.Run("CreateCode", func(t *testing.T) {
+	t.Run("Create", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storage := NewMockStorage(t)
 		svc := NewService(tools, storage)
@@ -36,7 +36,7 @@ func TestOauthCodeService(t *testing.T) {
 			ChallengeMethod: "S256",
 		}).Return(nil).Once()
 
-		err := svc.CreateCode(ctx, &CreateCmd{
+		err := svc.Create(ctx, &CreateCmd{
 			Code:            "some-code",
 			ExpiresAt:       expiresAt,
 			ClientID:        "dcca1ba7-6fa1-4684-8602-85adcb6a03a2",
@@ -49,7 +49,7 @@ func TestOauthCodeService(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("CreateCode with a storae error", func(t *testing.T) {
+	t.Run("Create with a storae error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storage := NewMockStorage(t)
 		svc := NewService(tools, storage)
@@ -61,7 +61,7 @@ func TestOauthCodeService(t *testing.T) {
 
 		storage.On("Save", mock.Anything, mock.Anything).Return(fmt.Errorf("some-error")).Once()
 
-		err := svc.CreateCode(ctx, &CreateCmd{
+		err := svc.Create(ctx, &CreateCmd{
 			Code:            "some-code",
 			ExpiresAt:       expiresAt,
 			ClientID:        "dcca1ba7-6fa1-4684-8602-85adcb6a03a2",

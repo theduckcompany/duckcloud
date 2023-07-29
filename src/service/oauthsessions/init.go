@@ -9,7 +9,7 @@ import (
 
 //go:generate mockery --name Service
 type Service interface {
-	CreateSession(ctx context.Context, input *CreateCmd) error
+	Create(ctx context.Context, input *CreateCmd) error
 	RemoveByAccessToken(ctx context.Context, access string) error
 	RemoveByRefreshToken(ctx context.Context, refresh string) error
 	GetByAccessToken(ctx context.Context, access string) (*Session, error)

@@ -9,7 +9,7 @@ import (
 
 //go:generate mockery --name Service
 type Service interface {
-	CreateCode(ctx context.Context, input *CreateCmd) error
+	Create(ctx context.Context, input *CreateCmd) error
 	RemoveByCode(ctx context.Context, code string) error
 	GetByCode(ctx context.Context, code string) (*Code, error)
 }
