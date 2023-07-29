@@ -30,7 +30,7 @@ func NewService(tools tools.Tools, storage Storage) *OauthCodeService {
 }
 
 // create and store the new code information
-func (t *OauthCodeService) CreateCode(ctx context.Context, input *CreateCmd) error {
+func (t *OauthCodeService) Create(ctx context.Context, input *CreateCmd) error {
 	err := input.Validate()
 	if err != nil {
 		return errs.ValidationError(err)
