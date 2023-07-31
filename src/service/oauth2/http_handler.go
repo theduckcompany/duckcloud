@@ -80,8 +80,7 @@ func NewHTTPHandler(
 
 // Register the http endpoints into the given mux server.
 func (h *HTTPHandler) Register(r chi.Router, mids router.Middlewares) {
-	// NOTE: There is the LoadAndSave session middleware here.
-	auth := r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
+	auth := r.With(mids.RealIP, mids.StripSlashed, mids.Logger, mids.CORS)
 
 	// Actions
 	auth.Post("/auth/logout", h.handleLogoutEndpoint)
