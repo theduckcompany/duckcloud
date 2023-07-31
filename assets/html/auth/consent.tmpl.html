@@ -13,13 +13,13 @@
               <p>The client <b>{{ .clientName }}</b> would like to perform following actions on your behalf.</p>
               <p>
               <ul>
-              {{ range $val := .scope }}
+                {{ range $val := .scope }}
                 <li>{{ $val }}</li>
-              {{ end }}
+                {{ end }}
               </ul>
-                <button type="submit" class="btn btn-primary btn-lg">
-                  Allow
-                </button>
+              <button type="submit" class="btn btn-primary btn-lg">
+                Allow
+              </button>
               </p>
             </form>
           </div>
