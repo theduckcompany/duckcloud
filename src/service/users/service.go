@@ -2,11 +2,13 @@ package users
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/clock"
 	"github.com/Peltoche/neurone/src/tools/errs"
+	"github.com/Peltoche/neurone/src/tools/password"
 	"github.com/Peltoche/neurone/src/tools/uuid"
 )
 
@@ -20,25 +22,24 @@ var (
 // Storage encapsulates the logic to access user from the data source.
 //
 //go:generate mockery --name Storage
-type (
-	Storage interface {
-		Save(ctx context.Context, user *User) error
-		GetByEmail(ctx context.Context, email string) (*User, error)
-		GetByUsername(ctx context.Context, username string) (*User, error)
-		GetByID(ctx context.Context, userID uuid.UUID) (*User, error)
-	}
+type Storage interface {
+	Save(ctx context.Context, user *User) error
+	GetByEmail(ctx context.Context, email string) (*User, error)
+	GetByUsername(ctx context.Context, username string) (*User, error)
+	GetByID(ctx context.Context, userID uuid.UUID) (*User, error)
+}
 
-	// service handling all the logic.
-	UserService struct {
-		storage Storage
-		clock   clock.Clock
-		uuid    uuid.Service
-	}
-)
+// service handling all the logic.
+type UserService struct {
+	storage  Storage
+	clock    clock.Clock
+	uuid     uuid.Service
+	password password.Password
+}
 
 // NewService create a new user service.
 func NewService(tools tools.Tools, storage Storage) *UserService {
-	return &UserService{storage, tools.Clock(), tools.UUID()}
+	return &UserService{storage, tools.Clock(), tools.UUID(), tools.Password()}
 }
 
 // Create will create and register a new user.
@@ -64,11 +65,16 @@ func (t *UserService) Create(ctx context.Context, input *CreateCmd) (*User, erro
 		return nil, errs.BadRequest(ErrUsernameTaken, "username already taken")
 	}
 
+	hashedPassword, err := t.password.Encrypt(ctx, input.Password)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash the password: %w", err)
+	}
+
 	user := User{
 		ID:        t.uuid.New(),
 		Username:  input.Username,
 		Email:     input.Email,
-		password:  input.Password,
+		password:  hashedPassword,
 		CreatedAt: t.clock.Now(),
 	}
 
@@ -81,7 +87,7 @@ func (t *UserService) Create(ctx context.Context, input *CreateCmd) (*User, erro
 }
 
 // Authenticate return the user corresponding to the given username only if the password is correct.
-func (t *UserService) Authenticate(ctx context.Context, username, password string) (*User, error) {
+func (t *UserService) Authenticate(ctx context.Context, username, userPassword string) (*User, error) {
 	user, err := t.storage.GetByUsername(ctx, username)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve the user by its username: %w", err)
@@ -91,11 +97,15 @@ func (t *UserService) Authenticate(ctx context.Context, username, password strin
 		return nil, ErrInvalidUsername
 	}
 
-	if user.password != password {
+	err = t.password.Compare(context.Background(), user.password, userPassword)
+	switch {
+	case errors.Is(err, password.ErrMissmatchedPassword):
 		return nil, ErrInvalidPassword
+	case err != nil:
+		return nil, fmt.Errorf("failed to compare the hash and the password: %w", err)
+	default:
+		return user, nil
 	}
-
-	return user, nil
 }
 
 func (t *UserService) GetByID(ctx context.Context, userID uuid.UUID) (*User, error) {

@@ -3,6 +3,7 @@ package tools
 import (
 	"github.com/Peltoche/neurone/src/tools/clock"
 	"github.com/Peltoche/neurone/src/tools/logger"
+	"github.com/Peltoche/neurone/src/tools/password"
 	"github.com/Peltoche/neurone/src/tools/response"
 	"github.com/Peltoche/neurone/src/tools/uuid"
 	"golang.org/x/exp/slog"
@@ -18,6 +19,7 @@ type Prod struct {
 	uuid      uuid.Service
 	resWriter response.Writer
 	log       *slog.Logger
+	password  password.Password
 }
 
 func NewToolbox(cfg Config) *Prod {
@@ -28,6 +30,7 @@ func NewToolbox(cfg Config) *Prod {
 		uuid:      uuid.NewProvider(),
 		log:       log,
 		resWriter: response.Init(cfg.Response, log),
+		password:  password.NewBcryptPassword(),
 	}
 }
 
@@ -57,4 +60,8 @@ func (d *Prod) Logger() *slog.Logger {
 // Return a *response.Writer.
 func (d *Prod) ResWriter() response.Writer {
 	return d.resWriter
+}
+
+func (d *Prod) Password() password.Password {
+	return d.password
 }
