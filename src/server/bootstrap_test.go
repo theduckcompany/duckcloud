@@ -8,6 +8,7 @@ import (
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/storage"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,6 +33,8 @@ func TestBootstrap(t *testing.T) {
 	db, err := storage.NewSQliteClient(cfg.Storage)
 	require.NoError(t, err)
 	usersSvc := users.Init(tools, db)
+
+	tools.PasswordMock.On("Compare", mock.Anything, mock.AnythingOfType("string"), "qwert1234").Return(nil).Once()
 
 	res, err := usersSvc.Authenticate(ctx, user.Username, user.Password)
 	assert.NoError(t, err)

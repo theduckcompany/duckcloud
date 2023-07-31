@@ -19,6 +19,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/unrolled/render v1.6.0
 	go.uber.org/fx v1.20.0
+	golang.org/x/crypto v0.10.0
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
 	golang.org/x/net v0.11.0
 )

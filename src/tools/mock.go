@@ -5,6 +5,7 @@ import (
 
 	"github.com/Peltoche/neurone/src/tools/clock"
 	"github.com/Peltoche/neurone/src/tools/logger"
+	"github.com/Peltoche/neurone/src/tools/password"
 	"github.com/Peltoche/neurone/src/tools/response"
 	"github.com/Peltoche/neurone/src/tools/uuid"
 	"github.com/neilotoole/slogt"
@@ -12,19 +13,21 @@ import (
 )
 
 type Mock struct {
-	ClockMock *clock.MockClock
-	UUIDMock  *uuid.MockService
-	LogTest   *slog.Logger
-	resWriter response.Writer
+	ClockMock    *clock.MockClock
+	UUIDMock     *uuid.MockService
+	LogTest      *slog.Logger
+	PasswordMock *password.MockPassword
+	resWriter    response.Writer
 }
 
 func NewMock(t *testing.T) *Mock {
 	t.Helper()
 
 	return &Mock{
-		ClockMock: clock.NewMockClock(t),
-		UUIDMock:  uuid.NewMockService(t),
-		LogTest:   slogt.New(t),
+		ClockMock:    clock.NewMockClock(t),
+		UUIDMock:     uuid.NewMockService(t),
+		LogTest:      slogt.New(t),
+		PasswordMock: password.NewMockPassword(t),
 		resWriter: response.Init(response.Config{
 			PrettyRender: true,
 			HotReload:    false,
@@ -49,4 +52,8 @@ func (m *Mock) Logger() *slog.Logger {
 
 func (m *Mock) ResWriter() response.Writer {
 	return m.resWriter
+}
+
+func (m *Mock) Password() password.Password {
+	return m.PasswordMock
 }
