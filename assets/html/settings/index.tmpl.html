@@ -1,4 +1,4 @@
-<main class="container h-100">
+<main class="container">
   <div class="col">
     <div class="card shadow-lg">
       <div class="card-header">
@@ -6,14 +6,21 @@
       </div>
       <div class="card-body">
         <ul class="list-group list-group-flush">
-          {{ range .websessions }}
+          {{ range .webSessions }}
           <li class="list-group-item">
             <div class="row">
-              <svg class="col-1 justify-content-start bi" width="32" height="32" fill="currentColor">
+              <svg class="col-1 bi" width="32" height="32" fill="currentColor">
                 <use xlink:href="/assets/font/bootstrap-icons.svg#laptop" />
               </svg>
-              <span class="col-4 justify-content-start">{{ .Device }}</span>
-              <button type="button" class="col-4 btn btn-danger col-2 align-self-end">Disconnect</button>
+              <div class="col-4">
+                <span class="col-4"><b>{{ .Device }}</b></span>
+                {{ if (eq .Token $.currentSession.Token) }}
+                <span class="badge text-bg-warning">Curent Session</span>
+                {{ end }}
+              </div>
+              {{ if (ne .Token $.currentSession.Token) }}
+              <button type="button" class="col-2 offset-md-4 btn btn-danger col-2">Disconnect</button>
+              {{ end }}
             </div>
           </li>
           {{ end }}

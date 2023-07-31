@@ -50,8 +50,8 @@ func (h *settingsHandler) handleSettingsPage(w http.ResponseWriter, r *http.Requ
 		}
 
 		h.response.WriteHTML(w, http.StatusOK, "settings/index.tmpl", map[string]interface{}{
-			"session":     currentSession,
-			"websessions": webSessions,
+			"currentSession": currentSession,
+			"webSessions":    webSessions,
 		})
 
 		return
