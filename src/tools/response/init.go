@@ -30,7 +30,7 @@ func Init(cfg Config, log *slog.Logger) Writer {
 
 	opts := render.Options{
 		Directory:     path.Join(dir, "assets/html"),
-		Layout:        "layout.html",
+		Layout:        "layout.tmpl",
 		IsDevelopment: cfg.HotReload,
 		Extensions:    []string{".tmpl", ".html"},
 	}
