@@ -29,7 +29,7 @@ func NewHTTPHandler(tools tools.Tools, service Service, oauth2Svc oauth2.Service
 
 // Register the http endpoints into the given mux server.
 func (t *HTTPHandler) Register(r chi.Router, mids router.Middlewares) {
-	users := r.With(mids.StripSlashed, mids.Logger, mids.OnlyJSON)
+	users := r.With(mids.StripSlashed, mids.Logger, mids.CORS, mids.OnlyJSON)
 
 	users.Post("/users", t.createUser)
 	users.Get("/users/me", t.getMyUser)
