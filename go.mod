@@ -7,6 +7,7 @@ require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/gavv/httpexpect/v2 v2.15.0
 	github.com/go-chi/chi/v5 v5.0.8
+	github.com/go-chi/cors v1.2.1
 	github.com/go-oauth2/oauth2/v4 v4.5.2
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0

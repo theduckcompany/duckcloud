@@ -45,7 +45,7 @@ func newAuthHandler(
 }
 
 func (h *authHandler) Register(r chi.Router, mids router.Middlewares) {
-	auth := r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
+	auth := r.With(mids.RealIP, mids.StripSlashed, mids.Logger, mids.CORS)
 
 	auth.HandleFunc("/login", h.handleLoginPage)
 	auth.HandleFunc("/forgot", h.handleForgotPage)
