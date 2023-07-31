@@ -24,7 +24,7 @@ func NewHTTPHandler(
 ) *HTTPHandler {
 	return &HTTPHandler{
 		auth:     newAuthHandler(tools, users, clients, oauthConsent, webSessions),
-		settings: newSettingsHandler(tools),
+		settings: newSettingsHandler(tools, webSessions),
 	}
 }
 

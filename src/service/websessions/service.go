@@ -19,6 +19,7 @@ type Storage interface {
 	Save(ctx context.Context, session *Session) error
 	GetByToken(ctx context.Context, token string) (*Session, error)
 	RemoveByToken(ctx context.Context, token string) error
+	GetAllForUser(ctx context.Context, userID uuid.UUID) ([]Session, error)
 }
 
 type WebSessionsService struct {
@@ -106,4 +107,8 @@ func (s *WebSessionsService) Logout(r *http.Request, w http.ResponseWriter) erro
 	})
 
 	return nil
+}
+
+func (s *WebSessionsService) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]Session, error) {
+	return s.storage.GetAllForUser(ctx, userID)
 }

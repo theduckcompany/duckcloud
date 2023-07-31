@@ -1,7 +1,24 @@
-{{ define "css-links-settings/index.tmpl" }}
-{{ end }}
-
-<main style="margin-top: 58px;">
-  <h1>Foobar</h1>
+<main class="container h-100">
+  <div class="col">
+    <div class="card shadow-lg">
+      <div class="card-header">
+        <h4>Web sessions</h4>
+      </div>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+          {{ range .websessions }}
+          <li class="list-group-item">
+            <div class="row">
+              <svg class="col-1 justify-content-start bi" width="32" height="32" fill="currentColor">
+                <use xlink:href="/assets/font/bootstrap-icons.svg#laptop" />
+              </svg>
+              <span class="col-4 justify-content-start">{{ .Device }}</span>
+              <button type="button" class="col-4 btn btn-danger col-2 align-self-end">Disconnect</button>
+            </div>
+          </li>
+          {{ end }}
+        </ul>
+      </div>
+    </div>
+  </div>
 </main>
-</header>

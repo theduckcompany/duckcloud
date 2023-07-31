@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/Peltoche/neurone/src/tools/uuid"
 )
 
 const tableName = "web_sessions"
@@ -64,4 +65,36 @@ func (s *sqlStorage) RemoveByToken(ctx context.Context, token string) error {
 	}
 
 	return nil
+}
+
+func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID) ([]Session, error) {
+	sessions := []Session{}
+
+	rows, err := sq.
+		Select("token", "user_id", "ip", "client_id", "device", "created_at").
+		From(tableName).
+		Where(sq.Eq{"user_id": userID}).
+		RunWith(s.db).
+		QueryContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("sql error: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var res Session
+
+		err = rows.Scan(&res.Token, &res.UserID, &res.IP, &res.ClientID, &res.Device, &res.CreatedAt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan a row: %w", err)
+		}
+
+		sessions = append(sessions, res)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("scan error: %w", err)
+	}
+
+	return sessions, nil
 }

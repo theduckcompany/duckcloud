@@ -41,6 +41,18 @@ func TestSessionSqlStorage(t *testing.T) {
 		assert.Equal(t, &sessionData, res)
 	})
 
+	t.Run("GeAllForUser success", func(t *testing.T) {
+		res, err := storage.GetAllForUser(context.Background(), "some-user-id")
+
+		require.NotNil(t, res)
+		for i, r := range res {
+			res[i].CreatedAt = r.CreatedAt.UTC()
+		}
+
+		assert.NoError(t, err)
+		assert.Equal(t, []Session{sessionData}, res)
+	})
+
 	t.Run("GetByToken not found", func(t *testing.T) {
 		res, err := storage.GetByToken(context.Background(), "some-invalid-token")
 
