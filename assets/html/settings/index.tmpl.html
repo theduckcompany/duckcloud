@@ -1,31 +1,126 @@
 <main class="container">
-  <div class="col">
-    <div class="card shadow-lg">
-      <div class="card-header">
-        <h4>Web sessions</h4>
-      </div>
-      <div class="card-body">
-        <ul class="list-group list-group-flush">
-          {{ range .webSessions }}
-          <li class="list-group-item">
-            <div class="row">
-              <svg class="col-1 bi" width="32" height="32" fill="currentColor">
-                <use xlink:href="/assets/font/bootstrap-icons.svg#laptop" />
-              </svg>
-              <div class="col-4">
-                <span class="col-4"><b>{{ .Device }}</b></span>
-                {{ if (eq .Token $.currentSession.Token) }}
-                <span class="badge text-bg-warning">Curent Session</span>
-                {{ end }}
-              </div>
-              {{ if (ne .Token $.currentSession.Token) }}
-              <button type="button" class="col-2 offset-md-4 btn btn-danger col-2">Disconnect</button>
-              {{ end }}
+  <div class="content row row-cols-1 row-cols-md-2 g-4">
+    <div class="col">
+      <!-- WEB SESSIONS -->
+      <div class="card h-100" data-bs-toggle="modal" data-bs-target="#webSessionModal">
+        <div class="row align-items-center">
+          <div class="col-8">
+            <div class="card-body">
+              <h5 class="card-title"><svg width="25" height="25" fill="currentColor">
+                  <use xlink:href="/assets/font/bootstrap-icons.svg#laptop" />
+                </svg> Web Sessions</h5>
+              {{ $nbWebSessions := len .webSessions }}
+              <span class="card-text">You have {{$nbWebSessions}} device{{if (gt $nbWebSessions 1)}}s{{end}} connected
+                to your account</span>
             </div>
-          </li>
-          {{ end }}
-        </ul>
+          </div>
+
+          <div class="col-1 offset-1">
+            <a href="#webSessions" class="stretched-link">
+              <svg width="3em" height="3em" fill="grey">
+                <use xlink:href="/assets/font/bootstrap-icons.svg#arrow-right" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card h-100" data-bs-toggle="modal" data-bs-target="#DAVSessionModal">
+      <div class="row align-items-center">
+        <div class="col-8">
+          <div class="card-body">
+            <h5 class="card-title"><svg width="25" height="25" fill="currentColor">
+                <use xlink:href="/assets/font/bootstrap-icons.svg#files" />
+              </svg> DAV Sessions</h5>
+            {{ $nbWebSessions := len .webSessions }}
+            <span class="card-text">You have {{$nbWebSessions}} DAV device{{if (gt $nbWebSessions 1)}}s{{end}} connected
+              to your account</span>
+          </div>
+        </div>
+
+        <div class="col-1 offset-1">
+          <a href="#DAVSessions" class="stretched-link">
+            <svg width="3em" height="3em" fill="grey">
+              <use xlink:href="/assets/font/bootstrap-icons.svg#arrow-right" />
+            </svg>
+          </a>
+        </div>
       </div>
     </div>
   </div>
+  </div>
+  </div>
+  </div>
+
+  <!-- Modals -->
+
+  <!-- Web Sessions -->
+  <div class="modal fade" id="webSessionModal" tabindex="-1" aria-labelledby="webSessionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="webSessionLabel">Web Sessions</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>This is the list of all the browsers connected to your account. If you don't reconize one of them
+            we advise you to disconnect all the unused ones.</p>
+          {{ if (ge $nbWebSessions 0)}}
+          <div class="container-fluid">
+            <ul class="list-group list-group-flush">
+              {{ $nbWebSessions := len .webSessions }}
+              {{range .webSessions}}
+              <li class="list-group-item">
+                <div class="row">
+                  <div class="col-4">
+                    <span class="col-4"><b>{{ .Device }}</b></span>
+                    {{ if (eq .Token $.currentSession.Token) }}
+                    <span class="badge text-bg-warning">Curent Session</span>
+                    {{ end }}
+                  </div>
+                  {{ if (ne .Token $.currentSession.Token) }}
+                  <button type="button" class="col-2 offset-6 btn btn-danger">Disconnect</button>
+                  {{ end }}
+                </div>
+              </li>
+              {{end}}
+            </ul>
+          </div>
+          {{else}}
+          <div class="container-fluid text-center">
+            <div class="row justify-content-center">
+              <div class="col">There is nothing to see here</div>
+            </div>
+          </div>
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- DAV Sessions -->
+  <div class="modal fade" id="DAVSessionModal" tabindex="-1" aria-labelledby="DAVSessionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="DAVSessionLabel">DAV Sessions</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <h1>Foobar</h1>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
 </main>
+
+<style>
+  .content {
+    margin-top: 5em;
+  }
+</style>
