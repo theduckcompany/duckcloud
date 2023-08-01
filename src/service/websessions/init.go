@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/Peltoche/neurone/src/tools"
+	"github.com/Peltoche/neurone/src/tools/uuid"
 )
 
 var (
@@ -20,6 +21,7 @@ type Service interface {
 	GetByToken(ctx context.Context, token string) (*Session, error)
 	GetFromReq(r *http.Request) (*Session, error)
 	Logout(r *http.Request, w http.ResponseWriter) error
+	GetUserSessions(ctx context.Context, userID uuid.UUID) ([]Session, error)
 }
 
 func Init(tools tools.Tools, db *sql.DB) Service {
