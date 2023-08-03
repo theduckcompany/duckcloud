@@ -5,35 +5,24 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/Peltoche/neurone/src/tools"
 	"go.uber.org/fx"
 )
 
-type Params struct {
-	fx.In
-	LC    fx.Lifecycle
-	Cfg   Config
-	Tools tools.Tools
-}
-
-func Init(p Params) (*sql.DB, error) {
-	db, err := NewSQliteClient(p.Cfg)
+func Init(lc fx.Lifecycle, cfg Config) (*sql.DB, error) {
+	db, err := NewSQliteClient(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("sqlite error: %w", err)
 	}
 
-	p.LC.Append(fx.Hook{
+	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			return db.PingContext(ctx)
+			if err := db.PingContext(ctx); err != nil {
+				return fmt.Errorf("db unreachable: %w", err)
+			}
+			return nil
 		},
 		OnStop: func(context.Context) error {
 			return db.Close()
-		},
-	})
-
-	p.LC.Append(fx.Hook{
-		OnStart: func(context.Context) error {
-			return RunMigrations(p.Cfg, p.Tools)
 		},
 	})
 
