@@ -17,6 +17,7 @@ type User struct {
 	Username  string    `json:"username"`
 	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"createdAt"`
+	FSRoot    uuid.UUID `json:"fsRoot"`
 	password  string    `json:"-"`
 }
 
