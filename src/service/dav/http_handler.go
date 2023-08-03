@@ -12,19 +12,20 @@ import (
 // HTTPHandler serve files via the Webdav protocol over http.
 type HTTPHandler struct {
 	log *slog.Logger
+	fs  Service
 }
 
 // NewHTTPHandler builds a new EchoHandler.
-func NewHTTPHandler(tools tools.Tools) *HTTPHandler {
-	return &HTTPHandler{log: tools.Logger()}
+func NewHTTPHandler(tools tools.Tools, fs Service) *HTTPHandler {
+	return &HTTPHandler{log: tools.Logger(), fs: fs}
 }
 
 func (h *HTTPHandler) Register(r chi.Router, mids router.Middlewares) {
 	dav := r.With(mids.StripSlashed, mids.Logger)
 
-	dav.Handle("/dav/", &webdav.Handler{
+	dav.Handle("/dav/*", &webdav.Handler{
 		Prefix:     "/dav/",
-		FileSystem: webdav.Dir("./testdata"),
+		FileSystem: h.fs,
 		LockSystem: webdav.NewMemLS(),
 		Logger:     internal.NewLogger(h.log),
 	})
