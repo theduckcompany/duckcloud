@@ -14,13 +14,14 @@ func NewRunCmd() *cobra.Command {
 		Short: "Run your server",
 		Args:  cobra.NoArgs,
 		Use:   "run",
-		Run: func(cmd *cobra.Command, _ []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			cfg := server.NewDefaultConfig()
 
 			if dev {
 				cfg.Tools.Response.PrettyRender = true
 				cfg.Tools.Response.HotReload = true
 				cfg.Assets.HotReload = true
+				cfg.Storage.Debug = true
 			}
 
 			if debug {
