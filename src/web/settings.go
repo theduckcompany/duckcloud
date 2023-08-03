@@ -36,24 +36,26 @@ func (h *settingsHandler) String() string {
 func (h *settingsHandler) handleSettingsPage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	if r.Method == http.MethodGet {
-		currentSession, err := h.webSessions.GetFromReq(r)
-		if err != nil {
-			w.Header().Set("Location", "/login")
-			w.WriteHeader(http.StatusFound)
-		}
-
-		webSessions, err := h.webSessions.GetUserSessions(ctx, currentSession.UserID)
-		if err != nil {
-			h.response.WriteJSONError(w, fmt.Errorf("failed to fetch the websessions: %w", err))
-			return
-		}
-
-		h.response.WriteHTML(w, http.StatusOK, "settings/index.tmpl", map[string]interface{}{
-			"currentSession": currentSession,
-			"webSessions":    webSessions,
-		})
-
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
+
+	currentSession, err := h.webSessions.GetFromReq(r)
+	if err != nil || currentSession == nil {
+		w.Header().Set("Location", "/login")
+		w.WriteHeader(http.StatusFound)
+		return
+	}
+
+	webSessions, err := h.webSessions.GetUserSessions(ctx, currentSession.UserID)
+	if err != nil {
+		h.response.WriteJSONError(w, fmt.Errorf("failed to fetch the websessions: %w", err))
+		return
+	}
+
+	h.response.WriteHTML(w, http.StatusOK, "settings/index.tmpl", map[string]interface{}{
+		"currentSession": currentSession,
+		"webSessions":    webSessions,
+	})
 }
