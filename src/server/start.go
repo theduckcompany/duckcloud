@@ -64,6 +64,7 @@ func start(cfg *Config, invoke fx.Option) *fx.App {
 		),
 
 		// Start the command
+		fx.Invoke(storage.RunMigrations),
 		invoke,
 	)
 
