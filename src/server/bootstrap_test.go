@@ -31,7 +31,7 @@ func TestBootstrap(t *testing.T) {
 	err = Bootstrap(ctx, cfg, user)
 	require.NoError(t, err)
 
-	db, err := storage.NewSQliteClient(cfg.Storage)
+	db, err := storage.NewSQliteClient(cfg.Storage, tools.Logger())
 	require.NoError(t, err)
 	inodesSvc := inodes.Init(tools, db)
 	usersSvc := users.Init(tools, db, inodesSvc)

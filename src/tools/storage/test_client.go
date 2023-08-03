@@ -15,7 +15,7 @@ func NewTestStorage(t *testing.T) *sql.DB {
 	err := RunMigrations(cfg, tools)
 	require.NoError(t, err)
 
-	client, err := NewSQliteClient(cfg)
+	client, err := NewSQliteClient(cfg, tools.Logger())
 	require.NoError(t, err)
 
 	err = client.Ping()

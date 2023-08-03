@@ -15,7 +15,7 @@ func TestRunMigration(t *testing.T) {
 	err := RunMigrations(cfg, tools)
 	require.NoError(t, err)
 
-	client, err := NewSQliteClient(cfg)
+	client, err := NewSQliteClient(cfg, tools.Logger())
 	require.NoError(t, err)
 
 	row := client.QueryRow(`SELECT COUNT(*) FROM sqlite_schema 
