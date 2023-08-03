@@ -20,7 +20,7 @@ func Bootstrap(ctx context.Context, cfg *Config, user users.CreateCmd) error {
 
 	err := app.Start(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to start: %w", err)
 	}
 
 	return nil
