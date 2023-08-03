@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/Peltoche/neurone/src/service/inodes"
 	"github.com/Peltoche/neurone/src/service/users"
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/storage"
@@ -32,7 +33,8 @@ func TestBootstrap(t *testing.T) {
 
 	db, err := storage.NewSQliteClient(cfg.Storage)
 	require.NoError(t, err)
-	usersSvc := users.Init(tools, db)
+	inodesSvc := inodes.Init(tools, db)
+	usersSvc := users.Init(tools, db, inodesSvc)
 
 	tools.PasswordMock.On("Compare", mock.Anything, mock.AnythingOfType("string"), "qwert1234").Return(nil).Once()
 

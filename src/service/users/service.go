@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/Peltoche/neurone/src/service/inodes"
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/clock"
 	"github.com/Peltoche/neurone/src/tools/errs"
@@ -35,11 +36,12 @@ type UserService struct {
 	clock    clock.Clock
 	uuid     uuid.Service
 	password password.Password
+	inodes   inodes.Service
 }
 
 // NewService create a new user service.
-func NewService(tools tools.Tools, storage Storage) *UserService {
-	return &UserService{storage, tools.Clock(), tools.UUID(), tools.Password()}
+func NewService(tools tools.Tools, storage Storage, inodes inodes.Service) *UserService {
+	return &UserService{storage, tools.Clock(), tools.UUID(), tools.Password(), inodes}
 }
 
 // Create will create and register a new user.
@@ -65,16 +67,24 @@ func (t *UserService) Create(ctx context.Context, input *CreateCmd) (*User, erro
 		return nil, errs.BadRequest(ErrUsernameTaken, "username already taken")
 	}
 
+	newUserID := t.uuid.New()
+
+	rootDir, err := t.inodes.BootstrapUser(ctx, newUserID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to bootstrap the user inodes: %w", err)
+	}
+
 	hashedPassword, err := t.password.Encrypt(ctx, input.Password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash the password: %w", err)
 	}
 
 	user := User{
-		ID:        t.uuid.New(),
+		ID:        newUserID,
 		Username:  input.Username,
 		Email:     input.Email,
 		password:  hashedPassword,
+		FSRoot:    rootDir.ID,
 		CreatedAt: t.clock.Now(),
 	}
 

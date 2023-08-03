@@ -17,6 +17,7 @@ func TestUserSqlStorage(t *testing.T) {
 		ID:        uuid.UUID("some-uuid"),
 		Username:  "some-username",
 		Email:     "some-email",
+		FSRoot:    uuid.UUID("some-inode-uuid"),
 		password:  "some-password",
 		CreatedAt: nowData,
 	}

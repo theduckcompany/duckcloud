@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/Peltoche/neurone/src/service/inodes"
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/uuid"
 )
@@ -15,8 +16,8 @@ type Service interface {
 	Authenticate(ctx context.Context, username, password string) (*User, error)
 }
 
-func Init(tools tools.Tools, db *sql.DB) Service {
+func Init(tools tools.Tools, db *sql.DB, inodes inodes.Service) Service {
 	storage := newSqlStorage(db)
 
-	return NewService(tools, storage)
+	return NewService(tools, storage, inodes)
 }
