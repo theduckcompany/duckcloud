@@ -27,6 +27,26 @@ type Registerer interface {
 	String() string
 }
 
+func init() {
+	chi.RegisterMethod("ACL")
+	chi.RegisterMethod("CANCELUPLOAD")
+	chi.RegisterMethod("CHECKIN")
+	chi.RegisterMethod("CHECKOUT")
+	chi.RegisterMethod("COPY")
+	chi.RegisterMethod("LOCK")
+	chi.RegisterMethod("MKCALENDAR")
+	chi.RegisterMethod("MKCOL")
+	chi.RegisterMethod("MOVE")
+	chi.RegisterMethod("OPTIONS")
+	chi.RegisterMethod("PROPFIND")
+	chi.RegisterMethod("PROPPATCH")
+	chi.RegisterMethod("REPORT")
+	chi.RegisterMethod("SEARCH")
+	chi.RegisterMethod("UNCHECKOUT")
+	chi.RegisterMethod("UNLOCK")
+	chi.RegisterMethod("VERSION-CONTROL")
+}
+
 func NewServer(routes []Registerer, cfgs []Config, lc fx.Lifecycle, mids Middlewares, tools tools.Tools) (*API, error) {
 	for idx, cfg := range cfgs {
 		handler, err := createHandler(cfg, routes, mids)
@@ -37,7 +57,10 @@ func NewServer(routes []Registerer, cfgs []Config, lc fx.Lifecycle, mids Middlew
 		for _, addr := range cfg.BindAddresses {
 			hostPort := net.JoinHostPort(addr, strconv.Itoa(cfg.Port))
 
-			srv := &http.Server{Addr: hostPort, Handler: handler}
+			srv := &http.Server{
+				Addr:    hostPort,
+				Handler: handler,
+			}
 
 			lc.Append(fx.Hook{
 				OnStart: func(_ context.Context) error {
