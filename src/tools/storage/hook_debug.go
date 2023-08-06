@@ -28,7 +28,7 @@ func (h *debugHooks) Before(ctx context.Context, query string, args ...interface
 func (h *debugHooks) After(ctx context.Context, query string, args ...interface{}) (context.Context, error) {
 	begin := ctx.Value(beginKey).(time.Time)
 
-	h.log.Debug(query, slog.Duration("duration", time.Since(begin)))
+	h.log.Debug(query, slog.Duration("duration", time.Since(begin)), slog.Any("args", args))
 
 	return ctx, nil
 }
