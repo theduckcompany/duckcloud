@@ -23,8 +23,8 @@ func newSqlStorage(db *sql.DB) *sqlStorage {
 func (t *sqlStorage) Save(ctx context.Context, dir *INode) error {
 	_, err := sq.
 		Insert(tableName).
-		Columns("id", "user_id", "name", "last_modified_at", "created_at").
-		Values(dir.ID, dir.UserID, dir.name, &dir.LastModifiedAt, dir.CreatedAt).
+		Columns("id", "user_id", "name", "parent", "last_modified_at", "created_at").
+		Values(dir.ID, dir.UserID, dir.name, dir.Parent, dir.LastModifiedAt, dir.CreatedAt).
 		RunWith(t.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -38,12 +38,13 @@ func (t *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*INode, error) 
 	res := INode{}
 
 	err := sq.
-		Select("id", "user_id", "name", "last_modified_at", "created_at").
+		Select("id", "user_id", "name", "parent", "last_modified_at", "created_at").
 		From(tableName).
 		Where(sq.Eq{"id": string(id)}).
 		RunWith(t.db).
-		ScanContext(ctx, &res.ID, &res.UserID, &res.name, &res.LastModifiedAt, &res.CreatedAt)
+		ScanContext(ctx, &res.ID, &res.UserID, &res.name, &res.Parent, &res.LastModifiedAt, &res.CreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
+		fmt.Printf("err no rows\n\n\n")
 		return nil, nil
 	}
 
