@@ -11,6 +11,10 @@ import (
 func NewTestStorage(t *testing.T) *sql.DB {
 	cfg := Config{DSN: "sqlite3://" + t.TempDir() + "/db.sqlite"}
 
+	if testing.Verbose() {
+		cfg.Debug = true
+	}
+
 	tools := tools.NewMock(t)
 	err := RunMigrations(cfg, tools)
 	require.NoError(t, err)
