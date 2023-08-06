@@ -36,20 +36,22 @@ func NewService(tools tools.Tools, storage Storage) *INodeService {
 func (s *INodeService) BootstrapUser(ctx context.Context, userID uuid.UUID) (*INode, error) {
 	nb, err := s.storage.CountUserINodes(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to count the nunber of inodes: %w", err)
+		return nil, fmt.Errorf("failed to count the number of inodes: %w", err)
 	}
 
 	if nb > 0 {
-		return nil, ErrAlreadyBootstraped
+		return nil, errs.BadRequest(ErrAlreadyBootstraped, "user alread bootstraped")
 	}
+
+	now := s.clock.Now()
 
 	node := INode{
 		ID:             s.uuid.New(),
 		UserID:         userID,
 		Parent:         NoParent,
 		Type:           Directory,
-		CreatedAt:      s.clock.Now(),
-		LastModifiedAt: s.clock.Now(),
+		CreatedAt:      now,
+		LastModifiedAt: now,
 	}
 
 	err = s.storage.Save(ctx, &node)
@@ -61,6 +63,11 @@ func (s *INodeService) BootstrapUser(ctx context.Context, userID uuid.UUID) (*IN
 }
 
 func (s *INodeService) CreateDirectory(ctx context.Context, cmd *CreateDirectoryCmd) (*INode, error) {
+	err := cmd.Validate()
+	if err != nil {
+		return nil, errs.ValidationError(err)
+	}
+
 	parentNode, err := s.storage.GetByID(ctx, cmd.Parent)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch the parent node: %w", err)
@@ -74,13 +81,16 @@ func (s *INodeService) CreateDirectory(ctx context.Context, cmd *CreateDirectory
 		return nil, errs.BadRequest(fmt.Errorf("%w: parent not authorized", ErrInvalidParent), "invalid parent")
 	}
 
+	now := s.clock.Now()
+
 	node := INode{
 		ID:             s.uuid.New(),
+		name:           cmd.Name,
 		UserID:         cmd.UserID,
 		Parent:         cmd.Parent,
 		Type:           Directory,
-		CreatedAt:      s.clock.Now(),
-		LastModifiedAt: s.clock.Now(),
+		CreatedAt:      now,
+		LastModifiedAt: now,
 	}
 
 	err = s.storage.Save(ctx, &node)

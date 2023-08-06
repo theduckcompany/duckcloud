@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/Peltoche/neurone/src/tools/uuid"
+	v "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
 const NoParent = uuid.UUID("00000000-0000-0000-0000-00000000000")
@@ -17,8 +19,18 @@ const (
 )
 
 type CreateDirectoryCmd struct {
+	Name   string
 	UserID uuid.UUID
 	Parent uuid.UUID
+}
+
+// Validate the fields.
+func (t CreateDirectoryCmd) Validate() error {
+	return v.ValidateStruct(&t,
+		v.Field(&t.Name, v.Required, v.Length(1, 100)),
+		v.Field(&t.UserID, v.Required, is.UUIDv4),
+		v.Field(&t.Parent, v.Required, is.UUIDv4),
+	)
 }
 
 type INode struct {
