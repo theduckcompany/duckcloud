@@ -104,6 +104,29 @@ func TestInodes(t *testing.T) {
 		assert.EqualError(t, err, "bad request: invalid parent: parent not authorized")
 	})
 
+	t.Run("GetByUserAndID", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storage := NewMockStorage(t)
+		service := NewService(tools, storage)
+
+		inode := &INode{
+			ID:             uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62"),
+			name:           "some-dir-name",
+			UserID:         uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			Parent:         uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+			Type:           Directory,
+			CreatedAt:      now,
+			LastModifiedAt: now,
+		}
+
+		storage.On("GetByID", mock.Anything, uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62")).Return(inode, nil).Once()
+
+		res, err := service.GetByUserAndID(ctx, uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"), uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62"))
+
+		assert.NoError(t, err)
+		assert.EqualValues(t, inode, res)
+	})
+
 	t.Run("BootstrapUser success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storage := NewMockStorage(t)

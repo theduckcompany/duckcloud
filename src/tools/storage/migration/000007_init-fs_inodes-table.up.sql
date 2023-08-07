@@ -6,3 +6,5 @@ CREATE TABLE IF NOT EXISTS fs_inodes (
   "last_modified_at" DATETIME NOT NULL,
   "created_at" DATETIME NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_fs_inodes_owner_parent_name ON fs_inodes (user_id, parent, name);
