@@ -6,18 +6,28 @@ import (
 	"io/fs"
 	"os"
 
+	"github.com/Peltoche/neurone/src/service/inodes"
 	"golang.org/x/net/webdav"
 )
 
+type davKeyCtx string
+
+var (
+	usernameKeyCtx davKeyCtx = "username"
+	passwordKeyCtx davKeyCtx = "password"
+)
+
 type FSService struct {
+	inodes inodes.Service
 }
 
-func NewFSService() *FSService {
-	return &FSService{}
+func NewFSService(inodes inodes.Service) *FSService {
+	return &FSService{inodes}
 }
 
 func (s *FSService) Mkdir(ctx context.Context, name string, perm os.FileMode) error {
 	fmt.Printf("Mkdir: %q\n\n", name)
+
 	return webdav.ErrNotImplemented
 }
 func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os.FileMode) (webdav.File, error) {
