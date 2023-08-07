@@ -40,16 +40,16 @@ func (_m *MockService) BootstrapUser(ctx context.Context, userID uuid.UUID) (*IN
 	return r0, r1
 }
 
-// CreateDirectory provides a mock function with given fields: ctx, cmd
-func (_m *MockService) CreateDirectory(ctx context.Context, cmd *CreateDirectoryCmd) (*INode, error) {
+// Mkdir provides a mock function with given fields: ctx, cmd
+func (_m *MockService) Mkdir(ctx context.Context, cmd *MkdirCmd) (*INode, error) {
 	ret := _m.Called(ctx, cmd)
 
 	var r0 *INode
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *CreateDirectoryCmd) (*INode, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *MkdirCmd) (*INode, error)); ok {
 		return rf(ctx, cmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *CreateDirectoryCmd) *INode); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *MkdirCmd) *INode); ok {
 		r0 = rf(ctx, cmd)
 	} else {
 		if ret.Get(0) != nil {
@@ -57,7 +57,7 @@ func (_m *MockService) CreateDirectory(ctx context.Context, cmd *CreateDirectory
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *CreateDirectoryCmd) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *MkdirCmd) error); ok {
 		r1 = rf(ctx, cmd)
 	} else {
 		r1 = ret.Error(1)
