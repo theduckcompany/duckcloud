@@ -106,3 +106,23 @@ func (t *sqlStorage) CountUserINodes(ctx context.Context, userID uuid.UUID) (uin
 
 	return count, nil
 }
+
+func (t *sqlStorage) GetByNameAndParent(ctx context.Context, userID uuid.UUID, name string, parent uuid.UUID) (*INode, error) {
+	res := INode{}
+
+	err := sq.
+		Select("id", "user_id", "name", "parent", "last_modified_at", "created_at").
+		From(tableName).
+		Where(sq.Eq{"user_id": string(userID), "parent": string(parent), "name": name}).
+		RunWith(t.db).
+		ScanContext(ctx, &res.ID, &res.UserID, &res.name, &res.Parent, &res.LastModifiedAt, &res.CreatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("sql error: %w", err)
+	}
+
+	return &res, nil
+}

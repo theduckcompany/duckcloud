@@ -14,6 +14,7 @@ import (
 
 func TestINodeSqlstore(t *testing.T) {
 	nowData := time.Now().UTC()
+	ctx := context.Background()
 
 	dirData := INode{
 		ID:             uuid.UUID("some-dir-uuid"),
@@ -28,13 +29,13 @@ func TestINodeSqlstore(t *testing.T) {
 	store := newSqlStorage(db)
 
 	t.Run("Create success", func(t *testing.T) {
-		err := store.Save(context.Background(), &dirData)
+		err := store.Save(ctx, &dirData)
 
 		assert.NoError(t, err)
 	})
 
 	t.Run("GetByID success", func(t *testing.T) {
-		res, err := store.GetByID(context.Background(), uuid.UUID("some-dir-uuid"))
+		res, err := store.GetByID(ctx, uuid.UUID("some-dir-uuid"))
 
 		require.NoError(t, err)
 		require.NotNil(t, res)
@@ -44,7 +45,7 @@ func TestINodeSqlstore(t *testing.T) {
 
 	t.Run("Create 10 childes", func(t *testing.T) {
 		for i := 0; i < 10; i++ {
-			err := store.Save(context.Background(), &INode{
+			err := store.Save(ctx, &INode{
 				ID:             uuid.UUID(fmt.Sprintf("some-child-id-%d", i)),
 				UserID:         uuid.UUID("some-user-uuid"),
 				Parent:         uuid.UUID("some-dir-uuid"),
@@ -57,7 +58,7 @@ func TestINodeSqlstore(t *testing.T) {
 	})
 
 	t.Run("GetAllChildrens", func(t *testing.T) {
-		res, err := store.GetAllChildrens(context.Background(), uuid.UUID("some-user-uuid"), uuid.UUID("some-dir-uuid"), &storage.PaginateCmd{
+		res, err := store.GetAllChildrens(ctx, uuid.UUID("some-user-uuid"), uuid.UUID("some-dir-uuid"), &storage.PaginateCmd{
 			StartAfter: map[string]string{"id": ""},
 			Limit:      5,
 		})
@@ -79,8 +80,8 @@ func TestINodeSqlstore(t *testing.T) {
 		}, res)
 	})
 
-	t.Run("GetAllChildrens", func(t *testing.T) {
-		res, err := store.GetAllChildrens(context.Background(), uuid.UUID("some-user-uuid"), uuid.UUID("some-dir-uuid"), &storage.PaginateCmd{
+	t.Run("GetAllChildrens success", func(t *testing.T) {
+		res, err := store.GetAllChildrens(ctx, uuid.UUID("some-user-uuid"), uuid.UUID("some-dir-uuid"), &storage.PaginateCmd{
 			StartAfter: map[string]string{"id": "some-child-id-4"},
 			Limit:      5,
 		})
@@ -103,21 +104,40 @@ func TestINodeSqlstore(t *testing.T) {
 	})
 
 	t.Run("GetByID not found", func(t *testing.T) {
-		res, err := store.GetByID(context.Background(), "some-invalid-id")
+		res, err := store.GetByID(ctx, "some-invalid-id")
 
 		assert.NoError(t, err)
 		assert.Nil(t, res)
 	})
 
+	t.Run("GetByNameAndParent success", func(t *testing.T) {
+		res, err := store.GetByNameAndParent(ctx, uuid.UUID("some-user-uuid"), "child-5", uuid.UUID("some-dir-uuid"))
+		assert.NoError(t, err)
+		assert.EqualValues(t, &INode{
+			ID:             uuid.UUID("some-child-id-5"),
+			UserID:         uuid.UUID("some-user-uuid"),
+			Parent:         uuid.UUID("some-dir-uuid"),
+			name:           "child-5",
+			LastModifiedAt: nowData,
+			CreatedAt:      nowData,
+		}, res)
+	})
+
+	t.Run("GetByNameAndParent not matching", func(t *testing.T) {
+		res, err := store.GetByNameAndParent(ctx, uuid.UUID("some-user-uuid"), "invalid-name", uuid.UUID("some-dir-uuid"))
+		assert.NoError(t, err)
+		assert.Nil(t, res)
+	})
+
 	t.Run("CountUserINodes success", func(t *testing.T) {
-		res, err := store.CountUserINodes(context.Background(), uuid.UUID("some-user-uuid"))
+		res, err := store.CountUserINodes(ctx, uuid.UUID("some-user-uuid"))
 
 		assert.NoError(t, err)
 		assert.EqualValues(t, uint(11), res)
 	})
 
 	t.Run("CountUserINodes not found", func(t *testing.T) {
-		res, err := store.CountUserINodes(context.Background(), uuid.UUID("some-invalid-uuid"))
+		res, err := store.CountUserINodes(ctx, uuid.UUID("some-invalid-uuid"))
 
 		assert.NoError(t, err)
 		assert.Equal(t, uint(0), res)
