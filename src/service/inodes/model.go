@@ -18,18 +18,18 @@ const (
 	File      NodeType = 1
 )
 
-type CreateDirectoryCmd struct {
-	Name   string
-	UserID uuid.UUID
-	Parent uuid.UUID
+type MkdirCmd struct {
+	Root     uuid.UUID
+	UserID   uuid.UUID
+	FullName string
 }
 
 // Validate the fields.
-func (t CreateDirectoryCmd) Validate() error {
+func (t MkdirCmd) Validate() error {
 	return v.ValidateStruct(&t,
-		v.Field(&t.Name, v.Required, v.Length(1, 100)),
+		v.Field(&t.Root, v.Required, is.UUIDv4),
 		v.Field(&t.UserID, v.Required, is.UUIDv4),
-		v.Field(&t.Parent, v.Required, is.UUIDv4),
+		v.Field(&t.FullName, v.Required, v.Length(1, 1024), is.PrintableASCII),
 	)
 }
 
