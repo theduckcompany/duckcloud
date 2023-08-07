@@ -62,6 +62,19 @@ func (s *INodeService) BootstrapUser(ctx context.Context, userID uuid.UUID) (*IN
 	return &node, nil
 }
 
+func (s *INodeService) GetByUserAndID(ctx context.Context, userID uuid.UUID, inodeID uuid.UUID) (*INode, error) {
+	res, err := s.storage.GetByID(ctx, inodeID)
+	if err != nil {
+		return nil, err
+	}
+
+	if res.UserID != userID {
+		return nil, errs.NotFound(fmt.Errorf("file %q is not owned by %q", inodeID, userID), "not found")
+	}
+
+	return res, nil
+}
+
 func (s *INodeService) CreateDirectory(ctx context.Context, cmd *CreateDirectoryCmd) (*INode, error) {
 	err := cmd.Validate()
 	if err != nil {
