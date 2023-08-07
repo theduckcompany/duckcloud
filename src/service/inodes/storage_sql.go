@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/Peltoche/neurone/src/tools/storage"
 	"github.com/Peltoche/neurone/src/tools/uuid"
 )
 
@@ -53,6 +54,41 @@ func (t *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*INode, error) 
 	}
 
 	return &res, nil
+}
+
+func (t *sqlStorage) GetAllChildrens(ctx context.Context, userID, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error) {
+	rows, err := storage.PaginateSelection(sq.
+		Select("id", "user_id", "name", "parent", "last_modified_at", "created_at").
+		Where(sq.Eq{"user_id": string(userID), "parent": string(parent)}).
+		From(tableName), cmd).
+		RunWith(t.db).
+		QueryContext(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	defer rows.Close()
+
+	inodes := []INode{}
+	for rows.Next() {
+		var res INode
+
+		err = rows.Scan(&res.ID, &res.UserID, &res.name, &res.Parent, &res.LastModifiedAt, &res.CreatedAt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan a row: %w", err)
+		}
+
+		inodes = append(inodes, res)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("scan error: %w", err)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("sql error: %w", err)
+	}
+
+	return inodes, nil
 }
 
 func (t *sqlStorage) CountUserINodes(ctx context.Context, userID uuid.UUID) (uint, error) {

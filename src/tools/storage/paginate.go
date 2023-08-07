@@ -11,25 +11,26 @@ var (
 )
 
 type PaginateCmd struct {
-	OrderBy    []string
-	StartAfter []string
+	StartAfter map[string]string
 	Limit      int
 }
 
-func PaginateSelection(query sq.SelectBuilder, cmd *PaginateCmd) (sq.SelectBuilder, error) {
-	query = query.OrderBy(cmd.OrderBy...)
+func PaginateSelection(query sq.SelectBuilder, cmd *PaginateCmd) sq.SelectBuilder {
+	orderBy := []string{}
+
+	for key := range cmd.StartAfter {
+		orderBy = append(orderBy, key)
+	}
+
+	query = query.OrderBy(orderBy...)
 
 	// TODO: Check that all the values in `cmd.OrderBy` are valid fields
 
-	if len(cmd.OrderBy) != len(cmd.StartAfter) {
-		return sq.SelectBuilder{}, ErrNonMatchingOrderAndStart
-	}
-
 	if len(cmd.StartAfter) > 0 {
-		eqs := make(sq.Eq, len(cmd.OrderBy))
+		eqs := make(sq.Gt, len(cmd.StartAfter))
 
-		for idx, elem := range cmd.OrderBy {
-			eqs[elem] = cmd.StartAfter[idx]
+		for key, val := range cmd.StartAfter {
+			eqs[key] = val
 		}
 
 		query = query.Where(eqs)
@@ -39,5 +40,5 @@ func PaginateSelection(query sq.SelectBuilder, cmd *PaginateCmd) (sq.SelectBuild
 		query = query.Limit(uint64(cmd.Limit))
 	}
 
-	return query, nil
+	return query
 }
