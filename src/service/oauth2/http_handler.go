@@ -20,9 +20,7 @@ import (
 	"github.com/Peltoche/neurone/src/tools/uuid"
 )
 
-var (
-	ErrClientNotFound = errors.New("client not found")
-)
+var ErrClientNotFound = errors.New("client not found")
 
 // HTTPHandler handle all the oauth2 requests.
 type HTTPHandler struct {

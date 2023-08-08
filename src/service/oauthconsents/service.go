@@ -15,9 +15,7 @@ import (
 	"github.com/go-ozzo/ozzo-validation/is"
 )
 
-var (
-	ErrConsentNotFound = errors.New("consent not found")
-)
+var ErrConsentNotFound = errors.New("consent not found")
 
 //go:generate mockery --name Storage
 type Storage interface {

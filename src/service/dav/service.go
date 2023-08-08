@@ -30,6 +30,7 @@ func (s *FSService) Mkdir(ctx context.Context, name string, perm os.FileMode) er
 
 	return webdav.ErrNotImplemented
 }
+
 func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os.FileMode) (webdav.File, error) {
 	fmt.Printf("Open file: %q\n\n", name)
 	return nil, webdav.ErrNotImplemented
