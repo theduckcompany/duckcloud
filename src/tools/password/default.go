@@ -8,12 +8,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var (
-	ErrMissmatchedPassword = bcrypt.ErrMismatchedHashAndPassword
-)
+var ErrMissmatchedPassword = bcrypt.ErrMismatchedHashAndPassword
 
-type BcryptPassword struct {
-}
+type BcryptPassword struct{}
 
 func NewBcryptPassword() *BcryptPassword {
 	return &BcryptPassword{}

@@ -6,9 +6,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 )
 
-var (
-	ErrNonMatchingOrderAndStart = errors.New("OrderBy and StartAfter doesn't have the same number of arguments")
-)
+var ErrNonMatchingOrderAndStart = errors.New("OrderBy and StartAfter doesn't have the same number of arguments")
 
 type PaginateCmd struct {
 	StartAfter map[string]string
