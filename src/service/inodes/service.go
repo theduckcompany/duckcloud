@@ -66,35 +66,21 @@ func (s *INodeService) BootstrapUser(ctx context.Context, userID uuid.UUID) (*IN
 	return &node, nil
 }
 
-func (s *INodeService) Mkdir(ctx context.Context, cmd *MkdirCmd) (*INode, error) {
+func (s *INodeService) Mkdir(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	err := cmd.Validate()
 	if err != nil {
 		return nil, errs.ValidationError(err)
 	}
 
-	root, err := s.storage.GetByID(ctx, cmd.Root)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch the root dir %q", cmd.Root)
-	}
-
-	if root == nil {
-		return nil, errs.NotFound(fmt.Errorf("root %q not found", cmd.Root), "root not found")
-	}
-
-	if root.UserID != cmd.UserID {
-		return nil, errs.Unauthorized(fmt.Errorf("dir %q is not owned by %q", cmd.Root, cmd.UserID), "access denied")
-	}
-
-	var inode INode
-
-	err = s.walk(ctx, cmd.UserID, root, "mkdir", cmd.FullName, func(dir *INode, frag string, final bool) error {
+	var inode *INode
+	err = s.walk(ctx, cmd, "mkdir", func(dir *INode, frag string, final bool) error {
 		if !final {
 			return nil
 		}
 
 		now := s.clock.Now()
 
-		inode = INode{
+		inode = &INode{
 			ID:             s.uuid.New(),
 			UserID:         cmd.UserID,
 			Parent:         dir.ID,
@@ -103,7 +89,7 @@ func (s *INodeService) Mkdir(ctx context.Context, cmd *MkdirCmd) (*INode, error)
 			CreatedAt:      now,
 		}
 
-		err = s.storage.Save(ctx, &inode)
+		err = s.storage.Save(ctx, inode)
 		if err != nil {
 			return fmt.Errorf("failed to save into the storage: %w", err)
 		}
@@ -114,7 +100,33 @@ func (s *INodeService) Mkdir(ctx context.Context, cmd *MkdirCmd) (*INode, error)
 		return nil, err
 	}
 
-	return &inode, nil
+	return inode, nil
+}
+
+func (s *INodeService) Open(ctx context.Context, cmd *PathCmd) (*INode, error) {
+	err := cmd.Validate()
+	if err != nil {
+		return nil, errs.ValidationError(err)
+	}
+
+	var inode *INode
+	err = s.walk(ctx, cmd, "open", func(dir *INode, frag string, final bool) error {
+		if !final {
+			return nil
+		}
+
+		inode, err = s.storage.GetByNameAndParent(ctx, cmd.UserID, frag, dir.ID)
+		if err != nil {
+			return fmt.Errorf("failed to fetch a file by name and parent: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return inode, nil
 }
 
 // walk walks the directory tree for the fullname, calling f at each step. If f
@@ -129,9 +141,9 @@ func (s *INodeService) Mkdir(ctx context.Context, cmd *MkdirCmd) (*INode, error)
 //
 // The frag argument will be empty only if dir is the root node and the walk
 // ends at that root node.
-func (s *INodeService) walk(ctx context.Context, userID uuid.UUID, root *INode, op, fullname string, f func(dir *INode, frag string, final bool) error) error {
-	original := fullname
-	fullname = slashClean(fullname)
+func (s *INodeService) walk(ctx context.Context, cmd *PathCmd, op string, f func(dir *INode, frag string, final bool) error) error {
+	original := cmd.FullName
+	fullname := slashClean(cmd.FullName)
 
 	// Strip any leading "/"s to make fullname a relative path, as the walk
 	// starts at fs.root.
@@ -139,7 +151,18 @@ func (s *INodeService) walk(ctx context.Context, userID uuid.UUID, root *INode, 
 		fullname = fullname[1:]
 	}
 
-	dir := root
+	dir, err := s.storage.GetByID(ctx, cmd.Root)
+	if err != nil {
+		return fmt.Errorf("failed to fetch the root dir %q", cmd.Root)
+	}
+
+	if dir == nil {
+		return errs.NotFound(fmt.Errorf("root %q not found", cmd.Root), "root not found")
+	}
+
+	if dir.UserID != cmd.UserID {
+		return errs.NotFound(fmt.Errorf("dir %q is not owned by %q", cmd.Root, cmd.UserID), "access denied")
+	}
 
 	for {
 		frag, remaining := fullname, ""
@@ -150,7 +173,7 @@ func (s *INodeService) walk(ctx context.Context, userID uuid.UUID, root *INode, 
 			frag, remaining = fullname[:i], fullname[i+1:]
 		}
 
-		if frag == "" && dir != root {
+		if frag == "" && dir.ID != cmd.Root {
 			panic("webdav: empty path fragment for a clean path")
 		}
 
@@ -165,7 +188,7 @@ func (s *INodeService) walk(ctx context.Context, userID uuid.UUID, root *INode, 
 			break
 		}
 
-		child, err := s.storage.GetByNameAndParent(ctx, userID, frag, dir.ID)
+		child, err := s.storage.GetByNameAndParent(ctx, cmd.UserID, frag, dir.ID)
 		if err != nil {
 			return fmt.Errorf("failed to get child %q from %q", frag, remaining)
 		}
