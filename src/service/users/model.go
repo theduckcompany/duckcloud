@@ -1,6 +1,7 @@
 package users
 
 import (
+	"encoding/json"
 	"regexp"
 	"time"
 
@@ -13,13 +14,29 @@ var UsernameRegexp = regexp.MustCompile("^[0-9a-zA-Z-]+$")
 
 // User representation
 type User struct {
-	ID        uuid.UUID `json:"id"`
-	Username  string    `json:"username"`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"createdAt"`
-	FSRoot    uuid.UUID `json:"fsRoot"`
-	password  string    `json:"-"`
+	id        uuid.UUID
+	username  string
+	email     string
+	createdAt time.Time
+	fsRoot    uuid.UUID
+	password  string
 }
+
+func (u *User) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"id":        u.id,
+		"username":  u.username,
+		"email":     u.email,
+		"createdAt": u.createdAt,
+		"fsRoot":    u.fsRoot,
+	})
+}
+
+func (u *User) ID() uuid.UUID        { return u.id }
+func (u *User) Username() string     { return u.username }
+func (u *User) Email() string        { return u.email }
+func (u *User) CreatedAt() time.Time { return u.createdAt }
+func (u *User) RootFS() uuid.UUID    { return u.fsRoot }
 
 // CreateCmd represents an user creation request.
 type CreateCmd struct {

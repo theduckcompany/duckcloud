@@ -43,15 +43,15 @@ func (t *OauthCodeService) Create(ctx context.Context, input *CreateCmd) error {
 	}
 
 	err = t.storage.Save(ctx, &Code{
-		Code:            input.Code,
-		CreatedAt:       now,
-		ExpiresAt:       input.ExpiresAt,
-		ClientID:        input.ClientID,
-		UserID:          input.UserID,
-		RedirectURI:     input.RedirectURI,
-		Scope:           input.Scope,
-		Challenge:       input.Challenge,
-		ChallengeMethod: input.ChallengeMethod,
+		code:            input.Code,
+		createdAt:       now,
+		expiresAt:       input.ExpiresAt,
+		clientID:        input.ClientID,
+		userID:          input.UserID,
+		redirectURI:     input.RedirectURI,
+		scope:           input.Scope,
+		challenge:       input.Challenge,
+		challengeMethod: input.ChallengeMethod,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to save the code: %w", err)

@@ -9,16 +9,26 @@ import (
 )
 
 type Session struct {
-	AccessToken      string
-	AccessCreatedAt  time.Time
-	AccessExpiresAt  time.Time
-	RefreshToken     string
-	RefreshCreatedAt time.Time
-	RefreshExpiresAt time.Time
-	ClientID         string
-	UserID           string
-	Scope            string
+	accessToken      string
+	accessCreatedAt  time.Time
+	accessExpiresAt  time.Time
+	refreshToken     string
+	refreshCreatedAt time.Time
+	refreshExpiresAt time.Time
+	clientID         string
+	userID           string
+	scope            string
 }
+
+func (s *Session) AccessToken() string         { return s.accessToken }
+func (s *Session) AccessCreatedAt() time.Time  { return s.accessCreatedAt }
+func (s *Session) AccessExpiresAt() time.Time  { return s.accessExpiresAt }
+func (s *Session) RefreshToken() string        { return s.refreshToken }
+func (s *Session) RefreshCreatedAt() time.Time { return s.refreshCreatedAt }
+func (s *Session) RefreshExpiresAt() time.Time { return s.refreshExpiresAt }
+func (s *Session) ClientID() string            { return s.clientID }
+func (s *Session) UserID() string              { return s.userID }
+func (s *Session) Scope() string               { return s.scope }
 
 type CreateCmd struct {
 	AccessToken      string

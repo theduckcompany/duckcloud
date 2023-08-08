@@ -80,12 +80,12 @@ func (t *UserService) Create(ctx context.Context, input *CreateCmd) (*User, erro
 	}
 
 	user := User{
-		ID:        newUserID,
-		Username:  input.Username,
-		Email:     input.Email,
+		id:        newUserID,
+		username:  input.Username,
+		email:     input.Email,
 		password:  hashedPassword,
-		FSRoot:    rootDir.ID,
-		CreatedAt: t.clock.Now(),
+		fsRoot:    rootDir.ID(),
+		createdAt: t.clock.Now(),
 	}
 
 	err = t.storage.Save(ctx, &user)

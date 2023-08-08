@@ -45,7 +45,7 @@ func bootstrap(cmd users.CreateCmd) bootstrapFunc {
 			ID:             "web",
 			Name:           "Web",
 			RedirectURI:    "/settings",
-			UserID:         string(user.ID),
+			UserID:         string(user.ID()),
 			Scopes:         []string{"*"},
 			Public:         true,
 			SkipValidation: true,

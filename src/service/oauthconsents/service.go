@@ -42,12 +42,12 @@ func (s *OauthConsentsService) Create(ctx context.Context, cmd *CreateCmd) (*Con
 	}
 
 	consent := Consent{
-		ID:           s.uuid.New(),
-		UserID:       cmd.UserID,
-		SessionToken: cmd.SessionToken,
-		ClientID:     cmd.ClientID,
-		Scopes:       cmd.Scopes,
-		CreatedAt:    s.clock.Now(),
+		id:           s.uuid.New(),
+		userID:       cmd.UserID,
+		sessionToken: cmd.SessionToken,
+		clientID:     cmd.ClientID,
+		scopes:       cmd.Scopes,
+		createdAt:    s.clock.Now(),
 	}
 
 	err = s.storage.Save(ctx, &consent)
@@ -74,11 +74,11 @@ func (s *OauthConsentsService) Check(r *http.Request, client *oauthclients.Clien
 		return ErrConsentNotFound
 	}
 
-	if consent.ClientID != client.ID {
+	if consent.ClientID() != client.GetID() {
 		return errs.BadRequest(errors.New("consent clientID doesn't match with the given client"), "invalid request")
 	}
 
-	if consent.SessionToken != session.Token {
+	if consent.SessionToken() != session.Token() {
 		return errs.BadRequest(errors.New("consent session token doesn't match with the given session"), "invalid request")
 	}
 

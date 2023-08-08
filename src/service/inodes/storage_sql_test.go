@@ -17,12 +17,12 @@ func TestINodeSqlstore(t *testing.T) {
 	ctx := context.Background()
 
 	dirData := INode{
-		ID:             uuid.UUID("some-dir-uuid"),
-		UserID:         uuid.UUID("some-user-uuid"),
-		Parent:         NoParent,
+		id:             uuid.UUID("some-dir-uuid"),
+		userID:         uuid.UUID("some-user-uuid"),
+		parent:         NoParent,
 		name:           "foo",
-		LastModifiedAt: nowData,
-		CreatedAt:      nowData,
+		lastModifiedAt: nowData,
+		createdAt:      nowData,
 	}
 
 	db := storage.NewTestStorage(t)
@@ -39,19 +39,19 @@ func TestINodeSqlstore(t *testing.T) {
 
 		require.NoError(t, err)
 		require.NotNil(t, res)
-		res.CreatedAt = res.CreatedAt.UTC()
+		res.createdAt = res.createdAt.UTC()
 		assert.Equal(t, &dirData, res)
 	})
 
 	t.Run("Create 10 childes", func(t *testing.T) {
 		for i := 0; i < 10; i++ {
 			err := store.Save(ctx, &INode{
-				ID:             uuid.UUID(fmt.Sprintf("some-child-id-%d", i)),
-				UserID:         uuid.UUID("some-user-uuid"),
-				Parent:         uuid.UUID("some-dir-uuid"),
+				id:             uuid.UUID(fmt.Sprintf("some-child-id-%d", i)),
+				userID:         uuid.UUID("some-user-uuid"),
+				parent:         uuid.UUID("some-dir-uuid"),
 				name:           fmt.Sprintf("child-%d", i),
-				LastModifiedAt: nowData,
-				CreatedAt:      nowData,
+				lastModifiedAt: nowData,
+				createdAt:      nowData,
 			})
 			require.NoError(t, err)
 		}
@@ -65,18 +65,18 @@ func TestINodeSqlstore(t *testing.T) {
 
 		assert.NotNil(t, res)
 		for i, r := range res {
-			res[i].CreatedAt = r.CreatedAt.UTC()
+			res[i].createdAt = r.createdAt.UTC()
 		}
 
 		assert.NoError(t, err)
 		assert.Len(t, res, 5)
 		assert.Equal(t, res[0], INode{
-			ID:             uuid.UUID("some-child-id-0"),
-			UserID:         uuid.UUID("some-user-uuid"),
-			Parent:         uuid.UUID("some-dir-uuid"),
+			id:             uuid.UUID("some-child-id-0"),
+			userID:         uuid.UUID("some-user-uuid"),
+			parent:         uuid.UUID("some-dir-uuid"),
 			name:           "child-0",
-			LastModifiedAt: nowData,
-			CreatedAt:      nowData,
+			lastModifiedAt: nowData,
+			createdAt:      nowData,
 		}, res)
 	})
 
@@ -88,18 +88,18 @@ func TestINodeSqlstore(t *testing.T) {
 
 		assert.NotNil(t, res)
 		for i, r := range res {
-			res[i].CreatedAt = r.CreatedAt.UTC()
+			res[i].createdAt = r.createdAt.UTC()
 		}
 
 		assert.NoError(t, err)
 		assert.Len(t, res, 5)
 		assert.Equal(t, res[0], INode{
-			ID:             uuid.UUID("some-child-id-5"),
-			UserID:         uuid.UUID("some-user-uuid"),
-			Parent:         uuid.UUID("some-dir-uuid"),
+			id:             uuid.UUID("some-child-id-5"),
+			userID:         uuid.UUID("some-user-uuid"),
+			parent:         uuid.UUID("some-dir-uuid"),
 			name:           "child-5",
-			LastModifiedAt: nowData,
-			CreatedAt:      nowData,
+			lastModifiedAt: nowData,
+			createdAt:      nowData,
 		}, res)
 	})
 
@@ -114,12 +114,12 @@ func TestINodeSqlstore(t *testing.T) {
 		res, err := store.GetByNameAndParent(ctx, uuid.UUID("some-user-uuid"), "child-5", uuid.UUID("some-dir-uuid"))
 		assert.NoError(t, err)
 		assert.EqualValues(t, &INode{
-			ID:             uuid.UUID("some-child-id-5"),
-			UserID:         uuid.UUID("some-user-uuid"),
-			Parent:         uuid.UUID("some-dir-uuid"),
+			id:             uuid.UUID("some-child-id-5"),
+			userID:         uuid.UUID("some-user-uuid"),
+			parent:         uuid.UUID("some-dir-uuid"),
 			name:           "child-5",
-			LastModifiedAt: nowData,
-			CreatedAt:      nowData,
+			lastModifiedAt: nowData,
+			createdAt:      nowData,
 		}, res)
 	})
 

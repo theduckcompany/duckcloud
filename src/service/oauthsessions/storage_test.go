@@ -16,15 +16,15 @@ func TestSessionStorageStorage(t *testing.T) {
 	nowData := time.Now().UTC()
 
 	sessionData := Session{
-		AccessToken:      "some-access-token",
-		AccessCreatedAt:  nowData,
-		AccessExpiresAt:  nowData.Add(time.Hour),
-		RefreshToken:     "some-refresh-token",
-		RefreshCreatedAt: nowData,
-		RefreshExpiresAt: nowData.Add(10 * time.Hour),
-		ClientID:         "some-client-id",
-		UserID:           "some-user-id",
-		Scope:            "some-scope",
+		accessToken:      "some-access-token",
+		accessCreatedAt:  nowData,
+		accessExpiresAt:  nowData.Add(time.Hour),
+		refreshToken:     "some-refresh-token",
+		refreshCreatedAt: nowData,
+		refreshExpiresAt: nowData.Add(10 * time.Hour),
+		clientID:         "some-client-id",
+		userID:           "some-user-id",
+		scope:            "some-scope",
 	}
 
 	t.Run("Save success", func(t *testing.T) {

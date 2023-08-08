@@ -21,12 +21,12 @@ func newSQLStorage(db *sql.DB) *sqlStorage {
 }
 
 func (s *sqlStorage) Save(ctx context.Context, consent *Consent) error {
-	scopes := strings.Join(consent.Scopes, ",")
+	scopes := strings.Join(consent.Scopes(), ",")
 
 	_, err := sq.
 		Insert(tableName).
 		Columns("id", "user_id", "client_id", "scopes", "session_token", "created_at").
-		Values(consent.ID, consent.UserID, consent.ClientID, scopes, consent.SessionToken, consent.CreatedAt).
+		Values(consent.id, consent.userID, consent.clientID, scopes, consent.sessionToken, consent.createdAt).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -46,7 +46,7 @@ func (s *sqlStorage) GetByID(ctx context.Context, id string) (*Consent, error) {
 		From(tableName).
 		Where(sq.Eq{"id": id}).
 		RunWith(s.db).
-		ScanContext(ctx, &res.ID, &res.UserID, &res.ClientID, &rawScopes, &res.SessionToken, &res.CreatedAt)
+		ScanContext(ctx, &res.id, &res.userID, &res.clientID, &rawScopes, &res.sessionToken, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -55,7 +55,7 @@ func (s *sqlStorage) GetByID(ctx context.Context, id string) (*Consent, error) {
 		return nil, fmt.Errorf("sql error: %w", err)
 	}
 
-	res.Scopes = strings.Split(rawScopes, ",")
+	res.scopes = strings.Split(rawScopes, ",")
 
 	return &res, nil
 }

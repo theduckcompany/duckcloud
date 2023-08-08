@@ -15,16 +15,25 @@ var ClientIDRegexp = regexp.MustCompile("^[0-9a-zA-Z-]+$")
 
 // Client client model
 type Client struct {
-	ID             string
-	Name           string
-	Secret         string
-	RedirectURI    string
-	UserID         string
-	CreatedAt      time.Time
-	Scopes         Scopes
-	Public         bool
-	SkipValidation bool
+	id             string
+	name           string
+	secret         string
+	redirectURI    string
+	userID         string
+	createdAt      time.Time
+	scopes         Scopes
+	public         bool
+	skipValidation bool
 }
+
+func (c *Client) SkipValidation() bool { return c.skipValidation }
+func (c *Client) Name() string         { return c.name }
+func (c *Client) RedirectURI() string  { return c.redirectURI }
+func (c *Client) GetID() string        { return c.id }
+func (c *Client) GetSecret() string    { return c.secret }
+func (c *Client) GetDomain() string    { return c.redirectURI }
+func (c *Client) IsPublic() bool       { return c.public }
+func (c *Client) GetUserID() string    { return c.userID }
 
 type CreateCmd struct {
 	ID             string
@@ -47,40 +56,10 @@ func (cmd CreateCmd) Validate() error {
 	)
 }
 
-// GetID client id
-func (c *Client) GetID() string {
-	return c.ID
-}
-
-// GetSecret client domain
-func (c *Client) GetSecret() string {
-	return c.Secret
-}
-
-// GetDomain client domain
-func (c *Client) GetDomain() string {
-	return c.RedirectURI
-}
-
-func (c *Client) IsPublic() bool {
-	return c.Public
-}
-
-// GetUserID user id
-func (c *Client) GetUserID() string {
-	return c.UserID
-}
-
 type Scopes []string
 
-func (t Scopes) String() string {
-	return strings.Join(t, ",")
-}
-
-func (t Scopes) Value() (driver.Value, error) {
-	return strings.Join(t, ","), nil
-}
-
+func (t Scopes) String() string               { return strings.Join(t, ",") }
+func (t Scopes) Value() (driver.Value, error) { return strings.Join(t, ","), nil }
 func (t *Scopes) Scan(src any) error {
 	s, ok := src.(string)
 	if !ok {

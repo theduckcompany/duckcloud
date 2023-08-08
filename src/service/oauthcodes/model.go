@@ -9,16 +9,26 @@ import (
 )
 
 type Code struct {
-	Code            string
-	CreatedAt       time.Time
-	ExpiresAt       time.Time
-	ClientID        string
-	UserID          string
-	RedirectURI     string
-	Scope           string
-	Challenge       string
-	ChallengeMethod string
+	code            string
+	createdAt       time.Time
+	expiresAt       time.Time
+	clientID        string
+	userID          string
+	redirectURI     string
+	scope           string
+	challenge       string
+	challengeMethod string
 }
+
+func (c *Code) Code() string            { return c.code }
+func (c *Code) CreatedAt() time.Time    { return c.createdAt }
+func (c *Code) ExpiresAt() time.Time    { return c.expiresAt }
+func (c *Code) ClientID() string        { return c.clientID }
+func (c *Code) UserID() string          { return c.userID }
+func (c *Code) RedirectURI() string     { return c.redirectURI }
+func (c *Code) Scope() string           { return c.scope }
+func (c *Code) Challenge() string       { return c.challenge }
+func (c *Code) ChallengeMethod() string { return c.challengeMethod }
 
 type CreateCmd struct {
 	Code            string

@@ -11,13 +11,20 @@ import (
 )
 
 type Session struct {
-	Token     string
-	UserID    uuid.UUID
-	IP        string
-	ClientID  string
-	Device    string
-	CreatedAt time.Time
+	token     string
+	userID    uuid.UUID
+	ip        string
+	clientID  string
+	device    string
+	createdAt time.Time
 }
+
+func (s *Session) Token() string        { return s.token }
+func (s *Session) UserID() uuid.UUID    { return s.userID }
+func (s *Session) IP() string           { return s.ip }
+func (s *Session) ClientID() string     { return s.clientID }
+func (s *Session) Device() string       { return s.device }
+func (s *Session) CreatedAt() time.Time { return s.createdAt }
 
 type CreateCmd struct {
 	UserID   string

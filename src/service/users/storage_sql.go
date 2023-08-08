@@ -27,7 +27,7 @@ func (t *sqlStorage) Save(ctx context.Context, user *User) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns("id", "username", "email", "fs_root", "password", "created_at").
-		Values(user.ID, user.Username, user.Email, user.FSRoot, user.password, user.CreatedAt).
+		Values(user.id, user.username, user.email, user.fsRoot, user.password, user.createdAt).
 		RunWith(t.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -66,7 +66,7 @@ func (t *sqlStorage) getByKey(ctx context.Context, key, expected string) (*User,
 		From(tableName).
 		Where(sq.Eq{key: expected}).
 		RunWith(t.db).
-		ScanContext(ctx, &res.ID, &res.Username, &res.Email, &res.FSRoot, &res.password, &res.CreatedAt)
+		ScanContext(ctx, &res.id, &res.username, &res.email, &res.fsRoot, &res.password, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}

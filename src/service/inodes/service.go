@@ -50,12 +50,12 @@ func (s *INodeService) BootstrapUser(ctx context.Context, userID uuid.UUID) (*IN
 	now := s.clock.Now()
 
 	node := INode{
-		ID:             s.uuid.New(),
-		UserID:         userID,
-		Parent:         NoParent,
-		Type:           Directory,
-		CreatedAt:      now,
-		LastModifiedAt: now,
+		id:             s.uuid.New(),
+		userID:         userID,
+		parent:         NoParent,
+		nodeType:       Directory,
+		createdAt:      now,
+		lastModifiedAt: now,
 	}
 
 	err = s.storage.Save(ctx, &node)
@@ -81,12 +81,13 @@ func (s *INodeService) Mkdir(ctx context.Context, cmd *PathCmd) (*INode, error) 
 		now := s.clock.Now()
 
 		inode = &INode{
-			ID:             s.uuid.New(),
-			UserID:         cmd.UserID,
-			Parent:         dir.ID,
+			id:             s.uuid.New(),
+			userID:         cmd.UserID,
+			nodeType:       Directory,
+			parent:         dir.ID(),
 			name:           frag,
-			LastModifiedAt: now,
-			CreatedAt:      now,
+			lastModifiedAt: now,
+			createdAt:      now,
 		}
 
 		err = s.storage.Save(ctx, inode)
@@ -115,7 +116,7 @@ func (s *INodeService) Open(ctx context.Context, cmd *PathCmd) (*INode, error) {
 			return nil
 		}
 
-		inode, err = s.storage.GetByNameAndParent(ctx, cmd.UserID, frag, dir.ID)
+		inode, err = s.storage.GetByNameAndParent(ctx, cmd.UserID, frag, dir.ID())
 		if err != nil {
 			return fmt.Errorf("failed to fetch a file by name and parent: %w", err)
 		}
@@ -160,7 +161,7 @@ func (s *INodeService) walk(ctx context.Context, cmd *PathCmd, op string, f func
 		return errs.NotFound(fmt.Errorf("root %q not found", cmd.Root), "root not found")
 	}
 
-	if dir.UserID != cmd.UserID {
+	if dir.UserID() != cmd.UserID {
 		return errs.NotFound(fmt.Errorf("dir %q is not owned by %q", cmd.Root, cmd.UserID), "access denied")
 	}
 
@@ -173,7 +174,7 @@ func (s *INodeService) walk(ctx context.Context, cmd *PathCmd, op string, f func
 			frag, remaining = fullname[:i], fullname[i+1:]
 		}
 
-		if frag == "" && dir.ID != cmd.Root {
+		if frag == "" && dir.ID() != cmd.Root {
 			panic("webdav: empty path fragment for a clean path")
 		}
 
@@ -188,7 +189,7 @@ func (s *INodeService) walk(ctx context.Context, cmd *PathCmd, op string, f func
 			break
 		}
 
-		child, err := s.storage.GetByNameAndParent(ctx, cmd.UserID, frag, dir.ID)
+		child, err := s.storage.GetByNameAndParent(ctx, cmd.UserID, frag, dir.ID())
 		if err != nil {
 			return fmt.Errorf("failed to get child %q from %q", frag, remaining)
 		}

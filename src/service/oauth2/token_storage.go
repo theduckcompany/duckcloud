@@ -85,15 +85,15 @@ func (t *tokenStorage) GetByCode(ctx context.Context, input string) (oauth2.Toke
 	}
 
 	return &models.Token{
-		Code:                code.Code,
-		CodeCreateAt:        code.CreatedAt,
-		CodeExpiresIn:       time.Until(code.ExpiresAt),
-		ClientID:            code.ClientID,
-		UserID:              code.UserID,
-		RedirectURI:         code.RedirectURI,
-		Scope:               code.Scope,
-		CodeChallenge:       code.Challenge,
-		CodeChallengeMethod: code.ChallengeMethod,
+		Code:                code.Code(),
+		CodeCreateAt:        code.CreatedAt(),
+		CodeExpiresIn:       time.Until(code.ExpiresAt()),
+		ClientID:            code.ClientID(),
+		UserID:              code.UserID(),
+		RedirectURI:         code.RedirectURI(),
+		Scope:               code.Scope(),
+		CodeChallenge:       code.Challenge(),
+		CodeChallengeMethod: code.ChallengeMethod(),
 	}, nil
 }
 
@@ -126,14 +126,14 @@ func (t *tokenStorage) GetByRefresh(ctx context.Context, input string) (oauth2.T
 
 func (t *tokenStorage) sessionToToken(session *oauthsessions.Session) *models.Token {
 	return &models.Token{
-		Access:           session.AccessToken,
-		AccessCreateAt:   session.AccessCreatedAt,
-		AccessExpiresIn:  time.Until(session.AccessExpiresAt),
-		Refresh:          session.RefreshToken,
-		RefreshCreateAt:  session.RefreshCreatedAt,
-		RefreshExpiresIn: time.Until(session.RefreshExpiresAt),
-		ClientID:         session.ClientID,
-		UserID:           session.UserID,
-		Scope:            session.Scope,
+		Access:           session.AccessToken(),
+		AccessCreateAt:   session.AccessCreatedAt(),
+		AccessExpiresIn:  time.Until(session.AccessExpiresAt()),
+		Refresh:          session.RefreshToken(),
+		RefreshCreateAt:  session.RefreshCreatedAt(),
+		RefreshExpiresIn: time.Until(session.RefreshExpiresAt()),
+		ClientID:         session.ClientID(),
+		UserID:           session.UserID(),
+		Scope:            session.Scope(),
 	}
 }

@@ -34,15 +34,15 @@ func (t *sqlStorage) Save(ctx context.Context, code *Code) error {
 			"challenge_method",
 		).
 		Values(
-			code.Code,
-			code.CreatedAt,
-			code.ExpiresAt,
-			code.ClientID,
-			code.UserID,
-			code.RedirectURI,
-			code.Scope,
-			code.Challenge,
-			code.ChallengeMethod,
+			code.code,
+			code.createdAt,
+			code.expiresAt,
+			code.clientID,
+			code.userID,
+			code.redirectURI,
+			code.scope,
+			code.challenge,
+			code.challengeMethod,
 		).
 		RunWith(t.db).
 		ExecContext(ctx)
@@ -85,15 +85,15 @@ func (t *sqlStorage) GetByCode(ctx context.Context, code string) (*Code, error) 
 		Where(sq.Eq{"code": code}).
 		RunWith(t.db).
 		ScanContext(ctx,
-			&res.Code,
-			&res.CreatedAt,
-			&res.ExpiresAt,
-			&res.ClientID,
-			&res.UserID,
-			&res.RedirectURI,
-			&res.Scope,
-			&res.Challenge,
-			&res.ChallengeMethod,
+			&res.code,
+			&res.createdAt,
+			&res.expiresAt,
+			&res.clientID,
+			&res.userID,
+			&res.redirectURI,
+			&res.scope,
+			&res.challenge,
+			&res.challengeMethod,
 		)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
