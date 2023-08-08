@@ -14,14 +14,14 @@ func TestOauthClientsSQLStorage(t *testing.T) {
 
 	now := time.Now().UTC()
 	clientExample := Client{
-		ID:             "some-client-id",
-		Secret:         "some-secret",
-		RedirectURI:    "some-url",
-		UserID:         "some-user-id",
-		CreatedAt:      now,
-		Scopes:         []string{"scope-a"},
-		Public:         true,
-		SkipValidation: true,
+		id:             "some-client-id",
+		secret:         "some-secret",
+		redirectURI:    "some-url",
+		userID:         "some-user-id",
+		createdAt:      now,
+		scopes:         []string{"scope-a"},
+		public:         true,
+		skipValidation: true,
 	}
 
 	db := storage.NewTestStorage(t)

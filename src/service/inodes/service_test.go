@@ -13,39 +13,24 @@ import (
 
 func TestInodes(t *testing.T) {
 	ctx := context.Background()
-	now := time.Now()
-
-	root := &INode{
-		ID:             uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-		name:           "",
-		UserID:         uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-		Parent:         NoParent,
-		Type:           Directory,
-		CreatedAt:      now,
-		LastModifiedAt: now,
-	}
 
 	t.Run("Mkdir success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storage := NewMockStorage(t)
 		service := NewService(tools, storage)
 
+		now := time.Now()
 		inode := &INode{
-			ID:             uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62"),
+			id:             uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62"),
 			name:           "some-dir-name",
-			UserID:         uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-			Parent:         uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			Type:           Directory,
-			CreatedAt:      now,
-			LastModifiedAt: now,
+			userID:         uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			parent:         uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+			nodeType:       Directory,
+			createdAt:      now,
+			lastModifiedAt: now,
 		}
 
-		storage.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&INode{
-			ID:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			UserID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-			Parent: NoParent,
-			// some other unused fields
-		}, nil).Once()
+		storage.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleRoot, nil).Once()
 
 		tools.ClockMock.On("Now").Return(now).Once()
 		tools.UUIDMock.On("New").Return(uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62")).Once()
@@ -53,7 +38,7 @@ func TestInodes(t *testing.T) {
 		storage.On("Save", mock.Anything, inode).Return(nil).Once()
 
 		res, err := service.Mkdir(ctx, &PathCmd{
-			Root:     root.ID,
+			Root:     ExampleRoot.ID(),
 			FullName: "/some-dir-name",
 			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 		})
@@ -67,27 +52,23 @@ func TestInodes(t *testing.T) {
 		storage := NewMockStorage(t)
 		service := NewService(tools, storage)
 
+		now := time.Now()
 		inode := &INode{
-			ID:             uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62"),
+			id:             uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62"),
 			name:           "bar",
-			UserID:         uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-			Parent:         uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			Type:           Directory,
-			CreatedAt:      now,
-			LastModifiedAt: now,
+			userID:         uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			parent:         uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+			nodeType:       Directory,
+			createdAt:      now,
+			lastModifiedAt: now,
 		}
 
-		storage.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&INode{
-			ID:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			UserID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-			Parent: NoParent,
-			// some other unused fields
-		}, nil).Once()
+		storage.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleRoot, nil).Once()
 
-		storage.On("GetByNameAndParent", mock.Anything, uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"), "foo", root.ID).Return(&INode{
-			ID:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			UserID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-			Parent: root.ID,
+		storage.On("GetByNameAndParent", mock.Anything, uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"), "foo", ExampleRoot.ID()).Return(&INode{
+			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+			userID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			parent: ExampleRoot.ID(),
 			name:   "foo",
 			// some other unused fields
 		}, nil).Once()
@@ -98,7 +79,7 @@ func TestInodes(t *testing.T) {
 		storage.On("Save", mock.Anything, inode).Return(nil).Once()
 
 		res, err := service.Mkdir(ctx, &PathCmd{
-			Root:     root.ID,
+			Root:     ExampleRoot.ID(),
 			FullName: "/foo/bar",
 			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 		})
@@ -113,7 +94,7 @@ func TestInodes(t *testing.T) {
 		service := NewService(tools, storage)
 
 		res, err := service.Mkdir(ctx, &PathCmd{
-			Root:     root.ID,
+			Root:     ExampleRoot.ID(),
 			FullName: "/some-dir-name",
 			UserID:   uuid.UUID("some-invalid-id"),
 		})
@@ -127,12 +108,12 @@ func TestInodes(t *testing.T) {
 		storage := NewMockStorage(t)
 		service := NewService(tools, storage)
 
-		storage.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(root, nil).Once()
+		storage.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleRoot, nil).Once()
 
 		storage.On("GetByNameAndParent", mock.Anything, uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"), "unknown", uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(nil, nil).Once()
 
 		res, err := service.Mkdir(ctx, &PathCmd{
-			Root:     root.ID,
+			Root:     ExampleRoot.ID(),
 			FullName: "/unknown/some-dir-name", // invalid path
 			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 		})
@@ -146,22 +127,16 @@ func TestInodes(t *testing.T) {
 		storage := NewMockStorage(t)
 		service := NewService(tools, storage)
 
-		storage.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&INode{
-			ID:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			UserID: uuid.UUID("some-other-user-id"),
-			Parent: NoParent,
-			Type:   Directory,
-			// some other unused fields
-		}, nil).Once()
+		storage.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleRoot, nil).Once()
 
 		res, err := service.Mkdir(ctx, &PathCmd{
-			Root:     root.ID,
+			Root:     ExampleRoot.ID(),
 			FullName: "/some-dir-name",
-			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			UserID:   uuid.UUID("d35f9848-6310-4280-bc9a-44534035a401"), // UserID != inodes.ExampleRoot.UserID
 		})
 
 		assert.Nil(t, res)
-		assert.EqualError(t, err, "not found: dir \"f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f\" is not owned by \"86bffce3-3f53-4631-baf8-8530773884f3\"")
+		assert.EqualError(t, err, "not found: dir \"f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f\" is not owned by \"d35f9848-6310-4280-bc9a-44534035a401\"")
 	})
 
 	t.Run("Mkdir with a file as child", func(t *testing.T) {
@@ -169,24 +144,19 @@ func TestInodes(t *testing.T) {
 		storage := NewMockStorage(t)
 		service := NewService(tools, storage)
 
-		storage.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&INode{
-			ID:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			UserID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-			Parent: NoParent,
-			// some other unused fields
-		}, nil).Once()
+		storage.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleRoot, nil).Once()
 
-		storage.On("GetByNameAndParent", mock.Anything, uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"), "foo", root.ID).Return(&INode{
-			ID:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			UserID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-			Parent: root.ID,
-			Type:   File, // File and not directory here <-,
-			name:   "foo",
+		storage.On("GetByNameAndParent", mock.Anything, uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"), "foo", ExampleRoot.ID()).Return(&INode{
+			id:       uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+			userID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			parent:   ExampleRoot.ID(),
+			nodeType: File, // File and not directory here <-,
+			name:     "foo",
 			// some other unused fields
 		}, nil).Once()
 
 		res, err := service.Mkdir(ctx, &PathCmd{
-			Root:     root.ID,
+			Root:     ExampleRoot.ID(),
 			FullName: "/foo/bar",
 			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 		})
@@ -203,34 +173,29 @@ func TestInodes(t *testing.T) {
 		userID := uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3")
 
 		inode := INode{
-			ID:     uuid.UUID("eec51147-ec64-4640-b148-aceadbcb876e"),
-			UserID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-			Parent: uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			Type:   File,
-			name:   "bar",
+			id:       uuid.UUID("eec51147-ec64-4640-b148-aceadbcb876e"),
+			userID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			parent:   uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+			nodeType: File,
+			name:     "bar",
 			// some other unused fields
 		}
 
-		storage.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&INode{
-			ID:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			UserID: userID,
-			Parent: NoParent,
-			// some other unused fields
-		}, nil).Once()
+		storage.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleRoot, nil).Once()
 
-		storage.On("GetByNameAndParent", mock.Anything, userID, "foo", root.ID).Return(&INode{
-			ID:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			UserID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-			Parent: root.ID,
-			Type:   Directory,
-			name:   "foo",
+		storage.On("GetByNameAndParent", mock.Anything, userID, "foo", ExampleRoot.ID()).Return(&INode{
+			id:       uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+			userID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			parent:   ExampleRoot.ID(),
+			nodeType: Directory,
+			name:     "foo",
 			// some other unused fields
 		}, nil).Once()
 
 		storage.On("GetByNameAndParent", mock.Anything, userID, "bar", uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&inode, nil).Once()
 
 		res, err := service.Open(ctx, &PathCmd{
-			Root:     root.ID,
+			Root:     ExampleRoot.ID(),
 			FullName: "/foo/bar",
 			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 		})
@@ -245,7 +210,7 @@ func TestInodes(t *testing.T) {
 		service := NewService(tools, storage)
 
 		res, err := service.Open(ctx, &PathCmd{
-			Root:     root.ID,
+			Root:     ExampleRoot.ID(),
 			FullName: "/foo/bar",
 			UserID:   uuid.UUID("not an id"),
 		})
@@ -262,7 +227,7 @@ func TestInodes(t *testing.T) {
 		storage.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(nil, nil).Once()
 
 		res, err := service.Open(ctx, &PathCmd{
-			Root:     root.ID,
+			Root:     ExampleRoot.ID(),
 			FullName: "/foo/bar",
 			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 		})
@@ -276,21 +241,16 @@ func TestInodes(t *testing.T) {
 		storage := NewMockStorage(t)
 		service := NewService(tools, storage)
 
-		storage.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&INode{
-			ID:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			UserID: uuid.UUID("some-other-user-id"),
-			Parent: NoParent,
-			// some other unused fields
-		}, nil).Once()
+		storage.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleRoot, nil).Once()
 
 		res, err := service.Open(ctx, &PathCmd{
-			Root:     root.ID,
+			Root:     ExampleRoot.ID(),
 			FullName: "/foo/bar",
-			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			UserID:   uuid.UUID("d35f9848-6310-4280-bc9a-44534035a401"), // UserID != ExampleRoot.UserID
 		})
 
 		assert.Nil(t, res)
-		assert.EqualError(t, err, "not found: dir \"f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f\" is not owned by \"86bffce3-3f53-4631-baf8-8530773884f3\"")
+		assert.EqualError(t, err, "not found: dir \"f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f\" is not owned by \"d35f9848-6310-4280-bc9a-44534035a401\"")
 	})
 
 	t.Run("Open with an invalid path", func(t *testing.T) {
@@ -300,24 +260,19 @@ func TestInodes(t *testing.T) {
 
 		userID := uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3")
 
-		storage.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&INode{
-			ID:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			UserID: userID,
-			Parent: NoParent,
-			// some other unused fields
-		}, nil).Once()
+		storage.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleRoot, nil).Once()
 
-		storage.On("GetByNameAndParent", mock.Anything, userID, "foo", root.ID).Return(&INode{
-			ID:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			UserID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-			Parent: root.ID,
-			Type:   File, // Should be a directory with a "bar" as child
-			name:   "foo",
+		storage.On("GetByNameAndParent", mock.Anything, userID, "foo", ExampleRoot.ID()).Return(&INode{
+			id:       uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+			userID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			parent:   ExampleRoot.ID(),
+			nodeType: File, // Should be a directory with a "bar" as child
+			name:     "foo",
 			// some other unused fields
 		}, nil).Once()
 
 		res, err := service.Open(ctx, &PathCmd{
-			Root:     root.ID,
+			Root:     ExampleRoot.ID(),
 			FullName: "/foo/bar",
 			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 		})
@@ -332,13 +287,13 @@ func TestInodes(t *testing.T) {
 		service := NewService(tools, storage)
 
 		inode := &INode{
-			ID:             uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62"),
+			id:             uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62"),
 			name:           "",
-			UserID:         uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-			Parent:         NoParent,
-			Type:           Directory,
-			CreatedAt:      now,
-			LastModifiedAt: now,
+			userID:         uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			parent:         NoParent,
+			nodeType:       Directory,
+			createdAt:      now,
+			lastModifiedAt: now,
 		}
 
 		storage.On("CountUserINodes", mock.Anything, uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3")).Return(uint(0), nil).Once()

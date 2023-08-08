@@ -126,8 +126,8 @@ func (h *authHandler) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session, err := h.webSession.Create(r.Context(), &websessions.CreateCmd{
-		UserID:   string(user.ID),
-		ClientID: client.ID,
+		UserID:   string(user.ID()),
+		ClientID: client.GetID(),
 		Req:      r,
 	})
 	if err != nil {
@@ -138,7 +138,7 @@ func (h *authHandler) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 	// TODO: Handle the expiration time with the "Remember me" option
 	c := http.Cookie{
 		Name:     "session_token",
-		Value:    session.Token,
+		Value:    session.Token(),
 		Secure:   false,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
@@ -148,9 +148,9 @@ func (h *authHandler) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 
 	switch {
 	case isWebAuthentication:
-		w.Header().Set("Location", client.RedirectURI)
+		w.Header().Set("Location", client.RedirectURI())
 		w.WriteHeader(http.StatusFound)
-	case client.SkipValidation:
+	case client.SkipValidation():
 		w.Header().Set("Location", "/auth/authorize")
 		w.WriteHeader(http.StatusFound)
 	default:
@@ -174,9 +174,9 @@ func (h *authHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	user, err := h.users.GetByID(r.Context(), session.UserID)
+	user, err := h.users.GetByID(r.Context(), session.UserID())
 	if err != nil || user == nil {
-		h.response.WriteJSONError(w, errs.BadRequest(fmt.Errorf("failed to find the user %q: %w", session.UserID, err), "user not found"))
+		h.response.WriteJSONError(w, errs.BadRequest(fmt.Errorf("failed to find the user %q: %w", session.UserID(), err), "user not found"))
 		return
 	}
 
@@ -192,9 +192,9 @@ func (h *authHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) 
 
 	if r.Method == http.MethodPost {
 		consent, err := h.oauthConsent.Create(r.Context(), &oauthconsents.CreateCmd{
-			UserID:       user.ID,
-			SessionToken: session.Token,
-			ClientID:     client.ID,
+			UserID:       user.ID(),
+			SessionToken: session.Token(),
+			ClientID:     client.GetID(),
 			Scopes:       strings.Split(r.FormValue("scope"), ","),
 		})
 		if err != nil {
@@ -202,14 +202,14 @@ func (h *authHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		r.Form.Add("consent_id", string(consent.ID))
+		r.Form.Add("consent_id", string(consent.ID()))
 		w.Header().Set("Location", "/auth/authorize?"+r.Form.Encode())
 		w.WriteHeader(http.StatusFound)
 		return
 	}
 
 	h.response.WriteHTML(w, http.StatusOK, "auth/consent.tmpl", map[string]interface{}{
-		"clientName": client.Name,
+		"clientName": client.Name(),
 		"username":   user.Username,
 		"scope":      strings.Split(r.FormValue("scope"), ","),
 		"redirect":   template.URL("/consent?" + r.Form.Encode()),

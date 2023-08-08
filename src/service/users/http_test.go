@@ -26,9 +26,9 @@ func TestHTTHandler(t *testing.T) {
 			Email:    "some-email",
 			Password: "some-password",
 		}).Return(&User{
-			Username:  "some-username",
-			Email:     "some-email",
-			CreatedAt: now,
+			username:  "some-username",
+			email:     "some-email",
+			createdAt: now,
 			password:  "some-password",
 		}, nil).Once()
 
@@ -65,10 +65,10 @@ func TestHTTHandler(t *testing.T) {
 		}, nil).Once()
 
 		service.On("GetByID", mock.Anything, uuid.UUID("some-user-id")).Return(&User{
-			ID:        uuid.UUID("some-user-id"),
-			Username:  "some-username",
-			Email:     "some-email",
-			CreatedAt: now,
+			id:        uuid.UUID("some-user-id"),
+			username:  "some-username",
+			email:     "some-email",
+			createdAt: now,
 			password:  "some-password",
 		}, nil).Once()
 

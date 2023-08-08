@@ -31,15 +31,15 @@ func (t *sqlStorage) Save(ctx context.Context, client *Client) error {
 			"is_public",
 			"skip_validation",
 			"created_at").
-		Values(client.ID,
-			client.Name,
-			client.Secret,
-			client.RedirectURI,
-			client.UserID,
-			client.Scopes,
-			client.Public,
-			client.SkipValidation,
-			client.CreatedAt).
+		Values(client.id,
+			client.name,
+			client.secret,
+			client.redirectURI,
+			client.userID,
+			client.scopes,
+			client.public,
+			client.skipValidation,
+			client.createdAt).
 		RunWith(t.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -65,15 +65,15 @@ func (t *sqlStorage) GetByID(ctx context.Context, id string) (*Client, error) {
 		From(tableName).
 		Where(sq.Eq{"id": id}).
 		RunWith(t.db).
-		ScanContext(ctx, &res.ID,
-			&res.Name,
-			&res.Secret,
-			&res.RedirectURI,
-			&res.UserID,
-			&res.Scopes,
-			&res.Public,
-			&res.SkipValidation,
-			&res.CreatedAt)
+		ScanContext(ctx, &res.id,
+			&res.name,
+			&res.secret,
+			&res.redirectURI,
+			&res.userID,
+			&res.scopes,
+			&res.public,
+			&res.skipValidation,
+			&res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}

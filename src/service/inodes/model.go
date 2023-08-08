@@ -34,35 +34,24 @@ func (t PathCmd) Validate() error {
 }
 
 type INode struct {
-	ID             uuid.UUID
-	UserID         uuid.UUID
-	Parent         uuid.UUID
-	Type           NodeType
+	id             uuid.UUID
+	userID         uuid.UUID
+	parent         uuid.UUID
+	nodeType       NodeType
 	name           string
-	CreatedAt      time.Time
-	LastModifiedAt time.Time
+	createdAt      time.Time
+	lastModifiedAt time.Time
 }
 
-func (n *INode) Name() string {
-	return n.name
-}
-
-func (n *INode) Size() int64 {
-	return 0
-}
-
-func (n *INode) Mode() fs.FileMode {
-	return fs.ModeDir
-}
-
-func (n *INode) ModTime() time.Time {
-	return n.LastModifiedAt
-}
-
-func (n *INode) IsDir() bool {
-	return n.Type == Directory
-}
-
-func (d *INode) Sys() any {
-	return nil
-}
+func (n *INode) ID() uuid.UUID             { return n.id }
+func (n *INode) UserID() uuid.UUID         { return n.userID }
+func (n *INode) Type() NodeType            { return n.nodeType }
+func (n *INode) Parent() uuid.UUID         { return n.parent }
+func (n *INode) Name() string              { return n.name }
+func (n *INode) Size() int64               { return 0 }
+func (n *INode) Mode() fs.FileMode         { return fs.ModeDir }
+func (n *INode) ModTime() time.Time        { return n.lastModifiedAt }
+func (n *INode) CreatedAt() time.Time      { return n.createdAt }
+func (n *INode) LastModifiedAt() time.Time { return n.lastModifiedAt }
+func (n *INode) IsDir() bool               { return n.nodeType == Directory }
+func (d *INode) Sys() any                  { return nil }

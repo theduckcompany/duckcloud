@@ -45,15 +45,15 @@ func (s *OauthClientService) Create(ctx context.Context, cmd *CreateCmd) (*Clien
 	}
 
 	client := Client{
-		ID:             cmd.ID,
-		Name:           cmd.Name,
-		Secret:         string(s.uuid.New()),
-		RedirectURI:    cmd.RedirectURI,
-		UserID:         cmd.UserID,
-		CreatedAt:      s.clock.Now(),
-		Scopes:         cmd.Scopes,
-		Public:         cmd.Public,
-		SkipValidation: cmd.SkipValidation,
+		id:             cmd.ID,
+		name:           cmd.Name,
+		secret:         string(s.uuid.New()),
+		redirectURI:    cmd.RedirectURI,
+		userID:         cmd.UserID,
+		createdAt:      s.clock.Now(),
+		scopes:         cmd.Scopes,
+		public:         cmd.Public,
+		skipValidation: cmd.SkipValidation,
 	}
 
 	err = s.storage.Save(ctx, &client)

@@ -43,15 +43,15 @@ func (t *OauthSessionsService) Create(ctx context.Context, input *CreateCmd) err
 	now := time.Now()
 
 	err = t.storage.Save(ctx, &Session{
-		AccessToken:      input.AccessToken,
-		AccessCreatedAt:  now,
-		AccessExpiresAt:  input.AccessExpiresAt,
-		RefreshToken:     input.RefreshToken,
-		RefreshCreatedAt: now,
-		RefreshExpiresAt: input.RefreshExpiresAt,
-		ClientID:         input.ClientID,
-		UserID:           input.UserID,
-		Scope:            input.Scope,
+		accessToken:      input.AccessToken,
+		accessCreatedAt:  now,
+		accessExpiresAt:  input.AccessExpiresAt,
+		refreshToken:     input.RefreshToken,
+		refreshCreatedAt: now,
+		refreshExpiresAt: input.RefreshExpiresAt,
+		clientID:         input.ClientID,
+		userID:           input.UserID,
+		scope:            input.Scope,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to save the refresh session: %w", err)

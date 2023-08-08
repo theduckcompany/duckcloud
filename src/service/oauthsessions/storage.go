@@ -34,15 +34,15 @@ func (t *sqlStorage) Save(ctx context.Context, session *Session) error {
 			"scope",
 		).
 		Values(
-			session.AccessToken,
-			session.AccessCreatedAt,
-			session.AccessExpiresAt,
-			session.RefreshToken,
-			session.RefreshCreatedAt,
-			session.RefreshExpiresAt,
-			session.ClientID,
-			session.UserID,
-			session.Scope,
+			session.accessToken,
+			session.accessCreatedAt,
+			session.accessExpiresAt,
+			session.refreshToken,
+			session.refreshCreatedAt,
+			session.refreshExpiresAt,
+			session.clientID,
+			session.userID,
+			session.scope,
 		).
 		RunWith(t.db).
 		ExecContext(ctx)
@@ -101,15 +101,15 @@ func (t *sqlStorage) getByKey(ctx context.Context, key, expected string) (*Sessi
 		Where(sq.Eq{key: expected}).
 		RunWith(t.db).
 		ScanContext(ctx,
-			&res.AccessToken,
-			&res.AccessCreatedAt,
-			&res.AccessExpiresAt,
-			&res.RefreshToken,
-			&res.RefreshCreatedAt,
-			&res.RefreshExpiresAt,
-			&res.ClientID,
-			&res.UserID,
-			&res.Scope,
+			&res.accessToken,
+			&res.accessCreatedAt,
+			&res.accessExpiresAt,
+			&res.refreshToken,
+			&res.refreshCreatedAt,
+			&res.refreshExpiresAt,
+			&res.clientID,
+			&res.userID,
+			&res.scope,
 		)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil

@@ -14,15 +14,15 @@ func TestOauthCodeSQLStorage(t *testing.T) {
 	now := time.Now().UTC()
 
 	codeExample := Code{
-		Code:            "some-code",
-		CreatedAt:       now,
-		ExpiresAt:       now.Add(time.Hour),
-		ClientID:        "some-client-id",
-		UserID:          "some-user-id",
-		RedirectURI:     "http://some-redirect.com/uri",
-		Scope:           "some-scope",
-		Challenge:       "some-challenge",
-		ChallengeMethod: "plain",
+		code:            "some-code",
+		createdAt:       now,
+		expiresAt:       now.Add(time.Hour),
+		clientID:        "some-client-id",
+		userID:          "some-user-id",
+		redirectURI:     "http://some-redirect.com/uri",
+		scope:           "some-scope",
+		challenge:       "some-challenge",
+		challengeMethod: "plain",
 	}
 
 	db := storage.NewTestStorage(t)

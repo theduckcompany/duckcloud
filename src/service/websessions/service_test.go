@@ -20,12 +20,12 @@ func Test_Service(t *testing.T) {
 	ctx := context.Background()
 
 	session := Session{
-		Token:     "some-token",
-		UserID:    uuid.UUID("3a708fc5-dc10-4655-8fc2-33b08a4b33a5"),
-		IP:        "192.168.1.1",
-		ClientID:  "some-client-id",
-		Device:    "Android - Chrome",
-		CreatedAt: now,
+		token:     "some-token",
+		userID:    uuid.UUID("3a708fc5-dc10-4655-8fc2-33b08a4b33a5"),
+		ip:        "192.168.1.1",
+		clientID:  "some-client-id",
+		device:    "Android - Chrome",
+		createdAt: now,
 	}
 
 	t.Run("Create success", func(t *testing.T) {

@@ -15,11 +15,11 @@ func TestConsentSqlStorage(t *testing.T) {
 	nowData := time.Now().UTC()
 
 	sessionData := Consent{
-		ID:        uuid.UUID("some-consent-id"),
-		UserID:    uuid.UUID("some-user-id"),
-		ClientID:  "some-id",
-		Scopes:    []string{"scope-a", "scope-b"},
-		CreatedAt: nowData,
+		id:        uuid.UUID("some-consent-id"),
+		userID:    uuid.UUID("some-user-id"),
+		clientID:  "some-id",
+		scopes:    []string{"scope-a", "scope-b"},
+		createdAt: nowData,
 	}
 
 	db := storage.NewTestStorage(t)
@@ -35,7 +35,7 @@ func TestConsentSqlStorage(t *testing.T) {
 		res, err := storage.GetByID(context.Background(), "some-consent-id")
 
 		require.NotNil(t, res)
-		res.CreatedAt = res.CreatedAt.UTC()
+		res.createdAt = res.createdAt.UTC()
 
 		assert.NoError(t, err)
 		assert.Equal(t, &sessionData, res)
