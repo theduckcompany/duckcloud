@@ -117,19 +117,6 @@ func (s *INodeService) Mkdir(ctx context.Context, cmd *MkdirCmd) (*INode, error)
 	return &inode, nil
 }
 
-func (s *INodeService) GetByUserAndID(ctx context.Context, userID uuid.UUID, inodeID uuid.UUID) (*INode, error) {
-	res, err := s.storage.GetByID(ctx, inodeID)
-	if err != nil {
-		return nil, err
-	}
-
-	if res.UserID != userID {
-		return nil, errs.NotFound(fmt.Errorf("file %q is not owned by %q", inodeID, userID), "not found")
-	}
-
-	return res, nil
-}
-
 // walk walks the directory tree for the fullname, calling f at each step. If f
 // returns an error, the walk will be aborted and return that same error.
 //
