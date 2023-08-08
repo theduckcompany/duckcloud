@@ -44,14 +44,22 @@ linters:
   # Enable specific linter
   # https://golangci-lint.run/usage/linters/#enabled-by-default
   enable:
+    - bodyclose
     - bidichk 
+    - containedctx
+    - contextcheck
     - exportloopref 
     - errname
+    - exhaustive
+    - gochecknoinits
     - gocritic
+    # - goerr113
     - gofmt
+    - gofumpt
     - govet
     - misspell
     - nolintlint
+    - rowserrcheck
     - tenv
     - unconvert
     - unused 
@@ -63,7 +71,6 @@ linters-settings:
   gocritic:
     disabled-checks:
       - appendAssign
-      - ifElseChain
       - argOrder
   nolintlint:
     # Disable to ensure that all nolint directives actually have an effect.
