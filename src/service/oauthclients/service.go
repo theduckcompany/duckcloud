@@ -14,9 +14,7 @@ const (
 	WebAppClientID = "web"
 )
 
-var (
-	ErrClientIDTaken = errors.New("clientID already exists")
-)
+var ErrClientIDTaken = errors.New("clientID already exists")
 
 //go:generate mockery --name Storage
 type Storage interface {
