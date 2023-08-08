@@ -11,7 +11,8 @@ import (
 //go:generate mockery --name Service
 type Service interface {
 	BootstrapUser(ctx context.Context, userID uuid.UUID) (*INode, error)
-	Mkdir(ctx context.Context, cmd *MkdirCmd) (*INode, error)
+	Mkdir(ctx context.Context, cmd *PathCmd) (*INode, error)
+	Open(ctx context.Context, cmd *PathCmd) (*INode, error)
 }
 
 func Init(tools tools.Tools, db *sql.DB) Service {
