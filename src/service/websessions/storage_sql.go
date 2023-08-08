@@ -24,7 +24,7 @@ func (s *sqlStorage) Save(ctx context.Context, session *Session) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns("token", "user_id", "ip", "client_id", "device", "created_at").
-		Values(session.Token, session.UserID, session.IP, session.ClientID, session.Device, session.CreatedAt).
+		Values(session.token, session.userID, session.ip, session.clientID, session.device, session.createdAt).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -42,7 +42,7 @@ func (s *sqlStorage) GetByToken(ctx context.Context, token string) (*Session, er
 		From(tableName).
 		Where(sq.Eq{"token": token}).
 		RunWith(s.db).
-		ScanContext(ctx, &res.Token, &res.UserID, &res.IP, &res.ClientID, &res.Device, &res.CreatedAt)
+		ScanContext(ctx, &res.token, &res.userID, &res.ip, &res.clientID, &res.device, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -84,7 +84,7 @@ func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID) ([]Ses
 	for rows.Next() {
 		var res Session
 
-		err = rows.Scan(&res.Token, &res.UserID, &res.IP, &res.ClientID, &res.Device, &res.CreatedAt)
+		err = rows.Scan(&res.token, &res.userID, &res.ip, &res.clientID, &res.device, &res.createdAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}

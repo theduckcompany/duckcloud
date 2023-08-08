@@ -15,11 +15,11 @@ func TestSessionSqlStorage(t *testing.T) {
 	nowData := time.Now().UTC()
 
 	sessionData := Session{
-		Token:     "some-token",
-		UserID:    uuid.UUID("some-user-id"),
-		ClientID:  "some-id",
-		Device:    "IOS - Firefox",
-		CreatedAt: nowData,
+		token:     "some-token",
+		userID:    uuid.UUID("some-user-id"),
+		clientID:  "some-id",
+		device:    "IOS - Firefox",
+		createdAt: nowData,
 	}
 
 	db := storage.NewTestStorage(t)
@@ -35,7 +35,7 @@ func TestSessionSqlStorage(t *testing.T) {
 		res, err := storage.GetByToken(context.Background(), "some-token")
 
 		require.NotNil(t, res)
-		res.CreatedAt = res.CreatedAt.UTC()
+		res.createdAt = res.createdAt.UTC()
 
 		assert.NoError(t, err)
 		assert.Equal(t, &sessionData, res)
@@ -46,7 +46,7 @@ func TestSessionSqlStorage(t *testing.T) {
 
 		require.NotNil(t, res)
 		for i, r := range res {
-			res[i].CreatedAt = r.CreatedAt.UTC()
+			res[i].createdAt = r.createdAt.UTC()
 		}
 
 		assert.NoError(t, err)

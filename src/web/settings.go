@@ -48,7 +48,7 @@ func (h *settingsHandler) handleSettingsPage(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	webSessions, err := h.webSessions.GetUserSessions(ctx, currentSession.UserID)
+	webSessions, err := h.webSessions.GetUserSessions(ctx, currentSession.UserID())
 	if err != nil {
 		h.response.WriteJSONError(w, fmt.Errorf("failed to fetch the websessions: %w", err))
 		return

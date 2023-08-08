@@ -25,15 +25,15 @@ func TestOauthCodeService(t *testing.T) {
 		tools.ClockMock.On("Now").Return(now).Once()
 
 		storage.On("Save", mock.Anything, &Code{
-			Code:            "some-code",
-			CreatedAt:       now,
-			ExpiresAt:       expiresAt,
-			ClientID:        "dcca1ba7-6fa1-4684-8602-85adcb6a03a2",
-			UserID:          "767c0845-db3d-49df-9b14-bd4dab4dacd8",
-			RedirectURI:     "http://some-redirect",
-			Scope:           "foo,bar",
-			Challenge:       "some-secret",
-			ChallengeMethod: "S256",
+			code:            "some-code",
+			createdAt:       now,
+			expiresAt:       expiresAt,
+			clientID:        "dcca1ba7-6fa1-4684-8602-85adcb6a03a2",
+			userID:          "767c0845-db3d-49df-9b14-bd4dab4dacd8",
+			redirectURI:     "http://some-redirect",
+			scope:           "foo,bar",
+			challenge:       "some-secret",
+			challengeMethod: "S256",
 		}).Return(nil).Once()
 
 		err := svc.Create(ctx, &CreateCmd{
@@ -102,14 +102,14 @@ func TestOauthCodeService(t *testing.T) {
 		svc := NewService(tools, storage)
 
 		code := Code{
-			Code:            "some-code",
-			ExpiresAt:       time.Now(),
-			ClientID:        "dcca1ba7-6fa1-4684-8602-85adcb6a03a2",
-			UserID:          "767c0845-db3d-49df-9b14-bd4dab4dacd8",
-			RedirectURI:     "http://some-redirect",
-			Scope:           "foo,bar",
-			Challenge:       "some-secret",
-			ChallengeMethod: "S256",
+			code:            "some-code",
+			expiresAt:       time.Now(),
+			clientID:        "dcca1ba7-6fa1-4684-8602-85adcb6a03a2",
+			userID:          "767c0845-db3d-49df-9b14-bd4dab4dacd8",
+			redirectURI:     "http://some-redirect",
+			scope:           "foo,bar",
+			challenge:       "some-secret",
+			challengeMethod: "S256",
 		}
 
 		storage.On("GetByCode", mock.Anything, "some-code").Return(&code, nil).Once()

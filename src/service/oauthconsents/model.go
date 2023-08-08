@@ -10,13 +10,20 @@ import (
 )
 
 type Consent struct {
-	ID           uuid.UUID
-	UserID       uuid.UUID
-	SessionToken string
-	ClientID     string
-	Scopes       []string
-	CreatedAt    time.Time
+	id           uuid.UUID
+	userID       uuid.UUID
+	sessionToken string
+	clientID     string
+	scopes       []string
+	createdAt    time.Time
 }
+
+func (c *Consent) ID() uuid.UUID        { return c.id }
+func (c *Consent) UserID() uuid.UUID    { return c.userID }
+func (c *Consent) SessionToken() string { return c.sessionToken }
+func (c *Consent) ClientID() string     { return c.clientID }
+func (c *Consent) Scopes() []string     { return c.scopes }
+func (c *Consent) CreatedAt() time.Time { return c.createdAt }
 
 type CreateCmd struct {
 	UserID       uuid.UUID

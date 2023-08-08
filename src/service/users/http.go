@@ -88,9 +88,9 @@ func (t *HTTPHandler) getMyUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	t.response.WriteJSON(w, http.StatusOK, &response{
-		ID:        string(user.ID),
-		Username:  user.Username,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
+		ID:        string(user.ID()),
+		Username:  user.Username(),
+		Email:     user.Email(),
+		CreatedAt: user.CreatedAt(),
 	})
 }

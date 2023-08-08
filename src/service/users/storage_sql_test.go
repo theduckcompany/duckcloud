@@ -14,12 +14,12 @@ func TestUserSqlStorage(t *testing.T) {
 	nowData := time.Now().UTC()
 
 	userData := User{
-		ID:        uuid.UUID("some-uuid"),
-		Username:  "some-username",
-		Email:     "some-email",
-		FSRoot:    uuid.UUID("some-inode-uuid"),
+		id:        uuid.UUID("some-uuid"),
+		username:  "some-username",
+		email:     "some-email",
+		fsRoot:    uuid.UUID("some-inode-uuid"),
 		password:  "some-password",
-		CreatedAt: nowData,
+		createdAt: nowData,
 	}
 
 	db := storage.NewTestStorage(t)
@@ -35,7 +35,7 @@ func TestUserSqlStorage(t *testing.T) {
 		res, err := storage.GetByID(context.Background(), "some-uuid")
 
 		assert.NotNil(t, res)
-		res.CreatedAt = res.CreatedAt.UTC()
+		res.createdAt = res.createdAt.UTC()
 
 		assert.NoError(t, err)
 		assert.Equal(t, &userData, res)
@@ -52,7 +52,7 @@ func TestUserSqlStorage(t *testing.T) {
 		res, err := storage.GetByEmail(context.Background(), "some-email")
 
 		assert.NotNil(t, res)
-		res.CreatedAt = res.CreatedAt.UTC()
+		res.createdAt = res.createdAt.UTC()
 
 		assert.NoError(t, err)
 		assert.Equal(t, &userData, res)
@@ -69,7 +69,7 @@ func TestUserSqlStorage(t *testing.T) {
 		res, err := storage.GetByUsername(context.Background(), "some-username")
 
 		assert.NotNil(t, res)
-		res.CreatedAt = res.CreatedAt.UTC()
+		res.createdAt = res.createdAt.UTC()
 
 		assert.NoError(t, err)
 		assert.Equal(t, &userData, res)

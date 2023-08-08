@@ -116,9 +116,9 @@ func (h *HTTPHandler) userAuthorizationHandler(w http.ResponseWriter, r *http.Re
 		return "", oerrors.ErrInvalidClient
 	}
 
-	if client.SkipValidation {
+	if client.SkipValidation() {
 		// We can skip the validation so we directly authorize the user
-		return string(session.UserID), nil
+		return string(session.UserID()), nil
 	}
 
 	err = h.oauthConsent.Check(r, client, session)
@@ -132,7 +132,7 @@ func (h *HTTPHandler) userAuthorizationHandler(w http.ResponseWriter, r *http.Re
 		return "", fmt.Errorf("invalid consent: %w", err)
 	}
 
-	return string(session.UserID), nil
+	return string(session.UserID()), nil
 }
 
 func (h *HTTPHandler) handleLogoutEndpoint(w http.ResponseWriter, r *http.Request) {

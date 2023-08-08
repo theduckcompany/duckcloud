@@ -17,15 +17,15 @@ func TestOauthClientsService(t *testing.T) {
 
 	now := time.Now()
 	client := Client{
-		ID:             "some-id",
-		Name:           "some-name",
-		Secret:         "some-secret-uuid",
-		RedirectURI:    "http://some-url",
-		UserID:         "some-user-id",
-		CreatedAt:      now,
-		Scopes:         Scopes{"foo", "bar"},
-		Public:         true,
-		SkipValidation: true,
+		id:             "some-id",
+		name:           "some-name",
+		secret:         "some-secret-uuid",
+		redirectURI:    "http://some-url",
+		userID:         "some-user-id",
+		createdAt:      now,
+		scopes:         Scopes{"foo", "bar"},
+		public:         true,
+		skipValidation: true,
 	}
 
 	t.Run("Create success", func(t *testing.T) {

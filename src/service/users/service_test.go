@@ -14,40 +14,31 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_Service_Create_success(t *testing.T) {
+func Test_Service(t *testing.T) {
 	ctx := context.Background()
 
 	now := time.Now()
 	user := User{
-		ID:        uuid.UUID("some-user-id"),
-		Username:  "some-username",
-		Email:     "some@email.com",
-		FSRoot:    uuid.UUID("some-inode-id"),
+		id:        uuid.UUID("some-user-id"),
+		username:  "some-username",
+		email:     "some@email.com",
+		fsRoot:    uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
 		password:  "some-encrypted-password",
-		CreatedAt: now,
-	}
-
-	inode := inodes.INode{
-		ID:             uuid.UUID("some-inode-id"),
-		UserID:         uuid.UUID("some-user-id"),
-		Parent:         inodes.NoParent,
-		Type:           inodes.Directory,
-		CreatedAt:      now,
-		LastModifiedAt: now,
+		createdAt: now,
 	}
 
 	t.Run("Create success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storage := NewMockStorage(t)
-		inodes := inodes.NewMockService(t)
-		service := NewService(tools, storage, inodes)
+		inodesSvc := inodes.NewMockService(t)
+		service := NewService(tools, storage, inodesSvc)
 
 		storage.On("GetByEmail", ctx, "some@email.com").Return(nil, nil).Once()
 		storage.On("GetByUsername", ctx, "some-username").Return(nil, nil).Once()
 
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-user-id")).Once()
 
-		inodes.On("BootstrapUser", ctx, uuid.UUID("some-user-id")).Return(&inode, nil).Once()
+		inodesSvc.On("BootstrapUser", ctx, uuid.UUID("some-user-id")).Return(&inodes.ExampleRoot, nil).Once()
 
 		tools.ClockMock.On("Now").Return(now).Once()
 		tools.PasswordMock.On("Encrypt", ctx, "some-password").Return("some-encrypted-password", nil).Once()
@@ -180,9 +171,9 @@ func Test_Service_Create_success(t *testing.T) {
 		inodes := inodes.NewMockService(t)
 		service := NewService(tools, storage, inodes)
 
-		storage.On("GetByID", ctx, user.ID).Return(&user, nil).Once()
+		storage.On("GetByID", ctx, user.ID()).Return(&user, nil).Once()
 
-		res, err := service.GetByID(ctx, user.ID)
+		res, err := service.GetByID(ctx, user.ID())
 		assert.NoError(t, err)
 		assert.Equal(t, &user, res)
 	})
