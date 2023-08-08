@@ -18,14 +18,14 @@ const (
 	File      NodeType = 1
 )
 
-type MkdirCmd struct {
+type PathCmd struct {
 	Root     uuid.UUID
 	UserID   uuid.UUID
 	FullName string
 }
 
 // Validate the fields.
-func (t MkdirCmd) Validate() error {
+func (t PathCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.Root, v.Required, is.UUIDv4),
 		v.Field(&t.UserID, v.Required, is.UUIDv4),

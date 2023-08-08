@@ -41,15 +41,15 @@ func (_m *MockService) BootstrapUser(ctx context.Context, userID uuid.UUID) (*IN
 }
 
 // Mkdir provides a mock function with given fields: ctx, cmd
-func (_m *MockService) Mkdir(ctx context.Context, cmd *MkdirCmd) (*INode, error) {
+func (_m *MockService) Mkdir(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	ret := _m.Called(ctx, cmd)
 
 	var r0 *INode
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *MkdirCmd) (*INode, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) (*INode, error)); ok {
 		return rf(ctx, cmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *MkdirCmd) *INode); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) *INode); ok {
 		r0 = rf(ctx, cmd)
 	} else {
 		if ret.Get(0) != nil {
@@ -57,7 +57,33 @@ func (_m *MockService) Mkdir(ctx context.Context, cmd *MkdirCmd) (*INode, error)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *MkdirCmd) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *PathCmd) error); ok {
+		r1 = rf(ctx, cmd)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Open provides a mock function with given fields: ctx, cmd
+func (_m *MockService) Open(ctx context.Context, cmd *PathCmd) (*INode, error) {
+	ret := _m.Called(ctx, cmd)
+
+	var r0 *INode
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) (*INode, error)); ok {
+		return rf(ctx, cmd)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) *INode); ok {
+		r0 = rf(ctx, cmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*INode)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *PathCmd) error); ok {
 		r1 = rf(ctx, cmd)
 	} else {
 		r1 = ret.Error(1)
