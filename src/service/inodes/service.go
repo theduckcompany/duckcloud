@@ -68,7 +68,7 @@ func (s *INodeService) BootstrapUser(ctx context.Context, userID uuid.UUID) (*IN
 	return &node, nil
 }
 
-func (s *INodeService) Readddir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
+func (s *INodeService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
 	err := cmd.Validate()
 	if err != nil {
 		return nil, errs.ValidationError(err)
