@@ -55,6 +55,7 @@ func TestWriteJSONError(t *testing.T) {
 			resWriter.WriteJSONError(w, test.Input)
 
 			res := w.Result()
+			defer res.Body.Close()
 			body, _ := io.ReadAll(res.Body)
 
 			assert.EqualError(t, test.Input, test.ExpectedError)
@@ -86,6 +87,7 @@ func TestWriteJSONError_validation(t *testing.T) {
 	resWriter.WriteJSONError(w, err)
 
 	res := w.Result()
+	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
 
 	assert.EqualError(t, err, "validation error: Email: must be a valid email address.")
@@ -102,6 +104,7 @@ func TestWriteUnhandledError(t *testing.T) {
 	resWriter.WriteJSONError(w, err)
 
 	res := w.Result()
+	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
 
 	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)

@@ -27,6 +27,7 @@ type Registerer interface {
 	String() string
 }
 
+//nolint:gochecknoinits // This is the only way to ensure that we register the methods only once into the global router
 func init() {
 	chi.RegisterMethod("ACL")
 	chi.RegisterMethod("CANCELUPLOAD")
