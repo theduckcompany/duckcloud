@@ -27,6 +27,7 @@ type Storage interface {
 	CountUserINodes(ctx context.Context, userID uuid.UUID) (uint, error)
 	GetByNameAndParent(ctx context.Context, userID uuid.UUID, name string, parent uuid.UUID) (*INode, error)
 	GetAllChildrens(ctx context.Context, userID, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error)
+	Remove(ctx context.Context, id uuid.UUID) error
 }
 
 type INodeService struct {

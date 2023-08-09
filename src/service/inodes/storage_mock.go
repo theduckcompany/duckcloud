@@ -118,6 +118,20 @@ func (_m *MockStorage) GetByNameAndParent(ctx context.Context, userID uuid.UUID,
 	return r0, r1
 }
 
+// Remove provides a mock function with given fields: ctx, id
+func (_m *MockStorage) Remove(ctx context.Context, id uuid.UUID) error {
+	ret := _m.Called(ctx, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: ctx, dir
 func (_m *MockStorage) Save(ctx context.Context, dir *INode) error {
 	ret := _m.Called(ctx, dir)
