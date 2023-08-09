@@ -142,4 +142,14 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, uint(0), res)
 	})
+
+	t.Run("Remove success", func(t *testing.T) {
+		err := store.Remove(ctx, uuid.UUID("some-child-id-5"))
+		assert.NoError(t, err)
+
+		// Check that the node is no more available
+		res, err := store.GetByID(ctx, uuid.UUID("some-child-id-5"))
+		assert.NoError(t, err)
+		assert.Nil(t, res)
+	})
 }
