@@ -116,6 +116,11 @@ func (s *INodeService) Open(ctx context.Context, cmd *PathCmd) (*INode, error) {
 			return nil
 		}
 
+		if frag == "" {
+			inode = dir
+			return nil
+		}
+
 		inode, err = s.storage.GetByNameAndParent(ctx, cmd.UserID, frag, dir.ID())
 		if err != nil {
 			return fmt.Errorf("failed to fetch a file by name and parent: %w", err)
