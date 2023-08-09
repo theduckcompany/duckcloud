@@ -1,6 +1,7 @@
 package inodes
 
 import (
+	"io/fs"
 	"testing"
 	"time"
 
@@ -17,7 +18,7 @@ func TestInodeGetter(t *testing.T) {
 		name:           "test",
 		userID:         uuid.UUID("some-user-id"),
 		parent:         NoParent,
-		nodeType:       Directory,
+		mode:           0o660 | fs.ModeDir,
 		createdAt:      now,
 		lastModifiedAt: now2,
 	}
@@ -26,8 +27,8 @@ func TestInodeGetter(t *testing.T) {
 	assert.Equal(t, inode.Name(), "test")
 	assert.Equal(t, inode.UserID(), uuid.UUID("some-user-id"))
 	assert.Equal(t, inode.Parent(), NoParent)
-	assert.Equal(t, inode.Type(), Directory)
+	assert.Equal(t, inode.Mode(), 0o660|fs.ModeDir)
 	assert.Equal(t, inode.CreatedAt(), now)
 	assert.Equal(t, inode.LastModifiedAt(), now2)
-	assert.Equal(t, inode.ModTime(), now2)
+	assert.Equal(t, inode.LastModifiedAt(), now2)
 }

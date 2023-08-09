@@ -2,6 +2,7 @@ package inodes
 
 import (
 	"context"
+	"io/fs"
 	"testing"
 	"time"
 
@@ -26,7 +27,7 @@ func TestInodes(t *testing.T) {
 			name:           "some-dir-name",
 			userID:         uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 			parent:         uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			nodeType:       Directory,
+			mode:           0o660 | fs.ModeDir,
 			createdAt:      now,
 			lastModifiedAt: now,
 		}
@@ -59,7 +60,7 @@ func TestInodes(t *testing.T) {
 			name:           "bar",
 			userID:         uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 			parent:         uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			nodeType:       Directory,
+			mode:           0o660 | fs.ModeDir,
 			createdAt:      now,
 			lastModifiedAt: now,
 		}
@@ -70,6 +71,7 @@ func TestInodes(t *testing.T) {
 			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
 			userID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 			parent: ExampleRoot.ID(),
+			mode:   0o660 | fs.ModeDir,
 			name:   "foo",
 			// some other unused fields
 		}, nil).Once()
@@ -148,11 +150,11 @@ func TestInodes(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleRoot, nil).Once()
 
 		storageMock.On("GetByNameAndParent", mock.Anything, uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"), "foo", ExampleRoot.ID()).Return(&INode{
-			id:       uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			userID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-			parent:   ExampleRoot.ID(),
-			nodeType: File, // File and not directory here <-,
-			name:     "foo",
+			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+			userID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			parent: ExampleRoot.ID(),
+			mode:   0o660, // File and not directory here <-,
+			name:   "foo",
 			// some other unused fields
 		}, nil).Once()
 
@@ -174,22 +176,22 @@ func TestInodes(t *testing.T) {
 		userID := uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3")
 
 		inode := INode{
-			id:       uuid.UUID("eec51147-ec64-4640-b148-aceadbcb876e"),
-			userID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-			parent:   uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			nodeType: File,
-			name:     "bar",
+			id:     uuid.UUID("eec51147-ec64-4640-b148-aceadbcb876e"),
+			userID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			parent: uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+			mode:   0o660,
+			name:   "bar",
 			// some other unused fields
 		}
 
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleRoot, nil).Once()
 
 		storageMock.On("GetByNameAndParent", mock.Anything, userID, "foo", ExampleRoot.ID()).Return(&INode{
-			id:       uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			userID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-			parent:   ExampleRoot.ID(),
-			nodeType: Directory,
-			name:     "foo",
+			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+			userID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			parent: ExampleRoot.ID(),
+			mode:   0o660 | fs.ModeDir,
+			name:   "foo",
 			// some other unused fields
 		}, nil).Once()
 
@@ -264,27 +266,27 @@ func TestInodes(t *testing.T) {
 
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleRoot, nil).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, userID, "foo", ExampleRoot.ID()).Return(&INode{
-			id:       uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			userID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-			parent:   ExampleRoot.ID(),
-			nodeType: Directory,
-			name:     "bar",
+			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+			userID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			parent: ExampleRoot.ID(),
+			mode:   0o660 | fs.ModeDir,
+			name:   "bar",
 			// some other unused fields
 		}, nil).Once()
 
 		child1 := INode{
-			id:       uuid.UUID("b3411c4b-acc3-4f79-a54e-f315a18ce6c7"),
-			userID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-			parent:   uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			nodeType: Directory,
-			name:     "some-dir",
+			id:     uuid.UUID("b3411c4b-acc3-4f79-a54e-f315a18ce6c7"),
+			userID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			parent: uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+			mode:   0o660 | fs.ModeDir,
+			name:   "some-dir",
 		}
 		child2 := INode{
-			id:       uuid.UUID("0af1f541-454e-4c7d-a871-706d9c5ad2cc"),
-			userID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-			parent:   uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			nodeType: File,
-			name:     "some-file",
+			id:     uuid.UUID("0af1f541-454e-4c7d-a871-706d9c5ad2cc"),
+			userID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			parent: uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+			mode:   0o660,
+			name:   "some-file",
 		}
 
 		storageMock.On("GetAllChildrens", mock.Anything, userID, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"), &paginateCmd).Return(
@@ -327,11 +329,11 @@ func TestInodes(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleRoot, nil).Once()
 
 		storageMock.On("GetByNameAndParent", mock.Anything, userID, "foo", ExampleRoot.ID()).Return(&INode{
-			id:       uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			userID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-			parent:   ExampleRoot.ID(),
-			nodeType: File, // Should be a directory with a "bar" as child
-			name:     "foo",
+			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+			userID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			parent: ExampleRoot.ID(),
+			mode:   0o660, // Should be a directory with a "bar" as child
+			name:   "foo",
 			// some other unused fields
 		}, nil).Once()
 
@@ -355,7 +357,7 @@ func TestInodes(t *testing.T) {
 			name:           "",
 			userID:         uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 			parent:         NoParent,
-			nodeType:       Directory,
+			mode:           0o660 | fs.ModeDir,
 			createdAt:      now,
 			lastModifiedAt: now,
 		}
