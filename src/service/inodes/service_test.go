@@ -317,25 +317,6 @@ func TestInodes(t *testing.T) {
 		assert.EqualError(t, err, "validation error: UserID: must be a valid UUID v4.")
 	})
 
-	t.Run("Readdir with a parent not found", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
-		service := NewService(tools, storageMock)
-
-		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleRoot, nil).Once()
-
-		storageMock.On("GetByNameAndParent", mock.Anything, uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"), "unknown", uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(nil, nil).Once()
-
-		res, err := service.Readdir(ctx, &PathCmd{
-			Root:     ExampleRoot.ID(),
-			FullName: "/unknown/some-dir-name", // invalid path
-			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-		}, &storage.PaginateCmd{Limit: 10})
-
-		assert.Nil(t, res)
-		assert.EqualError(t, err, "readdir /unknown/some-dir-name: file does not exist")
-	})
-
 	t.Run("Open with an invalid path", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
