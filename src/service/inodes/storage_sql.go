@@ -45,7 +45,6 @@ func (t *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*INode, error) 
 		RunWith(t.db).
 		ScanContext(ctx, &res.id, &res.userID, &res.name, &res.parent, &res.lastModifiedAt, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
-		fmt.Printf("err no rows\n\n\n")
 		return nil, nil
 	}
 

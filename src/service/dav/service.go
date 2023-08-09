@@ -7,7 +7,13 @@ import (
 	"os"
 
 	"github.com/Peltoche/neurone/src/service/inodes"
+	"github.com/Peltoche/neurone/src/tools/uuid"
 	"golang.org/x/net/webdav"
+)
+
+const (
+	currentUser = uuid.UUID("e09c8c33-2cdc-44d9-8802-01126ae50fa1")
+	root        = uuid.UUID("e677de9f-c08a-4a90-a780-63d419cd1218")
 )
 
 type davKeyCtx string
@@ -26,13 +32,44 @@ func NewFSService(inodes inodes.Service) *FSService {
 }
 
 func (s *FSService) Mkdir(ctx context.Context, name string, perm os.FileMode) error {
-	fmt.Printf("Mkdir: %q\n\n", name)
+	if name == "" {
+		name = "/"
+	}
 
-	return webdav.ErrNotImplemented
+	_, err := s.inodes.Mkdir(ctx, &inodes.PathCmd{
+		Root:     root,
+		UserID:   currentUser,
+		FullName: name,
+	})
+	if err != nil {
+		return fmt.Errorf("inodes mkdir error: %w", err)
+	}
+
+	return nil
 }
 
 func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os.FileMode) (webdav.File, error) {
-	fmt.Printf("Open file: %q\n\n", name)
+	if name == "" {
+		name = "/"
+	}
+
+	res, err := s.inodes.Open(ctx, &inodes.PathCmd{
+		Root:     root,
+		UserID:   currentUser,
+		FullName: name,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to open inodes: %w", err)
+	}
+
+	if res == nil {
+		return nil, fs.ErrNotExist
+	}
+
+	if res.Type() == inodes.Directory {
+		return &Directory{res, s.inodes}, nil
+	}
+
 	return nil, webdav.ErrNotImplemented
 }
 
@@ -47,6 +84,22 @@ func (s *FSService) Rename(ctx context.Context, oldName, newName string) error {
 }
 
 func (s *FSService) Stat(ctx context.Context, name string) (os.FileInfo, error) {
-	fmt.Printf("Stats: %q\n\n", name)
-	return nil, fs.ErrNotExist
+	if name == "" {
+		name = "/"
+	}
+
+	res, err := s.inodes.Open(ctx, &inodes.PathCmd{
+		Root:     root,
+		UserID:   currentUser,
+		FullName: name,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to open inodes: %w", err)
+	}
+
+	if res == nil {
+		return nil, &fs.PathError{Op: "stat", Path: name, Err: fs.ErrNotExist}
+	}
+
+	return res, nil
 }
