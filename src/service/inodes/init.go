@@ -14,7 +14,7 @@ type Service interface {
 	BootstrapUser(ctx context.Context, userID uuid.UUID) (*INode, error)
 	Mkdir(ctx context.Context, cmd *PathCmd) (*INode, error)
 	Open(ctx context.Context, cmd *PathCmd) (*INode, error)
-	Readddir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error)
+	Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error)
 }
 
 func Init(tools tools.Tools, db *sql.DB) Service {

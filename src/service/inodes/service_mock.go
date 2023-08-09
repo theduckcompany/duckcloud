@@ -94,8 +94,8 @@ func (_m *MockService) Open(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	return r0, r1
 }
 
-// Readddir provides a mock function with given fields: ctx, cmd, paginateCmd
-func (_m *MockService) Readddir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
+// Readdir provides a mock function with given fields: ctx, cmd, paginateCmd
+func (_m *MockService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
 	ret := _m.Called(ctx, cmd, paginateCmd)
 
 	var r0 []INode
