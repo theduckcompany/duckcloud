@@ -68,7 +68,7 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 		return nil, fs.ErrNotExist
 	}
 
-	if res.Type() == inodes.Directory {
+	if res.Mode().IsDir() {
 		return &Directory{res, s.inodes, &pathCmd}, nil
 	}
 

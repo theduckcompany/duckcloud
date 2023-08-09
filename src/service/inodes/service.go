@@ -56,7 +56,7 @@ func (s *INodeService) BootstrapUser(ctx context.Context, userID uuid.UUID) (*IN
 		id:             s.uuid.New(),
 		userID:         userID,
 		parent:         NoParent,
-		nodeType:       Directory,
+		mode:           0o660 | os.ModeDir,
 		createdAt:      now,
 		lastModifiedAt: now,
 	}
@@ -105,7 +105,7 @@ func (s *INodeService) Mkdir(ctx context.Context, cmd *PathCmd) (*INode, error) 
 		inode = &INode{
 			id:             s.uuid.New(),
 			userID:         cmd.UserID,
-			nodeType:       Directory,
+			mode:           0o660 | os.ModeDir,
 			parent:         dir.ID(),
 			name:           frag,
 			lastModifiedAt: now,

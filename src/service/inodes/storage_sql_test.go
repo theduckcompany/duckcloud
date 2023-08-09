@@ -3,6 +3,7 @@ package inodes
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"testing"
 	"time"
 
@@ -21,6 +22,7 @@ func TestINodeSqlstore(t *testing.T) {
 		userID:         uuid.UUID("some-user-uuid"),
 		parent:         NoParent,
 		name:           "foo",
+		mode:           0o660 | fs.ModeDir,
 		lastModifiedAt: nowData,
 		createdAt:      nowData,
 	}
@@ -50,6 +52,7 @@ func TestINodeSqlstore(t *testing.T) {
 				userID:         uuid.UUID("some-user-uuid"),
 				parent:         uuid.UUID("some-dir-uuid"),
 				name:           fmt.Sprintf("child-%d", i),
+				mode:           0o660 | fs.ModeDir,
 				lastModifiedAt: nowData,
 				createdAt:      nowData,
 			})
@@ -75,6 +78,7 @@ func TestINodeSqlstore(t *testing.T) {
 			userID:         uuid.UUID("some-user-uuid"),
 			parent:         uuid.UUID("some-dir-uuid"),
 			name:           "child-0",
+			mode:           0o660 | fs.ModeDir,
 			lastModifiedAt: nowData,
 			createdAt:      nowData,
 		}, res)
@@ -98,6 +102,7 @@ func TestINodeSqlstore(t *testing.T) {
 			userID:         uuid.UUID("some-user-uuid"),
 			parent:         uuid.UUID("some-dir-uuid"),
 			name:           "child-5",
+			mode:           0o660 | fs.ModeDir,
 			lastModifiedAt: nowData,
 			createdAt:      nowData,
 		}, res)
@@ -118,6 +123,7 @@ func TestINodeSqlstore(t *testing.T) {
 			userID:         uuid.UUID("some-user-uuid"),
 			parent:         uuid.UUID("some-dir-uuid"),
 			name:           "child-5",
+			mode:           0o660 | fs.ModeDir,
 			lastModifiedAt: nowData,
 			createdAt:      nowData,
 		}, res)

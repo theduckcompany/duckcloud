@@ -24,8 +24,8 @@ func newSqlStorage(db *sql.DB) *sqlStorage {
 func (t *sqlStorage) Save(ctx context.Context, dir *INode) error {
 	_, err := sq.
 		Insert(tableName).
-		Columns("id", "user_id", "name", "parent", "last_modified_at", "created_at").
-		Values(dir.id, dir.userID, dir.name, dir.parent, dir.lastModifiedAt, dir.createdAt).
+		Columns("id", "user_id", "name", "parent", "mode", "last_modified_at", "created_at").
+		Values(dir.id, dir.userID, dir.name, dir.parent, dir.mode, dir.lastModifiedAt, dir.createdAt).
 		RunWith(t.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -39,11 +39,11 @@ func (t *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*INode, error) 
 	res := INode{}
 
 	err := sq.
-		Select("id", "user_id", "name", "parent", "last_modified_at", "created_at").
+		Select("id", "user_id", "name", "parent", "mode", "last_modified_at", "created_at").
 		From(tableName).
 		Where(sq.Eq{"id": string(id)}).
 		RunWith(t.db).
-		ScanContext(ctx, &res.id, &res.userID, &res.name, &res.parent, &res.lastModifiedAt, &res.createdAt)
+		ScanContext(ctx, &res.id, &res.userID, &res.name, &res.parent, &res.mode, &res.lastModifiedAt, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -70,7 +70,7 @@ func (t *sqlStorage) Remove(ctx context.Context, id uuid.UUID) error {
 
 func (t *sqlStorage) GetAllChildrens(ctx context.Context, userID, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error) {
 	rows, err := storage.PaginateSelection(sq.
-		Select("id", "user_id", "name", "parent", "last_modified_at", "created_at").
+		Select("id", "user_id", "name", "parent", "mode", "last_modified_at", "created_at").
 		Where(sq.Eq{"user_id": string(userID), "parent": string(parent)}).
 		From(tableName), cmd).
 		RunWith(t.db).
@@ -84,7 +84,7 @@ func (t *sqlStorage) GetAllChildrens(ctx context.Context, userID, parent uuid.UU
 	for rows.Next() {
 		var res INode
 
-		err = rows.Scan(&res.id, &res.userID, &res.name, &res.parent, &res.lastModifiedAt, &res.createdAt)
+		err = rows.Scan(&res.id, &res.userID, &res.name, &res.parent, &res.mode, &res.lastModifiedAt, &res.createdAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}
@@ -123,11 +123,11 @@ func (t *sqlStorage) GetByNameAndParent(ctx context.Context, userID uuid.UUID, n
 	res := INode{}
 
 	err := sq.
-		Select("id", "user_id", "name", "parent", "last_modified_at", "created_at").
+		Select("id", "user_id", "name", "parent", "mode", "last_modified_at", "created_at").
 		From(tableName).
 		Where(sq.Eq{"user_id": string(userID), "parent": string(parent), "name": name}).
 		RunWith(t.db).
-		ScanContext(ctx, &res.id, &res.userID, &res.name, &res.parent, &res.lastModifiedAt, &res.createdAt)
+		ScanContext(ctx, &res.id, &res.userID, &res.name, &res.parent, &res.mode, &res.lastModifiedAt, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
