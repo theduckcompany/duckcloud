@@ -11,6 +11,7 @@ import (
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/clock"
 	"github.com/Peltoche/neurone/src/tools/errs"
+	"github.com/Peltoche/neurone/src/tools/storage"
 	"github.com/Peltoche/neurone/src/tools/uuid"
 )
 
@@ -25,6 +26,7 @@ type Storage interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*INode, error)
 	CountUserINodes(ctx context.Context, userID uuid.UUID) (uint, error)
 	GetByNameAndParent(ctx context.Context, userID uuid.UUID, name string, parent uuid.UUID) (*INode, error)
+	GetAllChildrens(ctx context.Context, userID, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error)
 }
 
 type INodeService struct {
@@ -64,6 +66,37 @@ func (s *INodeService) BootstrapUser(ctx context.Context, userID uuid.UUID) (*IN
 	}
 
 	return &node, nil
+}
+
+func (s *INodeService) Readddir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
+	err := cmd.Validate()
+	if err != nil {
+		return nil, errs.ValidationError(err)
+	}
+
+	var res []INode
+	err = s.walk(ctx, cmd, "readdir", func(dir *INode, frag string, final bool) error {
+		if !final {
+			return nil
+		}
+
+		lastDir, err := s.storage.GetByNameAndParent(ctx, cmd.UserID, frag, dir.ID())
+		if err != nil {
+			return fmt.Errorf("failed to GetByNameAndParent: %w", err)
+		}
+
+		res, err = s.storage.GetAllChildrens(ctx, cmd.UserID, lastDir.ID(), paginateCmd)
+		if err != nil {
+			return fmt.Errorf("failed to GetAllChildrens: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func (s *INodeService) Mkdir(ctx context.Context, cmd *PathCmd) (*INode, error) {
