@@ -55,6 +55,19 @@ func (t *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*INode, error) 
 	return &res, nil
 }
 
+func (t *sqlStorage) Remove(ctx context.Context, id uuid.UUID) error {
+	_, err := sq.
+		Delete(tableName).
+		Where(sq.Eq{"id": string(id)}).
+		RunWith(t.db).
+		ExecContext(ctx)
+	if err != nil {
+		return fmt.Errorf("sql error: %w", err)
+	}
+
+	return nil
+}
+
 func (t *sqlStorage) GetAllChildrens(ctx context.Context, userID, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error) {
 	rows, err := storage.PaginateSelection(sq.
 		Select("id", "user_id", "name", "parent", "last_modified_at", "created_at").
