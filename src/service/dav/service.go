@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	currentUser = uuid.UUID("e09c8c33-2cdc-44d9-8802-01126ae50fa1")
-	root        = uuid.UUID("e677de9f-c08a-4a90-a780-63d419cd1218")
+	currentUser = uuid.UUID("a9e87bb8-401d-40d4-97ee-7eaa1d6f6638")
+	root        = uuid.UUID("c2ce9364-7195-4932-a639-59ec628b5722")
 )
 
 type davKeyCtx string
@@ -53,11 +53,13 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 		name = "/"
 	}
 
-	res, err := s.inodes.Open(ctx, &inodes.PathCmd{
+	pathCmd := inodes.PathCmd{
 		Root:     root,
 		UserID:   currentUser,
 		FullName: name,
-	})
+	}
+
+	res, err := s.inodes.Open(ctx, &pathCmd)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open inodes: %w", err)
 	}
@@ -67,7 +69,7 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 	}
 
 	if res.Type() == inodes.Directory {
-		return &Directory{res, s.inodes}, nil
+		return &Directory{res, s.inodes, &pathCmd}, nil
 	}
 
 	return nil, webdav.ErrNotImplemented
