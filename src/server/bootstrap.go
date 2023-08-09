@@ -16,6 +16,7 @@ type BootstrapCmd struct {
 }
 
 func Bootstrap(ctx context.Context, cfg *Config, user users.CreateCmd) error {
+	//nolint:contextcheck // the bootstrap fonction must not use this context
 	app := start(cfg, fx.Invoke(bootstrap(user)))
 
 	err := app.Start(ctx)

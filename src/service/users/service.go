@@ -107,7 +107,7 @@ func (t *UserService) Authenticate(ctx context.Context, username, userPassword s
 		return nil, ErrInvalidUsername
 	}
 
-	err = t.password.Compare(context.Background(), user.password, userPassword)
+	err = t.password.Compare(ctx, user.password, userPassword)
 	switch {
 	case errors.Is(err, password.ErrMissmatchedPassword):
 		return nil, ErrInvalidPassword

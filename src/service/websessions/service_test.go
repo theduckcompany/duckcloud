@@ -188,9 +188,11 @@ func Test_Service(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Check that the session_token cookie is set to an empty value.
-		assert.Len(t, w.Result().Cookies(), 1)
-		assert.Empty(t, w.Result().Cookies()[0].Value)
-		assert.Equal(t, "session_token", w.Result().Cookies()[0].Name)
+		res := w.Result()
+		res.Body.Close()
+		assert.Len(t, res.Cookies(), 1)
+		assert.Empty(t, res.Cookies()[0].Value)
+		assert.Equal(t, "session_token", res.Cookies()[0].Name)
 	})
 
 	t.Run("Logout with no cookie", func(t *testing.T) {
