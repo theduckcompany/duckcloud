@@ -74,26 +74,14 @@ func (s *INodeService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *s
 		return nil, errs.ValidationError(err)
 	}
 
-	var res []INode
-	err = s.walk(ctx, cmd, "readdir", func(dir *INode, frag string, final bool) error {
-		if !final {
-			return nil
-		}
-
-		lastDir, err := s.storage.GetByNameAndParent(ctx, cmd.UserID, frag, dir.ID())
-		if err != nil {
-			return fmt.Errorf("failed to GetByNameAndParent: %w", err)
-		}
-
-		res, err = s.storage.GetAllChildrens(ctx, cmd.UserID, lastDir.ID(), paginateCmd)
-		if err != nil {
-			return fmt.Errorf("failed to GetAllChildrens: %w", err)
-		}
-
-		return nil
-	})
+	dir, err := s.Open(ctx, cmd)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open %q: %w", cmd.FullName, err)
+	}
+
+	res, err := s.storage.GetAllChildrens(ctx, cmd.UserID, dir.ID(), paginateCmd)
+	if err != nil {
+		return nil, fmt.Errorf("failed to GetAllChildrens: %w", err)
 	}
 
 	return res, nil
