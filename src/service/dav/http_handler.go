@@ -5,10 +5,18 @@ import (
 	"net/http"
 
 	"github.com/Peltoche/neurone/src/service/dav/internal"
+	"github.com/Peltoche/neurone/src/service/inodes"
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/router"
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/net/webdav"
+)
+
+type davKeyCtx string
+
+var (
+	usernameKeyCtx davKeyCtx = "username"
+	passwordKeyCtx davKeyCtx = "password"
 )
 
 // HTTPHandler serve files via the Webdav protocol over http.
@@ -17,11 +25,11 @@ type HTTPHandler struct {
 }
 
 // NewHTTPHandler builds a new EchoHandler.
-func NewHTTPHandler(tools tools.Tools, fs Service) *HTTPHandler {
+func NewHTTPHandler(tools tools.Tools, inodes inodes.Service) *HTTPHandler {
 	return &HTTPHandler{
 		davHandler: &webdav.Handler{
 			Prefix:     "/dav/",
-			FileSystem: fs,
+			FileSystem: &davFS{inodes},
 			LockSystem: webdav.NewMemLS(),
 			Logger:     internal.NewLogger(tools.Logger()),
 		},
