@@ -76,8 +76,20 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 }
 
 func (s *FSService) RemoveAll(ctx context.Context, name string) error {
-	fmt.Printf("Remove All: %q\n\n", name)
-	return webdav.ErrNotImplemented
+	if name == "" {
+		name = "/"
+	}
+
+	err := s.inodes.RemoveAll(ctx, &inodes.PathCmd{
+		Root:     root,
+		UserID:   currentUser,
+		FullName: name,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to RemoveAll: %w", err)
+	}
+
+	return nil
 }
 
 func (s *FSService) Rename(ctx context.Context, oldName, newName string) error {
