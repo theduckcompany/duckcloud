@@ -1,4 +1,4 @@
-package dav
+package fs
 
 import (
 	"context"

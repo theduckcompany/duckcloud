@@ -48,7 +48,6 @@ func start(cfg *Config, invoke fx.Option) *fx.App {
 			fx.Annotate(oauthconsents.Init, fx.As(new(oauthconsents.Service))),
 			fx.Annotate(websessions.Init, fx.As(new(websessions.Service))),
 			fx.Annotate(oauth2.Init, fx.As(new(oauth2.Service))),
-			fx.Annotate(dav.Init, fx.As(new(dav.Service))),
 			fx.Annotate(inodes.Init, fx.As(new(inodes.Service))),
 
 			// HTTP handlers
