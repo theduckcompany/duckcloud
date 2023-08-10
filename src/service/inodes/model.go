@@ -46,4 +46,4 @@ func (n *INode) ModTime() time.Time        { return n.lastModifiedAt }
 func (n *INode) CreatedAt() time.Time      { return n.createdAt }
 func (n *INode) LastModifiedAt() time.Time { return n.lastModifiedAt }
 func (n *INode) IsDir() bool               { return n.mode.IsDir() }
-func (d *INode) Sys() any                  { return nil }
+func (n *INode) Sys() any                  { return nil }

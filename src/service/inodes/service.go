@@ -27,7 +27,8 @@ type Storage interface {
 	CountUserINodes(ctx context.Context, userID uuid.UUID) (uint, error)
 	GetByNameAndParent(ctx context.Context, userID uuid.UUID, name string, parent uuid.UUID) (*INode, error)
 	GetAllChildrens(ctx context.Context, userID, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error)
-	Remove(ctx context.Context, id uuid.UUID) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	HardDelete(ctx context.Context, id uuid.UUID) error
 }
 
 type INodeService struct {
@@ -86,6 +87,24 @@ func (s *INodeService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *s
 	}
 
 	return res, nil
+}
+
+func (s *INodeService) RemoveAll(ctx context.Context, cmd *PathCmd) error {
+	inode, err := s.Open(ctx, cmd)
+	if err != nil {
+		return fmt.Errorf("failed to open the inode: %w", err)
+	}
+
+	if inode == nil {
+		return nil
+	}
+
+	err = s.storage.Delete(ctx, inode.ID())
+	if err != nil {
+		return fmt.Errorf("failed to soft delete the inode %q: %w", inode.ID(), err)
+	}
+
+	return nil
 }
 
 func (s *INodeService) Mkdir(ctx context.Context, cmd *PathCmd) (*INode, error) {
