@@ -15,10 +15,11 @@ type Service interface {
 	Mkdir(ctx context.Context, cmd *PathCmd) (*INode, error)
 	Open(ctx context.Context, cmd *PathCmd) (*INode, error)
 	Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error)
+	RemoveAll(ctx context.Context, cmd *PathCmd) error
 }
 
 func Init(tools tools.Tools, db *sql.DB) Service {
-	storage := newSqlStorage(db)
+	storage := newSqlStorage(db, tools)
 
 	return NewService(tools, storage)
 }

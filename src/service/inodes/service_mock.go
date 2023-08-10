@@ -120,6 +120,20 @@ func (_m *MockService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *s
 	return r0, r1
 }
 
+// RemoveAll provides a mock function with given fields: ctx, cmd
+func (_m *MockService) RemoveAll(ctx context.Context, cmd *PathCmd) error {
+	ret := _m.Called(ctx, cmd)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) error); ok {
+		r0 = rf(ctx, cmd)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewMockService creates a new instance of MockService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockService(t interface {

@@ -2,6 +2,7 @@ package inodes
 
 import (
 	"context"
+	"fmt"
 	"io/fs"
 	"testing"
 	"time"
@@ -166,6 +167,84 @@ func TestInodes(t *testing.T) {
 
 		assert.EqualError(t, err, "mkdir /foo/bar: invalid argument")
 		assert.Nil(t, res)
+	})
+
+	t.Run("RemoveAll success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		userID := uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3")
+
+		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleRoot, nil).Once()
+
+		storageMock.On("GetByNameAndParent", mock.Anything, userID, "foo", ExampleRoot.ID()).Return(&INode{
+			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+			userID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			parent: ExampleRoot.ID(),
+			mode:   0o660 | fs.ModeDir,
+			name:   "foo",
+			// some other unused fields
+		}, nil).Once()
+
+		storageMock.On("Delete", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(nil).Once()
+
+		err := service.RemoveAll(ctx, &PathCmd{
+			Root:     ExampleRoot.ID(),
+			FullName: "/foo",
+			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+		})
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("RemoveAll with a file not found", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		userID := uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3")
+
+		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleRoot, nil).Once()
+
+		storageMock.On("GetByNameAndParent", mock.Anything, userID, "foo", ExampleRoot.ID()).Return(nil, nil).Once()
+
+		err := service.RemoveAll(ctx, &PathCmd{
+			Root:     ExampleRoot.ID(),
+			FullName: "/foo",
+			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+		})
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("RemoveAll with a storage error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		userID := uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3")
+
+		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleRoot, nil).Once()
+
+		storageMock.On("GetByNameAndParent", mock.Anything, userID, "foo", ExampleRoot.ID()).Return(&INode{
+			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+			userID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			parent: ExampleRoot.ID(),
+			mode:   0o660 | fs.ModeDir,
+			name:   "foo",
+			// some other unused fields
+		}, nil).Once()
+
+		storageMock.On("Delete", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(fmt.Errorf("some-error")).Once()
+
+		err := service.RemoveAll(ctx, &PathCmd{
+			Root:     ExampleRoot.ID(),
+			FullName: "/foo",
+			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+		})
+
+		assert.EqualError(t, err, "failed to soft delete the inode \"f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f\": some-error")
 	})
 
 	t.Run("Open success", func(t *testing.T) {

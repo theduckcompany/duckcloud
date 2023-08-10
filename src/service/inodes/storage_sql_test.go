@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/storage"
 	"github.com/Peltoche/neurone/src/tools/uuid"
 	"github.com/stretchr/testify/assert"
@@ -27,8 +28,9 @@ func TestINodeSqlstore(t *testing.T) {
 		createdAt:      nowData,
 	}
 
+	tools := tools.NewMock(t)
 	db := storage.NewTestStorage(t)
-	store := newSqlStorage(db)
+	store := newSqlStorage(db, tools)
 
 	t.Run("Create success", func(t *testing.T) {
 		err := store.Save(ctx, &dirData)
@@ -149,8 +151,20 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.Equal(t, uint(0), res)
 	})
 
-	t.Run("Remove success", func(t *testing.T) {
-		err := store.Remove(ctx, uuid.UUID("some-child-id-5"))
+	t.Run("Delete success", func(t *testing.T) {
+		tools.ClockMock.On("Now").Return(time.Now()).Once()
+
+		err := store.Delete(ctx, uuid.UUID("some-child-id-5"))
+		assert.NoError(t, err)
+
+		// Check that the node is no more available
+		res, err := store.GetByID(ctx, uuid.UUID("some-child-id-5"))
+		assert.NoError(t, err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("HardDelete success", func(t *testing.T) {
+		err := store.HardDelete(ctx, uuid.UUID("some-child-id-5"))
 		assert.NoError(t, err)
 
 		// Check that the node is no more available

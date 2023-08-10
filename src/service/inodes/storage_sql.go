@@ -7,6 +7,8 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/Peltoche/neurone/src/tools"
+	"github.com/Peltoche/neurone/src/tools/clock"
 	"github.com/Peltoche/neurone/src/tools/storage"
 	"github.com/Peltoche/neurone/src/tools/uuid"
 )
@@ -14,11 +16,12 @@ import (
 const tableName = "fs_inodes"
 
 type sqlStorage struct {
-	db *sql.DB
+	db    *sql.DB
+	clock clock.Clock
 }
 
-func newSqlStorage(db *sql.DB) *sqlStorage {
-	return &sqlStorage{db}
+func newSqlStorage(db *sql.DB, tools tools.Tools) *sqlStorage {
+	return &sqlStorage{db, tools.Clock()}
 }
 
 func (t *sqlStorage) Save(ctx context.Context, dir *INode) error {
@@ -41,7 +44,7 @@ func (t *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*INode, error) 
 	err := sq.
 		Select("id", "user_id", "name", "parent", "mode", "last_modified_at", "created_at").
 		From(tableName).
-		Where(sq.Eq{"id": string(id)}).
+		Where(sq.Eq{"id": string(id), "deleted_at": nil}).
 		RunWith(t.db).
 		ScanContext(ctx, &res.id, &res.userID, &res.name, &res.parent, &res.mode, &res.lastModifiedAt, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -55,7 +58,24 @@ func (t *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*INode, error) 
 	return &res, nil
 }
 
-func (t *sqlStorage) Remove(ctx context.Context, id uuid.UUID) error {
+func (t *sqlStorage) Delete(ctx context.Context, id uuid.UUID) error {
+	res, err := sq.
+		Update(tableName).
+		Where(sq.Eq{"id": string(id)}).
+		Set("deleted_at", t.clock.Now()).
+		RunWith(t.db).
+		ExecContext(ctx)
+	if err != nil {
+		return fmt.Errorf("sql error: %w", err)
+	}
+
+	nb, _ := res.RowsAffected()
+	fmt.Printf("row affected: %d\n\n", nb)
+
+	return nil
+}
+
+func (t *sqlStorage) HardDelete(ctx context.Context, id uuid.UUID) error {
 	_, err := sq.
 		Delete(tableName).
 		Where(sq.Eq{"id": string(id)}).
@@ -71,7 +91,7 @@ func (t *sqlStorage) Remove(ctx context.Context, id uuid.UUID) error {
 func (t *sqlStorage) GetAllChildrens(ctx context.Context, userID, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error) {
 	rows, err := storage.PaginateSelection(sq.
 		Select("id", "user_id", "name", "parent", "mode", "last_modified_at", "created_at").
-		Where(sq.Eq{"user_id": string(userID), "parent": string(parent)}).
+		Where(sq.Eq{"user_id": string(userID), "parent": string(parent), "deleted_at": nil}).
 		From(tableName), cmd).
 		RunWith(t.db).
 		QueryContext(ctx)
@@ -109,7 +129,7 @@ func (t *sqlStorage) CountUserINodes(ctx context.Context, userID uuid.UUID) (uin
 	err := sq.
 		Select("count(*)").
 		From(tableName).
-		Where(sq.Eq{"user_id": string(userID)}).
+		Where(sq.Eq{"user_id": string(userID), "deleted_at": nil}).
 		RunWith(t.db).
 		ScanContext(ctx, &count)
 	if err != nil {
@@ -125,7 +145,7 @@ func (t *sqlStorage) GetByNameAndParent(ctx context.Context, userID uuid.UUID, n
 	err := sq.
 		Select("id", "user_id", "name", "parent", "mode", "last_modified_at", "created_at").
 		From(tableName).
-		Where(sq.Eq{"user_id": string(userID), "parent": string(parent), "name": name}).
+		Where(sq.Eq{"user_id": string(userID), "parent": string(parent), "name": name, "deleted_at": nil}).
 		RunWith(t.db).
 		ScanContext(ctx, &res.id, &res.userID, &res.name, &res.parent, &res.mode, &res.lastModifiedAt, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
