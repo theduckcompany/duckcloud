@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	currentUser = uuid.UUID("a9e87bb8-401d-40d4-97ee-7eaa1d6f6638")
-	root        = uuid.UUID("c2ce9364-7195-4932-a639-59ec628b5722")
+	currentUser = uuid.UUID("86cb0f80-061d-4cbb-b730-f0c8d5dd2961")
+	root        = uuid.UUID("9dfce8f0-10f0-4072-867e-1a0089469b78")
 )
 
 type davKeyCtx string
