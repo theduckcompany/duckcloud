@@ -29,6 +29,7 @@ type Storage interface {
 	GetAllChildrens(ctx context.Context, userID, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	HardDelete(ctx context.Context, id uuid.UUID) error
+	GetDeletedINodes(ctx context.Context, limit int) ([]INode, error)
 }
 
 type INodeService struct {
