@@ -90,6 +90,10 @@ func (s *INodeService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *s
 	return res, nil
 }
 
+func (s *INodeService) GetDeletedINodes(ctx context.Context, limit int) ([]INode, error) {
+	return s.storage.GetDeletedINodes(ctx, limit)
+}
+
 func (s *INodeService) RemoveAll(ctx context.Context, cmd *PathCmd) error {
 	inode, err := s.Open(ctx, cmd)
 	if err != nil {
