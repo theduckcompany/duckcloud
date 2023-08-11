@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/Peltoche/neurone/assets"
 	"github.com/Peltoche/neurone/src/service/dav"
+	"github.com/Peltoche/neurone/src/service/fs"
 	"github.com/Peltoche/neurone/src/service/inodes"
 	"github.com/Peltoche/neurone/src/service/oauth2"
 	"github.com/Peltoche/neurone/src/service/oauthclients"
@@ -63,6 +64,7 @@ func start(cfg *Config, invoke fx.Option) *fx.App {
 		),
 
 		// Start the command
+		fx.Invoke(fs.StartGC),
 		fx.Invoke(storage.RunMigrations),
 		invoke,
 	)
