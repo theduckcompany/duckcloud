@@ -335,6 +335,30 @@ func TestInodes(t *testing.T) {
 		assert.EqualError(t, err, "not found: dir \"f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f\" is not owned by \"d35f9848-6310-4280-bc9a-44534035a401\"")
 	})
 
+	t.Run("GetDeletedINodes success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		storageMock.On("GetDeletedINodes", mock.Anything, 10).Return([]INode{ExampleRoot}, nil).Once()
+
+		res, err := service.GetDeletedINodes(ctx, 10)
+		assert.NoError(t, err)
+		assert.Len(t, res, 1)
+		assert.Equal(t, ExampleRoot, res[0])
+	})
+
+	t.Run("HardDelete success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		storageMock.On("HardDelete", mock.Anything, uuid.UUID("some-id")).Return(nil).Once()
+
+		err := service.HardDelete(ctx, uuid.UUID("some-id"))
+		assert.NoError(t, err)
+	})
+
 	t.Run("Readdir success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)

@@ -29,6 +29,7 @@ type Storage interface {
 	GetAllChildrens(ctx context.Context, userID, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	HardDelete(ctx context.Context, id uuid.UUID) error
+	GetDeletedINodes(ctx context.Context, limit int) ([]INode, error)
 }
 
 type INodeService struct {
@@ -87,6 +88,14 @@ func (s *INodeService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *s
 	}
 
 	return res, nil
+}
+
+func (s *INodeService) GetDeletedINodes(ctx context.Context, limit int) ([]INode, error) {
+	return s.storage.GetDeletedINodes(ctx, limit)
+}
+
+func (s *INodeService) HardDelete(ctx context.Context, inode uuid.UUID) error {
+	return s.storage.HardDelete(ctx, inode)
 }
 
 func (s *INodeService) RemoveAll(ctx context.Context, cmd *PathCmd) error {
