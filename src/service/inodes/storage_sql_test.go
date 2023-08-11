@@ -163,13 +163,29 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.Nil(t, res)
 	})
 
+	t.Run("GetDeletedINodes", func(t *testing.T) {
+		res, err := store.GetDeletedINodes(ctx, 10)
+
+		assert.NoError(t, err)
+		assert.Len(t, res, 1)
+		assert.Equal(t, INode{
+			id:             uuid.UUID("some-child-id-5"),
+			userID:         uuid.UUID("some-user-uuid"),
+			parent:         uuid.UUID("some-dir-uuid"),
+			name:           "child-5",
+			mode:           0o660 | fs.ModeDir,
+			lastModifiedAt: nowData,
+			createdAt:      nowData,
+		}, res[0])
+	})
+
 	t.Run("HardDelete success", func(t *testing.T) {
 		err := store.HardDelete(ctx, uuid.UUID("some-child-id-5"))
 		assert.NoError(t, err)
 
-		// Check that the node is no more available
-		res, err := store.GetByID(ctx, uuid.UUID("some-child-id-5"))
+		// Check that the node is no more available even as a soft deleted one
+		res, err := store.GetDeletedINodes(ctx, 10)
 		assert.NoError(t, err)
-		assert.Nil(t, res)
+		assert.Len(t, res, 0)
 	})
 }
