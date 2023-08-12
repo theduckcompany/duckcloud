@@ -77,7 +77,7 @@ func (s *INodeService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *s
 		return nil, errs.ValidationError(err)
 	}
 
-	dir, err := s.Open(ctx, cmd)
+	dir, err := s.Get(ctx, cmd)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open %q: %w", cmd.FullName, err)
 	}
@@ -99,7 +99,7 @@ func (s *INodeService) HardDelete(ctx context.Context, inode uuid.UUID) error {
 }
 
 func (s *INodeService) RemoveAll(ctx context.Context, cmd *PathCmd) error {
-	inode, err := s.Open(ctx, cmd)
+	inode, err := s.Get(ctx, cmd)
 	if err != nil {
 		return fmt.Errorf("failed to open the inode: %w", err)
 	}
@@ -154,7 +154,7 @@ func (s *INodeService) Mkdir(ctx context.Context, cmd *PathCmd) (*INode, error) 
 	return inode, nil
 }
 
-func (s *INodeService) Open(ctx context.Context, cmd *PathCmd) (*INode, error) {
+func (s *INodeService) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	err := cmd.Validate()
 	if err != nil {
 		return nil, errs.ValidationError(err)

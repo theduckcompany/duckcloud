@@ -51,7 +51,7 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 		FullName: name,
 	}
 
-	res, err := s.inodes.Open(ctx, &pathCmd)
+	res, err := s.inodes.Get(ctx, &pathCmd)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open inodes: %w", err)
 	}
@@ -94,7 +94,7 @@ func (s *FSService) Stat(ctx context.Context, name string) (os.FileInfo, error) 
 		name = "/"
 	}
 
-	res, err := s.inodes.Open(ctx, &inodes.PathCmd{
+	res, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Root:     s.root,
 		UserID:   s.userID,
 		FullName: name,

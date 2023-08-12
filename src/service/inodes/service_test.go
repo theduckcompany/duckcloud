@@ -247,7 +247,7 @@ func TestInodes(t *testing.T) {
 		assert.EqualError(t, err, "failed to soft delete the inode \"f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f\": some-error")
 	})
 
-	t.Run("Open success", func(t *testing.T) {
+	t.Run("Get success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
@@ -276,7 +276,7 @@ func TestInodes(t *testing.T) {
 
 		storageMock.On("GetByNameAndParent", mock.Anything, userID, "bar", uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&inode, nil).Once()
 
-		res, err := service.Open(ctx, &PathCmd{
+		res, err := service.Get(ctx, &PathCmd{
 			Root:     ExampleRoot.ID(),
 			FullName: "/foo/bar",
 			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
@@ -286,12 +286,12 @@ func TestInodes(t *testing.T) {
 		assert.EqualValues(t, &inode, res)
 	})
 
-	t.Run("Open with a validation error", func(t *testing.T) {
+	t.Run("Get with a validation error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
 
-		res, err := service.Open(ctx, &PathCmd{
+		res, err := service.Get(ctx, &PathCmd{
 			Root:     ExampleRoot.ID(),
 			FullName: "/foo/bar",
 			UserID:   uuid.UUID("not an id"),
@@ -301,14 +301,14 @@ func TestInodes(t *testing.T) {
 		assert.EqualError(t, err, "validation error: UserID: must be a valid UUID v4.")
 	})
 
-	t.Run("Open with an invalid root", func(t *testing.T) {
+	t.Run("Get with an invalid root", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
 
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(nil, nil).Once()
 
-		res, err := service.Open(ctx, &PathCmd{
+		res, err := service.Get(ctx, &PathCmd{
 			Root:     ExampleRoot.ID(),
 			FullName: "/foo/bar",
 			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
@@ -318,14 +318,14 @@ func TestInodes(t *testing.T) {
 		assert.EqualError(t, err, "not found: root \"f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f\" not found")
 	})
 
-	t.Run("Open with a root owned by someone else", func(t *testing.T) {
+	t.Run("Get with a root owned by someone else", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
 
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleRoot, nil).Once()
 
-		res, err := service.Open(ctx, &PathCmd{
+		res, err := service.Get(ctx, &PathCmd{
 			Root:     ExampleRoot.ID(),
 			FullName: "/foo/bar",
 			UserID:   uuid.UUID("d35f9848-6310-4280-bc9a-44534035a401"), // UserID != ExampleRoot.UserID
@@ -422,7 +422,7 @@ func TestInodes(t *testing.T) {
 		assert.EqualError(t, err, "validation error: UserID: must be a valid UUID v4.")
 	})
 
-	t.Run("Open with an invalid path", func(t *testing.T) {
+	t.Run("Get with an invalid path", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
@@ -440,7 +440,7 @@ func TestInodes(t *testing.T) {
 			// some other unused fields
 		}, nil).Once()
 
-		res, err := service.Open(ctx, &PathCmd{
+		res, err := service.Get(ctx, &PathCmd{
 			Root:     ExampleRoot.ID(),
 			FullName: "/foo/bar",
 			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
