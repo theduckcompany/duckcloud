@@ -18,6 +18,7 @@ type Service interface {
 	RemoveAll(ctx context.Context, cmd *PathCmd) error
 	GetDeletedINodes(ctx context.Context, limit int) ([]INode, error)
 	HardDelete(ctx context.Context, inode uuid.UUID) error
+	CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INode, error)
 }
 
 func Init(tools tools.Tools, db *sql.DB) Service {
