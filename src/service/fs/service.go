@@ -23,12 +23,12 @@ func NewFSService(userID uuid.UUID, root uuid.UUID, inodes inodes.Service) *FSSe
 	return &FSService{userID, root, inodes}
 }
 
-func (s *FSService) Mkdir(ctx context.Context, name string, perm os.FileMode) error {
+func (s *FSService) CreateDir(ctx context.Context, name string, perm os.FileMode) error {
 	if name == "" {
 		name = "/"
 	}
 
-	_, err := s.inodes.Mkdir(ctx, &inodes.PathCmd{
+	_, err := s.inodes.CreateDir(ctx, &inodes.PathCmd{
 		Root:     s.root,
 		UserID:   s.userID,
 		FullName: name,

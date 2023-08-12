@@ -159,7 +159,7 @@ func (s *INodeService) RemoveAll(ctx context.Context, cmd *PathCmd) error {
 	return nil
 }
 
-func (s *INodeService) Mkdir(ctx context.Context, cmd *PathCmd) (*INode, error) {
+func (s *INodeService) CreateDir(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	err := cmd.Validate()
 	if err != nil {
 		return nil, errs.ValidationError(err)
