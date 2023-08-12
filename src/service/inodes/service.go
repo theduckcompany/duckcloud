@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
+	"io/fs"
 	"path"
 	"strings"
 
@@ -58,7 +58,7 @@ func (s *INodeService) BootstrapUser(ctx context.Context, userID uuid.UUID) (*IN
 		id:             s.uuid.New(),
 		userID:         userID,
 		parent:         NoParent,
-		mode:           0o660 | os.ModeDir,
+		mode:           0o660 | fs.ModeDir,
 		createdAt:      now,
 		lastModifiedAt: now,
 	}
@@ -176,7 +176,7 @@ func (s *INodeService) CreateDir(ctx context.Context, cmd *PathCmd) (*INode, err
 		inode = &INode{
 			id:             s.uuid.New(),
 			userID:         cmd.UserID,
-			mode:           0o660 | os.ModeDir,
+			mode:           0o660 | fs.ModeDir,
 			parent:         dir.ID(),
 			name:           frag,
 			lastModifiedAt: now,
@@ -277,7 +277,7 @@ func (s *INodeService) walk(ctx context.Context, cmd *PathCmd, op string, f func
 		}
 
 		if err := f(dir, frag, final); err != nil {
-			return &os.PathError{
+			return &fs.PathError{
 				Op:   op,
 				Path: original,
 				Err:  err,
@@ -293,18 +293,18 @@ func (s *INodeService) walk(ctx context.Context, cmd *PathCmd, op string, f func
 		}
 
 		if child == nil {
-			return &os.PathError{
+			return &fs.PathError{
 				Op:   op,
 				Path: original,
-				Err:  os.ErrNotExist,
+				Err:  fs.ErrNotExist,
 			}
 		}
 
 		if !child.IsDir() {
-			return &os.PathError{
+			return &fs.PathError{
 				Op:   op,
 				Path: original,
-				Err:  os.ErrInvalid,
+				Err:  fs.ErrInvalid,
 			}
 		}
 		dir, fullname = child, remaining

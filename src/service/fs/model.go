@@ -22,7 +22,7 @@ func (d *File) Write(p []byte) (int, error)                  { return 0, fs.ErrI
 func (d *File) Seek(offset int64, whence int) (int64, error) { return 0, fs.ErrInvalid }
 
 func (d *File) Readdir(count int) ([]fs.FileInfo, error) {
-	if d.inode.Mode().IsDir() {
+	if !d.inode.Mode().IsDir() {
 		return nil, fs.ErrInvalid
 	}
 

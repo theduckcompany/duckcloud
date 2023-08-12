@@ -2,7 +2,6 @@ package dav
 
 import (
 	"context"
-	"fmt"
 	"os"
 
 	"github.com/Peltoche/neurone/src/service/fs"
@@ -36,7 +35,6 @@ func (s *davFS) RemoveAll(ctx context.Context, name string) error {
 }
 
 func (s *davFS) Rename(ctx context.Context, oldName, newName string) error {
-	fmt.Printf("Rename %q -> %q: \n\n", oldName, newName)
 	return webdav.ErrNotImplemented
 }
 
