@@ -198,6 +198,20 @@ func TestInodes(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	t.Run("RemoveAll with a validation error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		err := service.RemoveAll(ctx, &PathCmd{
+			Root:     ExampleRoot.ID(),
+			FullName: "/foo",
+			UserID:   uuid.UUID("some-invalid-id"),
+		})
+
+		assert.EqualError(t, err, "validation error: UserID: must be a valid UUID v4.")
+	})
+
 	t.Run("RemoveAll with a file not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
