@@ -68,7 +68,7 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 
 	if flag&(os.O_SYNC|os.O_APPEND) != 0 {
 		// We doesn't support these flags yet.
-		return nil, os.ErrInvalid
+		return nil, fmt.Errorf("%w: O_SYNC and O_APPEND not supported", os.ErrInvalid)
 	}
 
 	if flag&os.O_EXCL != 0 && res != nil {
@@ -110,7 +110,6 @@ func (s *FSService) RemoveAll(ctx context.Context, name string) error {
 }
 
 func (s *FSService) Rename(ctx context.Context, oldName, newName string) error {
-	fmt.Printf("Rename %q -> %q: \n\n", oldName, newName)
 	return ErrNotImplemented
 }
 
