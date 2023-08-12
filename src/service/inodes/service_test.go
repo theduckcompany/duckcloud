@@ -17,7 +17,7 @@ import (
 func TestInodes(t *testing.T) {
 	ctx := context.Background()
 
-	t.Run("Mkdir success", func(t *testing.T) {
+	t.Run("CreateDir success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
@@ -40,7 +40,7 @@ func TestInodes(t *testing.T) {
 
 		storageMock.On("Save", mock.Anything, inode).Return(nil).Once()
 
-		res, err := service.Mkdir(ctx, &PathCmd{
+		res, err := service.CreateDir(ctx, &PathCmd{
 			Root:     ExampleRoot.ID(),
 			FullName: "/some-dir-name",
 			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
@@ -50,7 +50,7 @@ func TestInodes(t *testing.T) {
 		assert.EqualValues(t, inode, res)
 	})
 
-	t.Run("Mkdir success 2", func(t *testing.T) {
+	t.Run("CreateDir success 2", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
@@ -82,7 +82,7 @@ func TestInodes(t *testing.T) {
 
 		storageMock.On("Save", mock.Anything, inode).Return(nil).Once()
 
-		res, err := service.Mkdir(ctx, &PathCmd{
+		res, err := service.CreateDir(ctx, &PathCmd{
 			Root:     ExampleRoot.ID(),
 			FullName: "/foo/bar",
 			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
@@ -92,12 +92,12 @@ func TestInodes(t *testing.T) {
 		assert.EqualValues(t, inode, res)
 	})
 
-	t.Run("Mkdir with a validation error", func(t *testing.T) {
+	t.Run("CreateDir with a validation error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
 
-		res, err := service.Mkdir(ctx, &PathCmd{
+		res, err := service.CreateDir(ctx, &PathCmd{
 			Root:     ExampleRoot.ID(),
 			FullName: "/some-dir-name",
 			UserID:   uuid.UUID("some-invalid-id"),
@@ -107,7 +107,7 @@ func TestInodes(t *testing.T) {
 		assert.EqualError(t, err, "validation error: UserID: must be a valid UUID v4.")
 	})
 
-	t.Run("Mkdir with a parent not found", func(t *testing.T) {
+	t.Run("CreateDir with a parent not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
@@ -116,7 +116,7 @@ func TestInodes(t *testing.T) {
 
 		storageMock.On("GetByNameAndParent", mock.Anything, uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"), "unknown", uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(nil, nil).Once()
 
-		res, err := service.Mkdir(ctx, &PathCmd{
+		res, err := service.CreateDir(ctx, &PathCmd{
 			Root:     ExampleRoot.ID(),
 			FullName: "/unknown/some-dir-name", // invalid path
 			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
@@ -126,14 +126,14 @@ func TestInodes(t *testing.T) {
 		assert.EqualError(t, err, "mkdir /unknown/some-dir-name: file does not exist")
 	})
 
-	t.Run("Mkdir with a parent owned by someone else", func(t *testing.T) {
+	t.Run("CreateDir with a parent owned by someone else", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
 
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleRoot, nil).Once()
 
-		res, err := service.Mkdir(ctx, &PathCmd{
+		res, err := service.CreateDir(ctx, &PathCmd{
 			Root:     ExampleRoot.ID(),
 			FullName: "/some-dir-name",
 			UserID:   uuid.UUID("d35f9848-6310-4280-bc9a-44534035a401"), // UserID != inodes.ExampleRoot.UserID
@@ -143,7 +143,7 @@ func TestInodes(t *testing.T) {
 		assert.EqualError(t, err, "not found: dir \"f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f\" is not owned by \"d35f9848-6310-4280-bc9a-44534035a401\"")
 	})
 
-	t.Run("Mkdir with a file as child", func(t *testing.T) {
+	t.Run("CreateDir with a file as child", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
@@ -159,7 +159,7 @@ func TestInodes(t *testing.T) {
 			// some other unused fields
 		}, nil).Once()
 
-		res, err := service.Mkdir(ctx, &PathCmd{
+		res, err := service.CreateDir(ctx, &PathCmd{
 			Root:     ExampleRoot.ID(),
 			FullName: "/foo/bar",
 			UserID:   uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
