@@ -137,6 +137,11 @@ func (s *INodeService) HardDelete(ctx context.Context, inode uuid.UUID) error {
 }
 
 func (s *INodeService) RemoveAll(ctx context.Context, cmd *PathCmd) error {
+	err := cmd.Validate()
+	if err != nil {
+		return errs.ValidationError(err)
+	}
+
 	inode, err := s.Get(ctx, cmd)
 	if err != nil {
 		return fmt.Errorf("failed to open the inode: %w", err)
