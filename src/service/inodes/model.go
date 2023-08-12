@@ -26,6 +26,22 @@ func (t PathCmd) Validate() error {
 	)
 }
 
+type CreateFileCmd struct {
+	Parent uuid.UUID
+	UserID uuid.UUID
+	Name   string
+	Mode   fs.FileMode
+}
+
+// Validate the fields.
+func (t CreateFileCmd) Validate() error {
+	return v.ValidateStruct(&t,
+		v.Field(&t.Parent, v.Required, is.UUIDv4),
+		v.Field(&t.UserID, v.Required, is.UUIDv4),
+		v.Field(&t.Name, v.Required, v.Length(1, 255), is.PrintableASCII),
+	)
+}
+
 type INode struct {
 	id             uuid.UUID
 	userID         uuid.UUID

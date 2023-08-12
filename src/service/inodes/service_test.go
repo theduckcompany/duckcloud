@@ -422,6 +422,91 @@ func TestInodes(t *testing.T) {
 		assert.EqualError(t, err, "validation error: UserID: must be a valid UUID v4.")
 	})
 
+	t.Run("CreateFile success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		inode := INode{
+			id:             uuid.UUID("some-id"),
+			parent:         ExampleRoot.ID(),
+			name:           "foobar",
+			mode:           0o664,
+			userID:         uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			createdAt:      now,
+			lastModifiedAt: now,
+		}
+
+		storageMock.On("GetByID", mock.Anything, ExampleRoot.ID()).Return(&ExampleRoot, nil).Once()
+
+		tools.ClockMock.On("Now").Return(now).Once()
+		tools.UUIDMock.On("New").Return(uuid.UUID("some-id")).Once()
+
+		storageMock.On("Save", mock.Anything, &inode).Return(nil).Once()
+
+		res, err := service.CreateFile(ctx, &CreateFileCmd{
+			Parent: ExampleRoot.ID(),
+			Name:   "foobar",
+			UserID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			Mode:   0o664,
+		})
+
+		assert.NoError(t, err)
+		assert.Equal(t, &inode, res)
+	})
+
+	t.Run("CreateFile with a validation error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		res, err := service.CreateFile(ctx, &CreateFileCmd{
+			Parent: ExampleRoot.ID(),
+			Name:   "foobar",
+			UserID: uuid.UUID("some-invalid-id"),
+			Mode:   0o664,
+		})
+
+		assert.Nil(t, res)
+		assert.EqualError(t, err, "validation error: UserID: must be a valid UUID v4.")
+	})
+
+	t.Run("CreateFile with a non existing parent", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		storageMock.On("GetByID", mock.Anything, ExampleRoot.ID()).Return(nil, nil).Once()
+
+		res, err := service.CreateFile(ctx, &CreateFileCmd{
+			Parent: ExampleRoot.ID(),
+			Name:   "foobar",
+			UserID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+			Mode:   0o664,
+		})
+
+		assert.Nil(t, res)
+		assert.EqualError(t, err, "invalid parent: parent \"f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f\" not found")
+	})
+
+	t.Run("CreateFile with a parent from an another user", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		storageMock.On("GetByID", mock.Anything, ExampleRoot.ID()).Return(&ExampleRoot, nil).Once()
+
+		res, err := service.CreateFile(ctx, &CreateFileCmd{
+			Parent: ExampleRoot.ID(),
+			Name:   "foobar",
+			UserID: uuid.UUID("86bffce3-3f53-4631-baf8-853044444444"), // some other user-id
+			Mode:   0o664,
+		})
+
+		assert.Nil(t, res)
+		assert.EqualError(t, err, "invalid parent: parent \"f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f\" is owned by someone else")
+	})
+
 	t.Run("Get with an invalid path", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)

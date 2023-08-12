@@ -71,6 +71,44 @@ func (s *INodeService) BootstrapUser(ctx context.Context, userID uuid.UUID) (*IN
 	return &node, nil
 }
 
+func (s *INodeService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INode, error) {
+	err := cmd.Validate()
+	if err != nil {
+		return nil, errs.ValidationError(err)
+	}
+
+	parent, err := s.storage.GetByID(ctx, cmd.Parent)
+	if err != nil {
+		return nil, fmt.Errorf("failed to GetByID: %w", err)
+	}
+
+	if parent == nil {
+		return nil, fmt.Errorf("%w: parent %q not found", ErrInvalidParent, cmd.Parent)
+	}
+
+	if parent.UserID() != cmd.UserID {
+		return nil, fmt.Errorf("%w: parent %q is owned by someone else", ErrInvalidParent, cmd.Parent)
+	}
+
+	now := s.clock.Now()
+	inode := INode{
+		id:             s.uuid.New(),
+		parent:         parent.ID(),
+		userID:         cmd.UserID,
+		mode:           cmd.Mode,
+		name:           cmd.Name,
+		createdAt:      now,
+		lastModifiedAt: now,
+	}
+
+	err = s.storage.Save(ctx, &inode)
+	if err != nil {
+		return nil, fmt.Errorf("failed to Save: %w", err)
+	}
+
+	return &inode, nil
+}
+
 func (s *INodeService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
 	err := cmd.Validate()
 	if err != nil {
