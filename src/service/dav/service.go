@@ -24,7 +24,7 @@ func (s *davFS) Mkdir(ctx context.Context, name string, perm os.FileMode) error 
 	// username := ctx.Value(usernameKeyCtx)
 	// password := ctx.Value(passwordKeyCtx)
 
-	return fs.NewFSService(currentUser, root, s.inodes).Mkdir(ctx, name, perm)
+	return fs.NewFSService(currentUser, root, s.inodes).CreateDir(ctx, name, perm)
 }
 
 func (s *davFS) OpenFile(ctx context.Context, name string, flag int, perm os.FileMode) (webdav.File, error) {
