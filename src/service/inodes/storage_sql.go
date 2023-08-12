@@ -59,7 +59,7 @@ func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*INode, error) 
 }
 
 func (s *sqlStorage) Delete(ctx context.Context, id uuid.UUID) error {
-	res, err := sq.
+	_, err := sq.
 		Update(tableName).
 		Where(sq.Eq{"id": string(id)}).
 		Set("deleted_at", s.clock.Now()).
@@ -68,9 +68,6 @@ func (s *sqlStorage) Delete(ctx context.Context, id uuid.UUID) error {
 	if err != nil {
 		return fmt.Errorf("sql error: %w", err)
 	}
-
-	nb, _ := res.RowsAffected()
-	fmt.Printf("row affected: %d\n\n", nb)
 
 	return nil
 }
