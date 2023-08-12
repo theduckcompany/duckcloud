@@ -42,6 +42,32 @@ func (_m *MockService) BootstrapUser(ctx context.Context, userID uuid.UUID) (*IN
 	return r0, r1
 }
 
+// Get provides a mock function with given fields: ctx, cmd
+func (_m *MockService) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
+	ret := _m.Called(ctx, cmd)
+
+	var r0 *INode
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) (*INode, error)); ok {
+		return rf(ctx, cmd)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) *INode); ok {
+		r0 = rf(ctx, cmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*INode)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *PathCmd) error); ok {
+		r1 = rf(ctx, cmd)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetDeletedINodes provides a mock function with given fields: ctx, limit
 func (_m *MockService) GetDeletedINodes(ctx context.Context, limit int) ([]INode, error) {
 	ret := _m.Called(ctx, limit)
@@ -84,32 +110,6 @@ func (_m *MockService) HardDelete(ctx context.Context, inode uuid.UUID) error {
 
 // Mkdir provides a mock function with given fields: ctx, cmd
 func (_m *MockService) Mkdir(ctx context.Context, cmd *PathCmd) (*INode, error) {
-	ret := _m.Called(ctx, cmd)
-
-	var r0 *INode
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) (*INode, error)); ok {
-		return rf(ctx, cmd)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) *INode); ok {
-		r0 = rf(ctx, cmd)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*INode)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, *PathCmd) error); ok {
-		r1 = rf(ctx, cmd)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// Open provides a mock function with given fields: ctx, cmd
-func (_m *MockService) Open(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	ret := _m.Called(ctx, cmd)
 
 	var r0 *INode
