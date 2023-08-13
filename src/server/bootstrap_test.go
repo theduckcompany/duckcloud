@@ -18,7 +18,7 @@ func TestBootstrap(t *testing.T) {
 	tools := tools.NewMock(t)
 
 	cfg := NewDefaultConfig()
-	cfg.Storage.DSN = "sqlite3://" + t.TempDir() + "/db.sqlite"
+	cfg.Storage.Path = t.TempDir() + "/db.sqlite"
 	err := storage.RunMigrations(cfg.Storage, tools)
 	require.NoError(t, err)
 

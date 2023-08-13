@@ -33,7 +33,6 @@ func NewDefaultConfig() *Config {
 			HotReload: false,
 		},
 		Storage: storage.Config{
-			DSN:   "sqlite3://./dev.db",
 			Debug: false,
 		},
 		Tools: tools.Config{

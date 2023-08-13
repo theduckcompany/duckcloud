@@ -9,20 +9,31 @@ import (
 )
 
 func TestNewSQliteClient(t *testing.T) {
-	tools := tools.NewMock(t)
-	cfg := Config{DSN: "sqlite3://" + t.TempDir() + "/db.sqlite"}
+	t.Run("success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		cfg := Config{Path: t.TempDir() + "/db.sqlite"}
 
-	client, err := NewSQliteClient(cfg, tools.Logger())
-	require.NoError(t, err)
+		client, err := NewSQliteClient(cfg, tools.Logger())
+		require.NoError(t, err)
 
-	require.NoError(t, client.Ping())
-}
+		require.NoError(t, client.Ping())
+	})
 
-func TestNewSQliteClientWithAnInvalidPath(t *testing.T) {
-	tools := tools.NewMock(t)
-	cfg := Config{DSN: "sqlite3:///foo/some-invalidpath"}
+	t.Run("with an invalid path", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		cfg := Config{Path: "/foo/some-invalidpath"}
 
-	client, err := NewSQliteClient(cfg, tools.Logger())
-	assert.Nil(t, client)
-	assert.EqualError(t, err, "unable to open database file: no such file or directory")
+		client, err := NewSQliteClient(cfg, tools.Logger())
+		assert.Nil(t, client)
+		assert.EqualError(t, err, "unable to open database file: no such file or directory")
+	})
+
+	t.Run("with not specified path", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		cfg := Config{Path: ""}
+
+		client, err := NewSQliteClient(cfg, tools.Logger())
+		assert.NotNil(t, client)
+		assert.NoError(t, err)
+	})
 }
