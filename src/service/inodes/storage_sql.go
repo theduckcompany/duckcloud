@@ -44,7 +44,7 @@ func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*INode, error) 
 	err := sq.
 		Select("id", "user_id", "name", "parent", "mode", "last_modified_at", "created_at").
 		From(tableName).
-		Where(sq.Eq{"id": string(id), "deleted_at": nil}).
+		Where(sq.Eq{"id": string(id)}).
 		RunWith(s.db).
 		ScanContext(ctx, &res.id, &res.userID, &res.name, &res.parent, &res.mode, &res.lastModifiedAt, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
