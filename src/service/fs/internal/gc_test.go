@@ -21,19 +21,19 @@ func TestGC(t *testing.T) {
 		inodesSvc := inodes.NewMockService(t)
 
 		// First loop to fetch the deleted inodes
-		inodesSvc.On("GetDeletedINodes", mock.Anything, 10).Return([]inodes.INode{inodes.ExampleDeletedDir}, nil).Once()
+		inodesSvc.On("GetDeletedINodes", mock.Anything, 10).Return([]inodes.INode{inodes.ExampleRoot}, nil).Once()
 
 		// This is a dir we will delete all its content
 		inodesSvc.On("Readdir", mock.Anything, &inodes.PathCmd{
-			UserID:   inodes.ExampleDeletedDir.UserID(),
-			Root:     inodes.ExampleDeletedDir.ID(),
+			UserID:   inodes.ExampleRoot.UserID(),
+			Root:     inodes.ExampleRoot.ID(),
 			FullName: "/",
-		}, &storage.PaginateCmd{Limit: 10}).Return([]inodes.INode{inodes.ExampleDeletedFile}, nil).Once()
+		}, &storage.PaginateCmd{Limit: 10}).Return([]inodes.INode{inodes.ExampleFile}, nil).Once()
 
 		// We remove the content
-		inodesSvc.On("HardDelete", mock.Anything, inodes.ExampleDeletedFile.ID()).Return(nil).Once()
+		inodesSvc.On("HardDelete", mock.Anything, inodes.ExampleFile.ID()).Return(nil).Once()
 		// We remove the dir itself
-		inodesSvc.On("HardDelete", mock.Anything, inodes.ExampleDeletedDir.ID()).Return(nil).Once()
+		inodesSvc.On("HardDelete", mock.Anything, inodes.ExampleRoot.ID()).Return(nil).Once()
 
 		svc := NewGCService(inodesSvc, tools)
 
@@ -59,12 +59,12 @@ func TestGC(t *testing.T) {
 		inodesSvc := inodes.NewMockService(t)
 
 		// First loop to fetch the deleted inodes
-		inodesSvc.On("GetDeletedINodes", mock.Anything, 10).Return([]inodes.INode{inodes.ExampleDeletedDir}, nil).Once()
+		inodesSvc.On("GetDeletedINodes", mock.Anything, 10).Return([]inodes.INode{inodes.ExampleRoot}, nil).Once()
 
 		// This is a dir we will delete all its content
 		inodesSvc.On("Readdir", mock.Anything, &inodes.PathCmd{
-			UserID:   inodes.ExampleDeletedDir.UserID(),
-			Root:     inodes.ExampleDeletedDir.ID(),
+			UserID:   inodes.ExampleRoot.UserID(),
+			Root:     inodes.ExampleRoot.ID(),
 			FullName: "/",
 		}, &storage.PaginateCmd{Limit: 10}).Return(nil, fmt.Errorf("some-error")).Once()
 
