@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/Peltoche/neurone/src/service/blocks"
 	"github.com/Peltoche/neurone/src/service/inodes"
 	"github.com/Peltoche/neurone/src/tools/uuid"
 )
@@ -18,10 +19,11 @@ type FSService struct {
 	userID uuid.UUID
 	root   uuid.UUID
 	inodes inodes.Service
+	blocks blocks.Service
 }
 
-func NewFSService(userID uuid.UUID, root uuid.UUID, inodes inodes.Service) *FSService {
-	return &FSService{userID, root, inodes}
+func NewFSService(userID uuid.UUID, root uuid.UUID, inodes inodes.Service, blocks blocks.Service) *FSService {
+	return &FSService{userID, root, inodes, blocks}
 }
 
 func (s *FSService) CreateDir(ctx context.Context, name string, perm os.FileMode) error {
@@ -63,7 +65,7 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 	}
 
 	if res != nil && res.Mode().IsDir() {
-		return &File{res, s.inodes, &pathCmd}, nil
+		return &File{res, s.inodes, s.blocks, &pathCmd, nil}, nil
 	}
 
 	if flag&(os.O_SYNC|os.O_APPEND) != 0 {
@@ -78,18 +80,18 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 
 	var file File
 	if res == nil {
-		inode, err := s.createFile(ctx, &pathCmd)
+		inode, err := s.createFile(ctx, &pathCmd, perm)
 		if err != nil {
 			return nil, fmt.Errorf("failed to createFile: %w", err)
 		}
 
 		// The file doesnt exists but we have the create flag.
-		file = File{inode, s.inodes, &pathCmd}
+		file = File{inode, s.inodes, s.blocks, &pathCmd, nil}
 
 		return &file, nil
 	}
 
-	return &File{res, s.inodes, &pathCmd}, nil
+	return &File{res, s.inodes, s.blocks, &pathCmd, nil}, nil
 }
 
 func (s *FSService) RemoveAll(ctx context.Context, name string) error {
@@ -134,11 +136,16 @@ func (s *FSService) Stat(ctx context.Context, name string) (os.FileInfo, error) 
 	return res, nil
 }
 
-func (s *FSService) createFile(ctx context.Context, cmd *inodes.PathCmd) (*inodes.INode, error) {
+func (s *FSService) createFile(ctx context.Context, cmd *inodes.PathCmd, perm fs.FileMode) (*inodes.INode, error) {
+	dir, fileName := path.Split(cmd.FullName)
+	if dir == "" {
+		dir = "/"
+	}
+
 	parent, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Root:     cmd.Root,
 		UserID:   cmd.UserID,
-		FullName: path.Dir(cmd.FullName),
+		FullName: dir,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to Get: %w", err)
@@ -146,6 +153,9 @@ func (s *FSService) createFile(ctx context.Context, cmd *inodes.PathCmd) (*inode
 
 	file, err := s.inodes.CreateFile(ctx, &inodes.CreateFileCmd{
 		Parent: parent.ID(),
+		UserID: cmd.UserID,
+		Mode:   perm,
+		Name:   fileName,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to CreateFile: %w", err)
