@@ -9,7 +9,7 @@ import (
 )
 
 func TestRunMigration(t *testing.T) {
-	cfg := Config{DSN: "sqlite3://" + t.TempDir() + "/db.sqlite"}
+	cfg := Config{Path: t.TempDir() + "/db.sqlite"}
 
 	tools := tools.NewMock(t)
 	err := RunMigrations(cfg, tools)
@@ -29,8 +29,8 @@ func TestRunMigration(t *testing.T) {
 	assert.Greater(t, res, 3)
 }
 
-func TestRunMigrationWithAnInvalidDSN(t *testing.T) {
-	cfg := Config{DSN: "sqlite3:///foo/some-invali-path"}
+func TestRunMigrationWithAnInvalidPath(t *testing.T) {
+	cfg := Config{Path: "/foo/some-invali-path"}
 
 	tools := tools.NewMock(t)
 	err := RunMigrations(cfg, tools)
@@ -38,7 +38,7 @@ func TestRunMigrationWithAnInvalidDSN(t *testing.T) {
 }
 
 func TestRunMigrationTwice(t *testing.T) {
-	cfg := Config{DSN: "sqlite3://" + t.TempDir() + "/db.sqlite"}
+	cfg := Config{Path: t.TempDir() + "/db.sqlite"}
 
 	tools := tools.NewMock(t)
 	err := RunMigrations(cfg, tools)

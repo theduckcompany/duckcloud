@@ -10,7 +10,7 @@ import (
 
 func TestNewSQliteClient(t *testing.T) {
 	tools := tools.NewMock(t)
-	cfg := Config{DSN: "sqlite3://" + t.TempDir() + "/db.sqlite"}
+	cfg := Config{Path: t.TempDir() + "/db.sqlite"}
 
 	client, err := NewSQliteClient(cfg, tools.Logger())
 	require.NoError(t, err)
@@ -20,7 +20,7 @@ func TestNewSQliteClient(t *testing.T) {
 
 func TestNewSQliteClientWithAnInvalidPath(t *testing.T) {
 	tools := tools.NewMock(t)
-	cfg := Config{DSN: "sqlite3:///foo/some-invalidpath"}
+	cfg := Config{Path: "/foo/some-invalidpath"}
 
 	client, err := NewSQliteClient(cfg, tools.Logger())
 	assert.Nil(t, client)

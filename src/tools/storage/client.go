@@ -3,15 +3,16 @@ package storage
 import (
 	"database/sql"
 	"fmt"
-	"strings"
+	"path"
 
+	"github.com/adrg/xdg"
 	"github.com/mattn/go-sqlite3"
 	"github.com/qustavo/sqlhooks/v2"
 	"golang.org/x/exp/slog"
 )
 
 type Config struct {
-	DSN   string `json:"dsn"`
+	Path  string `json:"path"`
 	Debug bool   `json:"debug"`
 }
 
@@ -19,9 +20,15 @@ func NewSQliteClient(cfg Config, log *slog.Logger) (*sql.DB, error) {
 	var db *sql.DB
 	var err error
 
-	// Sqlite3 doesn't handle well the `sqlite3://` scheme and expect
-	// the 'file:' pattern.
-	dsn := strings.Replace(cfg.DSN, "sqlite3://", "file:", 1)
+	if cfg.Path == "" {
+		cfg.Path, err = xdg.DataFile(path.Join("neurone", "db.sqlite"))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	dsn := "file:" + cfg.Path
+	log.Info("load database file from " + cfg.Path)
 
 	switch cfg.Debug {
 	case true:
