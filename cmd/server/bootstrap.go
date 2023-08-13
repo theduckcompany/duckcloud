@@ -32,7 +32,7 @@ var qs = []*survey.Question{
 	},
 }
 
-func NewBootstrapCmd() *cobra.Command {
+func NewBootstrapCmd(binaryName string) *cobra.Command {
 	var debug bool
 
 	cmd := cobra.Command{

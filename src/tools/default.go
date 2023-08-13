@@ -10,8 +10,8 @@ import (
 )
 
 type Config struct {
-	Response response.Config `mapstructure:"response"`
-	Log      logger.Config   `mapstructure:"log"`
+	Response response.Config `json:"response"`
+	Log      logger.Config   `json:"log"`
 }
 
 type Prod struct {

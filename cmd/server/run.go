@@ -1,12 +1,15 @@
 package server
 
 import (
+	"os"
+
+	"github.com/Peltoche/neurone/cmd/config"
 	"github.com/Peltoche/neurone/src/server"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slog"
 )
 
-func NewRunCmd() *cobra.Command {
+func NewRunCmd(binaryName string) *cobra.Command {
 	var debug bool
 	var dev bool
 
@@ -14,8 +17,12 @@ func NewRunCmd() *cobra.Command {
 		Short: "Run your server",
 		Args:  cobra.NoArgs,
 		Use:   "run",
-		Run: func(_ *cobra.Command, _ []string) {
-			cfg := server.NewDefaultConfig()
+		Run: func(cmd *cobra.Command, _ []string) {
+			cfg, err := config.GetOrCreateConfig(binaryName)
+			if err != nil {
+				cmd.PrintErrln(err)
+				os.Exit(1)
+			}
 
 			if dev {
 				cfg.Tools.Response.PrettyRender = true
