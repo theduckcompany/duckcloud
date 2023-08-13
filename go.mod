@@ -17,6 +17,7 @@ require (
 	github.com/mileusna/useragent v1.3.3
 	github.com/neilotoole/slogt v1.0.1
 	github.com/qustavo/sqlhooks/v2 v2.1.0
+	github.com/spf13/afero v1.9.5
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.2
 	github.com/unrolled/render v1.6.0
