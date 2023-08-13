@@ -446,6 +446,7 @@ func TestInodes(t *testing.T) {
 			parent:         ExampleRoot.ID(),
 			name:           "foobar",
 			mode:           0o664,
+			blockID:        uuid.UUID("some-block-id"),
 			userID:         uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 			createdAt:      now,
 			lastModifiedAt: now,
@@ -454,7 +455,9 @@ func TestInodes(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, ExampleRoot.ID()).Return(&ExampleRoot, nil).Once()
 
 		tools.ClockMock.On("Now").Return(now).Once()
+
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-id")).Once()
+		tools.UUIDMock.On("New").Return(uuid.UUID("some-block-id")).Once()
 
 		storageMock.On("Save", mock.Anything, &inode).Return(nil).Once()
 
