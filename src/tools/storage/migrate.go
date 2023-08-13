@@ -20,7 +20,7 @@ func RunMigrations(cfg Config, tools tools.Tools) error {
 	// Error not possible
 	d, _ := iofs.New(fs, "migration")
 
-	m, err := migrate.NewWithSourceInstance("iofs", d, cfg.DSN)
+	m, err := migrate.NewWithSourceInstance("iofs", d, "sqlite3://"+cfg.Path)
 	if err != nil {
 		return fmt.Errorf("failed to create a migrate manager: %w", err)
 	}
