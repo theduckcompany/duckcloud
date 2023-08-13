@@ -13,30 +13,22 @@ var (
 )
 
 var ExampleRoot INode = INode{
-	id:        uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-	name:      "",
-	userID:    uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-	parent:    NoParent,
-	mode:      0o660 | fs.ModeDir,
-	createdAt: now,
-}
-
-var ExampleDeletedDir INode = INode{
 	id:             uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-	name:           "foo",
+	name:           "",
 	userID:         uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-	parent:         uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+	parent:         NoParent,
 	mode:           0o660 | fs.ModeDir,
 	createdAt:      now,
-	lastModifiedAt: now2,
+	lastModifiedAt: now,
 }
 
-var ExampleDeletedFile INode = INode{
+var ExampleFile INode = INode{
 	id:             uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-	name:           "bar",
+	name:           "foo",
+	blockID:        uuid.UUID("9a6bff95-c910-45fb-8951-ea598f0d5e2e"),
 	userID:         uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 	parent:         uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
 	mode:           0o660,
-	createdAt:      now,
+	createdAt:      now2,
 	lastModifiedAt: now2,
 }

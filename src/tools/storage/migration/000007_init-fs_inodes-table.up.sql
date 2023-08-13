@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS fs_inodes (
   "parent" TEXT NOT NULL,
   "name" TEXT NOT NULL,
   "mode" NUMERIC NOT NULL,
+  "block_id" TEXT DEFAULT NULL,
   "last_modified_at" DATETIME NOT NULL,
   "created_at" DATETIME NOT NULL,
   "deleted_at" DATETIME DEFAULT NULL
