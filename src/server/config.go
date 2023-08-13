@@ -13,10 +13,10 @@ import (
 
 type Config struct {
 	fx.Out
-	Listeners []router.Config `mapstructure:"listeners"`
-	Assets    assets.Config   `mapstructure:"assets"`
-	Storage   storage.Config  `mapstructure:"storage"`
-	Tools     tools.Config    `mapstructure:"tools"`
+	Listeners []router.Config `json:"listeners"`
+	Assets    assets.Config   `json:"assets"`
+	Storage   storage.Config  `json:"storage"`
+	Tools     tools.Config    `json:"tools"`
 }
 
 func NewDefaultConfig() *Config {
