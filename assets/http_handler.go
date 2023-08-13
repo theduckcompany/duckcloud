@@ -12,7 +12,7 @@ import (
 var staticsFS embed.FS
 
 type Config struct {
-	HotReload bool `mapstructure:"hotReload"`
+	HotReload bool `json:"hotReload"`
 }
 
 type HTTPHandler struct {

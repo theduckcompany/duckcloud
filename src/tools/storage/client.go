@@ -11,8 +11,8 @@ import (
 )
 
 type Config struct {
-	DSN   string `mapstructure:"dsn"`
-	Debug bool   `mapstructure:"debug"`
+	DSN   string `json:"dsn"`
+	Debug bool   `json:"debug"`
 }
 
 func NewSQliteClient(cfg Config, log *slog.Logger) (*sql.DB, error) {

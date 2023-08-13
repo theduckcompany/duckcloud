@@ -16,8 +16,8 @@ import (
 type API struct{}
 
 type Config struct {
-	Port          int      `mapstructure:"port"`
-	TLS           bool     `mapstructure:"tls"`
+	Port          int      `json:"port"`
+	TLS           bool     `json:"tls"`
 	BindAddresses []string `json:"bindAddresses"`
 	Services      []string `json:"services"`
 }

@@ -7,11 +7,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const binaryName = "neurone"
+
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	cmd := &cobra.Command{
-		Use:   "neurone",
+		Use:   binaryName,
 		Short: "Manage your neurone instance in your terminal.",
 	}
 
@@ -20,7 +22,7 @@ func Execute() {
 	// tb := toolbox.NewProd()
 
 	// Subcommands
-	cmd.AddCommand(server.NewServerCmd())
+	cmd.AddCommand(server.NewServerCmd(binaryName))
 
 	err := cmd.Execute()
 	if err != nil {
