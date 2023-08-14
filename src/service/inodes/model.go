@@ -48,14 +48,12 @@ type INode struct {
 	parent         uuid.UUID
 	mode           fs.FileMode
 	name           string
-	blockID        uuid.UUID
 	createdAt      time.Time
 	lastModifiedAt time.Time
 }
 
 func (n *INode) ID() uuid.UUID             { return n.id }
 func (n *INode) UserID() uuid.UUID         { return n.userID }
-func (n *INode) BlockID() uuid.UUID        { return n.blockID }
 func (n *INode) Parent() uuid.UUID         { return n.parent }
 func (n *INode) Name() string              { return n.name }
 func (n *INode) Size() int64               { return 0 }
