@@ -3,9 +3,7 @@ package storage
 import (
 	"database/sql"
 	"fmt"
-	"path"
 
-	"github.com/adrg/xdg"
 	"github.com/mattn/go-sqlite3"
 	"github.com/qustavo/sqlhooks/v2"
 	"golang.org/x/exp/slog"
@@ -19,13 +17,6 @@ type Config struct {
 func NewSQliteClient(cfg Config, log *slog.Logger) (*sql.DB, error) {
 	var db *sql.DB
 	var err error
-
-	if cfg.Path == "" {
-		cfg.Path, err = xdg.DataFile(path.Join("neurone", "db.sqlite"))
-		if err != nil {
-			return nil, err
-		}
-	}
 
 	dsn := "file:" + cfg.Path
 	log.Info("load database file from " + cfg.Path)
