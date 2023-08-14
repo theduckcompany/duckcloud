@@ -1,12 +1,15 @@
 package server
 
 import (
+	"path"
+
 	"github.com/Peltoche/neurone/assets"
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/logger"
 	"github.com/Peltoche/neurone/src/tools/response"
 	"github.com/Peltoche/neurone/src/tools/router"
 	"github.com/Peltoche/neurone/src/tools/storage"
+	"github.com/adrg/xdg"
 	"go.uber.org/fx"
 	"golang.org/x/exp/slog"
 )
@@ -20,6 +23,11 @@ type Config struct {
 }
 
 func NewDefaultConfig() *Config {
+	dbPath, err := xdg.DataFile(path.Join("neurone", "db.sqlite"))
+	if err != nil {
+		panic(err)
+	}
+
 	return &Config{
 		Listeners: []router.Config{
 			{
@@ -33,6 +41,7 @@ func NewDefaultConfig() *Config {
 			HotReload: false,
 		},
 		Storage: storage.Config{
+			Path:  dbPath,
 			Debug: false,
 		},
 		Tools: tools.Config{
