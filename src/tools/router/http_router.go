@@ -3,6 +3,7 @@ package router
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"strconv"
@@ -10,7 +11,6 @@ import (
 	"github.com/Peltoche/neurone/src/tools"
 	chi "github.com/go-chi/chi/v5"
 	"go.uber.org/fx"
-	"golang.org/x/exp/slog"
 )
 
 type API struct{}

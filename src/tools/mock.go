@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"log/slog"
 	"testing"
 
 	"github.com/Peltoche/neurone/src/tools/clock"
@@ -9,7 +10,6 @@ import (
 	"github.com/Peltoche/neurone/src/tools/response"
 	"github.com/Peltoche/neurone/src/tools/uuid"
 	"github.com/neilotoole/slogt"
-	"golang.org/x/exp/slog"
 )
 
 type Mock struct {

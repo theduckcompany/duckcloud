@@ -1,12 +1,12 @@
 package server
 
 import (
+	"log/slog"
 	"os"
 
 	"github.com/Peltoche/neurone/cmd/config"
 	"github.com/Peltoche/neurone/src/server"
 	"github.com/spf13/cobra"
-	"golang.org/x/exp/slog"
 )
 
 func NewRunCmd(binaryName string) *cobra.Command {

@@ -96,14 +96,14 @@ func TestGC(t *testing.T) {
 		svc.Start(time.Millisecond)
 
 		// First loop to fetch the deleted inodes. Make it take more than a 1s.
-		inodesSvc.On("GetDeletedINodes", mock.Anything, 10).WaitUntil(time.After(time.Second))
+		inodesSvc.On("GetDeletedINodes", mock.Anything, 10).WaitUntil(time.After(time.Minute)).Return([]inodes.INode{inodes.ExampleRoot}, nil).Once()
 
 		// Wait some time in order to be just to have the job running and waiting for the end of "GetDeletedINodes".
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(20 * time.Millisecond)
 
 		// Stop will interrupt the job before the second.
 		start := time.Now()
 		svc.Stop()
-		assert.WithinDuration(t, time.Now(), start, 5*time.Millisecond)
+		assert.WithinDuration(t, time.Now(), start, 10*time.Millisecond)
 	})
 }

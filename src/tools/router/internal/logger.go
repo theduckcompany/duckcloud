@@ -3,10 +3,9 @@ package internal
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
-
-	"golang.org/x/exp/slog"
 
 	"github.com/go-chi/chi/v5/middleware"
 )

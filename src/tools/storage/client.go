@@ -3,10 +3,10 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
 
 	"github.com/mattn/go-sqlite3"
 	"github.com/qustavo/sqlhooks/v2"
-	"golang.org/x/exp/slog"
 )
 
 type Config struct {

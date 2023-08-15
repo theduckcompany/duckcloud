@@ -2,11 +2,11 @@ package response
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/Peltoche/neurone/src/tools/errs"
 	"github.com/unrolled/render"
-	"golang.org/x/exp/slog"
 )
 
 // Default is used to write the response into an http.ResponseWriter and log the error.
