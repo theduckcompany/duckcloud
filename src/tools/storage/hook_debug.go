@@ -2,9 +2,8 @@ package storage
 
 import (
 	"context"
+	"log/slog"
 	"time"
-
-	"golang.org/x/exp/slog"
 )
 
 type storageKey string

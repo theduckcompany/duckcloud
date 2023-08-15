@@ -3,13 +3,13 @@ package oauth2
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-oauth2/oauth2/v4"
 	oerrors "github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/server"
-	"golang.org/x/exp/slog"
 
 	"github.com/Peltoche/neurone/src/service/oauthclients"
 	"github.com/Peltoche/neurone/src/service/oauthconsents"

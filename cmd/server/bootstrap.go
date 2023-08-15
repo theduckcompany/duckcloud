@@ -2,13 +2,13 @@ package server
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/Peltoche/neurone/src/server"
 	"github.com/Peltoche/neurone/src/service/users"
 	"github.com/spf13/cobra"
-	"golang.org/x/exp/slog"
 )
 
 var qs = []*survey.Question{

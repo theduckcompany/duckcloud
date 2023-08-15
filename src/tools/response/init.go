@@ -2,12 +2,12 @@ package response
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"path"
 
 	"github.com/unrolled/render"
-	"golang.org/x/exp/slog"
 )
 
 type Config struct {

@@ -2,8 +2,7 @@ package logger
 
 import (
 	"io"
-
-	"golang.org/x/exp/slog"
+	"log/slog"
 )
 
 func NewNoop() *slog.Logger {
