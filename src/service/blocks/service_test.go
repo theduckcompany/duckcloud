@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/uuid"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
@@ -14,9 +15,10 @@ func TestBlockService(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Open success", func(t *testing.T) {
+		tools := tools.NewMock(t)
 		fs := afero.NewMemMapFs()
 
-		svc, err := NewFSService(fs, "/")
+		svc, err := NewFSService(fs, "/", tools.Logger())
 		require.NoError(t, err)
 
 		file, err := svc.Open(ctx, uuid.UUID("735277a1-e94f-423a-b1b9-c69488ad72cc"))
@@ -38,8 +40,9 @@ func TestBlockService(t *testing.T) {
 
 	t.Run("NewFSService setup the dir fanout", func(t *testing.T) {
 		fs := afero.NewMemMapFs()
+		tools := tools.NewMock(t)
 
-		svc, err := NewFSService(fs, "/")
+		svc, err := NewFSService(fs, "/", tools.Logger())
 		require.NoError(t, err)
 		require.NotNil(t, svc)
 
@@ -54,15 +57,16 @@ func TestBlockService(t *testing.T) {
 	})
 
 	t.Run("NewFSService can be called with a fs already setup", func(t *testing.T) {
+		tools := tools.NewMock(t)
 		fs := afero.NewMemMapFs()
 
 		// First time
-		svc, err := NewFSService(fs, "/")
+		svc, err := NewFSService(fs, "/", tools.Logger())
 		require.NoError(t, err)
 		require.NotNil(t, svc)
 
 		// Second time
-		svc, err = NewFSService(fs, "/")
+		svc, err = NewFSService(fs, "/", tools.Logger())
 		require.NoError(t, err)
 		require.NotNil(t, svc)
 
@@ -77,22 +81,24 @@ func TestBlockService(t *testing.T) {
 	})
 
 	t.Run("NewFSService with an invalid root path", func(t *testing.T) {
+		tools := tools.NewMock(t)
 		fs := afero.NewMemMapFs()
 
 		// First time
-		svc, err := NewFSService(fs, "/invalid/path")
+		svc, err := NewFSService(fs, "/invalid/path", tools.Logger())
 		assert.Nil(t, svc)
 		assert.EqualError(t, err, "invalid path: open /invalid/path: file does not exist")
 	})
 
 	t.Run("NewFSService with a file as root path", func(t *testing.T) {
+		tools := tools.NewMock(t)
 		fs := afero.NewMemMapFs()
 
 		_, err := fs.Create("/foo")
 		require.NoError(t, err)
 
 		// First time
-		svc, err := NewFSService(fs, "/foo")
+		svc, err := NewFSService(fs, "/foo", tools.Logger())
 		assert.Nil(t, svc)
 		assert.EqualError(t, err, "invalid path: open /foo: it must be a directory")
 	})
