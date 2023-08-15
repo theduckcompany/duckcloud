@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log/slog"
 	"path"
 
 	"github.com/Peltoche/neurone/assets"
@@ -11,7 +12,6 @@ import (
 	"github.com/Peltoche/neurone/src/tools/storage"
 	"github.com/adrg/xdg"
 	"go.uber.org/fx"
-	"golang.org/x/exp/slog"
 )
 
 type Config struct {

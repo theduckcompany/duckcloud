@@ -3,12 +3,12 @@ package internal
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/Peltoche/neurone/src/service/inodes"
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/storage"
-	"golang.org/x/exp/slog"
 )
 
 const gcBatchSize = 10
@@ -66,7 +66,7 @@ func (s *GCService) run(ctx context.Context) error {
 				return fmt.Errorf("failed to delete inode %q: %w", inode.ID(), err)
 			}
 
-			s.log.DebugCtx(ctx, "inode successfully removed", slog.String("inode", string(inode.ID())))
+			s.log.DebugContext(ctx, "inode successfully removed", slog.String("inode", string(inode.ID())))
 		}
 
 		if len(toDelete) < gcBatchSize {

@@ -1,12 +1,13 @@
 package tools
 
 import (
+	"log/slog"
+
 	"github.com/Peltoche/neurone/src/tools/clock"
 	"github.com/Peltoche/neurone/src/tools/logger"
 	"github.com/Peltoche/neurone/src/tools/password"
 	"github.com/Peltoche/neurone/src/tools/response"
 	"github.com/Peltoche/neurone/src/tools/uuid"
-	"golang.org/x/exp/slog"
 )
 
 type Config struct {

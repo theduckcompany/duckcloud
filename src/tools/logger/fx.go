@@ -2,10 +2,10 @@ package logger
 
 import (
 	"context"
+	"log/slog"
 	"strings"
 
 	"go.uber.org/fx/fxevent"
-	"golang.org/x/exp/slog"
 )
 
 // FxLogger is an Fx event logger that logs events to slog.

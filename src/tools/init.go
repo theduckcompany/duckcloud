@@ -1,11 +1,12 @@
 package tools
 
 import (
+	"log/slog"
+
 	"github.com/Peltoche/neurone/src/tools/clock"
 	"github.com/Peltoche/neurone/src/tools/password"
 	"github.com/Peltoche/neurone/src/tools/response"
 	"github.com/Peltoche/neurone/src/tools/uuid"
-	"golang.org/x/exp/slog"
 )
 
 // Tools regroup all the utilities required for a working server.
