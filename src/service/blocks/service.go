@@ -36,7 +36,7 @@ func NewFSService(fs afero.Fs, rootPath string) (*FSService, error) {
 
 	for i := 0; i < 256; i++ {
 		dir := fmt.Sprintf("%02x", i)
-		err = rootFS.Mkdir(dir, 0o644)
+		err = rootFS.Mkdir(dir, 0o755)
 		if errors.Is(err, os.ErrExist) {
 			continue
 		}
