@@ -5,6 +5,7 @@ import (
 	"path"
 
 	"github.com/Peltoche/neurone/assets"
+	"github.com/Peltoche/neurone/src/service/blocks"
 	"github.com/Peltoche/neurone/src/tools"
 	"github.com/Peltoche/neurone/src/tools/logger"
 	"github.com/Peltoche/neurone/src/tools/response"
@@ -19,11 +20,17 @@ type Config struct {
 	Listeners []router.Config `json:"listeners"`
 	Assets    assets.Config   `json:"assets"`
 	Storage   storage.Config  `json:"storage"`
+	Blocks    blocks.Config   `json:"blocks"`
 	Tools     tools.Config    `json:"tools"`
 }
 
 func NewDefaultConfig() *Config {
 	dbPath, err := xdg.DataFile(path.Join("neurone", "db.sqlite"))
+	if err != nil {
+		panic(err)
+	}
+
+	blocksPath, err := xdg.DataFile(path.Join("neurone", "blocks"))
 	if err != nil {
 		panic(err)
 	}
@@ -43,6 +50,9 @@ func NewDefaultConfig() *Config {
 		Storage: storage.Config{
 			Path:  dbPath,
 			Debug: false,
+		},
+		Blocks: blocks.Config{
+			Path: blocksPath,
 		},
 		Tools: tools.Config{
 			Response: response.Config{

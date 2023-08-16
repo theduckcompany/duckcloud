@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/Peltoche/neurone/assets"
+	"github.com/Peltoche/neurone/src/service/blocks"
 	"github.com/Peltoche/neurone/src/service/dav"
 	"github.com/Peltoche/neurone/src/service/fs"
 	"github.com/Peltoche/neurone/src/service/inodes"
@@ -50,6 +51,7 @@ func start(cfg *Config, invoke fx.Option) *fx.App {
 			fx.Annotate(websessions.Init, fx.As(new(websessions.Service))),
 			fx.Annotate(oauth2.Init, fx.As(new(oauth2.Service))),
 			fx.Annotate(inodes.Init, fx.As(new(inodes.Service))),
+			fx.Annotate(blocks.Init, fx.As(new(blocks.Service))),
 
 			// HTTP handlers
 			AsRoute(dav.NewHTTPHandler),

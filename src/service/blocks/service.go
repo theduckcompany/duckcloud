@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"path"
 
@@ -20,7 +21,7 @@ type FSService struct {
 	fs afero.Fs
 }
 
-func NewFSService(fs afero.Fs, rootPath string) (*FSService, error) {
+func NewFSService(fs afero.Fs, rootPath string, log *slog.Logger) (*FSService, error) {
 	root := path.Clean(rootPath)
 
 	info, err := fs.Stat(root)
@@ -31,6 +32,8 @@ func NewFSService(fs afero.Fs, rootPath string) (*FSService, error) {
 	if !info.IsDir() {
 		return nil, fmt.Errorf("%w: open %s: it must be a directory", ErrInvalidPath, root)
 	}
+
+	log.Info(fmt.Sprintf("load the files from %s", root))
 
 	rootFS := afero.NewBasePathFs(fs, root)
 
