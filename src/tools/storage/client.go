@@ -19,7 +19,7 @@ func NewSQliteClient(cfg Config, log *slog.Logger) (*sql.DB, error) {
 	var err error
 
 	dsn := "file:" + cfg.Path
-	log.Info("load database file from " + cfg.Path)
+	log.Info(fmt.Sprintf("load database file from %s", cfg.Path))
 
 	switch cfg.Debug {
 	case true:
