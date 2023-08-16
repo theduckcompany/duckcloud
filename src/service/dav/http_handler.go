@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/Peltoche/neurone/src/service/blocks"
 	"github.com/Peltoche/neurone/src/service/dav/internal"
 	"github.com/Peltoche/neurone/src/service/inodes"
 	"github.com/Peltoche/neurone/src/tools"
@@ -25,11 +26,11 @@ type HTTPHandler struct {
 }
 
 // NewHTTPHandler builds a new EchoHandler.
-func NewHTTPHandler(tools tools.Tools, inodes inodes.Service) *HTTPHandler {
+func NewHTTPHandler(tools tools.Tools, inodes inodes.Service, blocks blocks.Service) *HTTPHandler {
 	return &HTTPHandler{
 		davHandler: &webdav.Handler{
-			Prefix:     "/dav/",
-			FileSystem: &davFS{inodes},
+			Prefix:     "/dav",
+			FileSystem: &davFS{inodes, blocks},
 			LockSystem: webdav.NewMemLS(),
 			Logger:     internal.NewLogger(tools.Logger()),
 		},

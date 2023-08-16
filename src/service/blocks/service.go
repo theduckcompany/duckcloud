@@ -33,7 +33,7 @@ func NewFSService(fs afero.Fs, rootPath string, log *slog.Logger) (*FSService, e
 		return nil, fmt.Errorf("%w: open %s: it must be a directory", ErrInvalidPath, root)
 	}
 
-	log.Info(fmt.Sprintf("load the files from %s", root))
+	log.Info(fmt.Sprintf("load blocks files from %s", root))
 
 	rootFS := afero.NewBasePathFs(fs, root)
 
@@ -54,7 +54,7 @@ func NewFSService(fs afero.Fs, rootPath string, log *slog.Logger) (*FSService, e
 
 func (s *FSService) Open(ctx context.Context, inodeID uuid.UUID) (afero.File, error) {
 	idStr := string(inodeID)
-	filePath := path.Join(idStr[:2], idStr[2:4], string(inodeID))
+	filePath := path.Join(idStr[:2], string(inodeID))
 
 	file, err := s.fs.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0o600)
 	if err != nil {

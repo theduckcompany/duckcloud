@@ -6,28 +6,74 @@ import (
 	"io/fs"
 	"os"
 
+	"github.com/Peltoche/neurone/src/service/blocks"
 	"github.com/Peltoche/neurone/src/service/inodes"
 	"github.com/Peltoche/neurone/src/tools/storage"
+	"github.com/spf13/afero"
 )
 
 type File struct {
 	inode    *inodes.INode
 	inodeSvc inodes.Service
+	blockSvc blocks.Service
 	cmd      *inodes.PathCmd
+	block    afero.File
 }
 
-func (d *File) Close() error                                 { return nil }
-func (d *File) Read(p []byte) (int, error)                   { return 0, fs.ErrInvalid }
-func (d *File) Write(p []byte) (int, error)                  { return 0, fs.ErrInvalid }
-func (d *File) Seek(offset int64, whence int) (int64, error) { return 0, fs.ErrInvalid }
+func (f *File) Close() error {
+	if f.block == nil {
+		return nil
+	}
 
-func (d *File) Readdir(count int) ([]fs.FileInfo, error) {
-	if !d.inode.Mode().IsDir() {
+	return f.block.Close()
+}
+
+func (f *File) Read(p []byte) (int, error) {
+	var err error
+
+	if f.block == nil {
+		f.block, err = f.blockSvc.Open(context.Background(), f.inode.ID())
+		if err != nil {
+			return 0, fmt.Errorf("failed to Open the block %q: %w", f.inode.ID(), err)
+		}
+	}
+
+	return f.block.Read(p)
+}
+
+func (f *File) Write(p []byte) (int, error) {
+	var err error
+
+	if f.block == nil {
+		f.block, err = f.blockSvc.Open(context.Background(), f.inode.ID())
+		if err != nil {
+			return 0, fmt.Errorf("failed to Open the block %q: %w", f.inode.ID(), err)
+		}
+	}
+
+	return f.block.Write(p)
+}
+
+func (f *File) Seek(offset int64, whence int) (int64, error) {
+	var err error
+
+	if f.block == nil {
+		f.block, err = f.blockSvc.Open(context.Background(), f.inode.ID())
+		if err != nil {
+			return 0, fmt.Errorf("failed to Open the block %q: %w", f.inode.ID(), err)
+		}
+	}
+
+	return f.block.Seek(offset, whence)
+}
+
+func (f *File) Readdir(count int) ([]fs.FileInfo, error) {
+	if !f.inode.Mode().IsDir() {
 		return nil, fs.ErrInvalid
 	}
 
 	// TODO: Check if we should use the context from `OpenFile`
-	res, err := d.inodeSvc.Readdir(context.Background(), d.cmd, &storage.PaginateCmd{
+	res, err := f.inodeSvc.Readdir(context.Background(), f.cmd, &storage.PaginateCmd{
 		StartAfter: map[string]string{"name": ""},
 		Limit:      count,
 	})
@@ -44,6 +90,6 @@ func (d *File) Readdir(count int) ([]fs.FileInfo, error) {
 	return infos, nil
 }
 
-func (d *File) Stat() (os.FileInfo, error) {
-	return d.inode, nil
+func (f *File) Stat() (os.FileInfo, error) {
+	return f.inode, nil
 }
