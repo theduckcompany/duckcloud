@@ -18,6 +18,7 @@ import (
 	"github.com/Peltoche/neurone/src/tools/router"
 	"github.com/Peltoche/neurone/src/tools/storage"
 	"github.com/Peltoche/neurone/src/web"
+	"github.com/spf13/afero"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 )
@@ -37,6 +38,7 @@ func start(cfg *Config, invoke fx.Option) *fx.App {
 		fx.WithLogger(func(tools tools.Tools) fxevent.Logger { return logger.NewFxLogger(tools.Logger()) }),
 		fx.Provide(
 			func() Config { return *cfg },
+			afero.NewOsFs,
 
 			// Tools
 			storage.Init,
