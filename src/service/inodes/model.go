@@ -22,7 +22,7 @@ func (t PathCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.Root, v.Required, is.UUIDv4),
 		v.Field(&t.UserID, v.Required, is.UUIDv4),
-		v.Field(&t.FullName, v.Required, v.Length(1, 1024), is.PrintableASCII),
+		v.Field(&t.FullName, v.Required, v.Length(1, 1024)),
 	)
 }
 
@@ -38,7 +38,7 @@ func (t CreateFileCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.Parent, v.Required, is.UUIDv4),
 		v.Field(&t.UserID, v.Required, is.UUIDv4),
-		v.Field(&t.Name, v.Required, v.Length(1, 255), is.PrintableASCII),
+		v.Field(&t.Name, v.Required, v.Length(1, 255)),
 	)
 }
 
