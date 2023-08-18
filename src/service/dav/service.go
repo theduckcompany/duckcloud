@@ -4,16 +4,16 @@ import (
 	"context"
 	"os"
 
-	"github.com/Peltoche/neurone/src/service/blocks"
-	"github.com/Peltoche/neurone/src/service/fs"
-	"github.com/Peltoche/neurone/src/service/inodes"
-	"github.com/Peltoche/neurone/src/tools/uuid"
+	"github.com/myminicloud/myminicloud/src/service/blocks"
+	"github.com/myminicloud/myminicloud/src/service/fs"
+	"github.com/myminicloud/myminicloud/src/service/inodes"
+	"github.com/myminicloud/myminicloud/src/tools/uuid"
 	"golang.org/x/net/webdav"
 )
 
 const (
-	currentUser = uuid.UUID("7b44db46-a6b6-44c0-b6d5-d22d11c3bc6a")
-	root        = uuid.UUID("338b2c56-aa78-4f0d-bd4a-cec46b7c69b9")
+	currentUser = uuid.UUID("cdc4fa93-cd92-44a8-9d85-56fb2c28e84c")
+	root        = uuid.UUID("e891a010-254e-457e-8206-f282e130802a")
 )
 
 type davFS struct {

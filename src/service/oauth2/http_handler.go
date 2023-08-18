@@ -11,13 +11,13 @@ import (
 	oerrors "github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/server"
 
-	"github.com/Peltoche/neurone/src/service/oauthclients"
-	"github.com/Peltoche/neurone/src/service/oauthconsents"
-	"github.com/Peltoche/neurone/src/service/websessions"
-	"github.com/Peltoche/neurone/src/tools"
-	"github.com/Peltoche/neurone/src/tools/response"
-	"github.com/Peltoche/neurone/src/tools/router"
-	"github.com/Peltoche/neurone/src/tools/uuid"
+	"github.com/myminicloud/myminicloud/src/service/oauthclients"
+	"github.com/myminicloud/myminicloud/src/service/oauthconsents"
+	"github.com/myminicloud/myminicloud/src/service/websessions"
+	"github.com/myminicloud/myminicloud/src/tools"
+	"github.com/myminicloud/myminicloud/src/tools/response"
+	"github.com/myminicloud/myminicloud/src/tools/router"
+	"github.com/myminicloud/myminicloud/src/tools/uuid"
 )
 
 var ErrClientNotFound = errors.New("client not found")

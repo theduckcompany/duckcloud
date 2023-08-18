@@ -3,7 +3,7 @@ package server
 import (
 	"testing"
 
-	"github.com/Peltoche/neurone/src/tools/router"
+	"github.com/myminicloud/myminicloud/src/tools/router"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/fx"
 )

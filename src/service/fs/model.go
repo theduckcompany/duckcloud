@@ -6,9 +6,9 @@ import (
 	"io/fs"
 	"os"
 
-	"github.com/Peltoche/neurone/src/service/blocks"
-	"github.com/Peltoche/neurone/src/service/inodes"
-	"github.com/Peltoche/neurone/src/tools/storage"
+	"github.com/myminicloud/myminicloud/src/service/blocks"
+	"github.com/myminicloud/myminicloud/src/service/inodes"
+	"github.com/myminicloud/myminicloud/src/tools/storage"
 	"github.com/spf13/afero"
 )
 

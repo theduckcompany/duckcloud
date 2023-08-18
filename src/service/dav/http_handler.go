@@ -4,12 +4,12 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/Peltoche/neurone/src/service/blocks"
-	"github.com/Peltoche/neurone/src/service/dav/internal"
-	"github.com/Peltoche/neurone/src/service/inodes"
-	"github.com/Peltoche/neurone/src/tools"
-	"github.com/Peltoche/neurone/src/tools/router"
 	"github.com/go-chi/chi/v5"
+	"github.com/myminicloud/myminicloud/src/service/blocks"
+	"github.com/myminicloud/myminicloud/src/service/dav/internal"
+	"github.com/myminicloud/myminicloud/src/service/inodes"
+	"github.com/myminicloud/myminicloud/src/tools"
+	"github.com/myminicloud/myminicloud/src/tools/router"
 	"golang.org/x/net/webdav"
 )
 

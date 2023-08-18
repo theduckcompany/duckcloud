@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/Peltoche/neurone/src/service/oauthclients"
-	"github.com/Peltoche/neurone/src/service/websessions"
-	"github.com/Peltoche/neurone/src/tools"
+	"github.com/myminicloud/myminicloud/src/service/oauthclients"
+	"github.com/myminicloud/myminicloud/src/service/websessions"
+	"github.com/myminicloud/myminicloud/src/tools"
 )
 
 //go:generate mockery --name Service

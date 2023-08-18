@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/Peltoche/neurone/src/tools/router"
+	"github.com/myminicloud/myminicloud/src/tools/router"
 	"go.uber.org/fx"
 )
 

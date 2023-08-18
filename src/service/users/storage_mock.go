@@ -5,7 +5,7 @@ package users
 import (
 	context "context"
 
-	uuid "github.com/Peltoche/neurone/src/tools/uuid"
+	uuid "github.com/myminicloud/myminicloud/src/tools/uuid"
 	mock "github.com/stretchr/testify/mock"
 )
 

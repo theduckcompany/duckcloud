@@ -4,14 +4,14 @@ import (
 	"log/slog"
 	"path"
 
-	"github.com/Peltoche/neurone/assets"
-	"github.com/Peltoche/neurone/src/service/blocks"
-	"github.com/Peltoche/neurone/src/tools"
-	"github.com/Peltoche/neurone/src/tools/logger"
-	"github.com/Peltoche/neurone/src/tools/response"
-	"github.com/Peltoche/neurone/src/tools/router"
-	"github.com/Peltoche/neurone/src/tools/storage"
 	"github.com/adrg/xdg"
+	"github.com/myminicloud/myminicloud/assets"
+	"github.com/myminicloud/myminicloud/src/service/blocks"
+	"github.com/myminicloud/myminicloud/src/tools"
+	"github.com/myminicloud/myminicloud/src/tools/logger"
+	"github.com/myminicloud/myminicloud/src/tools/response"
+	"github.com/myminicloud/myminicloud/src/tools/router"
+	"github.com/myminicloud/myminicloud/src/tools/storage"
 	"go.uber.org/fx"
 )
 
@@ -25,12 +25,12 @@ type Config struct {
 }
 
 func NewDefaultConfig() *Config {
-	dbPath, err := xdg.DataFile(path.Join("neurone", "db.sqlite"))
+	dbPath, err := xdg.DataFile(path.Join("myminicloud", "db.sqlite"))
 	if err != nil {
 		panic(err)
 	}
 
-	blocksPath, err := xdg.DataFile(path.Join("neurone", "blocks"))
+	blocksPath, err := xdg.DataFile(path.Join("myminicloud", "blocks"))
 	if err != nil {
 		panic(err)
 	}

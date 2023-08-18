@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Peltoche/neurone/src/service/oauthclients"
-	"github.com/Peltoche/neurone/src/tools/uuid"
 	v "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
+	"github.com/myminicloud/myminicloud/src/service/oauthclients"
+	"github.com/myminicloud/myminicloud/src/tools/uuid"
 )
 
 type Session struct {
