@@ -8,7 +8,6 @@ import (
 
 	"github.com/myminicloud/myminicloud/src/service/blocks"
 	"github.com/myminicloud/myminicloud/src/service/inodes"
-	"github.com/myminicloud/myminicloud/src/tools/storage"
 	"github.com/spf13/afero"
 )
 
@@ -19,6 +18,9 @@ type File struct {
 	cmd      *inodes.PathCmd
 	block    afero.File
 }
+
+func (f *File) Readdir(count int) ([]fs.FileInfo, error) { return nil, fs.ErrInvalid }
+func (f *File) Stat() (os.FileInfo, error)               { return f.inode, nil }
 
 func (f *File) Close() error {
 	if f.block == nil {
@@ -65,31 +67,4 @@ func (f *File) Seek(offset int64, whence int) (int64, error) {
 	}
 
 	return f.block.Seek(offset, whence)
-}
-
-func (f *File) Readdir(count int) ([]fs.FileInfo, error) {
-	if !f.inode.Mode().IsDir() {
-		return nil, fs.ErrInvalid
-	}
-
-	// TODO: Check if we should use the context from `OpenFile`
-	res, err := f.inodeSvc.Readdir(context.Background(), f.cmd, &storage.PaginateCmd{
-		StartAfter: map[string]string{"name": ""},
-		Limit:      count,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to Readdir: %w", err)
-	}
-
-	var infos []fs.FileInfo
-
-	for idx := range res {
-		infos = append(infos, &res[idx])
-	}
-
-	return infos, nil
-}
-
-func (f *File) Stat() (os.FileInfo, error) {
-	return f.inode, nil
 }

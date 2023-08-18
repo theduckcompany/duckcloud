@@ -43,7 +43,7 @@ func (s *FSService) CreateDir(ctx context.Context, name string, perm os.FileMode
 	return nil
 }
 
-func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os.FileMode) (*File, error) {
+func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os.FileMode) (*Dir, error) {
 	if name == "" {
 		name = "/"
 	}
@@ -60,12 +60,12 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 	}
 
 	if res == nil && flag&os.O_CREATE == 0 {
-		// We try to open witout creating a non existing file.
+		// We try to open a non existing file without creation permission.
 		return nil, fs.ErrNotExist
 	}
 
 	if res != nil && res.Mode().IsDir() {
-		return &File{res, s.inodes, s.blocks, &pathCmd, nil}, nil
+		return &Dir{res, s.inodes, &pathCmd}, nil
 	}
 
 	if flag&(os.O_SYNC|os.O_APPEND) != 0 {
@@ -78,7 +78,7 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 		return nil, os.ErrExist
 	}
 
-	var file File
+	var file Dir
 	if res == nil {
 		inode, err := s.createFile(ctx, &pathCmd, perm)
 		if err != nil {
@@ -86,12 +86,12 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 		}
 
 		// The file doesnt exists but we have the create flag.
-		file = File{inode, s.inodes, s.blocks, &pathCmd, nil}
+		file = Dir{inode, s.inodes, &pathCmd}
 
 		return &file, nil
 	}
 
-	return &File{res, s.inodes, s.blocks, &pathCmd, nil}, nil
+	return &Dir{res, s.inodes, &pathCmd}, nil
 }
 
 func (s *FSService) RemoveAll(ctx context.Context, name string) error {
