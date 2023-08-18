@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/Peltoche/neurone/src/tools"
+	"github.com/myminicloud/myminicloud/src/tools"
 )
 
 //go:generate mockery --name Service

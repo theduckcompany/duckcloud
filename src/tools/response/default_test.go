@@ -7,10 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Peltoche/neurone/src/tools/errs"
-	"github.com/Peltoche/neurone/src/tools/logger"
 	v "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
+	"github.com/myminicloud/myminicloud/src/tools/errs"
+	"github.com/myminicloud/myminicloud/src/tools/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/unrolled/render"
 )

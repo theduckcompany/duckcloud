@@ -4,8 +4,8 @@ import (
 	"embed"
 	"net/http"
 
-	"github.com/Peltoche/neurone/src/tools/router"
 	"github.com/go-chi/chi/v5"
+	"github.com/myminicloud/myminicloud/src/tools/router"
 )
 
 //go:embed public

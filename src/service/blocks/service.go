@@ -8,7 +8,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/Peltoche/neurone/src/tools/uuid"
+	"github.com/myminicloud/myminicloud/src/tools/uuid"
 	"github.com/spf13/afero"
 )
 

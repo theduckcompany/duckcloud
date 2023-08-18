@@ -6,8 +6,8 @@ import (
 	"os"
 	"path"
 
-	"github.com/Peltoche/neurone/src/server"
 	"github.com/adrg/xdg"
+	"github.com/myminicloud/myminicloud/src/server"
 )
 
 func GetOrCreateConfig(binaryName string) (*server.Config, error) {

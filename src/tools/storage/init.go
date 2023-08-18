@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/Peltoche/neurone/src/tools"
+	"github.com/myminicloud/myminicloud/src/tools"
 	"github.com/spf13/afero"
 	"go.uber.org/fx"
 )

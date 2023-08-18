@@ -4,9 +4,9 @@ import (
 	"io/fs"
 	"time"
 
-	"github.com/Peltoche/neurone/src/tools/uuid"
 	v "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
+	"github.com/myminicloud/myminicloud/src/tools/uuid"
 )
 
 const NoParent = uuid.UUID("00000000-0000-0000-0000-00000000000")

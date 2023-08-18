@@ -5,9 +5,9 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Peltoche/neurone/src/tools/uuid"
 	v "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
+	"github.com/myminicloud/myminicloud/src/tools/uuid"
 )
 
 var UsernameRegexp = regexp.MustCompile("^[0-9a-zA-Z-]+$")

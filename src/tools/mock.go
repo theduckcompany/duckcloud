@@ -4,11 +4,11 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/Peltoche/neurone/src/tools/clock"
-	"github.com/Peltoche/neurone/src/tools/logger"
-	"github.com/Peltoche/neurone/src/tools/password"
-	"github.com/Peltoche/neurone/src/tools/response"
-	"github.com/Peltoche/neurone/src/tools/uuid"
+	"github.com/myminicloud/myminicloud/src/tools/clock"
+	"github.com/myminicloud/myminicloud/src/tools/logger"
+	"github.com/myminicloud/myminicloud/src/tools/password"
+	"github.com/myminicloud/myminicloud/src/tools/response"
+	"github.com/myminicloud/myminicloud/src/tools/uuid"
 	"github.com/neilotoole/slogt"
 )
 

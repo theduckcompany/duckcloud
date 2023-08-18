@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/Peltoche/neurone/src/tools"
-	"github.com/Peltoche/neurone/src/tools/storage"
-	"github.com/Peltoche/neurone/src/tools/uuid"
+	"github.com/myminicloud/myminicloud/src/tools"
+	"github.com/myminicloud/myminicloud/src/tools/storage"
+	"github.com/myminicloud/myminicloud/src/tools/uuid"
 )
 
 //go:generate mockery --name Service

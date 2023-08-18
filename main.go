@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Peltoche/neurone/cmd"
+	"github.com/myminicloud/myminicloud/cmd"
 )
 
 func main() {

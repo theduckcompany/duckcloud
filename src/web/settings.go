@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Peltoche/neurone/src/service/websessions"
-	"github.com/Peltoche/neurone/src/tools"
-	"github.com/Peltoche/neurone/src/tools/response"
-	"github.com/Peltoche/neurone/src/tools/router"
 	"github.com/go-chi/chi/v5"
+	"github.com/myminicloud/myminicloud/src/service/websessions"
+	"github.com/myminicloud/myminicloud/src/tools"
+	"github.com/myminicloud/myminicloud/src/tools/response"
+	"github.com/myminicloud/myminicloud/src/tools/router"
 )
 
 type settingsHandler struct {

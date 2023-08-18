@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Peltoche/neurone/src/tools"
-	"github.com/Peltoche/neurone/src/tools/clock"
-	"github.com/Peltoche/neurone/src/tools/errs"
-	"github.com/Peltoche/neurone/src/tools/uuid"
 	ua "github.com/mileusna/useragent"
+	"github.com/myminicloud/myminicloud/src/tools"
+	"github.com/myminicloud/myminicloud/src/tools/clock"
+	"github.com/myminicloud/myminicloud/src/tools/errs"
+	"github.com/myminicloud/myminicloud/src/tools/uuid"
 )
 
 //go:generate mockery --name Storage
