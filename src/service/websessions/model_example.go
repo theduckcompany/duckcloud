@@ -3,7 +3,7 @@ package websessions
 import (
 	"time"
 
-	"github.com/Peltoche/neurone/src/tools/uuid"
+	"github.com/myminicloud/myminicloud/src/tools/uuid"
 )
 
 var (

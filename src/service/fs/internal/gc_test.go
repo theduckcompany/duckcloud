@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Peltoche/neurone/src/service/inodes"
-	"github.com/Peltoche/neurone/src/tools"
-	"github.com/Peltoche/neurone/src/tools/storage"
+	"github.com/myminicloud/myminicloud/src/service/inodes"
+	"github.com/myminicloud/myminicloud/src/tools"
+	"github.com/myminicloud/myminicloud/src/tools/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

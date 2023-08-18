@@ -6,8 +6,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/Peltoche/neurone/src/tools"
-	"github.com/Peltoche/neurone/src/tools/uuid"
+	"github.com/myminicloud/myminicloud/src/tools"
+	"github.com/myminicloud/myminicloud/src/tools/uuid"
 )
 
 var (

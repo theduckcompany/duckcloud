@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Peltoche/neurone/src/service/oauth2"
-	"github.com/Peltoche/neurone/src/tools"
-	"github.com/Peltoche/neurone/src/tools/response"
-	"github.com/Peltoche/neurone/src/tools/router"
 	"github.com/go-chi/chi/v5"
+	"github.com/myminicloud/myminicloud/src/service/oauth2"
+	"github.com/myminicloud/myminicloud/src/tools"
+	"github.com/myminicloud/myminicloud/src/tools/response"
+	"github.com/myminicloud/myminicloud/src/tools/router"
 )
 
 // HTTPHandler handle all the HTTP request for the users

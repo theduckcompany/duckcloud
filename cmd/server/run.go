@@ -4,8 +4,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/Peltoche/neurone/cmd/config"
-	"github.com/Peltoche/neurone/src/server"
+	"github.com/myminicloud/myminicloud/cmd/config"
+	"github.com/myminicloud/myminicloud/src/server"
 	"github.com/spf13/cobra"
 )
 

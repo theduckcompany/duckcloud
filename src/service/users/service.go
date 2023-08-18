@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Peltoche/neurone/src/service/inodes"
-	"github.com/Peltoche/neurone/src/tools"
-	"github.com/Peltoche/neurone/src/tools/clock"
-	"github.com/Peltoche/neurone/src/tools/errs"
-	"github.com/Peltoche/neurone/src/tools/password"
-	"github.com/Peltoche/neurone/src/tools/uuid"
+	"github.com/myminicloud/myminicloud/src/service/inodes"
+	"github.com/myminicloud/myminicloud/src/tools"
+	"github.com/myminicloud/myminicloud/src/tools/clock"
+	"github.com/myminicloud/myminicloud/src/tools/errs"
+	"github.com/myminicloud/myminicloud/src/tools/password"
+	"github.com/myminicloud/myminicloud/src/tools/uuid"
 )
 
 var (

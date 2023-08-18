@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Peltoche/neurone/src/tools/storage"
-	"github.com/Peltoche/neurone/src/tools/uuid"
+	"github.com/myminicloud/myminicloud/src/tools/storage"
+	"github.com/myminicloud/myminicloud/src/tools/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

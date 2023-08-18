@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/Peltoche/neurone/src/tools"
+	"github.com/myminicloud/myminicloud/src/tools"
 	"github.com/stretchr/testify/require"
 )
 

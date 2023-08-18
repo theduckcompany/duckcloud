@@ -1,4 +1,4 @@
-module github.com/Peltoche/neurone
+module github.com/myminicloud/myminicloud
 
 go 1.21
 

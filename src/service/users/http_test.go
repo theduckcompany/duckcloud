@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Peltoche/neurone/src/service/oauth2"
-	"github.com/Peltoche/neurone/src/tools"
-	"github.com/Peltoche/neurone/src/tools/router"
-	"github.com/Peltoche/neurone/src/tools/uuid"
 	"github.com/gavv/httpexpect/v2"
 	"github.com/go-chi/chi/v5"
+	"github.com/myminicloud/myminicloud/src/service/oauth2"
+	"github.com/myminicloud/myminicloud/src/tools"
+	"github.com/myminicloud/myminicloud/src/tools/router"
+	"github.com/myminicloud/myminicloud/src/tools/uuid"
 	"github.com/stretchr/testify/mock"
 )
 

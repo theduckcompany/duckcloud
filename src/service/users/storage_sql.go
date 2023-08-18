@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/Peltoche/neurone/src/tools/uuid"
+	"github.com/myminicloud/myminicloud/src/tools/uuid"
 )
 
 const tableName = "users"

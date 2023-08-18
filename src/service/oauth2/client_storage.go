@@ -3,8 +3,8 @@ package oauth2
 import (
 	"context"
 
-	"github.com/Peltoche/neurone/src/service/oauthclients"
 	"github.com/go-oauth2/oauth2/v4"
+	"github.com/myminicloud/myminicloud/src/service/oauthclients"
 )
 
 type clientStorage struct {

@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/Peltoche/neurone/src/tools/errs"
+	"github.com/myminicloud/myminicloud/src/tools/errs"
 	"github.com/unrolled/render"
 )
 

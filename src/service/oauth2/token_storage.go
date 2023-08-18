@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Peltoche/neurone/src/service/oauthcodes"
-	"github.com/Peltoche/neurone/src/service/oauthsessions"
-	"github.com/Peltoche/neurone/src/tools/errs"
-	"github.com/Peltoche/neurone/src/tools/uuid"
 	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/models"
+	"github.com/myminicloud/myminicloud/src/service/oauthcodes"
+	"github.com/myminicloud/myminicloud/src/service/oauthsessions"
+	"github.com/myminicloud/myminicloud/src/tools/errs"
+	"github.com/myminicloud/myminicloud/src/tools/uuid"
 )
 
 type tokenStorage struct {

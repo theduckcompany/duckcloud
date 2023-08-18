@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/Peltoche/neurone/src/server"
-	"github.com/Peltoche/neurone/src/service/users"
+	"github.com/myminicloud/myminicloud/src/server"
+	"github.com/myminicloud/myminicloud/src/service/users"
 	"github.com/spf13/cobra"
 )
 

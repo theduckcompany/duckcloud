@@ -5,9 +5,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/Peltoche/neurone/src/service/fs/internal"
-	"github.com/Peltoche/neurone/src/service/inodes"
-	"github.com/Peltoche/neurone/src/tools"
+	"github.com/myminicloud/myminicloud/src/service/fs/internal"
+	"github.com/myminicloud/myminicloud/src/service/inodes"
+	"github.com/myminicloud/myminicloud/src/tools"
 	"go.uber.org/fx"
 )
 

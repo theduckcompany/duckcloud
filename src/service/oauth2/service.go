@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Peltoche/neurone/src/service/oauthclients"
-	"github.com/Peltoche/neurone/src/service/oauthcodes"
-	"github.com/Peltoche/neurone/src/service/oauthsessions"
-	"github.com/Peltoche/neurone/src/tools"
-	"github.com/Peltoche/neurone/src/tools/uuid"
 	"github.com/go-oauth2/oauth2/v4/manage"
+	"github.com/myminicloud/myminicloud/src/service/oauthclients"
+	"github.com/myminicloud/myminicloud/src/service/oauthcodes"
+	"github.com/myminicloud/myminicloud/src/service/oauthsessions"
+	"github.com/myminicloud/myminicloud/src/tools"
+	"github.com/myminicloud/myminicloud/src/tools/uuid"
 )
 
 var (

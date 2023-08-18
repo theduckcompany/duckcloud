@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Peltoche/neurone/src/service/oauthclients"
-	"github.com/Peltoche/neurone/src/service/users"
+	"github.com/myminicloud/myminicloud/src/service/oauthclients"
+	"github.com/myminicloud/myminicloud/src/service/users"
 	"go.uber.org/fx"
 )
 
