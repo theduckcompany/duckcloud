@@ -13,11 +13,11 @@ import (
 )
 
 type File struct {
-	inode    *inodes.INode
-	inodeSvc inodes.Service
-	fileSvc  files.Service
-	cmd      *inodes.PathCmd
-	file     afero.File
+	inode  *inodes.INode
+	inodes inodes.Service
+	files  files.Service
+	cmd    *inodes.PathCmd
+	file   afero.File
 }
 
 func (f *File) Close() error {
@@ -29,41 +29,14 @@ func (f *File) Close() error {
 }
 
 func (f *File) Read(p []byte) (int, error) {
-	var err error
-
-	if f.file == nil {
-		f.file, err = f.fileSvc.Open(context.Background(), f.inode.ID())
-		if err != nil {
-			return 0, fmt.Errorf("failed to Open the file %q: %w", f.inode.ID(), err)
-		}
-	}
-
 	return f.file.Read(p)
 }
 
 func (f *File) Write(p []byte) (int, error) {
-	var err error
-
-	if f.file == nil {
-		f.file, err = f.fileSvc.Open(context.Background(), f.inode.ID())
-		if err != nil {
-			return 0, fmt.Errorf("failed to Open the file %q: %w", f.inode.ID(), err)
-		}
-	}
-
 	return f.file.Write(p)
 }
 
 func (f *File) Seek(offset int64, whence int) (int64, error) {
-	var err error
-
-	if f.file == nil {
-		f.file, err = f.fileSvc.Open(context.Background(), f.inode.ID())
-		if err != nil {
-			return 0, fmt.Errorf("failed to Open the file %q: %w", f.inode.ID(), err)
-		}
-	}
-
 	return f.file.Seek(offset, whence)
 }
 
@@ -73,7 +46,7 @@ func (f *File) Readdir(count int) ([]fs.FileInfo, error) {
 	}
 
 	// TODO: Check if we should use the context from `OpenFile`
-	res, err := f.inodeSvc.Readdir(context.Background(), f.cmd, &storage.PaginateCmd{
+	res, err := f.inodes.Readdir(context.Background(), f.cmd, &storage.PaginateCmd{
 		StartAfter: map[string]string{"name": ""},
 		Limit:      count,
 	})
