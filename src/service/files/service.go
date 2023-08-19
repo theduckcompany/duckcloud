@@ -52,9 +52,9 @@ func NewFSService(fs afero.Fs, rootPath string, log *slog.Logger) (*FSService, e
 	return &FSService{rootFS}, nil
 }
 
-func (s *FSService) Open(ctx context.Context, inodeID uuid.UUID) (afero.File, error) {
-	idStr := string(inodeID)
-	filePath := path.Join(idStr[:2], string(inodeID))
+func (s *FSService) Open(ctx context.Context, fileID uuid.UUID) (afero.File, error) {
+	idStr := string(fileID)
+	filePath := path.Join(idStr[:2], string(fileID))
 
 	file, err := s.fs.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0o600)
 	if err != nil {

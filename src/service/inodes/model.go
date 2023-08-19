@@ -29,6 +29,7 @@ func (t PathCmd) Validate() error {
 type CreateFileCmd struct {
 	Parent uuid.UUID
 	UserID uuid.UUID
+	FileID uuid.UUID
 	Name   string
 	Mode   fs.FileMode
 }
@@ -38,6 +39,7 @@ func (t CreateFileCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.Parent, v.Required, is.UUIDv4),
 		v.Field(&t.UserID, v.Required, is.UUIDv4),
+		v.Field(&t.FileID, v.Required, is.UUIDv4),
 		v.Field(&t.Name, v.Required, v.Length(1, 255)),
 	)
 }
@@ -45,6 +47,7 @@ func (t CreateFileCmd) Validate() error {
 type INode struct {
 	id             uuid.UUID
 	userID         uuid.UUID
+	fileID         *uuid.UUID
 	parent         uuid.UUID
 	mode           fs.FileMode
 	name           string
@@ -54,6 +57,7 @@ type INode struct {
 
 func (n *INode) ID() uuid.UUID             { return n.id }
 func (n *INode) UserID() uuid.UUID         { return n.userID }
+func (n *INode) FileID() *uuid.UUID        { return n.fileID }
 func (n *INode) Parent() uuid.UUID         { return n.parent }
 func (n *INode) Name() string              { return n.name }
 func (n *INode) Size() int64               { return 0 }

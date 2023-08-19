@@ -27,8 +27,8 @@ func newSqlStorage(db *sql.DB, tools tools.Tools) *sqlStorage {
 func (s *sqlStorage) Save(ctx context.Context, dir *INode) error {
 	_, err := sq.
 		Insert(tableName).
-		Columns("id", "user_id", "name", "parent", "mode", "last_modified_at", "created_at").
-		Values(dir.id, dir.userID, dir.name, dir.parent, dir.mode, dir.lastModifiedAt, dir.createdAt).
+		Columns("id", "user_id", "name", "parent", "mode", "file_id", "last_modified_at", "created_at").
+		Values(dir.id, dir.userID, dir.name, dir.parent, dir.mode, dir.fileID, dir.lastModifiedAt, dir.createdAt).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -42,11 +42,11 @@ func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*INode, error) 
 	res := INode{}
 
 	err := sq.
-		Select("id", "user_id", "name", "parent", "mode", "last_modified_at", "created_at").
+		Select("id", "user_id", "name", "parent", "mode", "file_id", "last_modified_at", "created_at").
 		From(tableName).
 		Where(sq.Eq{"id": string(id)}).
 		RunWith(s.db).
-		ScanContext(ctx, &res.id, &res.userID, &res.name, &res.parent, &res.mode, &res.lastModifiedAt, &res.createdAt)
+		ScanContext(ctx, &res.id, &res.userID, &res.name, &res.parent, &res.mode, &res.fileID, &res.lastModifiedAt, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -87,7 +87,7 @@ func (s *sqlStorage) HardDelete(ctx context.Context, id uuid.UUID) error {
 
 func (s *sqlStorage) GetAllChildrens(ctx context.Context, userID, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error) {
 	rows, err := storage.PaginateSelection(sq.
-		Select("id", "user_id", "name", "parent", "mode", "last_modified_at", "created_at").
+		Select("id", "user_id", "name", "parent", "mode", "file_id", "last_modified_at", "created_at").
 		Where(sq.Eq{"user_id": string(userID), "parent": string(parent), "deleted_at": nil}).
 		From(tableName), cmd).
 		RunWith(s.db).
@@ -107,7 +107,7 @@ func (s *sqlStorage) GetAllChildrens(ctx context.Context, userID, parent uuid.UU
 
 func (s *sqlStorage) GetDeletedINodes(ctx context.Context, limit int) ([]INode, error) {
 	rows, err := sq.
-		Select("id", "user_id", "name", "parent", "mode", "last_modified_at", "created_at").
+		Select("id", "user_id", "name", "parent", "mode", "file_id", "last_modified_at", "created_at").
 		From(tableName).
 		Where(sq.NotEq{"deleted_at": nil}).
 		Limit(uint64(limit)).
@@ -132,7 +132,7 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]INode, error) {
 	for rows.Next() {
 		var res INode
 
-		err := rows.Scan(&res.id, &res.userID, &res.name, &res.parent, &res.mode, &res.lastModifiedAt, &res.createdAt)
+		err := rows.Scan(&res.id, &res.userID, &res.name, &res.parent, &res.mode, &res.fileID, &res.lastModifiedAt, &res.createdAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}
@@ -167,11 +167,11 @@ func (s *sqlStorage) GetByNameAndParent(ctx context.Context, userID uuid.UUID, n
 	res := INode{}
 
 	err := sq.
-		Select("id", "user_id", "name", "parent", "mode", "last_modified_at", "created_at").
+		Select("id", "user_id", "name", "parent", "mode", "file_id", "last_modified_at", "created_at").
 		From(tableName).
 		Where(sq.Eq{"user_id": string(userID), "parent": string(parent), "name": name, "deleted_at": nil}).
 		RunWith(s.db).
-		ScanContext(ctx, &res.id, &res.userID, &res.name, &res.parent, &res.mode, &res.lastModifiedAt, &res.createdAt)
+		ScanContext(ctx, &res.id, &res.userID, &res.name, &res.parent, &res.mode, &res.fileID, &res.lastModifiedAt, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}

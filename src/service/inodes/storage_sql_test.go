@@ -52,6 +52,7 @@ func TestINodeSqlstore(t *testing.T) {
 			err := store.Save(ctx, &INode{
 				id:             uuid.UUID(fmt.Sprintf("some-child-id-%d", i)),
 				userID:         uuid.UUID("some-user-uuid"),
+				fileID:         &someFileID,
 				parent:         uuid.UUID("some-dir-uuid"),
 				name:           fmt.Sprintf("child-%d", i),
 				mode:           0o660 | fs.ModeDir,
@@ -78,6 +79,7 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.Equal(t, res[0], INode{
 			id:             uuid.UUID("some-child-id-0"),
 			userID:         uuid.UUID("some-user-uuid"),
+			fileID:         &someFileID,
 			parent:         uuid.UUID("some-dir-uuid"),
 			name:           "child-0",
 			mode:           0o660 | fs.ModeDir,
@@ -102,6 +104,7 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.Equal(t, res[0], INode{
 			id:             uuid.UUID("some-child-id-5"),
 			userID:         uuid.UUID("some-user-uuid"),
+			fileID:         &someFileID,
 			parent:         uuid.UUID("some-dir-uuid"),
 			name:           "child-5",
 			mode:           0o660 | fs.ModeDir,
@@ -123,6 +126,7 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.EqualValues(t, &INode{
 			id:             uuid.UUID("some-child-id-5"),
 			userID:         uuid.UUID("some-user-uuid"),
+			fileID:         &someFileID,
 			parent:         uuid.UUID("some-dir-uuid"),
 			name:           "child-5",
 			mode:           0o660 | fs.ModeDir,
@@ -171,6 +175,7 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.Equal(t, INode{
 			id:             uuid.UUID("some-child-id-5"),
 			userID:         uuid.UUID("some-user-uuid"),
+			fileID:         &someFileID,
 			parent:         uuid.UUID("some-dir-uuid"),
 			name:           "child-5",
 			mode:           0o660 | fs.ModeDir,

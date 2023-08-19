@@ -16,4 +16,7 @@ func TestInodeGetter(t *testing.T) {
 	assert.Equal(t, ExampleRoot.Mode(), 0o660|fs.ModeDir)
 	assert.Equal(t, ExampleRoot.CreatedAt(), now)
 	assert.Equal(t, ExampleRoot.LastModifiedAt(), now)
+	assert.Nil(t, ExampleRoot.FileID())
+
+	assert.Equal(t, ExampleFile.FileID(), &someFileID)
 }

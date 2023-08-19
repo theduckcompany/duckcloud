@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"path"
 
 	"github.com/theduckcompany/duckcloud/src/service/files"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
+	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
@@ -20,10 +20,17 @@ type FSService struct {
 	root   uuid.UUID
 	inodes inodes.Service
 	files  files.Service
+	uuid   uuid.Service
 }
 
-func NewFSService(userID uuid.UUID, root uuid.UUID, inodes inodes.Service, files files.Service) *FSService {
-	return &FSService{userID, root, inodes, files}
+func NewFSService(
+	userID uuid.UUID,
+	root uuid.UUID,
+	inodes inodes.Service,
+	files files.Service,
+	tools tools.Tools,
+) *FSService {
+	return &FSService{userID, root, inodes, files, tools.UUID()}
 }
 
 func (s *FSService) CreateDir(ctx context.Context, name string, perm os.FileMode) error {
@@ -65,12 +72,12 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 	}
 
 	if res != nil && res.Mode().IsDir() {
-		return &File{res, s.inodes, s.files, &pathCmd, nil}, nil
+		return &File{res, s.inodes, &pathCmd, perm, nil}, nil
 	}
 
-	if flag&(os.O_SYNC|os.O_APPEND) != 0 {
+	if flag&(os.O_APPEND) != 0 {
 		// We doesn't support these flags yet.
-		return nil, fmt.Errorf("%w: O_SYNC and O_APPEND not supported", os.ErrInvalid)
+		return nil, fmt.Errorf("%w: O_APPEND not supported", os.ErrInvalid)
 	}
 
 	if flag&os.O_EXCL != 0 && res != nil {
@@ -78,20 +85,19 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 		return nil, os.ErrExist
 	}
 
-	var file File
-	if res == nil {
-		inode, err := s.createFile(ctx, &pathCmd, perm)
-		if err != nil {
-			return nil, fmt.Errorf("failed to createFile: %w", err)
-		}
-
-		// The file doesnt exists but we have the create flag.
-		file = File{inode, s.inodes, s.files, &pathCmd, nil}
-
-		return &file, nil
+	var fileID uuid.UUID
+	if res != nil && res.FileID() != nil {
+		fileID = *res.FileID()
+	} else {
+		fileID = s.uuid.New()
 	}
 
-	return &File{res, s.inodes, s.files, &pathCmd, nil}, nil
+	file, err := s.files.Open(ctx, fileID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open %q: %w", fileID, err)
+	}
+
+	return &File{res, s.inodes, &pathCmd, perm, file}, nil
 }
 
 func (s *FSService) RemoveAll(ctx context.Context, name string) error {
@@ -134,32 +140,4 @@ func (s *FSService) Stat(ctx context.Context, name string) (os.FileInfo, error) 
 	}
 
 	return res, nil
-}
-
-func (s *FSService) createFile(ctx context.Context, cmd *inodes.PathCmd, perm fs.FileMode) (*inodes.INode, error) {
-	dir, fileName := path.Split(cmd.FullName)
-	if dir == "" {
-		dir = "/"
-	}
-
-	parent, err := s.inodes.Get(ctx, &inodes.PathCmd{
-		Root:     cmd.Root,
-		UserID:   cmd.UserID,
-		FullName: dir,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to Get: %w", err)
-	}
-
-	file, err := s.inodes.CreateFile(ctx, &inodes.CreateFileCmd{
-		Parent: parent.ID(),
-		UserID: cmd.UserID,
-		Mode:   perm,
-		Name:   fileName,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to CreateFile: %w", err)
-	}
-
-	return file, nil
 }

@@ -30,7 +30,7 @@ func NewHTTPHandler(tools tools.Tools, inodes inodes.Service, files files.Servic
 	return &HTTPHandler{
 		davHandler: &webdav.Handler{
 			Prefix:     "/dav",
-			FileSystem: &davFS{inodes, files},
+			FileSystem: &davFS{inodes, files, tools},
 			LockSystem: webdav.NewMemLS(),
 			Logger:     internal.NewLogger(tools.Logger()),
 		},

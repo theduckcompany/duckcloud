@@ -95,6 +95,7 @@ func (s *INodeService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INo
 		id:             s.uuid.New(),
 		parent:         parent.ID(),
 		userID:         cmd.UserID,
+		fileID:         &cmd.FileID,
 		mode:           cmd.Mode,
 		name:           cmd.Name,
 		createdAt:      now,
