@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/myminicloud/myminicloud/src/tools"
-	"github.com/myminicloud/myminicloud/src/tools/uuid"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 func TestBlockService(t *testing.T) {

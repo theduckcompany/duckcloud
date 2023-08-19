@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/go-oauth2/oauth2/v4/manage"
-	"github.com/myminicloud/myminicloud/src/service/oauthclients"
-	"github.com/myminicloud/myminicloud/src/service/oauthcodes"
-	"github.com/myminicloud/myminicloud/src/service/oauthsessions"
-	"github.com/myminicloud/myminicloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/service/oauthclients"
+	"github.com/theduckcompany/duckcloud/src/service/oauthcodes"
+	"github.com/theduckcompany/duckcloud/src/service/oauthsessions"
+	"github.com/theduckcompany/duckcloud/src/tools"
 )
 
 //go:generate mockery --name Service

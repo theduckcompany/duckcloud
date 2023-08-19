@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/myminicloud/myminicloud/src/service/oauthclients"
-	"github.com/myminicloud/myminicloud/src/service/websessions"
-	"github.com/myminicloud/myminicloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/service/oauthclients"
+	"github.com/theduckcompany/duckcloud/src/service/websessions"
+	"github.com/theduckcompany/duckcloud/src/tools"
 )
 
 //go:generate mockery --name Service

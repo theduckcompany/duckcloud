@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/myminicloud/myminicloud/src/tools/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 func TestConsentTypes(t *testing.T) {

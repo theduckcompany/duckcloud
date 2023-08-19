@@ -8,11 +8,11 @@ import (
 
 	"github.com/gavv/httpexpect/v2"
 	"github.com/go-chi/chi/v5"
-	"github.com/myminicloud/myminicloud/src/service/oauth2"
-	"github.com/myminicloud/myminicloud/src/tools"
-	"github.com/myminicloud/myminicloud/src/tools/router"
-	"github.com/myminicloud/myminicloud/src/tools/uuid"
 	"github.com/stretchr/testify/mock"
+	"github.com/theduckcompany/duckcloud/src/service/oauth2"
+	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/router"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 func TestHTTHandler(t *testing.T) {

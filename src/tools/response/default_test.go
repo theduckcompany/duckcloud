@@ -9,9 +9,9 @@ import (
 
 	v "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
-	"github.com/myminicloud/myminicloud/src/tools/errs"
-	"github.com/myminicloud/myminicloud/src/tools/logger"
 	"github.com/stretchr/testify/assert"
+	"github.com/theduckcompany/duckcloud/src/tools/errs"
+	"github.com/theduckcompany/duckcloud/src/tools/logger"
 	"github.com/unrolled/render"
 )
 

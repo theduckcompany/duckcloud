@@ -7,10 +7,10 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/myminicloud/myminicloud/src/tools"
-	"github.com/myminicloud/myminicloud/src/tools/clock"
-	"github.com/myminicloud/myminicloud/src/tools/storage"
-	"github.com/myminicloud/myminicloud/src/tools/uuid"
+	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/clock"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 const tableName = "fs_inodes"

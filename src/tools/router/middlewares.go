@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/myminicloud/myminicloud/src/tools"
-	"github.com/myminicloud/myminicloud/src/tools/router/internal"
+	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/router/internal"
 )
 
 type Middleware func(next http.Handler) http.Handler

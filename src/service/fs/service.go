@@ -8,9 +8,9 @@ import (
 	"os"
 	"path"
 
-	"github.com/myminicloud/myminicloud/src/service/blocks"
-	"github.com/myminicloud/myminicloud/src/service/inodes"
-	"github.com/myminicloud/myminicloud/src/tools/uuid"
+	"github.com/theduckcompany/duckcloud/src/service/blocks"
+	"github.com/theduckcompany/duckcloud/src/service/inodes"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 var ErrNotImplemented = errors.New("not implemented")

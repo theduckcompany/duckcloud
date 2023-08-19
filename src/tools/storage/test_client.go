@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/myminicloud/myminicloud/src/tools"
 	"github.com/stretchr/testify/require"
+	"github.com/theduckcompany/duckcloud/src/tools"
 )
 
 func NewTestStorage(t *testing.T) *sql.DB {

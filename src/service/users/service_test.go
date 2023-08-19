@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/myminicloud/myminicloud/src/service/inodes"
-	"github.com/myminicloud/myminicloud/src/tools"
-	"github.com/myminicloud/myminicloud/src/tools/errs"
-	"github.com/myminicloud/myminicloud/src/tools/password"
-	"github.com/myminicloud/myminicloud/src/tools/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/theduckcompany/duckcloud/src/service/inodes"
+	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/errs"
+	"github.com/theduckcompany/duckcloud/src/tools/password"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 func Test_Service(t *testing.T) {

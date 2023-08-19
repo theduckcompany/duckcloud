@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/myminicloud/myminicloud/src/service/inodes"
-	"github.com/myminicloud/myminicloud/src/tools"
-	"github.com/myminicloud/myminicloud/src/tools/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/theduckcompany/duckcloud/src/service/inodes"
+	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
 )
 
 func TestGC(t *testing.T) {

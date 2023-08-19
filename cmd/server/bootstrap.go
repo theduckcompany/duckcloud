@@ -6,9 +6,9 @@ import (
 	"os"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/myminicloud/myminicloud/src/server"
-	"github.com/myminicloud/myminicloud/src/service/users"
 	"github.com/spf13/cobra"
+	"github.com/theduckcompany/duckcloud/src/server"
+	"github.com/theduckcompany/duckcloud/src/service/users"
 )
 
 var qs = []*survey.Question{

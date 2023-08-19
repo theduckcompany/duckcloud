@@ -8,8 +8,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/myminicloud/myminicloud/src/tools"
 	"github.com/spf13/afero"
+	"github.com/theduckcompany/duckcloud/src/tools"
 	"go.uber.org/fx"
 )
 

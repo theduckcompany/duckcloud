@@ -3,11 +3,11 @@ package tools
 import (
 	"log/slog"
 
-	"github.com/myminicloud/myminicloud/src/tools/clock"
-	"github.com/myminicloud/myminicloud/src/tools/logger"
-	"github.com/myminicloud/myminicloud/src/tools/password"
-	"github.com/myminicloud/myminicloud/src/tools/response"
-	"github.com/myminicloud/myminicloud/src/tools/uuid"
+	"github.com/theduckcompany/duckcloud/src/tools/clock"
+	"github.com/theduckcompany/duckcloud/src/tools/logger"
+	"github.com/theduckcompany/duckcloud/src/tools/password"
+	"github.com/theduckcompany/duckcloud/src/tools/response"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 type Config struct {

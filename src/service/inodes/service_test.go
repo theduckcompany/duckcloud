@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/myminicloud/myminicloud/src/tools"
-	"github.com/myminicloud/myminicloud/src/tools/storage"
-	"github.com/myminicloud/myminicloud/src/tools/uuid"
 	"github.com/stretchr/testify/assert"
 	mock "github.com/stretchr/testify/mock"
+	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 func TestInodes(t *testing.T) {

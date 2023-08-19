@@ -6,10 +6,10 @@ import (
 	"io/fs"
 	"os"
 
-	"github.com/myminicloud/myminicloud/src/service/blocks"
-	"github.com/myminicloud/myminicloud/src/service/inodes"
-	"github.com/myminicloud/myminicloud/src/tools/storage"
 	"github.com/spf13/afero"
+	"github.com/theduckcompany/duckcloud/src/service/blocks"
+	"github.com/theduckcompany/duckcloud/src/service/inodes"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
 )
 
 type File struct {

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/myminicloud/myminicloud/cmd"
+	"github.com/theduckcompany/duckcloud/cmd"
 )
 
 func main() {

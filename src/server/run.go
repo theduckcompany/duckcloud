@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/myminicloud/myminicloud/src/tools/router"
+	"github.com/theduckcompany/duckcloud/src/tools/router"
 	"go.uber.org/fx"
 )
 

@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/myminicloud/myminicloud/src/service/blocks"
-	"github.com/myminicloud/myminicloud/src/service/dav/internal"
-	"github.com/myminicloud/myminicloud/src/service/inodes"
-	"github.com/myminicloud/myminicloud/src/tools"
-	"github.com/myminicloud/myminicloud/src/tools/router"
+	"github.com/theduckcompany/duckcloud/src/service/blocks"
+	"github.com/theduckcompany/duckcloud/src/service/dav/internal"
+	"github.com/theduckcompany/duckcloud/src/service/inodes"
+	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/router"
 	"golang.org/x/net/webdav"
 )
 

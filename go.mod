@@ -1,4 +1,4 @@
-module github.com/myminicloud/myminicloud
+module github.com/theduckcompany/duckcloud
 
 go 1.21
 

@@ -4,9 +4,9 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/myminicloud/myminicloud/cmd/config"
-	"github.com/myminicloud/myminicloud/src/server"
 	"github.com/spf13/cobra"
+	"github.com/theduckcompany/duckcloud/cmd/config"
+	"github.com/theduckcompany/duckcloud/src/server"
 )
 
 func NewRunCmd(binaryName string) *cobra.Command {

@@ -9,10 +9,10 @@ import (
 	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/models"
-	"github.com/myminicloud/myminicloud/src/service/oauthcodes"
-	"github.com/myminicloud/myminicloud/src/service/oauthsessions"
-	"github.com/myminicloud/myminicloud/src/tools/errs"
-	"github.com/myminicloud/myminicloud/src/tools/uuid"
+	"github.com/theduckcompany/duckcloud/src/service/oauthcodes"
+	"github.com/theduckcompany/duckcloud/src/service/oauthsessions"
+	"github.com/theduckcompany/duckcloud/src/tools/errs"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 type tokenStorage struct {

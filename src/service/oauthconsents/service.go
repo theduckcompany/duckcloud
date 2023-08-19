@@ -7,12 +7,12 @@ import (
 	"net/http"
 
 	"github.com/go-ozzo/ozzo-validation/is"
-	"github.com/myminicloud/myminicloud/src/service/oauthclients"
-	"github.com/myminicloud/myminicloud/src/service/websessions"
-	"github.com/myminicloud/myminicloud/src/tools"
-	"github.com/myminicloud/myminicloud/src/tools/clock"
-	"github.com/myminicloud/myminicloud/src/tools/errs"
-	"github.com/myminicloud/myminicloud/src/tools/uuid"
+	"github.com/theduckcompany/duckcloud/src/service/oauthclients"
+	"github.com/theduckcompany/duckcloud/src/service/websessions"
+	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/clock"
+	"github.com/theduckcompany/duckcloud/src/tools/errs"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 var ErrConsentNotFound = errors.New("consent not found")

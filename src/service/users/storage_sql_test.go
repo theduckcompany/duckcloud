@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/myminicloud/myminicloud/src/tools/storage"
-	"github.com/myminicloud/myminicloud/src/tools/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 func TestUserSqlStorage(t *testing.T) {

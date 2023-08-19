@@ -7,7 +7,7 @@ import (
 
 	v "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
-	"github.com/myminicloud/myminicloud/src/tools/uuid"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 var UsernameRegexp = regexp.MustCompile("^[0-9a-zA-Z-]+$")
