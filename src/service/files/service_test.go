@@ -11,7 +11,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
-func TestBlockService(t *testing.T) {
+func TestFileService(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Open success", func(t *testing.T) {

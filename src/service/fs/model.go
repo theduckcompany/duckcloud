@@ -15,56 +15,56 @@ import (
 type File struct {
 	inode    *inodes.INode
 	inodeSvc inodes.Service
-	blockSvc files.Service
+	fileSvc  files.Service
 	cmd      *inodes.PathCmd
-	block    afero.File
+	file     afero.File
 }
 
 func (f *File) Close() error {
-	if f.block == nil {
+	if f.file == nil {
 		return nil
 	}
 
-	return f.block.Close()
+	return f.file.Close()
 }
 
 func (f *File) Read(p []byte) (int, error) {
 	var err error
 
-	if f.block == nil {
-		f.block, err = f.blockSvc.Open(context.Background(), f.inode.ID())
+	if f.file == nil {
+		f.file, err = f.fileSvc.Open(context.Background(), f.inode.ID())
 		if err != nil {
-			return 0, fmt.Errorf("failed to Open the block %q: %w", f.inode.ID(), err)
+			return 0, fmt.Errorf("failed to Open the file %q: %w", f.inode.ID(), err)
 		}
 	}
 
-	return f.block.Read(p)
+	return f.file.Read(p)
 }
 
 func (f *File) Write(p []byte) (int, error) {
 	var err error
 
-	if f.block == nil {
-		f.block, err = f.blockSvc.Open(context.Background(), f.inode.ID())
+	if f.file == nil {
+		f.file, err = f.fileSvc.Open(context.Background(), f.inode.ID())
 		if err != nil {
-			return 0, fmt.Errorf("failed to Open the block %q: %w", f.inode.ID(), err)
+			return 0, fmt.Errorf("failed to Open the file %q: %w", f.inode.ID(), err)
 		}
 	}
 
-	return f.block.Write(p)
+	return f.file.Write(p)
 }
 
 func (f *File) Seek(offset int64, whence int) (int64, error) {
 	var err error
 
-	if f.block == nil {
-		f.block, err = f.blockSvc.Open(context.Background(), f.inode.ID())
+	if f.file == nil {
+		f.file, err = f.fileSvc.Open(context.Background(), f.inode.ID())
 		if err != nil {
-			return 0, fmt.Errorf("failed to Open the block %q: %w", f.inode.ID(), err)
+			return 0, fmt.Errorf("failed to Open the file %q: %w", f.inode.ID(), err)
 		}
 	}
 
-	return f.block.Seek(offset, whence)
+	return f.file.Seek(offset, whence)
 }
 
 func (f *File) Readdir(count int) ([]fs.FileInfo, error) {
