@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/myminicloud/myminicloud/src/tools/storage"
 	"github.com/stretchr/testify/assert"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
 )
 
 func TestOauthClientsSQLStorage(t *testing.T) {

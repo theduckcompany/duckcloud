@@ -8,15 +8,15 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/myminicloud/myminicloud/src/service/oauth2"
-	"github.com/myminicloud/myminicloud/src/service/oauthclients"
-	"github.com/myminicloud/myminicloud/src/service/oauthconsents"
-	"github.com/myminicloud/myminicloud/src/service/users"
-	"github.com/myminicloud/myminicloud/src/service/websessions"
-	"github.com/myminicloud/myminicloud/src/tools"
-	"github.com/myminicloud/myminicloud/src/tools/errs"
-	"github.com/myminicloud/myminicloud/src/tools/response"
-	"github.com/myminicloud/myminicloud/src/tools/router"
+	"github.com/theduckcompany/duckcloud/src/service/oauth2"
+	"github.com/theduckcompany/duckcloud/src/service/oauthclients"
+	"github.com/theduckcompany/duckcloud/src/service/oauthconsents"
+	"github.com/theduckcompany/duckcloud/src/service/users"
+	"github.com/theduckcompany/duckcloud/src/service/websessions"
+	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/errs"
+	"github.com/theduckcompany/duckcloud/src/tools/response"
+	"github.com/theduckcompany/duckcloud/src/tools/router"
 )
 
 type authHandler struct {

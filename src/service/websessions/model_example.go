@@ -3,7 +3,7 @@ package websessions
 import (
 	"time"
 
-	"github.com/myminicloud/myminicloud/src/tools/uuid"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 var (

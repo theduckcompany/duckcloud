@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/myminicloud/myminicloud/src/tools"
-	"github.com/myminicloud/myminicloud/src/tools/clock"
-	"github.com/myminicloud/myminicloud/src/tools/uuid"
+	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/clock"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 const (

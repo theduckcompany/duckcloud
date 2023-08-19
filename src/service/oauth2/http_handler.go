@@ -11,13 +11,13 @@ import (
 	oerrors "github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/server"
 
-	"github.com/myminicloud/myminicloud/src/service/oauthclients"
-	"github.com/myminicloud/myminicloud/src/service/oauthconsents"
-	"github.com/myminicloud/myminicloud/src/service/websessions"
-	"github.com/myminicloud/myminicloud/src/tools"
-	"github.com/myminicloud/myminicloud/src/tools/response"
-	"github.com/myminicloud/myminicloud/src/tools/router"
-	"github.com/myminicloud/myminicloud/src/tools/uuid"
+	"github.com/theduckcompany/duckcloud/src/service/oauthclients"
+	"github.com/theduckcompany/duckcloud/src/service/oauthconsents"
+	"github.com/theduckcompany/duckcloud/src/service/websessions"
+	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/response"
+	"github.com/theduckcompany/duckcloud/src/tools/router"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 var ErrClientNotFound = errors.New("client not found")

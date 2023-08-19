@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/myminicloud/myminicloud/src/service/oauthclients"
-	"github.com/myminicloud/myminicloud/src/service/users"
+	"github.com/theduckcompany/duckcloud/src/service/oauthclients"
+	"github.com/theduckcompany/duckcloud/src/service/users"
 	"go.uber.org/fx"
 )
 

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/myminicloud/myminicloud/src/tools"
-	"github.com/myminicloud/myminicloud/src/tools/clock"
-	"github.com/myminicloud/myminicloud/src/tools/errs"
+	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/clock"
+	"github.com/theduckcompany/duckcloud/src/tools/errs"
 )
 
 var ErrInvalidExpirationDate = fmt.Errorf("invalid expiration date")

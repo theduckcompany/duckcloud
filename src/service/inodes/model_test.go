@@ -4,8 +4,8 @@ import (
 	"io/fs"
 	"testing"
 
-	"github.com/myminicloud/myminicloud/src/tools/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 func TestInodeGetter(t *testing.T) {

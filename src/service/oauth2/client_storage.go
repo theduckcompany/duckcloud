@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/go-oauth2/oauth2/v4"
-	"github.com/myminicloud/myminicloud/src/service/oauthclients"
+	"github.com/theduckcompany/duckcloud/src/service/oauthclients"
 )
 
 type clientStorage struct {

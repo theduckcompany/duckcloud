@@ -1,6 +1,6 @@
 package oauth2
 
-import "github.com/myminicloud/myminicloud/src/tools/uuid"
+import "github.com/theduckcompany/duckcloud/src/tools/uuid"
 
 type Token struct {
 	UserID uuid.UUID

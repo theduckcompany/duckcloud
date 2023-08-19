@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/myminicloud/myminicloud/src/tools/errs"
+	"github.com/theduckcompany/duckcloud/src/tools/errs"
 	"github.com/unrolled/render"
 )
 

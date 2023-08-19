@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/myminicloud/myminicloud/src/service/oauth2"
-	"github.com/myminicloud/myminicloud/src/tools"
-	"github.com/myminicloud/myminicloud/src/tools/response"
-	"github.com/myminicloud/myminicloud/src/tools/router"
+	"github.com/theduckcompany/duckcloud/src/service/oauth2"
+	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/response"
+	"github.com/theduckcompany/duckcloud/src/tools/router"
 )
 
 // HTTPHandler handle all the HTTP request for the users

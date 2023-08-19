@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/myminicloud/myminicloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools"
 )
 
 //go:generate mockery --name Service

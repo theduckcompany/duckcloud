@@ -5,15 +5,17 @@ import (
 	"path"
 
 	"github.com/adrg/xdg"
-	"github.com/myminicloud/myminicloud/assets"
-	"github.com/myminicloud/myminicloud/src/service/blocks"
-	"github.com/myminicloud/myminicloud/src/tools"
-	"github.com/myminicloud/myminicloud/src/tools/logger"
-	"github.com/myminicloud/myminicloud/src/tools/response"
-	"github.com/myminicloud/myminicloud/src/tools/router"
-	"github.com/myminicloud/myminicloud/src/tools/storage"
+	"github.com/theduckcompany/duckcloud/assets"
+	"github.com/theduckcompany/duckcloud/src/service/blocks"
+	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/logger"
+	"github.com/theduckcompany/duckcloud/src/tools/response"
+	"github.com/theduckcompany/duckcloud/src/tools/router"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
 	"go.uber.org/fx"
 )
+
+const binaryName = "duckcloud"
 
 type Config struct {
 	fx.Out
@@ -25,12 +27,12 @@ type Config struct {
 }
 
 func NewDefaultConfig() *Config {
-	dbPath, err := xdg.DataFile(path.Join("myminicloud", "db.sqlite"))
+	dbPath, err := xdg.DataFile(path.Join(binaryName, "db.sqlite"))
 	if err != nil {
 		panic(err)
 	}
 
-	blocksPath, err := xdg.DataFile(path.Join("myminicloud", "blocks"))
+	blocksPath, err := xdg.DataFile(path.Join(binaryName, "blocks"))
 	if err != nil {
 		panic(err)
 	}

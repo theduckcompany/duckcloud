@@ -8,8 +8,8 @@ import (
 	"os"
 	"path"
 
-	"github.com/myminicloud/myminicloud/src/tools/uuid"
 	"github.com/spf13/afero"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 var (

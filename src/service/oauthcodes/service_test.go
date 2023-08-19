@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/myminicloud/myminicloud/src/tools"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/theduckcompany/duckcloud/src/tools"
 )
 
 func TestOauthCodeService(t *testing.T) {

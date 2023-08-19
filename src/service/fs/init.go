@@ -5,9 +5,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/myminicloud/myminicloud/src/service/fs/internal"
-	"github.com/myminicloud/myminicloud/src/service/inodes"
-	"github.com/myminicloud/myminicloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/service/fs/internal"
+	"github.com/theduckcompany/duckcloud/src/service/inodes"
+	"github.com/theduckcompany/duckcloud/src/tools"
 	"go.uber.org/fx"
 )
 
