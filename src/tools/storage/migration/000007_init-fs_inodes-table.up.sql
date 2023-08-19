@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS fs_inodes (
   "id" TEXT PRIMARY KEY,
   "user_id" TEXT NOT NULL,
-  "parent" TEXT NOT NULL,
+  "parent" TEXT DEFAULT NULL,
   "name" TEXT NOT NULL,
   "size" NUMERIC NOT NULL,
   "mode" NUMERIC NOT NULL,
