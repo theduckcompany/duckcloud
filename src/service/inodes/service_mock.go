@@ -186,6 +186,20 @@ func (_m *MockService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *s
 	return r0, r1
 }
 
+// RegisterWrite provides a mock function with given fields: ctx, inode, sizeWrite
+func (_m *MockService) RegisterWrite(ctx context.Context, inode *INode, sizeWrite int) error {
+	ret := _m.Called(ctx, inode, sizeWrite)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *INode, int) error); ok {
+		r0 = rf(ctx, inode, sizeWrite)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // RemoveAll provides a mock function with given fields: ctx, cmd
 func (_m *MockService) RemoveAll(ctx context.Context, cmd *PathCmd) error {
 	ret := _m.Called(ctx, cmd)

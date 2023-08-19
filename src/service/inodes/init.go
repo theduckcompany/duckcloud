@@ -19,6 +19,7 @@ type Service interface {
 	HardDelete(ctx context.Context, inode uuid.UUID) error
 	CreateDir(ctx context.Context, cmd *PathCmd) (*INode, error)
 	CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INode, error)
+	RegisterWrite(ctx context.Context, inode *INode, sizeWrite int) error
 }
 
 func Init(tools tools.Tools, db *sql.DB) Service {
