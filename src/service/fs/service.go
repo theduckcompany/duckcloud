@@ -8,7 +8,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/theduckcompany/duckcloud/src/service/blocks"
+	"github.com/theduckcompany/duckcloud/src/service/files"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
@@ -19,11 +19,11 @@ type FSService struct {
 	userID uuid.UUID
 	root   uuid.UUID
 	inodes inodes.Service
-	blocks blocks.Service
+	files  files.Service
 }
 
-func NewFSService(userID uuid.UUID, root uuid.UUID, inodes inodes.Service, blocks blocks.Service) *FSService {
-	return &FSService{userID, root, inodes, blocks}
+func NewFSService(userID uuid.UUID, root uuid.UUID, inodes inodes.Service, files files.Service) *FSService {
+	return &FSService{userID, root, inodes, files}
 }
 
 func (s *FSService) CreateDir(ctx context.Context, name string, perm os.FileMode) error {
@@ -65,7 +65,7 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 	}
 
 	if res != nil && res.Mode().IsDir() {
-		return &File{res, s.inodes, s.blocks, &pathCmd, nil}, nil
+		return &File{res, s.inodes, s.files, &pathCmd, nil}, nil
 	}
 
 	if flag&(os.O_SYNC|os.O_APPEND) != 0 {
@@ -86,12 +86,12 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 		}
 
 		// The file doesnt exists but we have the create flag.
-		file = File{inode, s.inodes, s.blocks, &pathCmd, nil}
+		file = File{inode, s.inodes, s.files, &pathCmd, nil}
 
 		return &file, nil
 	}
 
-	return &File{res, s.inodes, s.blocks, &pathCmd, nil}, nil
+	return &File{res, s.inodes, s.files, &pathCmd, nil}, nil
 }
 
 func (s *FSService) RemoveAll(ctx context.Context, name string) error {

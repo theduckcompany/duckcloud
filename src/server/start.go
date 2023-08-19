@@ -3,8 +3,8 @@ package server
 import (
 	"github.com/spf13/afero"
 	"github.com/theduckcompany/duckcloud/assets"
-	"github.com/theduckcompany/duckcloud/src/service/blocks"
 	"github.com/theduckcompany/duckcloud/src/service/dav"
+	"github.com/theduckcompany/duckcloud/src/service/files"
 	"github.com/theduckcompany/duckcloud/src/service/fs"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/service/oauth2"
@@ -53,7 +53,7 @@ func start(cfg *Config, invoke fx.Option) *fx.App {
 			fx.Annotate(websessions.Init, fx.As(new(websessions.Service))),
 			fx.Annotate(oauth2.Init, fx.As(new(oauth2.Service))),
 			fx.Annotate(inodes.Init, fx.As(new(inodes.Service))),
-			fx.Annotate(blocks.Init, fx.As(new(blocks.Service))),
+			fx.Annotate(files.Init, fx.As(new(files.Service))),
 
 			// HTTP handlers
 			AsRoute(dav.NewHTTPHandler),

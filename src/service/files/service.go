@@ -1,4 +1,4 @@
-package blocks
+package files
 
 import (
 	"context"
@@ -33,7 +33,7 @@ func NewFSService(fs afero.Fs, rootPath string, log *slog.Logger) (*FSService, e
 		return nil, fmt.Errorf("%w: open %s: it must be a directory", ErrInvalidPath, root)
 	}
 
-	log.Info(fmt.Sprintf("load blocks files from %s", root))
+	log.Info(fmt.Sprintf("load files files from %s", root))
 
 	rootFS := afero.NewBasePathFs(fs, root)
 
