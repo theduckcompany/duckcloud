@@ -54,18 +54,18 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 		FullName: name,
 	}
 
-	res, err := s.inodes.Get(ctx, &pathCmd)
+	inode, err := s.inodes.Get(ctx, &pathCmd)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open inodes: %w", err)
 	}
 
-	if res == nil && flag&os.O_CREATE == 0 {
+	if inode == nil && flag&os.O_CREATE == 0 {
 		// We try to open witout creating a non existing file.
 		return nil, fs.ErrNotExist
 	}
 
-	if res != nil && res.Mode().IsDir() {
-		return &File{res, s.inodes, s.files, &pathCmd, nil}, nil
+	if inode != nil && inode.Mode().IsDir() {
+		return &File{inode, s.inodes, s.files, &pathCmd, nil}, nil
 	}
 
 	if flag&(os.O_SYNC|os.O_APPEND) != 0 {
@@ -73,25 +73,24 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 		return nil, fmt.Errorf("%w: O_SYNC and O_APPEND not supported", os.ErrInvalid)
 	}
 
-	if flag&os.O_EXCL != 0 && res != nil {
+	if flag&os.O_EXCL != 0 && inode != nil {
 		// The flag require that the file doesn't exists but we found one.
 		return nil, os.ErrExist
 	}
 
-	var file File
-	if res == nil {
-		inode, err := s.createFile(ctx, &pathCmd, perm)
+	if inode == nil {
+		inode, err = s.createFile(ctx, &pathCmd, perm)
 		if err != nil {
 			return nil, fmt.Errorf("failed to createFile: %w", err)
 		}
-
-		// The file doesnt exists but we have the create flag.
-		file = File{inode, s.inodes, s.files, &pathCmd, nil}
-
-		return &file, nil
 	}
 
-	return &File{res, s.inodes, s.files, &pathCmd, nil}, nil
+	file, err := s.files.Open(ctx, inode.ID())
+	if err != nil {
+		return nil, fmt.Errorf("failed to Open the file %q: %w", inode.ID(), err)
+	}
+
+	return &File{inode, s.inodes, s.files, &pathCmd, file}, nil
 }
 
 func (s *FSService) RemoveAll(ctx context.Context, name string) error {
