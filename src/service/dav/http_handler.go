@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/theduckcompany/duckcloud/src/service/blocks"
 	"github.com/theduckcompany/duckcloud/src/service/dav/internal"
+	"github.com/theduckcompany/duckcloud/src/service/files"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/router"
@@ -26,11 +26,11 @@ type HTTPHandler struct {
 }
 
 // NewHTTPHandler builds a new EchoHandler.
-func NewHTTPHandler(tools tools.Tools, inodes inodes.Service, blocks blocks.Service) *HTTPHandler {
+func NewHTTPHandler(tools tools.Tools, inodes inodes.Service, files files.Service) *HTTPHandler {
 	return &HTTPHandler{
 		davHandler: &webdav.Handler{
 			Prefix:     "/dav",
-			FileSystem: &davFS{inodes, blocks},
+			FileSystem: &davFS{inodes, files},
 			LockSystem: webdav.NewMemLS(),
 			Logger:     internal.NewLogger(tools.Logger()),
 		},

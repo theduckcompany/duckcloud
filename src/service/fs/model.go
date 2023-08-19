@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/spf13/afero"
-	"github.com/theduckcompany/duckcloud/src/service/blocks"
+	"github.com/theduckcompany/duckcloud/src/service/files"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
 )
@@ -15,7 +15,7 @@ import (
 type File struct {
 	inode    *inodes.INode
 	inodeSvc inodes.Service
-	blockSvc blocks.Service
+	blockSvc files.Service
 	cmd      *inodes.PathCmd
 	block    afero.File
 }

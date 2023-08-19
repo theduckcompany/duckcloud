@@ -6,7 +6,7 @@ import (
 
 	"github.com/adrg/xdg"
 	"github.com/theduckcompany/duckcloud/assets"
-	"github.com/theduckcompany/duckcloud/src/service/blocks"
+	"github.com/theduckcompany/duckcloud/src/service/files"
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/logger"
 	"github.com/theduckcompany/duckcloud/src/tools/response"
@@ -22,7 +22,7 @@ type Config struct {
 	Listeners []router.Config `json:"listeners"`
 	Assets    assets.Config   `json:"assets"`
 	Storage   storage.Config  `json:"storage"`
-	Blocks    blocks.Config   `json:"blocks"`
+	Files     files.Config    `json:"files"`
 	Tools     tools.Config    `json:"tools"`
 }
 
@@ -32,7 +32,7 @@ func NewDefaultConfig() *Config {
 		panic(err)
 	}
 
-	blocksPath, err := xdg.DataFile(path.Join(binaryName, "blocks"))
+	filesPath, err := xdg.DataFile(path.Join(binaryName, "files"))
 	if err != nil {
 		panic(err)
 	}
@@ -53,8 +53,8 @@ func NewDefaultConfig() *Config {
 			Path:  dbPath,
 			Debug: false,
 		},
-		Blocks: blocks.Config{
-			Path: blocksPath,
+		Files: files.Config{
+			Path: filesPath,
 		},
 		Tools: tools.Config{
 			Response: response.Config{
