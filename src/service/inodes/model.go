@@ -48,6 +48,7 @@ type INode struct {
 	parent         uuid.UUID
 	mode           fs.FileMode
 	name           string
+	size           int64
 	createdAt      time.Time
 	lastModifiedAt time.Time
 }
@@ -56,7 +57,7 @@ func (n *INode) ID() uuid.UUID             { return n.id }
 func (n *INode) UserID() uuid.UUID         { return n.userID }
 func (n *INode) Parent() uuid.UUID         { return n.parent }
 func (n *INode) Name() string              { return n.name }
-func (n *INode) Size() int64               { return 0 }
+func (n *INode) Size() int64               { return n.size }
 func (n *INode) Mode() fs.FileMode         { return n.mode }
 func (n *INode) ModTime() time.Time        { return n.lastModifiedAt }
 func (n *INode) CreatedAt() time.Time      { return n.createdAt }

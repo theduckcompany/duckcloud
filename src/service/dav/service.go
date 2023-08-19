@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	currentUser = uuid.UUID("cdc4fa93-cd92-44a8-9d85-56fb2c28e84c")
-	root        = uuid.UUID("e891a010-254e-457e-8206-f282e130802a")
+	currentUser = uuid.UUID("a6e4082a-124f-403b-92b4-de3253a908a4")
+	root        = uuid.UUID("cdd75a48-c4e4-468f-be3c-b171c028e281")
 )
 
 type davFS struct {

@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS fs_inodes (
   "user_id" TEXT NOT NULL,
   "parent" TEXT NOT NULL,
   "name" TEXT NOT NULL,
+  "size" NUMERIC NOT NULL,
   "mode" NUMERIC NOT NULL,
   "last_modified_at" DATETIME NOT NULL,
   "created_at" DATETIME NOT NULL,
