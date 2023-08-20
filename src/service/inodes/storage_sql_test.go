@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/ptr"
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
@@ -21,7 +22,7 @@ func TestINodeSqlstore(t *testing.T) {
 	dirData := INode{
 		id:             uuid.UUID("some-dir-uuid"),
 		userID:         uuid.UUID("some-user-uuid"),
-		parent:         NoParent,
+		parent:         nil,
 		name:           "foo",
 		mode:           0o660 | fs.ModeDir,
 		lastModifiedAt: nowData,
@@ -52,7 +53,7 @@ func TestINodeSqlstore(t *testing.T) {
 			err := store.Save(ctx, &INode{
 				id:             uuid.UUID(fmt.Sprintf("some-child-id-%d", i)),
 				userID:         uuid.UUID("some-user-uuid"),
-				parent:         uuid.UUID("some-dir-uuid"),
+				parent:         ptr.To(uuid.UUID("some-dir-uuid")),
 				name:           fmt.Sprintf("child-%d", i),
 				mode:           0o660 | fs.ModeDir,
 				lastModifiedAt: nowData,
@@ -78,7 +79,7 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.Equal(t, res[0], INode{
 			id:             uuid.UUID("some-child-id-0"),
 			userID:         uuid.UUID("some-user-uuid"),
-			parent:         uuid.UUID("some-dir-uuid"),
+			parent:         ptr.To(uuid.UUID("some-dir-uuid")),
 			name:           "child-0",
 			mode:           0o660 | fs.ModeDir,
 			lastModifiedAt: nowData,
@@ -102,7 +103,7 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.Equal(t, res[0], INode{
 			id:             uuid.UUID("some-child-id-5"),
 			userID:         uuid.UUID("some-user-uuid"),
-			parent:         uuid.UUID("some-dir-uuid"),
+			parent:         ptr.To(uuid.UUID("some-dir-uuid")),
 			name:           "child-5",
 			mode:           0o660 | fs.ModeDir,
 			lastModifiedAt: nowData,
@@ -123,7 +124,7 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.EqualValues(t, &INode{
 			id:             uuid.UUID("some-child-id-5"),
 			userID:         uuid.UUID("some-user-uuid"),
-			parent:         uuid.UUID("some-dir-uuid"),
+			parent:         ptr.To(uuid.UUID("some-dir-uuid")),
 			name:           "child-5",
 			mode:           0o660 | fs.ModeDir,
 			lastModifiedAt: nowData,
@@ -171,7 +172,7 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.Equal(t, INode{
 			id:             uuid.UUID("some-child-id-5"),
 			userID:         uuid.UUID("some-user-uuid"),
-			parent:         uuid.UUID("some-dir-uuid"),
+			parent:         ptr.To(uuid.UUID("some-dir-uuid")),
 			name:           "child-5",
 			mode:           0o660 | fs.ModeDir,
 			lastModifiedAt: nowData,

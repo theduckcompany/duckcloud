@@ -12,6 +12,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/clock"
 	"github.com/theduckcompany/duckcloud/src/tools/errs"
+	"github.com/theduckcompany/duckcloud/src/tools/ptr"
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
@@ -59,7 +60,7 @@ func (s *INodeService) BootstrapUser(ctx context.Context, userID uuid.UUID) (*IN
 	node := INode{
 		id:             s.uuid.New(),
 		userID:         userID,
-		parent:         NoParent,
+		parent:         nil,
 		mode:           0o660 | fs.ModeDir,
 		createdAt:      now,
 		lastModifiedAt: now,
@@ -95,7 +96,7 @@ func (s *INodeService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INo
 	now := s.clock.Now()
 	inode := INode{
 		id:             s.uuid.New(),
-		parent:         parent.ID(),
+		parent:         ptr.To(parent.ID()),
 		userID:         cmd.UserID,
 		mode:           cmd.Mode,
 		size:           0,
@@ -187,7 +188,7 @@ func (s *INodeService) CreateDir(ctx context.Context, cmd *PathCmd) (*INode, err
 			id:             s.uuid.New(),
 			userID:         cmd.UserID,
 			mode:           0o660 | fs.ModeDir,
-			parent:         dir.ID(),
+			parent:         ptr.To(dir.ID()),
 			name:           frag,
 			lastModifiedAt: now,
 			createdAt:      now,
