@@ -42,7 +42,6 @@ func (h *HTTPHandler) String() string {
 func (t *HTTPHandler) createUser(w http.ResponseWriter, r *http.Request) {
 	type req struct {
 		Username string `json:"username"`
-		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
 
@@ -56,7 +55,6 @@ func (t *HTTPHandler) createUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := t.service.Create(r.Context(), &CreateCmd{
 		Username: input.Username,
-		Email:    input.Email,
 		Password: input.Password,
 	})
 	if err != nil {
@@ -71,7 +69,6 @@ func (t *HTTPHandler) getMyUser(w http.ResponseWriter, r *http.Request) {
 	type response struct {
 		ID        string    `json:"id"`
 		Username  string    `json:"username"`
-		Email     string    `json:"email"`
 		CreatedAt time.Time `json:"createdAt"`
 	}
 
@@ -90,7 +87,6 @@ func (t *HTTPHandler) getMyUser(w http.ResponseWriter, r *http.Request) {
 	t.response.WriteJSON(w, http.StatusOK, &response{
 		ID:        string(user.ID()),
 		Username:  user.Username(),
-		Email:     user.Email(),
 		CreatedAt: user.CreatedAt(),
 	})
 }

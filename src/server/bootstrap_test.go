@@ -24,7 +24,6 @@ func TestBootstrap(t *testing.T) {
 
 	user := users.CreateCmd{
 		Username: "foo",
-		Email:    "foo@bar.baz",
 		Password: "qwert1234",
 	}
 

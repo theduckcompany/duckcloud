@@ -23,11 +23,9 @@ func TestHTTHandler(t *testing.T) {
 
 		service.On("Create", mock.Anything, &CreateCmd{
 			Username: "some-username",
-			Email:    "some-email",
 			Password: "some-password",
 		}).Return(&User{
 			username:  "some-username",
-			email:     "some-email",
 			createdAt: now,
 			password:  "some-password",
 		}, nil).Once()
@@ -36,7 +34,6 @@ func TestHTTHandler(t *testing.T) {
 			WithHeader("Content-Type", "application/json").
 			WithBytes([]byte(`{
       "username": "some-username",
-      "email": "some-email",
       "password": "some-password"
     }`)).
 			Expect().Status(http.StatusCreated).
@@ -45,13 +42,11 @@ func TestHTTHandler(t *testing.T) {
       "properties": {
         "id": { "type": "string" },
         "username": { "type": "string" },
-        "email": { "type": "string" },
         "createdAt": { "type": "string" }
       }
     }`).Object()
 
 		obj.HasValue("username", "some-username")
-		obj.HasValue("email", "some-email")
 		obj.HasValue("createdAt", now.Format(time.RFC3339Nano))
 	})
 
@@ -67,7 +62,6 @@ func TestHTTHandler(t *testing.T) {
 		service.On("GetByID", mock.Anything, uuid.UUID("some-user-id")).Return(&User{
 			id:        uuid.UUID("some-user-id"),
 			username:  "some-username",
-			email:     "some-email",
 			createdAt: now,
 			password:  "some-password",
 		}, nil).Once()
@@ -79,13 +73,11 @@ func TestHTTHandler(t *testing.T) {
       "properties": {
         "id": { "type": "string" },
         "username": { "type": "string" },
-        "email": { "type": "string" },
         "createdAt": { "type": "string" }
       }
     }`).Object()
 
 		obj.HasValue("username", "some-username")
-		obj.HasValue("email", "some-email")
 		obj.HasValue("createdAt", now.Format(time.RFC3339Nano))
 	})
 }

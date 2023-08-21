@@ -16,7 +16,6 @@ func TestUserSqlStorage(t *testing.T) {
 	userData := User{
 		id:        uuid.UUID("some-uuid"),
 		username:  "some-username",
-		email:     "some-email",
 		fsRoot:    uuid.UUID("some-inode-uuid"),
 		password:  "some-password",
 		createdAt: nowData,
@@ -43,23 +42,6 @@ func TestUserSqlStorage(t *testing.T) {
 
 	t.Run("GetByID not found", func(t *testing.T) {
 		res, err := storage.GetByID(context.Background(), "some-invalid-id")
-
-		assert.NoError(t, err)
-		assert.Nil(t, res)
-	})
-
-	t.Run("GetByEmail success", func(t *testing.T) {
-		res, err := storage.GetByEmail(context.Background(), "some-email")
-
-		assert.NotNil(t, res)
-		res.createdAt = res.createdAt.UTC()
-
-		assert.NoError(t, err)
-		assert.Equal(t, &userData, res)
-	})
-
-	t.Run("GetByEmail not found", func(t *testing.T) {
-		res, err := storage.GetByEmail(context.Background(), "some-invalid-email")
 
 		assert.NoError(t, err)
 		assert.Nil(t, res)

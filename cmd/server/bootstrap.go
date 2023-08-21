@@ -21,11 +21,6 @@ var qs = []*survey.Question{
 		Validate: survey.Required,
 	},
 	{
-		Name:     "email",
-		Prompt:   &survey.Input{Message: "Choose his email"},
-		Validate: survey.Required,
-	},
-	{
 		Name:     "password",
 		Prompt:   &survey.Password{Message: "Choose his password"},
 		Validate: survey.Required,
@@ -42,7 +37,6 @@ func NewBootstrapCmd(binaryName string) *cobra.Command {
 		Run: func(cmd *cobra.Command, _ []string) {
 			answers := struct {
 				Username string `survey:"username"`
-				Email    string `survey:"email"`
 				Password string `survey:"password"`
 			}{}
 
@@ -61,7 +55,6 @@ func NewBootstrapCmd(binaryName string) *cobra.Command {
 
 			bootCmd := users.CreateCmd{
 				Username: answers.Username,
-				Email:    answers.Email,
 				Password: answers.Password,
 			}
 
