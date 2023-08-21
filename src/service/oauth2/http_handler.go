@@ -109,7 +109,12 @@ func (h *HTTPHandler) userAuthorizationHandler(w http.ResponseWriter, r *http.Re
 		return "", oerrors.ErrInvalidRequest
 	}
 
-	client, err := h.clients.GetByID(r.Context(), r.FormValue("client_id"))
+	clientID, err := h.uuid.Parse(r.FormValue("client_id"))
+	if err != nil {
+		return "", oerrors.ErrInvalidClient
+	}
+
+	client, err := h.clients.GetByID(r.Context(), clientID)
 	if err != nil || client == nil {
 		return "", oerrors.ErrInvalidClient
 	}

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -15,36 +14,26 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
-func Test_Service(t *testing.T) {
-	now := time.Now()
+func Test_OauthConsents_Service(t *testing.T) {
 	ctx := context.Background()
-
-	consent := Consent{
-		id:           uuid.UUID("some-consent-id"),
-		userID:       uuid.UUID("some-user-id"),
-		sessionToken: "3a708fc5-dc10-4655-8fc2-33b08a4b33a5",
-		clientID:     "some-client-id",
-		scopes:       []string{"scopeA", "scopeB"},
-		createdAt:    now,
-	}
 
 	t.Run("Create success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storage := NewMockStorage(t)
 		service := NewService(storage, tools)
 
-		tools.UUIDMock.On("New").Return(uuid.UUID("some-consent-id")).Once()
+		tools.UUIDMock.On("New").Return(uuid.UUID("01ce56b3-5ab9-4265-b1d2-e0347dcd4158")).Once()
 		tools.ClockMock.On("Now").Return(now).Once()
-		storage.On("Save", mock.Anything, &consent).Return(nil).Once()
+		storage.On("Save", mock.Anything, &ExampleAliceConsent).Return(nil).Once()
 
 		res, err := service.Create(ctx, &CreateCmd{
-			UserID:       uuid.UUID("some-user-id"),
+			UserID:       uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 			SessionToken: "3a708fc5-dc10-4655-8fc2-33b08a4b33a5",
-			ClientID:     "some-client-id",
+			ClientID:     "alice-oauth-client",
 			Scopes:       []string{"scopeA", "scopeB"},
 		})
 		assert.NoError(t, err)
-		assert.EqualValues(t, &consent, res)
+		assert.EqualValues(t, &ExampleAliceConsent, res)
 	})
 
 	t.Run("Create with a validation error", func(t *testing.T) {
@@ -53,9 +42,9 @@ func Test_Service(t *testing.T) {
 		service := NewService(storage, tools)
 
 		res, err := service.Create(ctx, &CreateCmd{
-			UserID:       uuid.UUID("some-user-id"),
+			UserID:       uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 			SessionToken: "some invalid id",
-			ClientID:     "some-client-id",
+			ClientID:     "alice-oauth-client",
 			Scopes:       []string{"scopeA", "scopeB"},
 		})
 		assert.Nil(t, res)
@@ -67,14 +56,14 @@ func Test_Service(t *testing.T) {
 		storage := NewMockStorage(t)
 		service := NewService(storage, tools)
 
-		tools.UUIDMock.On("New").Return(uuid.UUID("some-consent-id")).Once()
+		tools.UUIDMock.On("New").Return(uuid.UUID("01ce56b3-5ab9-4265-b1d2-e0347dcd4158")).Once()
 		tools.ClockMock.On("Now").Return(now).Once()
-		storage.On("Save", mock.Anything, &consent).Return(errors.New("some-error")).Once()
+		storage.On("Save", mock.Anything, &ExampleAliceConsent).Return(errors.New("some-error")).Once()
 
 		res, err := service.Create(ctx, &CreateCmd{
-			UserID:       uuid.UUID("some-user-id"),
+			UserID:       uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 			SessionToken: "3a708fc5-dc10-4655-8fc2-33b08a4b33a5",
-			ClientID:     "some-client-id",
+			ClientID:     "alice-oauth-client",
 			Scopes:       []string{"scopeA", "scopeB"},
 		})
 		assert.Nil(t, res)
@@ -91,9 +80,9 @@ func Test_Service(t *testing.T) {
 		query.Add("consent_id", "84a871a1-e8f1-4041-83b3-530d013737cb")
 		req.URL.RawQuery = query.Encode()
 
-		storage.On("GetByID", mock.Anything, "84a871a1-e8f1-4041-83b3-530d013737cb").Return(&consent, nil).Once()
+		storage.On("GetByID", mock.Anything, "84a871a1-e8f1-4041-83b3-530d013737cb").Return(&ExampleAliceConsent, nil).Once()
 
-		err := service.Check(req, &oauthclients.ExampleClient, &websessions.WebSessionExample)
+		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.WebSessionExample)
 		assert.NoError(t, err)
 	})
 
@@ -107,7 +96,7 @@ func Test_Service(t *testing.T) {
 		query.Add("consent_id", "invalid format")
 		req.URL.RawQuery = query.Encode()
 
-		err := service.Check(req, &oauthclients.ExampleClient, &websessions.WebSessionExample)
+		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.WebSessionExample)
 		assert.EqualError(t, err, "validation error: must be a valid UUID v4")
 	})
 
@@ -123,7 +112,7 @@ func Test_Service(t *testing.T) {
 
 		storage.On("GetByID", mock.Anything, "84a871a1-e8f1-4041-83b3-530d013737cb").Return(nil, errors.New("some-error")).Once()
 
-		err := service.Check(req, &oauthclients.ExampleClient, &websessions.WebSessionExample)
+		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.WebSessionExample)
 		assert.EqualError(t, err, "fail to fetch the consent from storage: some-error")
 	})
 
@@ -139,7 +128,7 @@ func Test_Service(t *testing.T) {
 
 		storage.On("GetByID", mock.Anything, "84a871a1-e8f1-4041-83b3-530d013737cb").Return(nil, nil).Once()
 
-		err := service.Check(req, &oauthclients.ExampleClient, &websessions.WebSessionExample)
+		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.WebSessionExample)
 		assert.EqualError(t, err, "consent not found")
 	})
 
@@ -154,17 +143,17 @@ func Test_Service(t *testing.T) {
 		req.URL.RawQuery = query.Encode()
 
 		consent := Consent{
-			id:           uuid.UUID("some-consent-id"),
-			userID:       uuid.UUID("some-user-id"),
-			sessionToken: "3a708fc5-dc10-4655-8fc2-33b08a4b33a5",
-			clientID:     "some-other-client-id",
-			scopes:       []string{"scopeA", "scopeB"},
+			id:           ExampleAliceConsent.id,
+			userID:       ExampleAliceConsent.userID,
+			sessionToken: ExampleAliceConsent.sessionToken,
+			clientID:     "some-other-client-id", // invalid client id
+			scopes:       ExampleAliceConsent.scopes,
 			createdAt:    now,
 		}
 
 		storage.On("GetByID", mock.Anything, "84a871a1-e8f1-4041-83b3-530d013737cb").Return(&consent, nil).Once()
 
-		err := service.Check(req, &oauthclients.ExampleClient, &websessions.WebSessionExample)
+		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.WebSessionExample)
 		assert.EqualError(t, err, "bad request: consent clientID doesn't match with the given client")
 	})
 
@@ -173,12 +162,12 @@ func Test_Service(t *testing.T) {
 		storage := NewMockStorage(t)
 		service := NewService(storage, tools)
 
-		consent := Consent{
-			id:     uuid.UUID("some-consent-id"),
-			userID: uuid.UUID("some-user-id"),
+		ExampleAliceConsent := Consent{
+			id:     uuid.UUID("some-ExampleAliceConsent-id"),
+			userID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 			// The sessionToken doesn't match the one inside the session
 			sessionToken: "some-other-token",
-			clientID:     "some-client-id",
+			clientID:     "alice-oauth-client",
 			scopes:       []string{"scopeA", "scopeB"},
 			createdAt:    now,
 		}
@@ -188,9 +177,9 @@ func Test_Service(t *testing.T) {
 		query.Add("consent_id", "84a871a1-e8f1-4041-83b3-530d013737cb")
 		req.URL.RawQuery = query.Encode()
 
-		storage.On("GetByID", mock.Anything, "84a871a1-e8f1-4041-83b3-530d013737cb").Return(&consent, nil).Once()
+		storage.On("GetByID", mock.Anything, "84a871a1-e8f1-4041-83b3-530d013737cb").Return(&ExampleAliceConsent, nil).Once()
 
-		err := service.Check(req, &oauthclients.ExampleClient, &websessions.WebSessionExample)
+		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.WebSessionExample)
 		assert.EqualError(t, err, "bad request: consent session token doesn't match with the given session")
 	})
 }

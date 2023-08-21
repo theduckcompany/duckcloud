@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -15,44 +14,50 @@ import (
 func TestOauthClientsService(t *testing.T) {
 	ctx := context.Background()
 
-	now := time.Now()
-	client := Client{
-		id:             "some-id",
-		name:           "some-name",
-		secret:         "some-secret-uuid",
-		redirectURI:    "http://some-url",
-		userID:         "some-user-id",
-		createdAt:      now,
-		scopes:         Scopes{"foo", "bar"},
-		public:         true,
-		skipValidation: true,
-	}
-
 	t.Run("Create success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storage := NewMockStorage(t)
 		svc := NewService(tools, storage)
 
 		// Check that the client name is not already taken
-		storage.On("GetByID", mock.Anything, "some-id").Return(nil, nil).Once()
+		storage.On("GetByID", mock.Anything, ExampleAliceClient.id).Return(nil, nil).Once()
 
 		tools.ClockMock.On("Now").Return(now).Once()                          // Client.CreatedAt
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-secret-uuid")).Once() // Client.Secret
 
-		storage.On("Save", mock.Anything, &client).Return(nil).Once()
+		storage.On("Save", mock.Anything, &ExampleAliceClient).Return(nil).Once()
 
 		res, err := svc.Create(ctx, &CreateCmd{
-			ID:             "some-id",
-			Name:           "some-name",
-			RedirectURI:    "http://some-url",
-			UserID:         "some-user-id",
-			Scopes:         Scopes{"foo", "bar"},
-			Public:         true,
-			SkipValidation: true,
+			ID:             ExampleAliceClient.id,
+			Name:           ExampleAliceClient.name,
+			RedirectURI:    ExampleAliceClient.redirectURI,
+			UserID:         ExampleAliceClient.userID,
+			Scopes:         ExampleAliceClient.scopes,
+			Public:         ExampleAliceClient.public,
+			SkipValidation: ExampleAliceClient.skipValidation,
 		})
 
 		assert.NoError(t, err)
-		assert.EqualValues(t, &client, res)
+		assert.EqualValues(t, &ExampleAliceClient, res)
+	})
+
+	t.Run("Create with a validation error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storage := NewMockStorage(t)
+		svc := NewService(tools, storage)
+
+		res, err := svc.Create(ctx, &CreateCmd{
+			ID:             ExampleAliceClient.id,
+			Name:           ExampleAliceClient.name,
+			RedirectURI:    "some-invalid-url",
+			UserID:         ExampleAliceClient.userID,
+			Scopes:         ExampleAliceClient.scopes,
+			Public:         ExampleAliceClient.public,
+			SkipValidation: ExampleAliceClient.skipValidation,
+		})
+
+		assert.EqualError(t, err, "validation error: RedirectURI: must be a valid URL.")
+		assert.Nil(t, res)
 	})
 
 	t.Run("Create with a client id already taken", func(t *testing.T) {
@@ -60,16 +65,16 @@ func TestOauthClientsService(t *testing.T) {
 		storage := NewMockStorage(t)
 		svc := NewService(tools, storage)
 
-		storage.On("GetByID", mock.Anything, "some-id").Return(&Client{ /* some fields */ }, nil).Once()
+		storage.On("GetByID", mock.Anything, ExampleAliceClient.id).Return(&ExampleAliceClient, nil).Once()
 
 		res, err := svc.Create(ctx, &CreateCmd{
-			ID:             "some-id",
-			Name:           "some-name",
-			RedirectURI:    "http://some-url",
-			UserID:         "some-user-id",
-			Scopes:         Scopes{"foo", "bar"},
-			Public:         true,
-			SkipValidation: true,
+			ID:             ExampleAliceClient.id,
+			Name:           ExampleAliceClient.name,
+			RedirectURI:    ExampleAliceClient.redirectURI,
+			UserID:         ExampleAliceClient.userID,
+			Scopes:         ExampleAliceClient.scopes,
+			Public:         ExampleAliceClient.public,
+			SkipValidation: ExampleAliceClient.skipValidation,
 		})
 
 		assert.ErrorIs(t, err, ErrClientIDTaken)
@@ -82,21 +87,21 @@ func TestOauthClientsService(t *testing.T) {
 		svc := NewService(tools, storage)
 
 		// Check that the client name is not already taken
-		storage.On("GetByID", mock.Anything, "some-id").Return(nil, nil).Once()
+		storage.On("GetByID", mock.Anything, ExampleAliceClient.id).Return(nil, nil).Once()
 
 		tools.ClockMock.On("Now").Return(now).Once()                          // Client.CreatedAt
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-secret-uuid")).Once() // Client.Secret
 
-		storage.On("Save", mock.Anything, mock.Anything).Return(fmt.Errorf("some-error")).Once()
+		storage.On("Save", mock.Anything, &ExampleAliceClient).Return(fmt.Errorf("some-error")).Once()
 
 		res, err := svc.Create(ctx, &CreateCmd{
-			ID:             "some-id",
-			Name:           "some-name",
-			RedirectURI:    "http://some-url",
-			UserID:         "some-user-id",
-			Scopes:         Scopes{"foo", "bar"},
-			Public:         true,
-			SkipValidation: true,
+			ID:             ExampleAliceClient.id,
+			Name:           ExampleAliceClient.name,
+			RedirectURI:    ExampleAliceClient.redirectURI,
+			UserID:         ExampleAliceClient.userID,
+			Scopes:         ExampleAliceClient.scopes,
+			Public:         ExampleAliceClient.public,
+			SkipValidation: ExampleAliceClient.skipValidation,
 		})
 
 		assert.EqualError(t, err, "failed to save the client: some-error")
@@ -108,11 +113,11 @@ func TestOauthClientsService(t *testing.T) {
 		storage := NewMockStorage(t)
 		svc := NewService(tools, storage)
 
-		storage.On("GetByID", mock.Anything, "some-id").Return(&client, nil).Once()
+		storage.On("GetByID", mock.Anything, ExampleAliceClient.id).Return(&ExampleAliceClient, nil).Once()
 
-		res, err := svc.GetByID(ctx, "some-id")
+		res, err := svc.GetByID(ctx, ExampleAliceClient.id)
 		assert.NoError(t, err)
-		assert.EqualValues(t, &client, res)
+		assert.EqualValues(t, &ExampleAliceClient, res)
 	})
 
 	t.Run("GetByID not found", func(t *testing.T) {
@@ -120,9 +125,9 @@ func TestOauthClientsService(t *testing.T) {
 		storage := NewMockStorage(t)
 		svc := NewService(tools, storage)
 
-		storage.On("GetByID", mock.Anything, "some-id").Return(nil, nil).Once()
+		storage.On("GetByID", mock.Anything, ExampleAliceClient.id).Return(nil, nil).Once()
 
-		res, err := svc.GetByID(ctx, "some-id")
+		res, err := svc.GetByID(ctx, ExampleAliceClient.id)
 		assert.NoError(t, err)
 		assert.Nil(t, nil, res)
 	})
@@ -132,9 +137,9 @@ func TestOauthClientsService(t *testing.T) {
 		storage := NewMockStorage(t)
 		svc := NewService(tools, storage)
 
-		storage.On("GetByID", mock.Anything, "some-id").Return(nil, fmt.Errorf("some-error")).Once()
+		storage.On("GetByID", mock.Anything, ExampleAliceClient.id).Return(nil, fmt.Errorf("some-error")).Once()
 
-		res, err := svc.GetByID(ctx, "some-id")
+		res, err := svc.GetByID(ctx, ExampleAliceClient.id)
 		assert.Nil(t, nil, res)
 		assert.EqualError(t, err, "failed to get by ID: some-error")
 	})

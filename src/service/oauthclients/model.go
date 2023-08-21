@@ -9,17 +9,18 @@ import (
 
 	v "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 var ClientIDRegexp = regexp.MustCompile("^[0-9a-zA-Z-]+$")
 
 // Client client model
 type Client struct {
-	id             string
+	id             uuid.UUID
 	name           string
 	secret         string
 	redirectURI    string
-	userID         string
+	userID         uuid.UUID
 	createdAt      time.Time
 	scopes         Scopes
 	public         bool
@@ -29,17 +30,17 @@ type Client struct {
 func (c *Client) SkipValidation() bool { return c.skipValidation }
 func (c *Client) Name() string         { return c.name }
 func (c *Client) RedirectURI() string  { return c.redirectURI }
-func (c *Client) GetID() string        { return c.id }
+func (c *Client) GetID() string        { return string(c.id) }
 func (c *Client) GetSecret() string    { return c.secret }
 func (c *Client) GetDomain() string    { return c.redirectURI }
 func (c *Client) IsPublic() bool       { return c.public }
-func (c *Client) GetUserID() string    { return c.userID }
+func (c *Client) GetUserID() string    { return string(c.userID) }
 
 type CreateCmd struct {
-	ID             string
+	ID             uuid.UUID
 	Name           string
 	RedirectURI    string
-	UserID         string
+	UserID         uuid.UUID
 	Scopes         Scopes
 	Public         bool
 	SkipValidation bool

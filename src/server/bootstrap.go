@@ -45,8 +45,8 @@ func bootstrap(cmd users.CreateCmd) bootstrapFunc {
 		_, err = clientSvc.Create(ctx, &oauthclients.CreateCmd{
 			ID:             "web",
 			Name:           "Web",
-			RedirectURI:    "/settings",
-			UserID:         string(user.ID()),
+			RedirectURI:    "http://localhost/settings",
+			UserID:         user.ID(),
 			Scopes:         []string{"*"},
 			Public:         true,
 			SkipValidation: true,

@@ -17,10 +17,12 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/errs"
 	"github.com/theduckcompany/duckcloud/src/tools/response"
 	"github.com/theduckcompany/duckcloud/src/tools/router"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 type authHandler struct {
 	response response.Writer
+	uuid     uuid.Service
 
 	users        users.Service
 	clients      oauthclients.Service
@@ -36,6 +38,7 @@ func newAuthHandler(
 	webSessions websessions.Service,
 ) *authHandler {
 	return &authHandler{
+		uuid:         tools.UUID(),
 		response:     tools.ResWriter(),
 		users:        users,
 		clients:      clients,
@@ -103,7 +106,13 @@ func (h *authHandler) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client, err := h.clients.GetByID(r.Context(), r.FormValue("client_id"))
+	clientID, err := h.uuid.Parse(r.FormValue("client_id"))
+	if err != nil {
+		h.response.WriteJSONError(w, errs.BadRequest(oauth2.ErrClientNotFound, "client not found"))
+		return
+	}
+
+	client, err := h.clients.GetByID(r.Context(), clientID)
 	if err != nil {
 		h.response.WriteJSONError(w, errs.BadRequest(oauth2.ErrClientNotFound, "client not found"))
 		return
@@ -180,7 +189,13 @@ func (h *authHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	client, err := h.clients.GetByID(r.Context(), r.FormValue("client_id"))
+	clientID, err := h.uuid.Parse(r.FormValue("client_id"))
+	if err != nil {
+		h.response.WriteJSONError(w, errs.BadRequest(oauth2.ErrClientNotFound, "client not found"))
+		return
+	}
+
+	client, err := h.clients.GetByID(r.Context(), clientID)
 	if err != nil {
 		h.response.WriteJSONError(w, errs.BadRequest(err, "invalid request"))
 		return
