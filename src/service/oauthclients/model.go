@@ -49,11 +49,11 @@ type CreateCmd struct {
 // Validate the fields.
 func (cmd CreateCmd) Validate() error {
 	return v.ValidateStruct(&cmd,
-		v.Field(&cmd.ID, v.Length(3, 20), v.Match(ClientIDRegexp)),
-		v.Field(&cmd.Name, v.Length(3, 20), is.ASCII),
-		v.Field(&cmd.RedirectURI, is.URL),
-		v.Field(&cmd.UserID, is.UUIDv4),
-		v.Field(&cmd.Scopes, v.Required),
+		v.Field(&cmd.ID, v.Required, v.Length(3, 20), v.Match(ClientIDRegexp)),
+		v.Field(&cmd.Name, v.Required, v.Length(3, 20), is.ASCII),
+		v.Field(&cmd.RedirectURI, v.Required, is.URL),
+		v.Field(&cmd.UserID, v.Required, is.UUIDv4),
+		v.Field(&cmd.Scopes, v.Required, v.Required),
 	)
 }
 
