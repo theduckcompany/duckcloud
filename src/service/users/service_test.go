@@ -21,7 +21,6 @@ func Test_Users_Service(t *testing.T) {
 	user := User{
 		id:        uuid.UUID("some-user-id"),
 		username:  "some-username",
-		email:     "some@email.com",
 		fsRoot:    uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
 		password:  "some-encrypted-password",
 		createdAt: now,
@@ -33,7 +32,6 @@ func Test_Users_Service(t *testing.T) {
 		inodesSvc := inodes.NewMockService(t)
 		service := NewService(tools, storage, inodesSvc)
 
-		storage.On("GetByEmail", ctx, "some@email.com").Return(nil, nil).Once()
 		storage.On("GetByUsername", ctx, "some-username").Return(nil, nil).Once()
 
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-user-id")).Once()
@@ -47,29 +45,10 @@ func Test_Users_Service(t *testing.T) {
 
 		res, err := service.Create(ctx, &CreateCmd{
 			Username: "some-username",
-			Email:    "some@email.com",
 			Password: "some-password",
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, &user, res)
-	})
-
-	t.Run("Create with email already exists", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
-		inodes := inodes.NewMockService(t)
-		service := NewService(tools, storage, inodes)
-
-		storage.On("GetByEmail", ctx, "some@email.com").Return(&User{}, nil).Once()
-
-		res, err := service.Create(ctx, &CreateCmd{
-			Username: "some-username",
-			Email:    "some@email.com",
-			Password: "some-password",
-		})
-		assert.ErrorIs(t, err, ErrAlreadyExists)
-		assert.ErrorIs(t, err, errs.ErrBadRequest)
-		assert.Nil(t, res)
 	})
 
 	t.Run("Create with a taken username", func(t *testing.T) {
@@ -78,12 +57,10 @@ func Test_Users_Service(t *testing.T) {
 		inodes := inodes.NewMockService(t)
 		service := NewService(tools, storage, inodes)
 
-		storage.On("GetByEmail", ctx, "some@email.com").Return(nil, nil).Once()
 		storage.On("GetByUsername", ctx, "some-username").Return(&User{}, nil).Once()
 
 		res, err := service.Create(ctx, &CreateCmd{
 			Username: "some-username",
-			Email:    "some@email.com",
 			Password: "some-password",
 		})
 		assert.ErrorIs(t, err, ErrUsernameTaken)
@@ -97,11 +74,10 @@ func Test_Users_Service(t *testing.T) {
 		inodes := inodes.NewMockService(t)
 		service := NewService(tools, storage, inodes)
 
-		storage.On("GetByEmail", ctx, "some@email.com").Return(nil, fmt.Errorf("some-error")).Once()
+		storage.On("GetByUsername", ctx, "some-username").Return(nil, fmt.Errorf("some-error")).Once()
 
 		res, err := service.Create(ctx, &CreateCmd{
 			Username: "some-username",
-			Email:    "some@email.com",
 			Password: "some-password",
 		})
 		assert.ErrorContains(t, err, "some-error")

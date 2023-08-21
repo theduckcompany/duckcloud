@@ -14,7 +14,6 @@ func Test_CreateUserRequest_is_validatable(t *testing.T) {
 func Test_CreateUserRequest_Validate_success(t *testing.T) {
 	err := CreateCmd{
 		Username: "some-username",
-		Email:    "some@email.com",
 		Password: "myLittleSecret",
 	}.Validate()
 

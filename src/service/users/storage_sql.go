@@ -26,8 +26,8 @@ func newSqlStorage(db *sql.DB) *sqlStorage {
 func (t *sqlStorage) Save(ctx context.Context, user *User) error {
 	_, err := sq.
 		Insert(tableName).
-		Columns("id", "username", "email", "fs_root", "password", "created_at").
-		Values(user.id, user.username, user.email, user.fsRoot, user.password, user.createdAt).
+		Columns("id", "username", "fs_root", "password", "created_at").
+		Values(user.id, user.username, user.fsRoot, user.password, user.createdAt).
 		RunWith(t.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -44,16 +44,6 @@ func (t *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*User, error) {
 	return t.getByKey(ctx, "id", string(id))
 }
 
-// GetByEmail return the user matching the email.
-//
-// If no user is found, nil and no error will be returned.
-func (t *sqlStorage) GetByEmail(ctx context.Context, email string) (*User, error) {
-	return t.getByKey(ctx, "email", email)
-}
-
-// GetByEmail return the user matching the username.
-//
-// If no user is found, nil and no error will be returned.
 func (t *sqlStorage) GetByUsername(ctx context.Context, username string) (*User, error) {
 	return t.getByKey(ctx, "username", username)
 }
@@ -62,11 +52,11 @@ func (t *sqlStorage) getByKey(ctx context.Context, key, expected string) (*User,
 	res := User{}
 
 	err := sq.
-		Select("id", "username", "email", "fs_root", "password", "created_at").
+		Select("id", "username", "fs_root", "password", "created_at").
 		From(tableName).
 		Where(sq.Eq{key: expected}).
 		RunWith(t.db).
-		ScanContext(ctx, &res.id, &res.username, &res.email, &res.fsRoot, &res.password, &res.createdAt)
+		ScanContext(ctx, &res.id, &res.username, &res.fsRoot, &res.password, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}

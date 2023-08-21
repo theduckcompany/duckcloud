@@ -11,7 +11,6 @@ import (
 
 type BootstrapCmd struct {
 	Username string
-	Email    string
 	Password string
 }
 
@@ -35,7 +34,6 @@ func bootstrap(cmd users.CreateCmd) bootstrapFunc {
 
 		user, err := usersSvc.Create(ctx, &users.CreateCmd{
 			Username: cmd.Username,
-			Email:    cmd.Email,
 			Password: cmd.Password,
 		})
 		if err != nil {

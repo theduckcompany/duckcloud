@@ -14,32 +14,6 @@ type MockStorage struct {
 	mock.Mock
 }
 
-// GetByEmail provides a mock function with given fields: ctx, email
-func (_m *MockStorage) GetByEmail(ctx context.Context, email string) (*User, error) {
-	ret := _m.Called(ctx, email)
-
-	var r0 *User
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*User, error)); ok {
-		return rf(ctx, email)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *User); ok {
-		r0 = rf(ctx, email)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*User)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, email)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetByID provides a mock function with given fields: ctx, userID
 func (_m *MockStorage) GetByID(ctx context.Context, userID uuid.UUID) (*User, error) {
 	ret := _m.Called(ctx, userID)

@@ -25,7 +25,6 @@ var (
 //go:generate mockery --name Storage
 type Storage interface {
 	Save(ctx context.Context, user *User) error
-	GetByEmail(ctx context.Context, email string) (*User, error)
 	GetByUsername(ctx context.Context, username string) (*User, error)
 	GetByID(ctx context.Context, userID uuid.UUID) (*User, error)
 }
@@ -51,14 +50,6 @@ func (t *UserService) Create(ctx context.Context, input *CreateCmd) (*User, erro
 		return nil, errs.ValidationError(err)
 	}
 
-	userWithEmail, err := t.storage.GetByEmail(ctx, input.Email)
-	if err != nil {
-		return nil, fmt.Errorf("failed to check if the email is already used: %w", err)
-	}
-	if userWithEmail != nil {
-		return nil, errs.BadRequest(ErrAlreadyExists, "user already exists")
-	}
-
 	userWithSameUsername, err := t.storage.GetByUsername(ctx, input.Username)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if the username is already used: %w", err)
@@ -82,7 +73,6 @@ func (t *UserService) Create(ctx context.Context, input *CreateCmd) (*User, erro
 	user := User{
 		id:        newUserID,
 		username:  input.Username,
-		email:     input.Email,
 		password:  hashedPassword,
 		fsRoot:    rootDir.ID(),
 		createdAt: t.clock.Now(),
