@@ -51,22 +51,11 @@ func (h *authHandler) Register(r chi.Router, mids router.Middlewares) {
 	auth := r.With(mids.RealIP, mids.StripSlashed, mids.Logger, mids.CORS)
 
 	auth.HandleFunc("/login", h.handleLoginPage)
-	auth.HandleFunc("/forgot", h.handleForgotPage)
 	auth.HandleFunc("/consent", h.handleConsentPage)
 }
 
 func (h *authHandler) String() string {
 	return "web.auth"
-}
-
-func (h *authHandler) handleForgotPage(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet {
-		h.response.WriteHTML(w, http.StatusOK, "auth/forgot.tmpl", nil)
-		return
-	}
-
-	w.WriteHeader(http.StatusNotImplemented)
-	w.Write([]byte("Not implemented yet!"))
 }
 
 func (h *authHandler) handleLoginPage(w http.ResponseWriter, r *http.Request) {
