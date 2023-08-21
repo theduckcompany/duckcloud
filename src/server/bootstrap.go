@@ -32,25 +32,12 @@ func bootstrap(cmd users.CreateCmd) bootstrapFunc {
 	return func(usersSvc users.Service, clientSvc oauthclients.Service) error {
 		ctx := context.Background()
 
-		user, err := usersSvc.Create(ctx, &users.CreateCmd{
+		_, err := usersSvc.Create(ctx, &users.CreateCmd{
 			Username: cmd.Username,
 			Password: cmd.Password,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to create the user: %w", err)
-		}
-
-		_, err = clientSvc.Create(ctx, &oauthclients.CreateCmd{
-			ID:             "web",
-			Name:           "Web",
-			RedirectURI:    "http://localhost/settings",
-			UserID:         user.ID(),
-			Scopes:         []string{"*"},
-			Public:         true,
-			SkipValidation: true,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to create the web client: %w", err)
 		}
 
 		return nil
