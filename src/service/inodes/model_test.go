@@ -10,15 +10,15 @@ import (
 )
 
 func TestInodeGetter(t *testing.T) {
-	assert.Equal(t, ExampleRoot.ID(), uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"))
-	assert.Equal(t, ExampleRoot.Name(), "")
-	assert.Equal(t, ExampleRoot.UserID(), uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"))
-	assert.Nil(t, ExampleRoot.Parent())
-	assert.Equal(t, ExampleRoot.Mode(), 0o660|fs.ModeDir)
-	assert.Equal(t, ExampleRoot.CreatedAt(), now)
-	assert.Equal(t, ExampleRoot.LastModifiedAt(), now)
-	assert.Equal(t, ExampleRoot.Size(), int64(0))
+	assert.Equal(t, ExampleAliceRoot.ID(), uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"))
+	assert.Equal(t, ExampleAliceRoot.Name(), "")
+	assert.Equal(t, ExampleAliceRoot.UserID(), uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"))
+	assert.Nil(t, ExampleAliceRoot.Parent())
+	assert.Equal(t, ExampleAliceRoot.Mode(), 0o660|fs.ModeDir)
+	assert.Equal(t, ExampleAliceRoot.CreatedAt(), now)
+	assert.Equal(t, ExampleAliceRoot.LastModifiedAt(), now)
+	assert.Equal(t, ExampleAliceRoot.Size(), int64(0))
 
-	assert.Equal(t, ExampleFile.Size(), int64(42))
-	assert.Equal(t, ExampleFile.Parent(), ptr.To(uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")))
+	assert.Equal(t, ExampleAliceFile.Size(), int64(42))
+	assert.Equal(t, ExampleAliceFile.Parent(), ptr.To(uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")))
 }

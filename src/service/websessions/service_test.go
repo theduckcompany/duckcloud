@@ -15,7 +15,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
-func Test_Service(t *testing.T) {
+func Test_WebSessions_Service(t *testing.T) {
 	now := time.Now()
 	ctx := context.Background()
 

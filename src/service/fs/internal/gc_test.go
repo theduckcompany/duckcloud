@@ -21,19 +21,19 @@ func TestGC(t *testing.T) {
 		inodesSvc := inodes.NewMockService(t)
 
 		// First loop to fetch the deleted inodes
-		inodesSvc.On("GetDeletedINodes", mock.Anything, 10).Return([]inodes.INode{inodes.ExampleRoot}, nil).Once()
+		inodesSvc.On("GetDeletedINodes", mock.Anything, 10).Return([]inodes.INode{inodes.ExampleAliceRoot}, nil).Once()
 
 		// This is a dir we will delete all its content
 		inodesSvc.On("Readdir", mock.Anything, &inodes.PathCmd{
-			UserID:   inodes.ExampleRoot.UserID(),
-			Root:     inodes.ExampleRoot.ID(),
+			UserID:   inodes.ExampleAliceRoot.UserID(),
+			Root:     inodes.ExampleAliceRoot.ID(),
 			FullName: "/",
-		}, &storage.PaginateCmd{Limit: 10}).Return([]inodes.INode{inodes.ExampleFile}, nil).Once()
+		}, &storage.PaginateCmd{Limit: 10}).Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
 
 		// We remove the content
-		inodesSvc.On("HardDelete", mock.Anything, inodes.ExampleFile.ID()).Return(nil).Once()
+		inodesSvc.On("HardDelete", mock.Anything, inodes.ExampleAliceFile.ID()).Return(nil).Once()
 		// We remove the dir itself
-		inodesSvc.On("HardDelete", mock.Anything, inodes.ExampleRoot.ID()).Return(nil).Once()
+		inodesSvc.On("HardDelete", mock.Anything, inodes.ExampleAliceRoot.ID()).Return(nil).Once()
 
 		svc := NewGCService(inodesSvc, tools)
 
@@ -59,12 +59,12 @@ func TestGC(t *testing.T) {
 		inodesSvc := inodes.NewMockService(t)
 
 		// First loop to fetch the deleted inodes
-		inodesSvc.On("GetDeletedINodes", mock.Anything, 10).Return([]inodes.INode{inodes.ExampleRoot}, nil).Once()
+		inodesSvc.On("GetDeletedINodes", mock.Anything, 10).Return([]inodes.INode{inodes.ExampleAliceRoot}, nil).Once()
 
 		// This is a dir we will delete all its content
 		inodesSvc.On("Readdir", mock.Anything, &inodes.PathCmd{
-			UserID:   inodes.ExampleRoot.UserID(),
-			Root:     inodes.ExampleRoot.ID(),
+			UserID:   inodes.ExampleAliceRoot.UserID(),
+			Root:     inodes.ExampleAliceRoot.ID(),
 			FullName: "/",
 		}, &storage.PaginateCmd{Limit: 10}).Return(nil, fmt.Errorf("some-error")).Once()
 
@@ -96,7 +96,7 @@ func TestGC(t *testing.T) {
 		svc.Start(time.Millisecond)
 
 		// First loop to fetch the deleted inodes. Make it take more than a 1s.
-		inodesSvc.On("GetDeletedINodes", mock.Anything, 10).WaitUntil(time.After(time.Minute)).Return([]inodes.INode{inodes.ExampleRoot}, nil).Once()
+		inodesSvc.On("GetDeletedINodes", mock.Anything, 10).WaitUntil(time.After(time.Minute)).Return([]inodes.INode{inodes.ExampleAliceRoot}, nil).Once()
 
 		// Wait some time in order to be just to have the job running and waiting for the end of "GetDeletedINodes".
 		time.Sleep(20 * time.Millisecond)

@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 const tableName = "oauth_clients"
@@ -49,7 +50,7 @@ func (t *sqlStorage) Save(ctx context.Context, client *Client) error {
 	return nil
 }
 
-func (t *sqlStorage) GetByID(ctx context.Context, id string) (*Client, error) {
+func (t *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*Client, error) {
 	var res Client
 
 	err := sq.

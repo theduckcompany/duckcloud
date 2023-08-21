@@ -2,28 +2,16 @@ package oauthconsents
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
-func TestConsentTypes(t *testing.T) {
-	now := time.Now()
-
-	consent := Consent{
-		id:           uuid.UUID("some-consent-id"),
-		userID:       uuid.UUID("some-user-id"),
-		sessionToken: "3a708fc5-dc10-4655-8fc2-33b08a4b33a5",
-		clientID:     "some-other-client-id",
-		scopes:       []string{"scopeA", "scopeB"},
-		createdAt:    now,
-	}
-
-	assert.Equal(t, uuid.UUID("some-consent-id"), consent.ID())
-	assert.Equal(t, uuid.UUID("some-user-id"), consent.UserID())
-	assert.Equal(t, "3a708fc5-dc10-4655-8fc2-33b08a4b33a5", consent.SessionToken())
-	assert.Equal(t, "some-other-client-id", consent.ClientID())
-	assert.Equal(t, []string{"scopeA", "scopeB"}, consent.Scopes())
-	assert.Equal(t, now, consent.CreatedAt())
+func TestOauthConsnet_Types(t *testing.T) {
+	assert.Equal(t, uuid.UUID("01ce56b3-5ab9-4265-b1d2-e0347dcd4158"), ExampleAliceConsent.ID())
+	assert.Equal(t, uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"), ExampleAliceConsent.UserID())
+	assert.Equal(t, "3a708fc5-dc10-4655-8fc2-33b08a4b33a5", ExampleAliceConsent.SessionToken())
+	assert.Equal(t, "alice-oauth-client", ExampleAliceConsent.ClientID())
+	assert.Equal(t, []string{"scopeA", "scopeB"}, ExampleAliceConsent.Scopes())
+	assert.Equal(t, now, ExampleAliceConsent.CreatedAt())
 }

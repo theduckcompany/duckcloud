@@ -7,6 +7,7 @@ import (
 
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/clock"
+	"github.com/theduckcompany/duckcloud/src/tools/errs"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
@@ -19,7 +20,7 @@ var ErrClientIDTaken = errors.New("clientID already exists")
 //go:generate mockery --name Storage
 type Storage interface {
 	Save(ctx context.Context, client *Client) error
-	GetByID(ctx context.Context, id string) (*Client, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*Client, error)
 }
 
 type OauthClientService struct {
@@ -33,6 +34,11 @@ func NewService(tools tools.Tools, storage Storage) *OauthClientService {
 }
 
 func (s *OauthClientService) Create(ctx context.Context, cmd *CreateCmd) (*Client, error) {
+	err := cmd.Validate()
+	if err != nil {
+		return nil, errs.ValidationError(err)
+	}
+
 	existingClient, err := s.storage.GetByID(ctx, cmd.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get by id: %w", err)
@@ -62,7 +68,7 @@ func (s *OauthClientService) Create(ctx context.Context, cmd *CreateCmd) (*Clien
 	return &client, nil
 }
 
-func (s *OauthClientService) GetByID(ctx context.Context, clientID string) (*Client, error) {
+func (s *OauthClientService) GetByID(ctx context.Context, clientID uuid.UUID) (*Client, error) {
 	client, err := s.storage.GetByID(ctx, clientID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get by ID: %w", err)

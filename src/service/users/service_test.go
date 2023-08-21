@@ -14,7 +14,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
-func Test_Service(t *testing.T) {
+func Test_Users_Service(t *testing.T) {
 	ctx := context.Background()
 
 	now := time.Now()
@@ -38,7 +38,7 @@ func Test_Service(t *testing.T) {
 
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-user-id")).Once()
 
-		inodesSvc.On("BootstrapUser", ctx, uuid.UUID("some-user-id")).Return(&inodes.ExampleRoot, nil).Once()
+		inodesSvc.On("BootstrapUser", ctx, uuid.UUID("some-user-id")).Return(&inodes.ExampleAliceRoot, nil).Once()
 
 		tools.ClockMock.On("Now").Return(now).Once()
 		tools.PasswordMock.On("Encrypt", ctx, "some-password").Return("some-encrypted-password", nil).Once()
