@@ -95,16 +95,14 @@ func (h *authHandler) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var client *oauthclients.Client
 	clientID, err := h.uuid.Parse(r.FormValue("client_id"))
-	if err != nil {
-		h.response.WriteJSONError(w, errs.BadRequest(oauth2.ErrClientNotFound, "client not found"))
-		return
-	}
-
-	client, err := h.clients.GetByID(r.Context(), clientID)
-	if err != nil {
-		h.response.WriteJSONError(w, errs.BadRequest(oauth2.ErrClientNotFound, "client not found"))
-		return
+	if err == nil {
+		client, err = h.clients.GetByID(r.Context(), clientID)
+		if err != nil {
+			h.response.WriteJSONError(w, errs.BadRequest(oauth2.ErrClientNotFound, "client not found"))
+			return
+		}
 	}
 
 	isWebAuthentication := false
