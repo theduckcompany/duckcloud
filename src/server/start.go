@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/theduckcompany/duckcloud/assets"
 	"github.com/theduckcompany/duckcloud/src/service/dav"
+	"github.com/theduckcompany/duckcloud/src/service/debug"
 	"github.com/theduckcompany/duckcloud/src/service/files"
 	"github.com/theduckcompany/duckcloud/src/service/fs"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
@@ -61,6 +62,7 @@ func start(cfg *Config, invoke fx.Option) *fx.App {
 			AsRoute(oauth2.NewHTTPHandler),
 			AsRoute(assets.NewHTTPHandler),
 			AsRoute(web.NewHTTPHandler),
+			AsRoute(debug.NewHTTPHandler),
 
 			// HTTP Router / HTTP Server
 			router.InitMiddlewares,
