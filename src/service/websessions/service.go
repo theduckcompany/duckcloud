@@ -50,7 +50,6 @@ func (s *WebSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*Sessi
 		token:     string(s.uuid.New()),
 		userID:    uuid.UUID(cmd.UserID),
 		ip:        cmd.Req.RemoteAddr,
-		clientID:  cmd.ClientID,
 		device:    fmt.Sprintf("%s - %s", uaRes.OS, uaRes.Name),
 		createdAt: s.clock.Now(),
 	}

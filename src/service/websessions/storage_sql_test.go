@@ -17,7 +17,6 @@ func TestSessionSqlStorage(t *testing.T) {
 	sessionData := Session{
 		token:     "some-token",
 		userID:    uuid.UUID("some-user-id"),
-		clientID:  "some-id",
 		device:    "IOS - Firefox",
 		createdAt: nowData,
 	}

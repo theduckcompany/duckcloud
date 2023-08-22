@@ -24,7 +24,6 @@ func Test_WebSessions_Service(t *testing.T) {
 		token:     "some-token",
 		userID:    uuid.UUID("3a708fc5-dc10-4655-8fc2-33b08a4b33a5"),
 		ip:        "192.168.1.1",
-		clientID:  "some-client-id",
 		device:    "Android - Chrome",
 		createdAt: now,
 	}
@@ -43,9 +42,8 @@ func Test_WebSessions_Service(t *testing.T) {
 		storage.On("Save", mock.Anything, &session).Return(nil).Once()
 
 		res, err := service.Create(ctx, &CreateCmd{
-			UserID:   "3a708fc5-dc10-4655-8fc2-33b08a4b33a5",
-			ClientID: "some-client-id",
-			Req:      req,
+			UserID: "3a708fc5-dc10-4655-8fc2-33b08a4b33a5",
+			Req:    req,
 		})
 		assert.NoError(t, err)
 		assert.EqualValues(t, &session, res)
@@ -61,9 +59,8 @@ func Test_WebSessions_Service(t *testing.T) {
 		req.RemoteAddr = "192.168.1.1"
 
 		res, err := service.Create(ctx, &CreateCmd{
-			UserID:   "not a uuid",
-			ClientID: "some-client-id",
-			Req:      req,
+			UserID: "not a uuid",
+			Req:    req,
 		})
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "validation error: UserID: must be a valid UUID v4.")
@@ -83,9 +80,8 @@ func Test_WebSessions_Service(t *testing.T) {
 		storage.On("Save", mock.Anything, &session).Return(fmt.Errorf("some-error")).Once()
 
 		res, err := service.Create(ctx, &CreateCmd{
-			UserID:   "3a708fc5-dc10-4655-8fc2-33b08a4b33a5",
-			ClientID: "some-client-id",
-			Req:      req,
+			UserID: "3a708fc5-dc10-4655-8fc2-33b08a4b33a5",
+			Req:    req,
 		})
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "failed to save the session: some-error")

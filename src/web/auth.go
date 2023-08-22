@@ -105,26 +105,9 @@ func (h *authHandler) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	isWebAuthentication := false
-
-	if client == nil {
-		isWebAuthentication = true
-		client, err = h.clients.GetByID(r.Context(), oauthclients.WebAppClientID)
-		if err != nil {
-			h.response.WriteJSONError(w, fmt.Errorf("failed to fetch the web app client: %w", err))
-			return
-		}
-
-		if client == nil {
-			h.response.WriteJSONError(w, errors.New("web client doesn't exists"))
-			return
-		}
-	}
-
 	session, err := h.webSession.Create(r.Context(), &websessions.CreateCmd{
-		UserID:   string(user.ID()),
-		ClientID: client.GetID(),
-		Req:      r,
+		UserID: string(user.ID()),
+		Req:    r,
 	})
 	if err != nil {
 		h.response.WriteJSONError(w, fmt.Errorf("failed to create the websession: %w", err))
@@ -143,8 +126,8 @@ func (h *authHandler) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &c)
 
 	switch {
-	case isWebAuthentication:
-		w.Header().Set("Location", client.RedirectURI())
+	case client == nil:
+		w.Header().Set("Location", "/settings")
 		w.WriteHeader(http.StatusFound)
 	case client.SkipValidation():
 		w.Header().Set("Location", "/auth/authorize")
