@@ -57,5 +57,7 @@ func (h *settingsHandler) handleSettingsPage(w http.ResponseWriter, r *http.Requ
 	h.response.WriteHTML(w, http.StatusOK, "settings/index.tmpl", map[string]interface{}{
 		"currentSession": currentSession,
 		"webSessions":    webSessions,
+		"davSessions":    []string{},
+		"oauthSessions":  []string{},
 	})
 }
