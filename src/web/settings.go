@@ -39,7 +39,8 @@ func (h *settingsHandler) Register(r chi.Router, mids router.Middlewares) {
 	auth := r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
 
 	auth.Get("/settings", h.handleSettingsPage)
-	auth.Post("/settings/davSession", h.createDavSession)
+	auth.Post("/settings/davSessions", h.createDavSession)
+	auth.Delete("/settings/webSessions/{sessionToken}", h.deleteWebSession)
 }
 
 func (h *settingsHandler) String() string {
@@ -105,4 +106,26 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 		"session": session,
 		"secret":  secret,
 	})
+}
+
+func (h *settingsHandler) deleteWebSession(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	currentSession, err := h.webSessions.GetFromReq(r)
+	if err != nil || currentSession == nil {
+		w.Header().Set("Location", "/login")
+		w.WriteHeader(http.StatusFound)
+		return
+	}
+
+	err = h.webSessions.Revoke(ctx, &websessions.RevokeCmd{
+		UserID: currentSession.UserID(),
+		Token:  chi.URLParam(r, "sessionToken"),
+	})
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

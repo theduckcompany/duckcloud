@@ -32,11 +32,22 @@ type CreateCmd struct {
 	Req      *http.Request
 }
 
-// Validate the fields.
 func (t CreateCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.UserID, v.Required, is.UUIDv4),
 		v.Field(&t.ClientID, v.Required, v.Match(oauthclients.ClientIDRegexp)),
 		v.Field(&t.Req, v.Required),
+	)
+}
+
+type RevokeCmd struct {
+	UserID uuid.UUID
+	Token  string
+}
+
+func (t RevokeCmd) Validate() error {
+	return v.ValidateStruct(&t,
+		v.Field(&t.UserID, v.Required, is.UUIDv4),
+		v.Field(&t.Token, v.Required, is.UUIDv4),
 	)
 }
