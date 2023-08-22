@@ -15,7 +15,6 @@ func TestSessionTypes(t *testing.T) {
 		token:     "some-token",
 		userID:    uuid.UUID("3a708fc5-dc10-4655-8fc2-33b08a4b33a5"),
 		ip:        "192.168.1.1",
-		clientID:  "some-client-id",
 		device:    "Android - Chrome",
 		createdAt: now,
 	}
@@ -23,7 +22,6 @@ func TestSessionTypes(t *testing.T) {
 	assert.Equal(t, "some-token", session.Token())
 	assert.Equal(t, uuid.UUID("3a708fc5-dc10-4655-8fc2-33b08a4b33a5"), session.UserID())
 	assert.Equal(t, "192.168.1.1", session.IP())
-	assert.Equal(t, "some-client-id", session.ClientID())
 	assert.Equal(t, "Android - Chrome", session.Device())
 	assert.Equal(t, now, session.CreatedAt())
 }
@@ -33,9 +31,8 @@ func Test_CreateCmd_Validate(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		cmd := CreateCmd{
-			UserID:   "3a708fc5-dc10-4655-8fc2-33b08a4b33a5",
-			ClientID: "some-client-id",
-			Req:      req,
+			UserID: "3a708fc5-dc10-4655-8fc2-33b08a4b33a5",
+			Req:    req,
 		}
 
 		assert.NoError(t, cmd.Validate())
@@ -43,9 +40,8 @@ func Test_CreateCmd_Validate(t *testing.T) {
 
 	t.Run("with an error", func(t *testing.T) {
 		cmd := CreateCmd{
-			UserID:   "some-invalid-id",
-			ClientID: "some-client-id",
-			Req:      req,
+			UserID: "some-invalid-id",
+			Req:    req,
 		}
 
 		assert.EqualError(t, cmd.Validate(), "UserID: must be a valid UUID v4.")

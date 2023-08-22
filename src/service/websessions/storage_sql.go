@@ -23,8 +23,8 @@ func newSQLStorage(db *sql.DB) *sqlStorage {
 func (s *sqlStorage) Save(ctx context.Context, session *Session) error {
 	_, err := sq.
 		Insert(tableName).
-		Columns("token", "user_id", "ip", "client_id", "device", "created_at").
-		Values(session.token, session.userID, session.ip, session.clientID, session.device, session.createdAt).
+		Columns("token", "user_id", "ip", "device", "created_at").
+		Values(session.token, session.userID, session.ip, session.device, session.createdAt).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -38,11 +38,11 @@ func (s *sqlStorage) GetByToken(ctx context.Context, token string) (*Session, er
 	res := Session{}
 
 	err := sq.
-		Select("token", "user_id", "ip", "client_id", "device", "created_at").
+		Select("token", "user_id", "ip", "device", "created_at").
 		From(tableName).
 		Where(sq.Eq{"token": token}).
 		RunWith(s.db).
-		ScanContext(ctx, &res.token, &res.userID, &res.ip, &res.clientID, &res.device, &res.createdAt)
+		ScanContext(ctx, &res.token, &res.userID, &res.ip, &res.device, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -71,7 +71,7 @@ func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID) ([]Ses
 	sessions := []Session{}
 
 	rows, err := sq.
-		Select("token", "user_id", "ip", "client_id", "device", "created_at").
+		Select("token", "user_id", "ip", "device", "created_at").
 		From(tableName).
 		Where(sq.Eq{"user_id": userID}).
 		RunWith(s.db).
@@ -84,7 +84,7 @@ func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID) ([]Ses
 	for rows.Next() {
 		var res Session
 
-		err = rows.Scan(&res.token, &res.userID, &res.ip, &res.clientID, &res.device, &res.createdAt)
+		err = rows.Scan(&res.token, &res.userID, &res.ip, &res.device, &res.createdAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}
