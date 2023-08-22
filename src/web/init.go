@@ -2,6 +2,7 @@ package web
 
 import (
 	"github.com/go-chi/chi/v5"
+	"github.com/theduckcompany/duckcloud/src/service/davsessions"
 	"github.com/theduckcompany/duckcloud/src/service/oauthclients"
 	"github.com/theduckcompany/duckcloud/src/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/src/service/users"
@@ -21,10 +22,11 @@ func NewHTTPHandler(
 	clients oauthclients.Service,
 	oauthConsent oauthconsents.Service,
 	webSessions websessions.Service,
+	davSessions davsessions.Service,
 ) *HTTPHandler {
 	return &HTTPHandler{
 		auth:     newAuthHandler(tools, users, clients, oauthConsent, webSessions),
-		settings: newSettingsHandler(tools, webSessions),
+		settings: newSettingsHandler(tools, webSessions, davSessions, users),
 	}
 }
 

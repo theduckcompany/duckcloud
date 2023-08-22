@@ -37,11 +37,12 @@ func TestDavSessionsService(t *testing.T) {
 
 		storageMock.On("Save", mock.Anything, &ExampleAliceSession).Return(nil).Once()
 
-		res, err := service.Create(ctx, &CreateCmd{
+		res, secret, err := service.Create(ctx, &CreateCmd{
 			UserID: users.ExampleAlice.ID(),
 			FSRoot: inodes.ExampleAliceRoot.ID(),
 		})
 
+		assert.NotEmpty(t, secret)
 		require.NoError(t, err)
 		assert.Equal(t, &ExampleAliceSession, res)
 	})
@@ -53,12 +54,13 @@ func TestDavSessionsService(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		service := NewService(storageMock, inodesMock, usersMock, tools)
 
-		res, err := service.Create(ctx, &CreateCmd{
+		res, secret, err := service.Create(ctx, &CreateCmd{
 			UserID: uuid.UUID("some-invalid-id"),
 			FSRoot: inodes.ExampleAliceRoot.ID(),
 		})
 
 		assert.Nil(t, res)
+		assert.Empty(t, secret)
 		assert.EqualError(t, err, "validation error: UserID: must be a valid UUID v4.")
 	})
 
@@ -71,12 +73,13 @@ func TestDavSessionsService(t *testing.T) {
 
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(nil, nil).Once()
 
-		res, err := service.Create(ctx, &CreateCmd{
+		res, secret, err := service.Create(ctx, &CreateCmd{
 			UserID: users.ExampleAlice.ID(),
 			FSRoot: inodes.ExampleAliceRoot.ID(),
 		})
 
 		assert.Nil(t, res)
+		assert.Empty(t, secret)
 		assert.EqualError(t, err, "validation error: userID: not found")
 	})
 
@@ -94,12 +97,13 @@ func TestDavSessionsService(t *testing.T) {
 			FullName: "/",
 		}).Return(nil, nil).Once()
 
-		res, err := service.Create(ctx, &CreateCmd{
+		res, secret, err := service.Create(ctx, &CreateCmd{
 			UserID: users.ExampleAlice.ID(),
 			FSRoot: inodes.ExampleAliceRoot.ID(),
 		})
 
 		assert.Nil(t, res)
+		assert.Empty(t, secret)
 		assert.EqualError(t, err, "validation error: rootFS: not found")
 	})
 
@@ -117,12 +121,13 @@ func TestDavSessionsService(t *testing.T) {
 			FullName: "/",
 		}).Return(nil, nil).Once()
 
-		res, err := service.Create(ctx, &CreateCmd{
+		res, secret, err := service.Create(ctx, &CreateCmd{
 			UserID: users.ExampleAlice.ID(),
 			FSRoot: inodes.ExampleBobRoot.ID(),
 		})
 
 		assert.Nil(t, res)
+		assert.Empty(t, secret)
 		assert.EqualError(t, err, "validation error: rootFS: not found")
 	})
 

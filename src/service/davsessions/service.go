@@ -35,19 +35,19 @@ func NewService(storage Storage, inodes inodes.Service, users users.Service, too
 	return &DavSessionsService{storage, inodes, users, tools.UUID(), tools.Clock()}
 }
 
-func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSession, error) {
+func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSession, string, error) {
 	err := cmd.Validate()
 	if err != nil {
-		return nil, errs.ValidationError(err)
+		return nil, "", errs.ValidationError(err)
 	}
 
 	user, err := s.users.GetByID(ctx, cmd.UserID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to usersGetByID: %w", err)
+		return nil, "", fmt.Errorf("failed to usersGetByID: %w", err)
 	}
 
 	if user == nil {
-		return nil, errs.ValidationError(errors.New("userID: not found"))
+		return nil, "", errs.ValidationError(errors.New("userID: not found"))
 	}
 
 	rootInode, err := s.inodes.Get(ctx, &inodes.PathCmd{
@@ -56,11 +56,11 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 		FullName: "/",
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to inodes.Get: %w", err)
+		return nil, "", fmt.Errorf("failed to inodes.Get: %w", err)
 	}
 
 	if rootInode == nil {
-		return nil, errs.ValidationError(errors.New("rootFS: not found"))
+		return nil, "", errs.ValidationError(errors.New("rootFS: not found"))
 	}
 
 	password := string(s.uuid.New())
@@ -77,10 +77,10 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 
 	err = s.storage.Save(ctx, &session)
 	if err != nil {
-		return nil, fmt.Errorf("failed to save the session: %w", err)
+		return nil, "", fmt.Errorf("failed to save the session: %w", err)
 	}
 
-	return &session, nil
+	return &session, password, nil
 }
 
 func (s *DavSessionsService) GetAllForUser(ctx context.Context, userID uuid.UUID, paginateCmd *storage.PaginateCmd) ([]DavSession, error) {
