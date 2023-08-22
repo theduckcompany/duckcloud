@@ -134,6 +134,20 @@ func (_m *MockService) Logout(r *http.Request, w http.ResponseWriter) error {
 	return r0
 }
 
+// Revoke provides a mock function with given fields: ctx, cmd
+func (_m *MockService) Revoke(ctx context.Context, cmd *RevokeCmd) error {
+	ret := _m.Called(ctx, cmd)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *RevokeCmd) error); ok {
+		r0 = rf(ctx, cmd)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewMockService creates a new instance of MockService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockService(t interface {

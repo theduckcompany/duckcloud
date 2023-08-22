@@ -34,3 +34,15 @@ func (t CreateCmd) Validate() error {
 		v.Field(&t.FSRoot, v.Required, is.UUIDv4),
 	)
 }
+
+type RevokeCmd struct {
+	UserID    uuid.UUID
+	SessionID uuid.UUID
+}
+
+func (t RevokeCmd) Validate() error {
+	return v.ValidateStruct(&t,
+		v.Field(&t.UserID, v.Required, is.UUIDv4),
+		v.Field(&t.SessionID, v.Required, is.UUIDv4),
+	)
+}
