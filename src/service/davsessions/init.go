@@ -14,6 +14,7 @@ import (
 //go:generate mockery --name Service
 type Service interface {
 	GetAllForUser(ctx context.Context, userID uuid.UUID, paginateCmd *storage.PaginateCmd) ([]DavSession, error)
+	Create(ctx context.Context, cmd *CreateCmd) (*DavSession, string, error)
 }
 
 func Init(db *sql.DB, inodes inodes.Service, users users.Service, tools tools.Tools) Service {

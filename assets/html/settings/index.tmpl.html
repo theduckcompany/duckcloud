@@ -4,6 +4,7 @@
   <hr>
 
   <h3>Devices and sessions</h3>
+
   <br>
   <h4>Browsers</h4>
   {{ $nbWebSessions := len .webSessions }}
@@ -11,31 +12,47 @@
     {{range .webSessions}}
     <li class="list-group-item">
       <div class="row">
-        <div class="col-4">
-          <span class="col-4"><b>{{ .Device }}</b></span>
+        <div class="col-2">
+          <span class="col-2"><b>{{ .Device }}</b></span>
           {{ if (eq .Token $.currentSession.Token) }}
           <span class="badge text-bg-warning">Curent Session</span>
           {{ end }}
         </div>
         {{ if (ne .Token $.currentSession.Token) }}
-        <button type="button" class="col-2 offset-6 btn btn-danger">Disconnect</button>
+        <button type="button" class="col-1 btn btn-danger">Disconnect</button>
         {{ end }}
       </div>
     </li>
+    {{end}}
   </ul>
-  {{end}}
+
+  <hr>
+
   <br>
   <h4>DAV Sessions</h4>
+
   {{ $nbDavSessions := len .davSessions }}
-  {{range .davSessions}}
-  <p>{{.}}</p>
-  {{end}}
+  <ul class="list-group list-group-flush">
+    {{range .davSessions}}
+    <li class="list-group-item">
+      <div class="row">
+        <div class="col-4">
+          <span class="col-4">{{ .ID }}></span>
+        </div>
+        <div class="col-2">
+          <span class="col-2">{{ .Username }}</span>
+        </div>
+        <button type="button" class="col-1 btn btn-danger">Revoke</button>
+      </div>
+    </li>
+    {{end}}
+  </ul>
 
   {{if (eq $nbDavSessions 0)}}
   <p class="text-secondary"><small>There is not sessions yet</small></p>
   {{end}}
 
-  <form class="row g-3">
+  <form class="row g-3" hx-post="/settings/davSession" hx-target="this" hx-swap="outerHTML">
     <div class="col-auto">
       <label for="inputDavSession" class="visually-hidden">Name</label>
       <input type="text" class="form-control" id="davSessionName" placeholder="App name">
@@ -44,8 +61,14 @@
       <button type="submit" class="btn btn-primary mb-3">Create new Dav credentials</button>
     </div>
   </form>
+
+
+  <hr>
+
+
   <br>
   <h4>Oauth2 Sessions</h4>
+
   {{ $nbOauthSessions := len .oauthSessions }}
   {{range .davSessions}}
   {{end}}
@@ -53,3 +76,4 @@
   {{if (eq $nbOauthSessions 0)}}
   <p class="text-secondary"><small>There is not sessions yet</small></p>
   {{end}}
+</main>

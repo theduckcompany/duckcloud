@@ -16,6 +16,39 @@ type MockService struct {
 	mock.Mock
 }
 
+// Create provides a mock function with given fields: ctx, cmd
+func (_m *MockService) Create(ctx context.Context, cmd *CreateCmd) (*DavSession, string, error) {
+	ret := _m.Called(ctx, cmd)
+
+	var r0 *DavSession
+	var r1 string
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, *CreateCmd) (*DavSession, string, error)); ok {
+		return rf(ctx, cmd)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *CreateCmd) *DavSession); ok {
+		r0 = rf(ctx, cmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*DavSession)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *CreateCmd) string); ok {
+		r1 = rf(ctx, cmd)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, *CreateCmd) error); ok {
+		r2 = rf(ctx, cmd)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // GetAllForUser provides a mock function with given fields: ctx, userID, paginateCmd
 func (_m *MockService) GetAllForUser(ctx context.Context, userID uuid.UUID, paginateCmd *storage.PaginateCmd) ([]DavSession, error) {
 	ret := _m.Called(ctx, userID, paginateCmd)
