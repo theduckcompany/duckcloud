@@ -16,10 +16,12 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
+var ErrInvalidCredentials = fmt.Errorf("invalid credentials")
+
 //go:generate mockery --name Storage
 type Storage interface {
 	Save(ctx context.Context, session *DavSession) error
-	GetByUsernamePassword(ctx context.Context, username, password string) (*DavSession, error)
+	GetByUsernameAndPassHash(ctx context.Context, username, password string) (*DavSession, error)
 	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]DavSession, error)
 }
 
@@ -81,6 +83,21 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 	}
 
 	return &session, password, nil
+}
+
+func (s *DavSessionsService) Authenticate(ctx context.Context, username, password string) (*DavSession, error) {
+	rawSha := sha256.Sum256([]byte(password))
+
+	res, err := s.storage.GetByUsernameAndPassHash(ctx, username, hex.EncodeToString(rawSha[:]))
+	if err != nil {
+		return nil, fmt.Errorf("failed to GetByUsernameandPassHash: %w", err)
+	}
+
+	if res == nil {
+		return nil, errs.BadRequest(ErrInvalidCredentials, "invalid credentials")
+	}
+
+	return res, nil
 }
 
 func (s *DavSessionsService) GetAllForUser(ctx context.Context, userID uuid.UUID, paginateCmd *storage.PaginateCmd) ([]DavSession, error) {

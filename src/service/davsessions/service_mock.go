@@ -16,6 +16,32 @@ type MockService struct {
 	mock.Mock
 }
 
+// Authenticate provides a mock function with given fields: ctx, username, password
+func (_m *MockService) Authenticate(ctx context.Context, username string, password string) (*DavSession, error) {
+	ret := _m.Called(ctx, username, password)
+
+	var r0 *DavSession
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*DavSession, error)); ok {
+		return rf(ctx, username, password)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *DavSession); ok {
+		r0 = rf(ctx, username, password)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*DavSession)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, username, password)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Create provides a mock function with given fields: ctx, cmd
 func (_m *MockService) Create(ctx context.Context, cmd *CreateCmd) (*DavSession, string, error) {
 	ret := _m.Called(ctx, cmd)
