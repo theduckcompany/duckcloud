@@ -14,6 +14,8 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
+var ErrUserIDNotMatching = errors.New("user ids are not matching")
+
 //go:generate mockery --name Storage
 type Storage interface {
 	Save(ctx context.Context, session *Session) error
@@ -59,6 +61,33 @@ func (s *WebSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*Sessi
 	}
 
 	return session, nil
+}
+
+func (s *WebSessionsService) Revoke(ctx context.Context, cmd *RevokeCmd) error {
+	err := cmd.Validate()
+	if err != nil {
+		return errs.ValidationError(err)
+	}
+
+	session, err := s.storage.GetByToken(ctx, cmd.Token)
+	if err != nil {
+		return fmt.Errorf("failed to GetByToken: %w", err)
+	}
+
+	if session == nil {
+		return nil
+	}
+
+	if session.UserID() != cmd.UserID {
+		return errs.NotFound(ErrUserIDNotMatching, "not found")
+	}
+
+	err = s.storage.RemoveByToken(ctx, session.Token())
+	if err != nil {
+		return fmt.Errorf("failed to RemoveByToken: %w", err)
+	}
+
+	return nil
 }
 
 func (s *WebSessionsService) GetByToken(ctx context.Context, token string) (*Session, error) {

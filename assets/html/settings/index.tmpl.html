@@ -8,7 +8,7 @@
   <br>
   <h4>Browsers</h4>
   {{ $nbWebSessions := len .webSessions }}
-  <ul class="list-group list-group-flush">
+  <ul class="list-group list-group-flush" hx-target="closest li" , hx-swap="outerHTML">
     {{range .webSessions}}
     <li class="list-group-item">
       <div class="row">
@@ -19,7 +19,8 @@
           {{ end }}
         </div>
         {{ if (ne .Token $.currentSession.Token) }}
-        <button type="button" class="col-1 btn btn-danger">Disconnect</button>
+        <button type="button" hx-delete="/settings/webSessions/{{.Token}}"
+          class="col-1 btn btn-danger">Disconnect</button>
         {{ end }}
       </div>
     </li>
@@ -52,7 +53,7 @@
   <p class="text-secondary"><small>There is not sessions yet</small></p>
   {{end}}
 
-  <form class="row g-3" hx-post="/settings/davSession" hx-target="this" hx-swap="outerHTML">
+  <form class="row g-3" hx-post="/settings/davSessions" hx-target="this" hx-swap="outerHTML">
     <div class="col-auto">
       <label for="inputDavSession" class="visually-hidden">Name</label>
       <input type="text" class="form-control" id="davSessionName" placeholder="App name">

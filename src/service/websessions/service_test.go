@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/errs"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
@@ -228,5 +229,61 @@ func Test_WebSessions_Service(t *testing.T) {
 
 		err := service.Logout(req, w)
 		assert.EqualError(t, err, "failed to remove the token: some-error")
+	})
+
+	t.Run("Revoke success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storage := NewMockStorage(t)
+		service := NewService(storage, tools)
+
+		storage.On("GetByToken", mock.Anything, WebSessionExample.Token()).Return(&WebSessionExample, nil).Once()
+		storage.On("RemoveByToken", mock.Anything, WebSessionExample.Token()).Return(nil).Once()
+
+		err := service.Revoke(ctx, &RevokeCmd{
+			UserID: WebSessionExample.UserID(),
+			Token:  WebSessionExample.Token(),
+		})
+		assert.NoError(t, err)
+	})
+
+	t.Run("Revoke with a validation error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storage := NewMockStorage(t)
+		service := NewService(storage, tools)
+
+		err := service.Revoke(ctx, &RevokeCmd{
+			UserID: "some-invalid-id",
+			Token:  WebSessionExample.Token(),
+		})
+		assert.EqualError(t, err, "validation error: UserID: must be a valid UUID v4.")
+	})
+
+	t.Run("Revoke with a token not found", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storage := NewMockStorage(t)
+		service := NewService(storage, tools)
+
+		storage.On("GetByToken", mock.Anything, WebSessionExample.Token()).Return(nil, nil).Once()
+
+		err := service.Revoke(ctx, &RevokeCmd{
+			UserID: WebSessionExample.UserID(),
+			Token:  WebSessionExample.Token(),
+		})
+		assert.NoError(t, err)
+	})
+
+	t.Run("Revoke with a token owned by someone else", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storage := NewMockStorage(t)
+		service := NewService(storage, tools)
+
+		storage.On("GetByToken", mock.Anything, WebSessionExample.Token()).Return(&WebSessionExample, nil).Once()
+
+		err := service.Revoke(ctx, &RevokeCmd{
+			UserID: uuid.UUID("29a81212-9e46-4678-a921-ecaf53aa15bc"), // A random user id
+			Token:  WebSessionExample.Token(),
+		})
+		assert.EqualError(t, err, "not found: user ids are not matching")
+		assert.ErrorIs(t, err, errs.ErrNotFound)
 	})
 }

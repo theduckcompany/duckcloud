@@ -22,6 +22,7 @@ type Service interface {
 	GetFromReq(r *http.Request) (*Session, error)
 	Logout(r *http.Request, w http.ResponseWriter) error
 	GetUserSessions(ctx context.Context, userID uuid.UUID) ([]Session, error)
+	Revoke(ctx context.Context, cmd *RevokeCmd) error
 }
 
 func Init(tools tools.Tools, db *sql.DB) Service {
