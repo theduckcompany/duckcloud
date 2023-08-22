@@ -76,6 +76,7 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 	session := DavSession{
 		id:        s.uuid.New(),
 		userID:    user.ID(),
+		name:      cmd.Name,
 		username:  user.Username(),
 		password:  hex.EncodeToString(rawSha[:]),
 		fsRoot:    rootInode.ID(),
