@@ -4,10 +4,10 @@ import (
 	"context"
 	"os"
 
+	"github.com/theduckcompany/duckcloud/src/service/davsessions"
 	"github.com/theduckcompany/duckcloud/src/service/files"
 	"github.com/theduckcompany/duckcloud/src/service/fs"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
-	"github.com/theduckcompany/duckcloud/src/service/users"
 	"golang.org/x/net/webdav"
 )
 
@@ -17,31 +17,31 @@ type davFS struct {
 }
 
 func (s *davFS) Mkdir(ctx context.Context, name string, perm os.FileMode) error {
-	user := ctx.Value(userKeyCtx).(*users.User)
+	session := ctx.Value(sessionKeyCtx).(*davsessions.DavSession)
 
-	return fs.NewFSService(user.ID(), user.RootFS(), s.inodes, s.files).CreateDir(ctx, name, perm)
+	return fs.NewFSService(session.UserID(), session.RootFS(), s.inodes, s.files).CreateDir(ctx, name, perm)
 }
 
 func (s *davFS) OpenFile(ctx context.Context, name string, flag int, perm os.FileMode) (webdav.File, error) {
-	user := ctx.Value(userKeyCtx).(*users.User)
+	session := ctx.Value(sessionKeyCtx).(*davsessions.DavSession)
 
-	return fs.NewFSService(user.ID(), user.RootFS(), s.inodes, s.files).OpenFile(ctx, name, flag, perm)
+	return fs.NewFSService(session.UserID(), session.RootFS(), s.inodes, s.files).OpenFile(ctx, name, flag, perm)
 }
 
 func (s *davFS) RemoveAll(ctx context.Context, name string) error {
-	user := ctx.Value(userKeyCtx).(*users.User)
+	session := ctx.Value(sessionKeyCtx).(*davsessions.DavSession)
 
-	return fs.NewFSService(user.ID(), user.RootFS(), s.inodes, s.files).RemoveAll(ctx, name)
+	return fs.NewFSService(session.UserID(), session.RootFS(), s.inodes, s.files).RemoveAll(ctx, name)
 }
 
 func (s *davFS) Rename(ctx context.Context, oldName, newName string) error {
-	// user := ctx.Value(userKeyCtx).(*users.User)
+	// session := ctx.Value(sessionKeyCtx).(*davsessions.DavSession)
 
 	return webdav.ErrNotImplemented
 }
 
 func (s *davFS) Stat(ctx context.Context, name string) (os.FileInfo, error) {
-	user := ctx.Value(userKeyCtx).(*users.User)
+	session := ctx.Value(sessionKeyCtx).(*davsessions.DavSession)
 
-	return fs.NewFSService(user.ID(), user.RootFS(), s.inodes, s.files).Stat(ctx, name)
+	return fs.NewFSService(session.UserID(), session.RootFS(), s.inodes, s.files).Stat(ctx, name)
 }

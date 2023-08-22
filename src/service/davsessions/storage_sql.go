@@ -35,7 +35,7 @@ func (t *sqlStorage) Save(ctx context.Context, session *DavSession) error {
 	return nil
 }
 
-func (t *sqlStorage) GetByUsernamePassword(ctx context.Context, username, password string) (*DavSession, error) {
+func (t *sqlStorage) GetByUsernameAndPassHash(ctx context.Context, username, password string) (*DavSession, error) {
 	res := DavSession{}
 
 	err := sq.

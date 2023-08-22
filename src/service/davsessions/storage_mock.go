@@ -42,8 +42,8 @@ func (_m *MockStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd 
 	return r0, r1
 }
 
-// GetByUsernamePassword provides a mock function with given fields: ctx, username, password
-func (_m *MockStorage) GetByUsernamePassword(ctx context.Context, username string, password string) (*DavSession, error) {
+// GetByUsernameAndPassHash provides a mock function with given fields: ctx, username, password
+func (_m *MockStorage) GetByUsernameAndPassHash(ctx context.Context, username string, password string) (*DavSession, error) {
 	ret := _m.Called(ctx, username, password)
 
 	var r0 *DavSession

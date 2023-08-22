@@ -145,4 +145,21 @@ func TestDavSessionsService(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, []DavSession{ExampleAliceSession}, res)
 	})
+
+	t.Run("Authenticate success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		usersMock := users.NewMockService(t)
+		inodesMock := inodes.NewMockService(t)
+
+		service := NewService(storageMock, inodesMock, usersMock, tools)
+
+		hashedPasswd := "f0ce9d6e7315534d2f3603d11f496dafcda25f2f5bc2b4f8292a8ee34fe7735b" // sha256 of "some-password"
+
+		storageMock.On("GetByUsernameAndPassHash", mock.Anything, "some-username", hashedPasswd).Return(&ExampleAliceSession, nil).Once()
+
+		res, err := service.Authenticate(ctx, "some-username", "some-password")
+		assert.NoError(t, err)
+		assert.Equal(t, &ExampleAliceSession, res)
+	})
 }
