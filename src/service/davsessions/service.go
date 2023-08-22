@@ -12,6 +12,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/clock"
 	"github.com/theduckcompany/duckcloud/src/tools/errs"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
@@ -19,6 +20,7 @@ import (
 type Storage interface {
 	Save(ctx context.Context, session *DavSession) error
 	GetByUsernamePassword(ctx context.Context, username, password string) (*DavSession, error)
+	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]DavSession, error)
 }
 
 type DavSessionsService struct {
@@ -79,4 +81,8 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 	}
 
 	return &session, nil
+}
+
+func (s *DavSessionsService) GetAllForUser(ctx context.Context, userID uuid.UUID, paginateCmd *storage.PaginateCmd) ([]DavSession, error) {
+	return s.storage.GetAllForUser(ctx, userID, paginateCmd)
 }

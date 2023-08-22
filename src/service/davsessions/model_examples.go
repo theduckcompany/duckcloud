@@ -8,7 +8,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
-var now time.Time = time.Now()
+var now time.Time = time.Now().UTC()
 
 var ExampleAliceSession = DavSession{
 	id:        uuid.UUID("d43afe5b-5c3c-4ba4-a08c-031d701f2aef"),

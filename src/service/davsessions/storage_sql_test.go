@@ -3,49 +3,47 @@ package davsessions
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 func TestDavSessionSqlStorage(t *testing.T) {
-	nowData := time.Now().UTC()
-
-	userData := DavSession{
-		id:        uuid.UUID("some-uuid"),
-		userID:    uuid.UUID("some-user-uuid"),
-		username:  "some-username",
-		password:  "some-hashed-password",
-		fsRoot:    uuid.UUID("some-inode-uuid"),
-		createdAt: nowData,
-	}
-
 	db := storage.NewTestStorage(t)
-	storage := newSqlStorage(db)
+	store := newSqlStorage(db)
 
 	t.Run("Create success", func(t *testing.T) {
-		err := storage.Save(context.Background(), &userData)
+		err := store.Save(context.Background(), &ExampleAliceSession)
 
 		assert.NoError(t, err)
 	})
 
 	t.Run("GetByUsernamePassword success", func(t *testing.T) {
-		res, err := storage.GetByUsernamePassword(context.Background(), "some-username", "some-hashed-password")
-
-		require.NotNil(t, res)
-		res.createdAt = res.createdAt.UTC()
+		res, err := store.GetByUsernamePassword(context.Background(), ExampleAliceSession.username, ExampleAliceSession.password)
 
 		assert.NoError(t, err)
-		assert.Equal(t, &userData, res)
+		assert.Equal(t, &ExampleAliceSession, res)
 	})
 
 	t.Run("GetByUsernamePassword not found", func(t *testing.T) {
-		res, err := storage.GetByUsernamePassword(context.Background(), "some-invalid-username", "some-hashed-password")
+		res, err := store.GetByUsernamePassword(context.Background(), "some-invalid-username", "some-hashed-password")
 
 		assert.NoError(t, err)
 		assert.Nil(t, res)
+	})
+
+	t.Run("GetAllForUser success", func(t *testing.T) {
+		res, err := store.GetAllForUser(context.Background(), ExampleAliceSession.userID, &storage.PaginateCmd{Limit: 10})
+
+		assert.NoError(t, err)
+		assert.Equal(t, []DavSession{ExampleAliceSession}, res)
+	})
+
+	t.Run("GetAllForUser not found", func(t *testing.T) {
+		res, err := store.GetAllForUser(context.Background(), uuid.UUID("unknown-id"), &storage.PaginateCmd{Limit: 10})
+
+		assert.NoError(t, err)
+		assert.Equal(t, []DavSession{}, res)
 	})
 }
