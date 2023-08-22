@@ -42,7 +42,7 @@ func (h *settingsHandler) Register(r chi.Router, mids router.Middlewares) {
 	auth := r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
 
 	auth.Get("/settings", h.handleSettingsPage)
-	auth.Post("/settings/davSessions/", h.createDavSession)
+	auth.Post("/settings/davSessions", h.createDavSession)
 	auth.Delete("/settings/davSessions/{sessionID}", h.deleteDavSession)
 	auth.Delete("/settings/webSessions/{sessionToken}", h.deleteWebSession)
 }
