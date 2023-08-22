@@ -10,6 +10,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/service/users"
 	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
@@ -123,5 +124,20 @@ func TestDavSessionsService(t *testing.T) {
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "validation error: rootFS: not found")
+	})
+
+	t.Run("GetAllForUser success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		usersMock := users.NewMockService(t)
+		inodesMock := inodes.NewMockService(t)
+
+		service := NewService(storageMock, inodesMock, usersMock, tools)
+
+		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.id, &storage.PaginateCmd{Limit: 10}).Return([]DavSession{ExampleAliceSession}, nil).Once()
+
+		res, err := service.GetAllForUser(ctx, ExampleAliceSession.id, &storage.PaginateCmd{Limit: 10})
+		assert.NoError(t, err)
+		assert.Equal(t, []DavSession{ExampleAliceSession}, res)
 	})
 }

@@ -7,6 +7,8 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 const tableName = "dav_sessions"
@@ -51,4 +53,45 @@ func (t *sqlStorage) GetByUsernamePassword(ctx context.Context, username, passwo
 	}
 
 	return &res, nil
+}
+
+func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]DavSession, error) {
+	rows, err := storage.PaginateSelection(sq.
+		Select("id", "username", "password", "user_id", "fs_root", "created_at").
+		Where(sq.Eq{"user_id": string(userID)}).
+		From(tableName), cmd).
+		RunWith(s.db).
+		QueryContext(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		return []DavSession{}, nil
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("sql error: %w", err)
+	}
+
+	defer rows.Close()
+
+	return s.scanRows(rows)
+}
+
+func (s *sqlStorage) scanRows(rows *sql.Rows) ([]DavSession, error) {
+	inodes := []DavSession{}
+
+	for rows.Next() {
+		var res DavSession
+
+		err := rows.Scan(&res.id, &res.username, &res.password, &res.userID, &res.fsRoot, &res.createdAt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan a row: %w", err)
+		}
+
+		inodes = append(inodes, res)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("scan error: %w", err)
+	}
+
+	return inodes, nil
 }
