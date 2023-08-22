@@ -39,6 +39,7 @@ func TestDavSessionsService(t *testing.T) {
 		storageMock.On("Save", mock.Anything, &ExampleAliceSession).Return(nil).Once()
 
 		res, secret, err := service.Create(ctx, &CreateCmd{
+			Name:   ExampleAliceSession.Name(),
 			UserID: users.ExampleAlice.ID(),
 			FSRoot: inodes.ExampleAliceRoot.ID(),
 		})
@@ -56,6 +57,7 @@ func TestDavSessionsService(t *testing.T) {
 		service := NewService(storageMock, inodesMock, usersMock, tools)
 
 		res, secret, err := service.Create(ctx, &CreateCmd{
+			Name:   ExampleAliceSession.Name(),
 			UserID: uuid.UUID("some-invalid-id"),
 			FSRoot: inodes.ExampleAliceRoot.ID(),
 		})
@@ -75,6 +77,7 @@ func TestDavSessionsService(t *testing.T) {
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(nil, nil).Once()
 
 		res, secret, err := service.Create(ctx, &CreateCmd{
+			Name:   ExampleAliceSession.Name(),
 			UserID: users.ExampleAlice.ID(),
 			FSRoot: inodes.ExampleAliceRoot.ID(),
 		})
@@ -99,6 +102,7 @@ func TestDavSessionsService(t *testing.T) {
 		}).Return(nil, nil).Once()
 
 		res, secret, err := service.Create(ctx, &CreateCmd{
+			Name:   ExampleAliceSession.Name(),
 			UserID: users.ExampleAlice.ID(),
 			FSRoot: inodes.ExampleAliceRoot.ID(),
 		})
@@ -123,6 +127,7 @@ func TestDavSessionsService(t *testing.T) {
 		}).Return(nil, nil).Once()
 
 		res, secret, err := service.Create(ctx, &CreateCmd{
+			Name:   ExampleAliceSession.Name(),
 			UserID: users.ExampleAlice.ID(),
 			FSRoot: inodes.ExampleBobRoot.ID(),
 		})
