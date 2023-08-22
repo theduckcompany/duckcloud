@@ -42,6 +42,32 @@ func (_m *MockStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd 
 	return r0, r1
 }
 
+// GetByID provides a mock function with given fields: ctx, sessionID
+func (_m *MockStorage) GetByID(ctx context.Context, sessionID uuid.UUID) (*DavSession, error) {
+	ret := _m.Called(ctx, sessionID)
+
+	var r0 *DavSession
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (*DavSession, error)); ok {
+		return rf(ctx, sessionID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) *DavSession); ok {
+		r0 = rf(ctx, sessionID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*DavSession)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, sessionID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByUsernameAndPassHash provides a mock function with given fields: ctx, username, password
 func (_m *MockStorage) GetByUsernameAndPassHash(ctx context.Context, username string, password string) (*DavSession, error) {
 	ret := _m.Called(ctx, username, password)
@@ -66,6 +92,20 @@ func (_m *MockStorage) GetByUsernameAndPassHash(ctx context.Context, username st
 	}
 
 	return r0, r1
+}
+
+// RemoveByID provides a mock function with given fields: ctx, sessionID
+func (_m *MockStorage) RemoveByID(ctx context.Context, sessionID uuid.UUID) error {
+	ret := _m.Called(ctx, sessionID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, sessionID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // Save provides a mock function with given fields: ctx, session

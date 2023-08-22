@@ -35,6 +35,39 @@ func (t *sqlStorage) Save(ctx context.Context, session *DavSession) error {
 	return nil
 }
 
+func (t *sqlStorage) GetByID(ctx context.Context, sessionID uuid.UUID) (*DavSession, error) {
+	res := DavSession{}
+
+	err := sq.
+		Select("id", "username", "password", "user_id", "fs_root", "created_at").
+		From(tableName).
+		Where(sq.Eq{"id": sessionID}).
+		RunWith(t.db).
+		ScanContext(ctx, &res.id, &res.username, &res.password, &res.userID, &res.fsRoot, &res.createdAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("sql error: %w", err)
+	}
+
+	return &res, nil
+}
+
+func (t *sqlStorage) RemoveByID(ctx context.Context, sessionID uuid.UUID) error {
+	_, err := sq.
+		Delete(tableName).
+		Where(sq.Eq{"id": sessionID}).
+		RunWith(t.db).
+		ExecContext(ctx)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("sql error: %w", err)
+	}
+
+	return nil
+}
+
 func (t *sqlStorage) GetByUsernameAndPassHash(ctx context.Context, username, password string) (*DavSession, error) {
 	res := DavSession{}
 

@@ -16,13 +16,18 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
-var ErrInvalidCredentials = fmt.Errorf("invalid credentials")
+var (
+	ErrInvalidCredentials = fmt.Errorf("invalid credentials")
+	ErrUserIDNotMatching  = errors.New("user ids are not matching")
+)
 
 //go:generate mockery --name Storage
 type Storage interface {
 	Save(ctx context.Context, session *DavSession) error
 	GetByUsernameAndPassHash(ctx context.Context, username, password string) (*DavSession, error)
 	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]DavSession, error)
+	GetByID(ctx context.Context, sessionID uuid.UUID) (*DavSession, error)
+	RemoveByID(ctx context.Context, sessionID uuid.UUID) error
 }
 
 type DavSessionsService struct {
@@ -102,4 +107,31 @@ func (s *DavSessionsService) Authenticate(ctx context.Context, username, passwor
 
 func (s *DavSessionsService) GetAllForUser(ctx context.Context, userID uuid.UUID, paginateCmd *storage.PaginateCmd) ([]DavSession, error) {
 	return s.storage.GetAllForUser(ctx, userID, paginateCmd)
+}
+
+func (s *DavSessionsService) Revoke(ctx context.Context, cmd *RevokeCmd) error {
+	err := cmd.Validate()
+	if err != nil {
+		return errs.ValidationError(err)
+	}
+
+	session, err := s.storage.GetByID(ctx, cmd.SessionID)
+	if err != nil {
+		return fmt.Errorf("failed to GetByToken: %w", err)
+	}
+
+	if session == nil {
+		return nil
+	}
+
+	if session.UserID() != cmd.UserID {
+		return errs.NotFound(ErrUserIDNotMatching, "not found")
+	}
+
+	err = s.storage.RemoveByID(ctx, session.ID())
+	if err != nil {
+		return fmt.Errorf("failed to RemoveByID: %w", err)
+	}
+
+	return nil
 }

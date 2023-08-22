@@ -12,6 +12,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/response"
 	"github.com/theduckcompany/duckcloud/src/tools/router"
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 type settingsHandler struct {
@@ -19,6 +20,7 @@ type settingsHandler struct {
 	webSessions websessions.Service
 	davSessions davsessions.Service
 	users       users.Service
+	uuid        uuid.Service
 }
 
 func newSettingsHandler(
@@ -32,6 +34,7 @@ func newSettingsHandler(
 		webSessions: webSessions,
 		davSessions: davSessions,
 		users:       users,
+		uuid:        tools.UUID(),
 	}
 }
 
@@ -39,7 +42,8 @@ func (h *settingsHandler) Register(r chi.Router, mids router.Middlewares) {
 	auth := r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
 
 	auth.Get("/settings", h.handleSettingsPage)
-	auth.Post("/settings/davSessions", h.createDavSession)
+	auth.Post("/settings/davSessions/", h.createDavSession)
+	auth.Delete("/settings/davSessions/{sessionID}", h.deleteDavSession)
 	auth.Delete("/settings/webSessions/{sessionToken}", h.deleteWebSession)
 }
 
@@ -121,6 +125,35 @@ func (h *settingsHandler) deleteWebSession(w http.ResponseWriter, r *http.Reques
 	err = h.webSessions.Revoke(ctx, &websessions.RevokeCmd{
 		UserID: currentSession.UserID(),
 		Token:  chi.URLParam(r, "sessionToken"),
+	})
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	currentSession, err := h.webSessions.GetFromReq(r)
+	if err != nil || currentSession == nil {
+		w.Header().Set("Location", "/login")
+		w.WriteHeader(http.StatusFound)
+		return
+	}
+
+	sessionID, err := h.uuid.Parse(chi.URLParam(r, "sessionID"))
+	if err != nil {
+		w.Header().Set("Location", "/login")
+		w.WriteHeader(http.StatusFound)
+		return
+	}
+
+	err = h.davSessions.Revoke(ctx, &davsessions.RevokeCmd{
+		UserID:    currentSession.UserID(),
+		SessionID: sessionID,
 	})
 	if err != nil {
 		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))

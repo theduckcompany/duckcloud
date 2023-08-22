@@ -33,6 +33,20 @@ func TestDavSessionSqlStorage(t *testing.T) {
 		assert.Nil(t, res)
 	})
 
+	t.Run("GetByID success", func(t *testing.T) {
+		res, err := store.GetByID(context.Background(), ExampleAliceSession.id)
+
+		assert.Equal(t, &ExampleAliceSession, res)
+		assert.NoError(t, err)
+	})
+
+	t.Run("GetByID not found", func(t *testing.T) {
+		res, err := store.GetByID(context.Background(), "some-invalid-id")
+
+		assert.NoError(t, err)
+		assert.Nil(t, res)
+	})
+
 	t.Run("GetAllForUser success", func(t *testing.T) {
 		res, err := store.GetAllForUser(context.Background(), ExampleAliceSession.userID, &storage.PaginateCmd{Limit: 10})
 
@@ -45,5 +59,14 @@ func TestDavSessionSqlStorage(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, []DavSession{}, res)
+	})
+
+	t.Run("RemoveByID success", func(t *testing.T) {
+		err := store.RemoveByID(context.Background(), ExampleAliceSession.ID())
+		assert.NoError(t, err)
+
+		res, err := store.GetByID(context.Background(), ExampleAliceSession.id)
+		assert.Nil(t, res)
+		assert.NoError(t, err)
 	})
 }

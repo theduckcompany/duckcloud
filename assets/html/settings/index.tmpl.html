@@ -8,10 +8,10 @@
   <br>
   <h4>Browsers</h4>
   {{ $nbWebSessions := len .webSessions }}
-  <ul class="list-group list-group-flush" hx-target="closest li" , hx-swap="outerHTML">
+  <ul class="list-group list-group-flush">
     {{range .webSessions}}
     <li class="list-group-item">
-      <div class="row">
+      <div class=" row">
         <div class="col-2">
           <span class="col-2"><b>{{ .Device }}</b></span>
           {{ if (eq .Token $.currentSession.Token) }}
@@ -19,7 +19,7 @@
           {{ end }}
         </div>
         {{ if (ne .Token $.currentSession.Token) }}
-        <button type="button" hx-delete="/settings/webSessions/{{.Token}}"
+        <button type="button" hx-delete="/settings/webSessions/{{.Token}}" hx-target="closest li" hx-swap="outerHTML"
           class="col-1 btn btn-danger">Disconnect</button>
         {{ end }}
       </div>
@@ -43,7 +43,8 @@
         <div class="col-2">
           <span class="col-2">{{ .Username }}</span>
         </div>
-        <button type="button" class="col-1 btn btn-danger">Revoke</button>
+        <button type="button" hx-delete="/settings/davSessions/{{.ID}}" hx-target="closest li" hx-swap="outerHTML"
+          class="col-1 btn btn-danger">Revoke</button>
       </div>
     </li>
     {{end}}
