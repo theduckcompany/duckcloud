@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <link href="/assets/css/mdb.min.css" rel="stylesheet"
+    integrity="sha384-7u4Skc3wm8fghNcugUXIWkJWNlLa/NKXCdW2hcAdyO3AMDdFl5mmZO8yvwzUNwhg" crossorigin="anonymous">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/assets/css/bootstrap-icons.min.css"
+    integrity="sha384-sAjZvrYXacB9bJ0LVUOAvlGp7N5A9s6krO+1oZ2bSc1hG7q3UpoTU50kWYTKDOQC" crossorigin="anonymous">
+</head>
+
+<body>
+  <!--Main Navigation-->
+  <header>
+    <!-- Sidenav -->
+    <nav id="main-sidenav" class="sidenav sidenav-sm shadow-1" data-mdb-hidden="false" data-mdb-accordion="true">
+      <a class="ripple d-flex justify-content-center pt-4 pb-2" href="#!" data-mdb-ripple-color="primary">
+        <img id="MDB-logo" src="https://mdbcdn.b-cdn.net/wp-content/uploads/2018/06/logo-mdb-jquery-small.webp"
+          alt="MDB Logo" draggable="false" />
+      </a>
+
+      <hr class="hr">
+      <ul class="sidenav-menu px-2 pb-5">
+        <li class="sidenav-item">
+          <a class="sidenav-link" href="">
+            <i class="bi bi-speedometer2 me-3"></i><span>Overview</span></a>
+        </li>
+
+        <li class="sidenav-item pt-3">
+          <span class="sidenav-subheading text-muted text-uppercase fw-bold">Sessions</span>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link" hx-get="/settings/browsers" hx-target="main" , hx-swap="outerHTML">
+            <i class="bi bi-browser-firefox me-3"></i><span>Browsers</span></a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link" hx-get="/settings/webdav" hx-target="main" , hx-swap="outerHTML">
+            <i class="bi bi-folder me-3"></i><span>WebDav</span></a>
+        </li>
+      </ul>
+    </nav>
+    <!-- Sidenav -->
+
+    <!-- Navbar -->
+    <nav id="main-navbar" class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-1">
+      <!-- Container wrapper -->
+      <div class="container-fluid">
+        <!-- Toggler -->
+        <button data-mdb-toggle="sidenav" data-mdb-target="#main-sidenav"
+          class="btn shadow-0 p-0 me-3 d-block d-xxl-none" aria-controls="#main-sidenav" aria-haspopup="true">
+          <i class="bi bi-list bi-lg"></i>
+        </button>
+
+        <!-- Right links -->
+        <ul class="navbar-nav ms-auto d-flex flex-row">
+          <!-- Notification dropdown -->
+          <li class="nav-item dropdown">
+            <a class="nav-link me-3 me-lg-0 dropdown-toggle hidden-arrow" href="#" id="navbarDropdownMenuLink"
+              role="button" data-mdb-toggle="dropdown" aria-expanded="false">
+              <i class="bis bi-bell link-secondary"></i>
+              <span class="badge rounded-pill badge-notification bg-danger">1</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink">
+              <li><a class="dropdown-item" href="#">Some news</a></li>
+              <li><a class="dropdown-item" href="#">Another news</a></li>
+              <li>
+                <a class="dropdown-item" href="#">Something else here</a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Icon dropdown -->
+          <li class="nav-item dropdown">
+            <a class="nav-link me-3 me-lg-0 dropdown-toggle hidden-arrow" href="#" id="navbarDropdown" role="button"
+              data-mdb-toggle="dropdown" aria-expanded="false">
+              <i class="flag flag-united-kingdom m-0"></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+              <li>
+                <a class="dropdown-item" href="#"><i class="flag flag-kingdom flag"></i>English
+                  <i class="bi bi-check text-success ms-2"></i></a>
+              </li>
+              <li>
+                <hr class="dropdown-divider" />
+              </li>
+              <li>
+                <a class="dropdown-item" href="#"><i class="flag flag-france"></i>Français</a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Avatar -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle hidden-arrow d-flex align-items-center" href="#"
+              id="navbarDropdownMenuLink" role="button" data-mdb-toggle="dropdown" aria-expanded="false">
+              <img src="https://mdbootstrap.com/img/new/avatars/2.jpg" class="rounded-circle" height="22" alt="Avatar"
+                loading="lazy" />
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink">
+              <li><a class="dropdown-item " href="#">My profile</a></li>
+              <li><a class="dropdown-item" href="#">Settings</a></li>
+              <li><a class="dropdown-item" href="#">Logout</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <!-- Container wrapper -->
+    </nav>
+    <!-- Navbar -->
+
+    <!-- Heading -->
+    <section class="">
+      <!-- Background gradient -->
+      <div class="p-5"
+        style="height: 200px; background: linear-gradient( to right, hsl(209, 42.2%, 65%), hsl(209, 42.2%, 85%));">
+      </div>
+      <!-- Background gradient -->
+    </section>
+    <!-- Heading -->
+
+  </header>
+  <!--Main Navigation-->
+
+
+  <!--Main layout-->
+  {{ yield }}
+
+  <style>
+    body {
+      background-color: hsl(0, 0%, 97%);
+    }
+
+    @media (min-width: 1400px) {
+
+      main,
+      header,
+      #main-navbar {
+        padding-left: 240px;
+      }
+    }
+  </style>
+
+
+  <footer></footer>
+  <script src="/assets/js/mdb.min.js"
+    integrity="sha384-86bjnImr4rwXHzuk1/uQJdQKP/9/hGMYfmHi3Gw0S0canvKXJDieCKZVR4Pr/usG"
+    crossorigin="anonymous"></script>
+
+  <script>
+    const sidenav = document.getElementById("main-sidenav");
+    const sidenavInstance = mdb.Sidenav.getInstance(sidenav);
+
+    let innerWidth = null;
+
+    const setMode = (e) => {
+      // Check necessary for Android devices
+      if (window.innerWidth === innerWidth) {
+        return;
+      }
+
+      innerWidth = window.innerWidth;
+
+      if (window.innerWidth < 1400) {
+        sidenavInstance.changeMode("over");
+        sidenavInstance.hide();
+      } else {
+        sidenavInstance.changeMode("side");
+        sidenavInstance.show();
+      }
+    };
+
+    setMode();
+
+    // Event listeners
+    window.addEventListener("resize", setMode);
+  </script>
+
+
+  <script src="/assets/js/htmx.min.js"
+    integrity="sha384-UA0tebWwml7YAJLaVDuzHObJRsmBMTLreFpmSf5x8bNLyEekjwDKMgyPF1epRXNh"
+    crossorigin="anonymous"></script>
+  <script src="/assets/js/clipboard.min.js"
+    integrity="sha384-l+NXfsbuTlAhBPDmq/pw2T2lZFdoNLLHBkSthCVarziTUQt/DjE6wbils2UCaLog"
+    crossorigin="anonymous"></script>
+</body>
+
+</html>

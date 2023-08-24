@@ -13,9 +13,9 @@ type MockWriter struct {
 	mock.Mock
 }
 
-// WriteHTML provides a mock function with given fields: w, status, template, args
-func (_m *MockWriter) WriteHTML(w http.ResponseWriter, status int, template string, args interface{}) {
-	_m.Called(w, status, template, args)
+// WriteHTML provides a mock function with given fields: w, status, template, withLayout, args
+func (_m *MockWriter) WriteHTML(w http.ResponseWriter, status int, template string, withLayout bool, args interface{}) {
+	_m.Called(w, status, template, withLayout, args)
 }
 
 // WriteJSON provides a mock function with given fields: w, statusCode, res

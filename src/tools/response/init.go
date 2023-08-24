@@ -19,7 +19,7 @@ type Config struct {
 type Writer interface {
 	WriteJSON(w http.ResponseWriter, statusCode int, res any)
 	WriteJSONError(w http.ResponseWriter, err error)
-	WriteHTML(w http.ResponseWriter, status int, template string, args any)
+	WriteHTML(w http.ResponseWriter, status int, template string, withLayout bool, args any)
 }
 
 func Init(cfg Config, log *slog.Logger) Writer {
@@ -30,7 +30,7 @@ func Init(cfg Config, log *slog.Logger) Writer {
 
 	opts := render.Options{
 		Directory:     path.Join(dir, "assets/html"),
-		Layout:        "layout.tmpl",
+		Layout:        "",
 		IsDevelopment: cfg.HotReload,
 		Extensions:    []string{".tmpl", ".html"},
 	}

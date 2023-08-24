@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"path"
 
 	"github.com/theduckcompany/duckcloud/src/tools/errs"
 	"github.com/unrolled/render"
@@ -47,8 +48,14 @@ func (t *Default) WriteJSONError(w http.ResponseWriter, err error) {
 	}
 }
 
-func (t *Default) WriteHTML(w http.ResponseWriter, status int, template string, args any) {
-	if err := t.render.HTML(w, status, template, args); err != nil {
+func (t *Default) WriteHTML(w http.ResponseWriter, status int, template string, withLayout bool, args any) {
+	layout := ""
+
+	if withLayout {
+		layout = path.Join(path.Dir(template), "layout.tmpl")
+	}
+
+	if err := t.render.HTML(w, status, template, args, render.HTMLOptions{Layout: layout}); err != nil {
 		t.log.Error("failed to render a json response", slog.String("error", err.Error()))
 	}
 }
