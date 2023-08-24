@@ -35,6 +35,7 @@ func bootstrap(cmd users.CreateCmd) bootstrapFunc {
 		_, err := usersSvc.Create(ctx, &users.CreateCmd{
 			Username: cmd.Username,
 			Password: cmd.Password,
+			IsAdmin:  true,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to create the user: %w", err)

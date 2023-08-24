@@ -25,6 +25,7 @@ func TestBootstrap(t *testing.T) {
 	user := users.CreateCmd{
 		Username: "foo",
 		Password: "qwert1234",
+		IsAdmin:  true,
 	}
 
 	err = Bootstrap(ctx, cfg, user)
