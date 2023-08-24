@@ -25,7 +25,7 @@
       <ul class="sidenav-menu px-2 pb-5">
         <li class="sidenav-item">
           <a class="sidenav-link" href="">
-            <i class="bi bi-speedometer2 me-3"></i><span>Overview</span></a>
+            <i class="bi bi-speedometer me-3"></i><span>Overview</span></a>
         </li>
 
         <li class="sidenav-item pt-3">
@@ -37,8 +37,18 @@
         </li>
         <li class="sidenav-item">
           <a class="sidenav-link" hx-get="/settings/webdav" hx-target="main" , hx-swap="outerHTML">
-            <i class="bi bi-folder me-3"></i><span>WebDav</span></a>
+            <i class="bi bi-folder-fill me-3"></i><span>WebDav</span></a>
         </li>
+
+        {{ if (eq .isAdmin true)}}
+        <li class="sidenav-item pt-3">
+          <span class="sidenav-subheading text-muted text-uppercase fw-bold">Admin</span>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link" hx-get="/settings/users" hx-target="main" , hx-swap="outerHTML">
+            <i class="bi bi-people-fill me-3"></i><span>User Management</span></a>
+        </li>
+        {{end}}
       </ul>
     </nav>
     <!-- Sidenav -->

@@ -1,0 +1,35 @@
+<main class="mb-5" style="margin-top: -100px;">
+  <div class="container px-4">
+    <section>
+      <div class="card shadow-0">
+        <div class="card-header py-4 mb-3">
+          <h4 class="mb-0">User management</h4>
+        </div>
+        <div class="card-body">
+          <table class="table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>UserName</th>
+                <th>Admin</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{range .users}}
+              <tr>
+                <td> {{.Username}} </td>
+                <td> {{.Admin}} </td>
+                <td>
+                  <button type="button" hx-delete="/settings/webdav/{{.ID}}" hx-target="closest tr" hx-swap="outerHTML"
+                    class="btn btn-link btn-sm btn-rounded">Disconnect</button>
+                </td>
+              </tr>
+              {{end}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
