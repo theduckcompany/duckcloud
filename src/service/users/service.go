@@ -44,13 +44,13 @@ func NewService(tools tools.Tools, storage Storage, inodes inodes.Service) *User
 }
 
 // Create will create and register a new user.
-func (t *UserService) Create(ctx context.Context, input *CreateCmd) (*User, error) {
-	err := input.Validate()
+func (t *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error) {
+	err := cmd.Validate()
 	if err != nil {
 		return nil, errs.ValidationError(err)
 	}
 
-	userWithSameUsername, err := t.storage.GetByUsername(ctx, input.Username)
+	userWithSameUsername, err := t.storage.GetByUsername(ctx, cmd.Username)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if the username is already used: %w", err)
 	}
@@ -65,14 +65,15 @@ func (t *UserService) Create(ctx context.Context, input *CreateCmd) (*User, erro
 		return nil, fmt.Errorf("failed to bootstrap the user inodes: %w", err)
 	}
 
-	hashedPassword, err := t.password.Encrypt(ctx, input.Password)
+	hashedPassword, err := t.password.Encrypt(ctx, cmd.Password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash the password: %w", err)
 	}
 
 	user := User{
 		id:        newUserID,
-		username:  input.Username,
+		username:  cmd.Username,
+		isAdmin:   cmd.IsAdmin,
 		password:  hashedPassword,
 		fsRoot:    rootDir.ID(),
 		createdAt: t.clock.Now(),

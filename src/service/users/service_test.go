@@ -21,6 +21,7 @@ func Test_Users_Service(t *testing.T) {
 	user := User{
 		id:        uuid.UUID("some-user-id"),
 		username:  "some-username",
+		isAdmin:   true,
 		fsRoot:    uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
 		password:  "some-encrypted-password",
 		createdAt: now,
@@ -46,6 +47,7 @@ func Test_Users_Service(t *testing.T) {
 		res, err := service.Create(ctx, &CreateCmd{
 			Username: "some-username",
 			Password: "some-password",
+			IsAdmin:  true,
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, &user, res)
@@ -62,6 +64,7 @@ func Test_Users_Service(t *testing.T) {
 		res, err := service.Create(ctx, &CreateCmd{
 			Username: "some-username",
 			Password: "some-password",
+			IsAdmin:  false,
 		})
 		assert.ErrorIs(t, err, ErrUsernameTaken)
 		assert.ErrorIs(t, err, errs.ErrBadRequest)
@@ -79,6 +82,7 @@ func Test_Users_Service(t *testing.T) {
 		res, err := service.Create(ctx, &CreateCmd{
 			Username: "some-username",
 			Password: "some-password",
+			IsAdmin:  false,
 		})
 		assert.ErrorContains(t, err, "some-error")
 		assert.Nil(t, res)

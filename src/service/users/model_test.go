@@ -15,6 +15,7 @@ func Test_CreateUserRequest_Validate_success(t *testing.T) {
 	err := CreateCmd{
 		Username: "some-username",
 		Password: "myLittleSecret",
+		IsAdmin:  true,
 	}.Validate()
 
 	assert.NoError(t, err)
