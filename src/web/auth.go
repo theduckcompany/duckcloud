@@ -62,7 +62,7 @@ func (h *authHandler) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 	_ = r.ParseForm()
 
 	if r.Method == http.MethodGet {
-		h.response.WriteHTML(w, http.StatusOK, "auth/login.tmpl", nil)
+		h.response.WriteHTML(w, http.StatusOK, "auth/login.tmpl", true, nil)
 		return
 	}
 
@@ -88,7 +88,7 @@ func (h *authHandler) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(loginErrors) > 0 {
-		h.response.WriteHTML(w, status, "auth/login.tmpl", map[string]interface{}{
+		h.response.WriteHTML(w, status, "auth/login.tmpl", true, map[string]interface{}{
 			"inputs": inputs,
 			"errors": loginErrors,
 		})
@@ -193,7 +193,7 @@ func (h *authHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	h.response.WriteHTML(w, http.StatusOK, "auth/consent.tmpl", map[string]interface{}{
+	h.response.WriteHTML(w, http.StatusOK, "auth/consent.tmpl", true, map[string]interface{}{
 		"clientName": client.Name(),
 		"username":   user.Username,
 		"scope":      strings.Split(r.FormValue("scope"), ","),

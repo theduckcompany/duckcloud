@@ -1,0 +1,46 @@
+<main class="mb-5" style="margin-top: -100px;">
+  <div class="container px-4">
+    <!--Section: Content-->
+    <section>
+      <div class="card shadow-0">
+        <div class="card-header py-4 mb-3">
+          <h4 class="mb-0">Browsers</h4>
+        </div>
+        <div class="card-body">
+          {{ $nbWebSessions := len .webSessions }}
+          <table class="table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Last activity</th>
+                <th>IP</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{range .webSessions}}
+              <tr>
+                <td>
+                  {{.Device}}
+                  {{ if (eq .Token $.currentSession.Token) }}
+                  <span class="badge text-bg-primary">Current Session</span>
+                  {{ end }}
+                </td>
+                <td> Seconds ago </td>
+                <td> {{.IP}} </td>
+                <td>
+                  <button type="button" hx-delete="/settings/browsers/{{.Token}}" hx-target="closest tr"
+                    hx-swap="outerHTML"
+                    class="btn btn-link btn-sm btn-rounded {{if (eq .Token $.currentSession.Token)}}disabled{{end}}">Disconnect</button>
+                </td>
+              </tr>
+              {{end}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    <!--Section: Content-->
+
+  </div>
+</main>

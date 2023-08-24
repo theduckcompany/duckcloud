@@ -1,0 +1,51 @@
+<main class="mb-5" style="margin-top: -100px;">
+  <div class="container px-4">
+    <!--Section: Content-->
+    <section>
+      <div class="card shadow-0">
+        <div class="card-header py-4 mb-3">
+          <h4 class="mb-0">WebDav Sessions</h4>
+        </div>
+        <div class="card-body">
+          {{ $nbWebSessions := len .davSessions }}
+          <table class="table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Last activity</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{range .davSessions}}
+              <tr>
+                <td> {{.Name}} </td>
+                <td> Seconds ago </td>
+                <td>
+                  <button type="button" hx-delete="/settings/webdav/{{.ID}}" hx-target="closest tr" hx-swap="outerHTML"
+                    class="btn btn-link btn-sm btn-rounded">Disconnect</button>
+                </td>
+              </tr>
+              {{end}}
+            </tbody>
+          </table>
+
+          <br>
+
+          <form class="row g-3" hx-post="/settings/webdav" hx-target="this" hx-swap="outerHTML">
+            <div class="col-auto">
+              <label for="inputDavSession" class="visually-hidden">Name</label>
+              <input type="text" name="name" class="form-control" id="davSessionName" placeholder="App name">
+            </div>
+            <div class="col-auto">
+              <button type="submit" class="btn btn-primary mb-3">Create new Dav credentials</button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </section>
+    <!--Section: Content-->
+
+  </div>
+</main>
