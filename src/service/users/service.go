@@ -10,6 +10,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/clock"
 	"github.com/theduckcompany/duckcloud/src/tools/errs"
 	"github.com/theduckcompany/duckcloud/src/tools/password"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
@@ -27,6 +28,7 @@ type Storage interface {
 	Save(ctx context.Context, user *User) error
 	GetByUsername(ctx context.Context, username string) (*User, error)
 	GetByID(ctx context.Context, userID uuid.UUID) (*User, error)
+	GetAll(ctx context.Context, cmd *storage.PaginateCmd) ([]User, error)
 }
 
 // service handling all the logic.
@@ -44,13 +46,13 @@ func NewService(tools tools.Tools, storage Storage, inodes inodes.Service) *User
 }
 
 // Create will create and register a new user.
-func (t *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error) {
+func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error) {
 	err := cmd.Validate()
 	if err != nil {
 		return nil, errs.ValidationError(err)
 	}
 
-	userWithSameUsername, err := t.storage.GetByUsername(ctx, cmd.Username)
+	userWithSameUsername, err := s.storage.GetByUsername(ctx, cmd.Username)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if the username is already used: %w", err)
 	}
@@ -58,14 +60,14 @@ func (t *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 		return nil, errs.BadRequest(ErrUsernameTaken, "username already taken")
 	}
 
-	newUserID := t.uuid.New()
+	newUserID := s.uuid.New()
 
-	rootDir, err := t.inodes.BootstrapUser(ctx, newUserID)
+	rootDir, err := s.inodes.BootstrapUser(ctx, newUserID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to bootstrap the user inodes: %w", err)
 	}
 
-	hashedPassword, err := t.password.Encrypt(ctx, cmd.Password)
+	hashedPassword, err := s.password.Encrypt(ctx, cmd.Password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash the password: %w", err)
 	}
@@ -76,10 +78,10 @@ func (t *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 		isAdmin:   cmd.IsAdmin,
 		password:  hashedPassword,
 		fsRoot:    rootDir.ID(),
-		createdAt: t.clock.Now(),
+		createdAt: s.clock.Now(),
 	}
 
-	err = t.storage.Save(ctx, &user)
+	err = s.storage.Save(ctx, &user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save the user: %w", err)
 	}
@@ -88,8 +90,8 @@ func (t *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 }
 
 // Authenticate return the user corresponding to the given username only if the password is correct.
-func (t *UserService) Authenticate(ctx context.Context, username, userPassword string) (*User, error) {
-	user, err := t.storage.GetByUsername(ctx, username)
+func (s *UserService) Authenticate(ctx context.Context, username, userPassword string) (*User, error) {
+	user, err := s.storage.GetByUsername(ctx, username)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve the user by its username: %w", err)
 	}
@@ -98,7 +100,7 @@ func (t *UserService) Authenticate(ctx context.Context, username, userPassword s
 		return nil, ErrInvalidUsername
 	}
 
-	err = t.password.Compare(ctx, user.password, userPassword)
+	err = s.password.Compare(ctx, user.password, userPassword)
 	switch {
 	case errors.Is(err, password.ErrMissmatchedPassword):
 		return nil, ErrInvalidPassword
@@ -111,4 +113,8 @@ func (t *UserService) Authenticate(ctx context.Context, username, userPassword s
 
 func (t *UserService) GetByID(ctx context.Context, userID uuid.UUID) (*User, error) {
 	return t.storage.GetByID(ctx, userID)
+}
+
+func (t *UserService) GetAll(ctx context.Context, paginateCmd *storage.PaginateCmd) ([]User, error) {
+	return t.storage.GetAll(ctx, paginateCmd)
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/errs"
 	"github.com/theduckcompany/duckcloud/src/tools/password"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
@@ -29,11 +30,11 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("Create success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		store := NewMockStorage(t)
 		inodesSvc := inodes.NewMockService(t)
-		service := NewService(tools, storage, inodesSvc)
+		service := NewService(tools, store, inodesSvc)
 
-		storage.On("GetByUsername", ctx, "some-username").Return(nil, nil).Once()
+		store.On("GetByUsername", ctx, "some-username").Return(nil, nil).Once()
 
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-user-id")).Once()
 
@@ -42,7 +43,7 @@ func Test_Users_Service(t *testing.T) {
 		tools.ClockMock.On("Now").Return(now).Once()
 		tools.PasswordMock.On("Encrypt", ctx, "some-password").Return("some-encrypted-password", nil).Once()
 
-		storage.On("Save", ctx, &user).Return(nil)
+		store.On("Save", ctx, &user).Return(nil)
 
 		res, err := service.Create(ctx, &CreateCmd{
 			Username: "some-username",
@@ -55,11 +56,11 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("Create with a taken username", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		store := NewMockStorage(t)
 		inodes := inodes.NewMockService(t)
-		service := NewService(tools, storage, inodes)
+		service := NewService(tools, store, inodes)
 
-		storage.On("GetByUsername", ctx, "some-username").Return(&User{}, nil).Once()
+		store.On("GetByUsername", ctx, "some-username").Return(&User{}, nil).Once()
 
 		res, err := service.Create(ctx, &CreateCmd{
 			Username: "some-username",
@@ -73,11 +74,11 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("Create with a database error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		store := NewMockStorage(t)
 		inodes := inodes.NewMockService(t)
-		service := NewService(tools, storage, inodes)
+		service := NewService(tools, store, inodes)
 
-		storage.On("GetByUsername", ctx, "some-username").Return(nil, fmt.Errorf("some-error")).Once()
+		store.On("GetByUsername", ctx, "some-username").Return(nil, fmt.Errorf("some-error")).Once()
 
 		res, err := service.Create(ctx, &CreateCmd{
 			Username: "some-username",
@@ -90,11 +91,11 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("Authenticate success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		store := NewMockStorage(t)
 		inodes := inodes.NewMockService(t)
-		service := NewService(tools, storage, inodes)
+		service := NewService(tools, store, inodes)
 
-		storage.On("GetByUsername", ctx, "some-username").Return(&user, nil).Once()
+		store.On("GetByUsername", ctx, "some-username").Return(&user, nil).Once()
 
 		tools.PasswordMock.On("Compare", ctx, "some-encrypted-password", "some-password").Return(nil).Once()
 
@@ -105,11 +106,11 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("Authenticate with an invalid username", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		store := NewMockStorage(t)
 		inodes := inodes.NewMockService(t)
-		service := NewService(tools, storage, inodes)
+		service := NewService(tools, store, inodes)
 
-		storage.On("GetByUsername", ctx, "some-username").Return(nil, nil).Once()
+		store.On("GetByUsername", ctx, "some-username").Return(nil, nil).Once()
 
 		res, err := service.Authenticate(ctx, "some-username", "some-password")
 		assert.ErrorIs(t, err, ErrInvalidUsername)
@@ -118,11 +119,11 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("Authenticate with an invalid password", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		store := NewMockStorage(t)
 		inodes := inodes.NewMockService(t)
-		service := NewService(tools, storage, inodes)
+		service := NewService(tools, store, inodes)
 
-		storage.On("GetByUsername", ctx, "some-username").Return(&user, nil).Once()
+		store.On("GetByUsername", ctx, "some-username").Return(&user, nil).Once()
 		tools.PasswordMock.On("Compare", ctx, "some-encrypted-password", "some-password").Return(password.ErrMissmatchedPassword).Once()
 
 		// Invalid password here
@@ -133,11 +134,11 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("Authenticate an unhandled password error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		store := NewMockStorage(t)
 		inodes := inodes.NewMockService(t)
-		service := NewService(tools, storage, inodes)
+		service := NewService(tools, store, inodes)
 
-		storage.On("GetByUsername", ctx, "some-username").Return(&user, nil).Once()
+		store.On("GetByUsername", ctx, "some-username").Return(&user, nil).Once()
 		tools.PasswordMock.On("Compare", ctx, "some-encrypted-password", "some-password").Return(fmt.Errorf("some-error")).Once()
 
 		res, err := service.Authenticate(ctx, "some-username", "some-password")
@@ -147,14 +148,27 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("GetByID success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		store := NewMockStorage(t)
 		inodes := inodes.NewMockService(t)
-		service := NewService(tools, storage, inodes)
+		service := NewService(tools, store, inodes)
 
-		storage.On("GetByID", ctx, user.ID()).Return(&user, nil).Once()
+		store.On("GetByID", ctx, user.ID()).Return(&user, nil).Once()
 
 		res, err := service.GetByID(ctx, user.ID())
 		assert.NoError(t, err)
 		assert.Equal(t, &user, res)
+	})
+
+	t.Run("GetAll success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		store := NewMockStorage(t)
+		inodes := inodes.NewMockService(t)
+		service := NewService(tools, store, inodes)
+
+		store.On("GetAll", ctx, &storage.PaginateCmd{Limit: 10}).Return([]User{user}, nil).Once()
+
+		res, err := service.GetAll(ctx, &storage.PaginateCmd{Limit: 10})
+		assert.NoError(t, err)
+		assert.Equal(t, []User{user}, res)
 	})
 }
