@@ -6,7 +6,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
-var now = time.Now()
+var now = time.Now().UTC()
 
 var ExampleAlice = User{
 	id:        uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),

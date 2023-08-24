@@ -6,6 +6,8 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
+	storage "github.com/theduckcompany/duckcloud/src/tools/storage"
+
 	uuid "github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
@@ -59,6 +61,32 @@ func (_m *MockService) Create(ctx context.Context, user *CreateCmd) (*User, erro
 
 	if rf, ok := ret.Get(1).(func(context.Context, *CreateCmd) error); ok {
 		r1 = rf(ctx, user)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAll provides a mock function with given fields: ctx, paginateCmd
+func (_m *MockService) GetAll(ctx context.Context, paginateCmd *storage.PaginateCmd) ([]User, error) {
+	ret := _m.Called(ctx, paginateCmd)
+
+	var r0 []User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *storage.PaginateCmd) ([]User, error)); ok {
+		return rf(ctx, paginateCmd)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *storage.PaginateCmd) []User); ok {
+		r0 = rf(ctx, paginateCmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *storage.PaginateCmd) error); ok {
+		r1 = rf(ctx, paginateCmd)
 	} else {
 		r1 = ret.Error(1)
 	}
