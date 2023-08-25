@@ -7,6 +7,8 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/clock"
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
@@ -15,21 +17,22 @@ const tableName = "users"
 
 // sqlStorage use to save/retrieve Users
 type sqlStorage struct {
-	db *sql.DB
+	db    *sql.DB
+	clock clock.Clock
 }
 
 // newSqlStorage instantiates a new Storage based on sql.
-func newSqlStorage(db *sql.DB) *sqlStorage {
-	return &sqlStorage{db}
+func newSqlStorage(db *sql.DB, tools tools.Tools) *sqlStorage {
+	return &sqlStorage{db, tools.Clock()}
 }
 
 // Save the given User.
-func (t *sqlStorage) Save(ctx context.Context, user *User) error {
+func (s *sqlStorage) Save(ctx context.Context, user *User) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns("id", "username", "admin", "fs_root", "password", "created_at").
 		Values(user.id, user.username, user.isAdmin, user.fsRoot, user.password, user.createdAt).
-		RunWith(t.db).
+		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
 		return fmt.Errorf("sql error: %w", err)
@@ -38,38 +41,84 @@ func (t *sqlStorage) Save(ctx context.Context, user *User) error {
 	return nil
 }
 
-func (t *sqlStorage) GetAll(ctx context.Context, cmd *storage.PaginateCmd) ([]User, error) {
+func (s *sqlStorage) GetAll(ctx context.Context, cmd *storage.PaginateCmd) ([]User, error) {
 	rows, err := storage.PaginateSelection(sq.
 		Select("id", "username", "admin", "fs_root", "password", "created_at").
 		From(tableName), cmd).
-		RunWith(t.db).
+		Where(sq.Eq{"deleted_at": nil}).
+		RunWith(s.db).
 		QueryContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("sql error: %w", err)
 	}
 
-	return t.scanRows(rows)
+	return s.scanRows(rows)
 }
 
-// GetByID return the user matching the id.
-//
-// If no user is found, nil and no error will be returned.
-func (t *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*User, error) {
-	return t.getByKey(ctx, "id", string(id))
+func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*User, error) {
+	return s.getByKey(ctx, "id", string(id))
 }
 
-func (t *sqlStorage) GetByUsername(ctx context.Context, username string) (*User, error) {
-	return t.getByKey(ctx, "username", username)
+func (s *sqlStorage) GetByUsername(ctx context.Context, username string) (*User, error) {
+	return s.getByKey(ctx, "username", username)
 }
 
-func (t *sqlStorage) getByKey(ctx context.Context, key, expected string) (*User, error) {
+func (s *sqlStorage) Delete(ctx context.Context, userID uuid.UUID) error {
+	_, err := sq.
+		Update(tableName).
+		Where(sq.Eq{"id": userID}).
+		Set("deleted_at", s.clock.Now()).
+		RunWith(s.db).
+		ExecContext(ctx)
+	if err != nil {
+		return fmt.Errorf("sql error: %w", err)
+	}
+
+	return nil
+}
+
+func (s *sqlStorage) HardDelete(ctx context.Context, userID uuid.UUID) error {
+	_, err := sq.
+		Delete(tableName).
+		Where(sq.Eq{"id": string(userID)}).
+		RunWith(s.db).
+		ExecContext(ctx)
+	if err != nil {
+		return fmt.Errorf("sql error: %w", err)
+	}
+
+	return nil
+}
+
+func (s *sqlStorage) GetDeletedUsers(ctx context.Context, limit int) ([]User, error) {
+	rows, err := sq.
+		Select("id", "username", "admin", "fs_root", "password", "created_at").
+		From(tableName).
+		Where(sq.NotEq{"deleted_at": nil}).
+		Limit(uint64(limit)).
+		RunWith(s.db).
+		QueryContext(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		return []User{}, nil
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("sql error: %w", err)
+	}
+
+	defer rows.Close()
+
+	return s.scanRows(rows)
+}
+
+func (s *sqlStorage) getByKey(ctx context.Context, key, expected string) (*User, error) {
 	res := User{}
 
 	err := sq.
 		Select("id", "username", "admin", "fs_root", "password", "created_at").
 		From(tableName).
-		Where(sq.Eq{key: expected}).
-		RunWith(t.db).
+		Where(sq.Eq{key: expected, "deleted_at": nil}).
+		RunWith(s.db).
 		ScanContext(ctx, &res.id, &res.username, &res.isAdmin, &res.fsRoot, &res.password, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
