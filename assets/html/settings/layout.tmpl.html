@@ -22,7 +22,7 @@
       </a>
 
       <hr class="hr">
-      <ul class="sidenav-menu px-2 pb-5">
+      <ul class="sidenav-menu px-2 pb-5" hx-boost="true">
         <li class="sidenav-item">
           <a class="sidenav-link" href="">
             <i class="bi bi-speedometer me-3"></i><span>Overview</span></a>
@@ -32,11 +32,11 @@
           <span class="sidenav-subheading text-muted text-uppercase fw-bold">Sessions</span>
         </li>
         <li class="sidenav-item">
-          <a class="sidenav-link" hx-get="/settings/browsers" hx-target="main" , hx-swap="outerHTML">
+          <a class="sidenav-link" href="/settings/browsers" hx-target="main" , hx-swap="outerHTML">
             <i class="bi bi-browser-firefox me-3"></i><span>Browsers</span></a>
         </li>
         <li class="sidenav-item">
-          <a class="sidenav-link" hx-get="/settings/webdav" hx-target="main" , hx-swap="outerHTML">
+          <a class="sidenav-link" href="/settings/webdav" hx-target="main" , hx-swap="outerHTML">
             <i class="bi bi-folder-fill me-3"></i><span>WebDav</span></a>
         </li>
 
@@ -45,7 +45,7 @@
           <span class="sidenav-subheading text-muted text-uppercase fw-bold">Admin</span>
         </li>
         <li class="sidenav-item">
-          <a class="sidenav-link" hx-get="/settings/users" hx-target="main" , hx-swap="outerHTML">
+          <a class="sidenav-link" href="/settings/users" hx-target="main" , hx-swap="outerHTML">
             <i class="bi bi-people-fill me-3"></i><span>User Management</span></a>
         </li>
         {{end}}

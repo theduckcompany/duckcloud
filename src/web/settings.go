@@ -41,9 +41,9 @@ func newSettingsHandler(
 func (h *settingsHandler) Register(r chi.Router, mids router.Middlewares) {
 	auth := r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
 
-	auth.Get("/settings", h.getBrowsersSessions(true))
+	auth.Get("/settings", h.getBrowsersSessions)
 
-	auth.Get("/settings/browsers", h.getBrowsersSessions(false))
+	auth.Get("/settings/browsers", h.getBrowsersSessions)
 	auth.Delete("/settings/browsers/{sessionToken}", h.deleteWebSession)
 
 	auth.Get("/settings/webdav", h.getDavSessions)
@@ -58,59 +58,47 @@ func (h *settingsHandler) String() string {
 	return "web.settings"
 }
 
-func (h *settingsHandler) getBrowsersSessions(withLayout bool) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+func (h *settingsHandler) getBrowsersSessions(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 
-		currentSession, err := h.webSessions.GetFromReq(r)
-		if err != nil || currentSession == nil {
-			w.Header().Set("Location", "/login")
-			w.WriteHeader(http.StatusFound)
-			return
-		}
-
-		webSessions, err := h.webSessions.GetUserSessions(ctx, currentSession.UserID())
-		if err != nil {
-			h.response.WriteJSONError(w, fmt.Errorf("failed to fetch the websessions: %w", err))
-			return
-		}
-
-		user, err := h.users.GetByID(ctx, currentSession.UserID())
-		if err != nil {
-			w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
-			return
-		}
-
-		if user == nil {
-			_ = h.webSessions.Logout(r, w)
-			return
-		}
-
-		h.response.WriteHTML(w, http.StatusOK, "settings/browsers.tmpl", withLayout, map[string]interface{}{
-			"isAdmin":        user.IsAdmin(),
-			"currentSession": currentSession,
-			"webSessions":    webSessions,
-		})
+	user, session := h.getUserAndSession(w, r)
+	if user == nil {
+		return
 	}
+
+	webSessions, err := h.webSessions.GetUserSessions(ctx, session.UserID())
+	if err != nil {
+		h.response.WriteJSONError(w, fmt.Errorf("failed to fetch the websessions: %w", err))
+		return
+	}
+
+	fullPage := r.Header.Get("HX-Boosted") == ""
+
+	h.response.WriteHTML(w, http.StatusOK, "settings/browsers.tmpl", fullPage, map[string]interface{}{
+		"isAdmin":        user.IsAdmin(),
+		"currentSession": session,
+		"webSessions":    webSessions,
+	})
 }
 
 func (h *settingsHandler) getDavSessions(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	currentSession, err := h.webSessions.GetFromReq(r)
-	if err != nil || currentSession == nil {
-		w.Header().Set("Location", "/login")
-		w.WriteHeader(http.StatusFound)
+	user, _ := h.getUserAndSession(w, r)
+	if user == nil {
 		return
 	}
 
-	davSessions, err := h.davSessions.GetAllForUser(ctx, currentSession.UserID(), &storage.PaginateCmd{Limit: 10})
+	davSessions, err := h.davSessions.GetAllForUser(ctx, user.ID(), &storage.PaginateCmd{Limit: 10})
 	if err != nil {
 		h.response.WriteJSONError(w, fmt.Errorf("failed to fetch the davsessions: %w", err))
 		return
 	}
 
-	h.response.WriteHTML(w, http.StatusOK, "settings/webdav.tmpl", false, map[string]interface{}{
+	fullPage := r.Header.Get("HX-Boosted") == ""
+
+	h.response.WriteHTML(w, http.StatusOK, "settings/webdav.tmpl", fullPage, map[string]interface{}{
+		"isAdmin":       user.IsAdmin(),
 		"davSessions":   davSessions,
 		"oauthSessions": []string{},
 	})
@@ -119,26 +107,13 @@ func (h *settingsHandler) getDavSessions(w http.ResponseWriter, r *http.Request)
 func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	currentSession, err := h.webSessions.GetFromReq(r)
-	if err != nil || currentSession == nil {
-		w.Header().Set("Location", "/login")
-		w.WriteHeader(http.StatusFound)
-		return
-	}
-
-	user, err := h.users.GetByID(ctx, currentSession.UserID())
-	if err != nil {
-		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
-		return
-	}
-
+	user, _ := h.getUserAndSession(w, r)
 	if user == nil {
-		_ = h.webSessions.Logout(r, w)
 		return
 	}
 
-	session, secret, err := h.davSessions.Create(ctx, &davsessions.CreateCmd{
-		UserID: currentSession.UserID(),
+	newSession, secret, err := h.davSessions.Create(ctx, &davsessions.CreateCmd{
+		UserID: user.ID(),
 		Name:   r.FormValue("name"),
 		FSRoot: user.RootFS(),
 	})
@@ -147,8 +122,10 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	h.response.WriteHTML(w, http.StatusOK, "settings/show-dav-credentials.tmpl", false, map[string]interface{}{
-		"session": session,
+	fullPage := r.Header.Get("HX-Boosted") == ""
+
+	h.response.WriteHTML(w, http.StatusOK, "settings/show-dav-credentials.tmpl", fullPage, map[string]interface{}{
+		"session": newSession,
 		"secret":  secret,
 	})
 }
@@ -156,15 +133,13 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 func (h *settingsHandler) deleteWebSession(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	currentSession, err := h.webSessions.GetFromReq(r)
-	if err != nil || currentSession == nil {
-		w.Header().Set("Location", "/login")
-		w.WriteHeader(http.StatusFound)
+	user, _ := h.getUserAndSession(w, r)
+	if user == nil {
 		return
 	}
 
-	err = h.webSessions.Revoke(ctx, &websessions.RevokeCmd{
-		UserID: currentSession.UserID(),
+	err := h.webSessions.Revoke(ctx, &websessions.RevokeCmd{
+		UserID: user.ID(),
 		Token:  chi.URLParam(r, "sessionToken"),
 	})
 	if err != nil {
@@ -178,10 +153,8 @@ func (h *settingsHandler) deleteWebSession(w http.ResponseWriter, r *http.Reques
 func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	currentSession, err := h.webSessions.GetFromReq(r)
-	if err != nil || currentSession == nil {
-		w.Header().Set("Location", "/login")
-		w.WriteHeader(http.StatusFound)
+	user, _ := h.getUserAndSession(w, r)
+	if user == nil {
 		return
 	}
 
@@ -193,7 +166,7 @@ func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Reques
 	}
 
 	err = h.davSessions.Revoke(ctx, &davsessions.RevokeCmd{
-		UserID:    currentSession.UserID(),
+		UserID:    user.ID(),
 		SessionID: sessionID,
 	})
 	if err != nil {
@@ -207,21 +180,8 @@ func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Reques
 func (h *settingsHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	currentSession, err := h.webSessions.GetFromReq(r)
-	if err != nil || currentSession == nil {
-		w.Header().Set("Location", "/login")
-		w.WriteHeader(http.StatusFound)
-		return
-	}
-
-	user, err := h.users.GetByID(ctx, currentSession.UserID())
-	if err != nil {
-		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
-		return
-	}
-
+	user, _ := h.getUserAndSession(w, r)
 	if user == nil {
-		_ = h.webSessions.Logout(r, w)
 		return
 	}
 
@@ -241,7 +201,9 @@ func (h *settingsHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.response.WriteHTML(w, http.StatusOK, "settings/users.tmpl", false, map[string]interface{}{
+	fullPage := r.Header.Get("HX-Boosted") == ""
+
+	h.response.WriteHTML(w, http.StatusOK, "settings/users.tmpl", fullPage, map[string]interface{}{
 		"current": user,
 		"users":   users,
 	})
@@ -250,21 +212,8 @@ func (h *settingsHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 func (h *settingsHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	currentSession, err := h.webSessions.GetFromReq(r)
-	if err != nil || currentSession == nil {
-		w.Header().Set("Location", "/login")
-		w.WriteHeader(http.StatusFound)
-		return
-	}
-
-	user, err := h.users.GetByID(ctx, currentSession.UserID())
-	if err != nil {
-		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
-		return
-	}
-
+	user, _ := h.getUserAndSession(w, r)
 	if user == nil {
-		_ = h.webSessions.Logout(r, w)
 		return
 	}
 
@@ -289,4 +238,28 @@ func (h *settingsHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *settingsHandler) getUserAndSession(w http.ResponseWriter, r *http.Request) (*users.User, *websessions.Session) {
+	ctx := r.Context()
+
+	currentSession, err := h.webSessions.GetFromReq(r)
+	if err != nil || currentSession == nil {
+		w.Header().Set("Location", "/login")
+		w.WriteHeader(http.StatusFound)
+		return nil, nil
+	}
+
+	user, err := h.users.GetByID(ctx, currentSession.UserID())
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
+		return nil, nil
+	}
+
+	if user == nil {
+		_ = h.webSessions.Logout(r, w)
+		return nil, nil
+	}
+
+	return user, currentSession
 }
