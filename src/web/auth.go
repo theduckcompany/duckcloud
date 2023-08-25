@@ -62,6 +62,7 @@ func (h *authHandler) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 	_ = r.ParseForm()
 
 	if r.Method == http.MethodGet {
+		w.Header().Set("HX-Refresh", "true")
 		h.response.WriteHTML(w, http.StatusOK, "auth/login.tmpl", true, nil)
 		return
 	}

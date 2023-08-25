@@ -17,11 +17,18 @@
             <tbody>
               {{range .users}}
               <tr>
-                <td> {{.Username}} </td>
-                <td> {{.Admin}} </td>
+                <td> {{.Username}}
+                  {{ if (eq .ID $.current.ID) }}
+                  <span class="badge text-bg-primary">You</span>
+                  {{ end }}
+                </td>
+                <td> {{.IsAdmin}} </td>
                 <td>
-                  <button type="button" hx-delete="/settings/webdav/{{.ID}}" hx-target="closest tr" hx-swap="outerHTML"
-                    class="btn btn-link btn-sm btn-rounded">Disconnect</button>
+                  <button type="button" hx-confirm="Are you sure you wish to delete the account '{{.Username}}' ?
+
+All its data and files will be definitively removed." hx-delete="/settings/users/{{.ID}}" hx-target="closest tr"
+                    hx-swap="outerHTML"
+                    class="btn btn-link btn-sm btn-rounded {{if (eq .ID $.current.ID)}}disabled{{end}}">Delete</button>
                 </td>
               </tr>
               {{end}}
