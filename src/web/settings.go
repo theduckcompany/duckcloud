@@ -49,6 +49,8 @@ func (h *settingsHandler) Register(r chi.Router, mids router.Middlewares) {
 	auth.Get("/settings/webdav", h.getDavSessions)
 	auth.Post("/settings/webdav", h.createDavSession)
 	auth.Delete("/settings/webdav/{sessionID}", h.deleteDavSession)
+
+	auth.Get("/settings/users", h.getUsers)
 }
 
 func (h *settingsHandler) String() string {
@@ -72,7 +74,19 @@ func (h *settingsHandler) getBrowsersSessions(withLayout bool) http.HandlerFunc 
 			return
 		}
 
+		user, err := h.users.GetByID(ctx, currentSession.UserID())
+		if err != nil {
+			w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
+			return
+		}
+
+		if user == nil {
+			w.Write([]byte(`<div class="alert alert-danger role="alert">Invalid user</div>`))
+			return
+		}
+
 		h.response.WriteHTML(w, http.StatusOK, "settings/browsers.tmpl", withLayout, map[string]interface{}{
+			"isAdmin":        user.Admin(),
 			"currentSession": currentSession,
 			"webSessions":    webSessions,
 		})
@@ -182,4 +196,43 @@ func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Reques
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *settingsHandler) getUsers(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	currentSession, err := h.webSessions.GetFromReq(r)
+	if err != nil || currentSession == nil {
+		w.Header().Set("Location", "/login")
+		w.WriteHeader(http.StatusFound)
+		return
+	}
+
+	user, err := h.users.GetByID(ctx, currentSession.UserID())
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
+		return
+	}
+
+	if user == nil {
+		w.Write([]byte(`<div class="alert alert-danger role="alert">Invalid user</div>`))
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	if !user.Admin() {
+		w.Write([]byte(`<div class="alert alert-danger role="alert">Action reserved to admins</div>`))
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	users, err := h.users.GetAll(ctx, &storage.PaginateCmd{
+		StartAfter: map[string]string{"username": ""},
+		Limit:      10,
+	})
+
+	h.response.WriteHTML(w, http.StatusOK, "settings/users.tmpl", false, map[string]interface{}{
+		"current": user,
+		"users":   users,
+	})
 }
