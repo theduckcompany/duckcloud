@@ -1,42 +1,40 @@
-<main class="mb-5" style="margin-top: -100px;">
-  <div class="container px-4">
-    <section>
-      <div class="card shadow-0">
-        <div class="card-header py-4 mb-3">
-          <h4 class="mb-0">User management</h4>
-        </div>
-        <div class="card-body">
-          <table class="table align-middle mb-0">
-            <thead>
-              <tr>
-                <th>UserName</th>
-                <th>Admin</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {{range .users}}
-              <tr>
-                <td> {{.Username}}
-                  {{ if (eq .ID $.current.ID) }}
-                  <span class="badge text-bg-primary">You</span>
-                  {{ end }}
-                </td>
-                <td> {{.IsAdmin}} </td>
-                <td>
-                  <button type="button" hx-confirm="Are you sure you wish to delete the account '{{.Username}}' ?
+<section id="content">
+  <div class="card shadow-0">
+    <div class="card-header py-4 mb-3">
+      <h4 class="mb-0">User management</h4>
+    </div>
+    <div class="card-body">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>UserName</th>
+            <th>Admin</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range .users}}
+          <tr>
+            <td> {{.Username}}
+              {{ if (eq .ID $.current.ID) }}
+              <span class="badge text-bg-primary">You</span>
+              {{ end }}
+            </td>
+            <td> {{.IsAdmin}} </td>
+            <td>
 
-All its data and files will be definitively removed." hx-delete="/settings/users/{{.ID}}" hx-target="closest tr"
-                    hx-swap="outerHTML"
-                    class="btn btn-link btn-sm btn-rounded {{if (eq .ID $.current.ID)}}disabled{{end}}">Delete</button>
-                </td>
-              </tr>
-              {{end}}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
+              <form action="/settings/users/{{.ID}}/delete" method="post" target="_top"
+                hx-post="/settings/users/{{.ID}}/delete" hx-target="#content" hx-swap="outerHTML" hx-confirm="Are you
+                sure you wish to delete the account '{{.Username}}' ? All its data and files will be definitively
+                removed." hx-delete="/settings/users/{{.ID}}">
+                <button type="submit"
+                  class="btn btn-link btn-sm btn-rounded {{if (eq .ID $.current.ID)}}disabled{{end}}">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
   </div>
-</main>
+</section>

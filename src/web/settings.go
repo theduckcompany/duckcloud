@@ -44,14 +44,14 @@ func (h *settingsHandler) Register(r chi.Router, mids router.Middlewares) {
 	auth.Get("/settings", h.getBrowsersSessions)
 
 	auth.Get("/settings/browsers", h.getBrowsersSessions)
-	auth.Delete("/settings/browsers/{sessionToken}", h.deleteWebSession)
+	auth.Post("/settings/browsers/{sessionToken}/delete", h.deleteWebSession)
 
 	auth.Get("/settings/webdav", h.getDavSessions)
 	auth.Post("/settings/webdav", h.createDavSession)
-	auth.Delete("/settings/webdav/{sessionID}", h.deleteDavSession)
+	auth.Post("/settings/webdav/{sessionID}/delete", h.deleteDavSession)
 
 	auth.Get("/settings/users", h.getUsers)
-	auth.Delete("/settings/users/{userID}", h.deleteUser)
+	auth.Post("/settings/users/{userID}/delete", h.deleteUser)
 }
 
 func (h *settingsHandler) String() string {
@@ -72,7 +72,7 @@ func (h *settingsHandler) getBrowsersSessions(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	fullPage := r.Header.Get("HX-Boosted") == ""
+	fullPage := r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == ""
 
 	h.response.WriteHTML(w, http.StatusOK, "settings/browsers.tmpl", fullPage, map[string]interface{}{
 		"isAdmin":        user.IsAdmin(),
@@ -95,12 +95,12 @@ func (h *settingsHandler) getDavSessions(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	fullPage := r.Header.Get("HX-Boosted") == ""
+	fullPage := r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == ""
+	fmt.Printf("is full page: %v\n\n", fullPage)
 
 	h.response.WriteHTML(w, http.StatusOK, "settings/webdav.tmpl", fullPage, map[string]interface{}{
-		"isAdmin":       user.IsAdmin(),
-		"davSessions":   davSessions,
-		"oauthSessions": []string{},
+		"isAdmin":     user.IsAdmin(),
+		"davSessions": davSessions,
 	})
 }
 
@@ -122,11 +122,20 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	fullPage := r.Header.Get("HX-Boosted") == ""
+	davSessions, err := h.davSessions.GetAllForUser(ctx, user.ID(), &storage.PaginateCmd{Limit: 10})
+	if err != nil {
+		h.response.WriteJSONError(w, fmt.Errorf("failed to fetch the davsessions: %w", err))
+		return
+	}
 
-	h.response.WriteHTML(w, http.StatusOK, "settings/show-dav-credentials.tmpl", fullPage, map[string]interface{}{
-		"session": newSession,
-		"secret":  secret,
+	fullPage := r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == ""
+	fmt.Printf("is full page: %v\n\n", fullPage)
+
+	h.response.WriteHTML(w, http.StatusOK, "settings/webdav.tmpl", fullPage, map[string]interface{}{
+		"isAdmin":     user.IsAdmin(),
+		"davSessions": davSessions,
+		"newSession":  newSession,
+		"secret":      secret,
 	})
 }
 
@@ -147,7 +156,8 @@ func (h *settingsHandler) deleteWebSession(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Location", "/settings/browsers")
+	w.WriteHeader(http.StatusFound)
 }
 
 func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Request) {
@@ -160,8 +170,7 @@ func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Reques
 
 	sessionID, err := h.uuid.Parse(chi.URLParam(r, "sessionID"))
 	if err != nil {
-		w.Header().Set("Location", "/login")
-		w.WriteHeader(http.StatusFound)
+		w.Write([]byte(`<div class="alert alert-danger role="alert">Invalid session id</div>`))
 		return
 	}
 
@@ -174,7 +183,8 @@ func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Location", "/settings/webdav")
+	w.WriteHeader(http.StatusFound)
 }
 
 func (h *settingsHandler) getUsers(w http.ResponseWriter, r *http.Request) {
@@ -201,9 +211,10 @@ func (h *settingsHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fullPage := r.Header.Get("HX-Boosted") == ""
+	fullPage := r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == ""
 
 	h.response.WriteHTML(w, http.StatusOK, "settings/users.tmpl", fullPage, map[string]interface{}{
+		"isAdmin": user.IsAdmin(),
 		"current": user,
 		"users":   users,
 	})
@@ -237,7 +248,8 @@ func (h *settingsHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Location", "/settings/users")
+	w.WriteHeader(http.StatusFound)
 }
 
 func (h *settingsHandler) getUserAndSession(w http.ResponseWriter, r *http.Request) (*users.User, *websessions.Session) {
