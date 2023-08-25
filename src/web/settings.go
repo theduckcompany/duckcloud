@@ -51,6 +51,7 @@ func (h *settingsHandler) Register(r chi.Router, mids router.Middlewares) {
 	auth.Post("/settings/webdav/{sessionID}/delete", h.deleteDavSession)
 
 	auth.Get("/settings/users", h.getUsers)
+	auth.Post("/settings/users", h.createUser)
 	auth.Post("/settings/users/{userID}/delete", h.deleteUser)
 }
 
@@ -242,6 +243,29 @@ func (h *settingsHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.users.Delete(ctx, userToDelete)
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Location", "/settings/users")
+	w.WriteHeader(http.StatusFound)
+}
+
+func (h *settingsHandler) createUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	user, _ := h.getUserAndSession(w, r)
+	if user == nil {
+		return
+	}
+
+	user, err := h.users.Create(ctx, &users.CreateCmd{
+		Username: r.FormValue("username"),
+		Password: r.FormValue("password"),
+		IsAdmin:  r.FormValue("role") == "admin",
+	})
 	if err != nil {
 		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
 		w.WriteHeader(http.StatusBadRequest)
