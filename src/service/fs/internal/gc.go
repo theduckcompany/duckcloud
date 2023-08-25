@@ -55,9 +55,9 @@ func (s *GCService) Stop() {
 
 func (s *GCService) run(ctx context.Context) error {
 	for {
-		toDelete, err := s.inodes.GetDeletedINodes(ctx, gcBatchSize)
+		toDelete, err := s.inodes.GetAllDeleted(ctx, gcBatchSize)
 		if err != nil {
-			return fmt.Errorf("failed to GetDeletedINodes: %w", err)
+			return fmt.Errorf("failed to GetAllDeleted: %w", err)
 		}
 
 		for _, inode := range toDelete {

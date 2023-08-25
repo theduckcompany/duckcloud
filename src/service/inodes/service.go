@@ -32,7 +32,8 @@ type Storage interface {
 	GetAllChildrens(ctx context.Context, userID, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	HardDelete(ctx context.Context, id uuid.UUID) error
-	GetDeletedINodes(ctx context.Context, limit int) ([]INode, error)
+	GetAllDeleted(ctx context.Context, limit int) ([]INode, error)
+	GetDeleted(ctx context.Context, id uuid.UUID) (*INode, error)
 }
 
 type INodeService struct {
@@ -139,12 +140,21 @@ func (s *INodeService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *s
 	return res, nil
 }
 
-func (s *INodeService) GetDeletedINodes(ctx context.Context, limit int) ([]INode, error) {
-	return s.storage.GetDeletedINodes(ctx, limit)
+func (s *INodeService) GetAllDeleted(ctx context.Context, limit int) ([]INode, error) {
+	return s.storage.GetAllDeleted(ctx, limit)
 }
 
 func (s *INodeService) HardDelete(ctx context.Context, inode uuid.UUID) error {
-	return s.storage.HardDelete(ctx, inode)
+	res, err := s.storage.GetDeleted(ctx, inode)
+	if err != nil {
+		return fmt.Errorf("failed to GetDeleted: %w", err)
+	}
+
+	if res == nil {
+		return nil
+	}
+
+	return s.storage.HardDelete(ctx, res.ID())
 }
 
 func (s *INodeService) RemoveAll(ctx context.Context, cmd *PathCmd) error {

@@ -120,8 +120,8 @@ func (_m *MockService) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	return r0, r1
 }
 
-// GetDeletedINodes provides a mock function with given fields: ctx, limit
-func (_m *MockService) GetDeletedINodes(ctx context.Context, limit int) ([]INode, error) {
+// GetAllDeleted provides a mock function with given fields: ctx, limit
+func (_m *MockService) GetAllDeleted(ctx context.Context, limit int) ([]INode, error) {
 	ret := _m.Called(ctx, limit)
 
 	var r0 []INode

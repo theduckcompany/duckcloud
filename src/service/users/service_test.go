@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/errs"
@@ -200,5 +201,45 @@ func Test_Users_Service(t *testing.T) {
 
 		err := service.Delete(ctx, ExampleAlice.ID())
 		assert.EqualError(t, err, "unauthorized: can't remove the last admin")
+	})
+
+	t.Run("GetAllDeleted success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		store := NewMockStorage(t)
+		inodes := inodes.NewMockService(t)
+		service := NewService(tools, store, inodes)
+
+		store.On("GetAllDeleted", mock.Anything, 10).Return([]User{ExampleAlice}, nil).Once()
+
+		res, err := service.GetAllDeleted(ctx, 10)
+		assert.NoError(t, err)
+		assert.Len(t, res, 1)
+		assert.Equal(t, ExampleAlice, res[0])
+	})
+
+	t.Run("HardDelete success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		store := NewMockStorage(t)
+		inodes := inodes.NewMockService(t)
+		service := NewService(tools, store, inodes)
+
+		store.On("GetDeleted", mock.Anything, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
+		store.On("HardDelete", mock.Anything, ExampleAlice.ID()).Return(nil).Once()
+
+		err := service.HardDelete(ctx, ExampleAlice.ID())
+		assert.NoError(t, err)
+	})
+
+	t.Run("HardDelete an non sofdeleted inode does nothing", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		store := NewMockStorage(t)
+		inodes := inodes.NewMockService(t)
+		service := NewService(tools, store, inodes)
+
+		store.On("GetDeleted", mock.Anything, ExampleAlice.ID()).Return(nil, nil).Once()
+		// The HardeDelete method is not called as we haven't found the deletedINode
+
+		err := service.HardDelete(ctx, ExampleAlice.ID())
+		assert.NoError(t, err)
 	})
 }

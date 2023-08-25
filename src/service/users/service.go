@@ -32,7 +32,8 @@ type Storage interface {
 	GetAll(ctx context.Context, cmd *storage.PaginateCmd) ([]User, error)
 	Delete(ctx context.Context, userID uuid.UUID) error
 	HardDelete(ctx context.Context, userID uuid.UUID) error
-	GetDeletedUsers(ctx context.Context, limit int) ([]User, error)
+	GetAllDeleted(ctx context.Context, limit int) ([]User, error)
+	GetDeleted(ctx context.Context, id uuid.UUID) (*User, error)
 }
 
 // service handling all the logic.
@@ -147,11 +148,20 @@ func (s *UserService) Delete(ctx context.Context, userID uuid.UUID) error {
 	return s.storage.Delete(ctx, userID)
 }
 
-func (s *UserService) GetDeleted(ctx context.Context, limit int) ([]User, error) {
-	return s.storage.GetDeletedUsers(ctx, limit)
+func (s *UserService) GetAllDeleted(ctx context.Context, limit int) ([]User, error) {
+	return s.storage.GetAllDeleted(ctx, limit)
 }
 
 func (s *UserService) HardDelete(ctx context.Context, userID uuid.UUID) error {
+	res, err := s.storage.GetDeleted(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("failed to GetDeleted: %w", err)
+	}
+
+	if res == nil {
+		return nil
+	}
+
 	return s.storage.HardDelete(ctx, userID)
 }
 

@@ -159,13 +159,13 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Check that the node is no more available
-		res, err := store.GetDeletedINodes(ctx, 1)
+		res, err := store.GetAllDeleted(ctx, 1)
 		assert.NoError(t, err)
 		assert.Equal(t, res[0].ID(), uuid.UUID("some-child-id-5"))
 	})
 
-	t.Run("GetDeletedINodes", func(t *testing.T) {
-		res, err := store.GetDeletedINodes(ctx, 10)
+	t.Run("GetAllDeleted", func(t *testing.T) {
+		res, err := store.GetAllDeleted(ctx, 10)
 
 		assert.NoError(t, err)
 		assert.Len(t, res, 1)
@@ -185,7 +185,7 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Check that the node is no more available even as a soft deleted one
-		res, err := store.GetDeletedINodes(ctx, 10)
+		res, err := store.GetAllDeleted(ctx, 10)
 		assert.NoError(t, err)
 		assert.Len(t, res, 0)
 	})
