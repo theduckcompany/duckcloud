@@ -56,11 +56,15 @@ func (s *sqlStorage) GetAll(ctx context.Context, cmd *storage.PaginateCmd) ([]Us
 }
 
 func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*User, error) {
-	return s.getByKey(ctx, "id", string(id))
+	return s.getByKeys(ctx, sq.Eq{"id": id})
 }
 
 func (s *sqlStorage) GetByUsername(ctx context.Context, username string) (*User, error) {
-	return s.getByKey(ctx, "username", username)
+	return s.getByKeys(ctx, sq.Eq{"username": username})
+}
+
+func (s *sqlStorage) GetDeleted(ctx context.Context, id uuid.UUID) (*User, error) {
+	return s.getByKeys(ctx, sq.Eq{"id": id}, sq.NotEq{"deleted_at": nil})
 }
 
 func (s *sqlStorage) Delete(ctx context.Context, userID uuid.UUID) error {
@@ -90,7 +94,7 @@ func (s *sqlStorage) HardDelete(ctx context.Context, userID uuid.UUID) error {
 	return nil
 }
 
-func (s *sqlStorage) GetDeletedUsers(ctx context.Context, limit int) ([]User, error) {
+func (s *sqlStorage) GetAllDeleted(ctx context.Context, limit int) ([]User, error) {
 	rows, err := sq.
 		Select("id", "username", "admin", "fs_root", "password", "created_at").
 		From(tableName).
@@ -111,13 +115,18 @@ func (s *sqlStorage) GetDeletedUsers(ctx context.Context, limit int) ([]User, er
 	return s.scanRows(rows)
 }
 
-func (s *sqlStorage) getByKey(ctx context.Context, key, expected string) (*User, error) {
+func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*User, error) {
 	res := User{}
 
-	err := sq.
+	query := sq.
 		Select("id", "username", "admin", "fs_root", "password", "created_at").
-		From(tableName).
-		Where(sq.Eq{key: expected, "deleted_at": nil}).
+		From(tableName)
+
+	for _, where := range wheres {
+		query = query.Where(where)
+	}
+
+	err := query.
 		RunWith(s.db).
 		ScanContext(ctx, &res.id, &res.username, &res.isAdmin, &res.fsRoot, &res.password, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {

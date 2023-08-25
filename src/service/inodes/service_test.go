@@ -15,7 +15,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
-func TestInodes(t *testing.T) {
+func TestINodes(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("CreateDir success", func(t *testing.T) {
@@ -350,14 +350,14 @@ func TestInodes(t *testing.T) {
 		assert.EqualError(t, err, "not found: dir \"f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f\" is not owned by \"d35f9848-6310-4280-bc9a-44534035a401\"")
 	})
 
-	t.Run("GetDeletedINodes success", func(t *testing.T) {
+	t.Run("GetAllDeleted success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
 
-		storageMock.On("GetDeletedINodes", mock.Anything, 10).Return([]INode{ExampleAliceRoot}, nil).Once()
+		storageMock.On("GetAllDeleted", mock.Anything, 10).Return([]INode{ExampleAliceRoot}, nil).Once()
 
-		res, err := service.GetDeletedINodes(ctx, 10)
+		res, err := service.GetAllDeleted(ctx, 10)
 		assert.NoError(t, err)
 		assert.Len(t, res, 1)
 		assert.Equal(t, ExampleAliceRoot, res[0])
@@ -368,9 +368,22 @@ func TestInodes(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
 
-		storageMock.On("HardDelete", mock.Anything, uuid.UUID("some-id")).Return(nil).Once()
+		storageMock.On("GetDeleted", mock.Anything, ExampleAliceFile.ID()).Return(&ExampleAliceFile, nil).Once()
+		storageMock.On("HardDelete", mock.Anything, ExampleAliceFile.ID()).Return(nil).Once()
 
-		err := service.HardDelete(ctx, uuid.UUID("some-id"))
+		err := service.HardDelete(ctx, ExampleAliceFile.ID())
+		assert.NoError(t, err)
+	})
+
+	t.Run("HardDelete an non sofdeleted inode does nothing", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		storageMock.On("GetDeleted", mock.Anything, ExampleAliceFile.ID()).Return(nil, nil).Once()
+		// The HardeDelete method is not called as we haven't found the deletedINode
+
+		err := service.HardDelete(ctx, ExampleAliceFile.ID())
 		assert.NoError(t, err)
 	})
 

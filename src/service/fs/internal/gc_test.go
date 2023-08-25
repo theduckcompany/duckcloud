@@ -21,7 +21,7 @@ func TestGC(t *testing.T) {
 		inodesSvc := inodes.NewMockService(t)
 
 		// First loop to fetch the deleted inodes
-		inodesSvc.On("GetDeletedINodes", mock.Anything, 10).Return([]inodes.INode{inodes.ExampleAliceRoot}, nil).Once()
+		inodesSvc.On("GetAllDeleted", mock.Anything, 10).Return([]inodes.INode{inodes.ExampleAliceRoot}, nil).Once()
 
 		// This is a dir we will delete all its content
 		inodesSvc.On("Readdir", mock.Anything, &inodes.PathCmd{
@@ -41,17 +41,17 @@ func TestGC(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("with a GetDeletedINodes error", func(t *testing.T) {
+	t.Run("with a GetAllDeleted error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		inodesSvc := inodes.NewMockService(t)
 
 		// First loop to fetch the deleted inodes
-		inodesSvc.On("GetDeletedINodes", mock.Anything, 10).Return(nil, fmt.Errorf("some-error")).Once()
+		inodesSvc.On("GetAllDeleted", mock.Anything, 10).Return(nil, fmt.Errorf("some-error")).Once()
 
 		svc := NewGCService(inodesSvc, tools)
 
 		err := svc.run(ctx)
-		assert.EqualError(t, err, "failed to GetDeletedINodes: some-error")
+		assert.EqualError(t, err, "failed to GetAllDeleted: some-error")
 	})
 
 	t.Run("with a Readdir error", func(t *testing.T) {
@@ -59,7 +59,7 @@ func TestGC(t *testing.T) {
 		inodesSvc := inodes.NewMockService(t)
 
 		// First loop to fetch the deleted inodes
-		inodesSvc.On("GetDeletedINodes", mock.Anything, 10).Return([]inodes.INode{inodes.ExampleAliceRoot}, nil).Once()
+		inodesSvc.On("GetAllDeleted", mock.Anything, 10).Return([]inodes.INode{inodes.ExampleAliceRoot}, nil).Once()
 
 		// This is a dir we will delete all its content
 		inodesSvc.On("Readdir", mock.Anything, &inodes.PathCmd{
@@ -96,9 +96,9 @@ func TestGC(t *testing.T) {
 		svc.Start(time.Millisecond)
 
 		// First loop to fetch the deleted inodes. Make it take more than a 1s.
-		inodesSvc.On("GetDeletedINodes", mock.Anything, 10).WaitUntil(time.After(time.Minute)).Return([]inodes.INode{inodes.ExampleAliceRoot}, nil).Once()
+		inodesSvc.On("GetAllDeleted", mock.Anything, 10).WaitUntil(time.After(time.Minute)).Return([]inodes.INode{inodes.ExampleAliceRoot}, nil).Once()
 
-		// Wait some time in order to be just to have the job running and waiting for the end of "GetDeletedINodes".
+		// Wait some time in order to be just to have the job running and waiting for the end of "GetAllDeleted".
 		time.Sleep(20 * time.Millisecond)
 
 		// Stop will interrupt the job before the second.

@@ -17,7 +17,7 @@ type Service interface {
 	Authenticate(ctx context.Context, username, password string) (*User, error)
 	GetAll(ctx context.Context, paginateCmd *storage.PaginateCmd) ([]User, error)
 	Delete(ctx context.Context, userID uuid.UUID) error
-	GetDeleted(ctx context.Context, limit int) ([]User, error)
+	GetAllDeleted(ctx context.Context, limit int) ([]User, error)
 	HardDelete(ctx context.Context, userID uuid.UUID) error
 }
 

@@ -56,23 +56,7 @@ func (s *sqlStorage) UpdateModifiedSizeAndDirty(ctx context.Context, inode *INod
 }
 
 func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*INode, error) {
-	res := INode{}
-
-	err := sq.
-		Select("id", "user_id", "name", "parent", "mode", "size", "last_modified_at", "created_at").
-		From(tableName).
-		Where(sq.Eq{"id": string(id)}).
-		RunWith(s.db).
-		ScanContext(ctx, &res.id, &res.userID, &res.name, &res.parent, &res.mode, &res.size, &res.lastModifiedAt, &res.createdAt)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("sql error: %w", err)
-	}
-
-	return &res, nil
+	return s.getByKeys(ctx, sq.Eq{"id": id})
 }
 
 func (s *sqlStorage) Delete(ctx context.Context, id uuid.UUID) error {
@@ -122,7 +106,11 @@ func (s *sqlStorage) GetAllChildrens(ctx context.Context, userID, parent uuid.UU
 	return s.scanRows(rows)
 }
 
-func (s *sqlStorage) GetDeletedINodes(ctx context.Context, limit int) ([]INode, error) {
+func (s *sqlStorage) GetDeleted(ctx context.Context, id uuid.UUID) (*INode, error) {
+	return s.getByKeys(ctx, sq.Eq{"id": id}, sq.NotEq{"deleted_at": nil})
+}
+
+func (s *sqlStorage) GetAllDeleted(ctx context.Context, limit int) ([]INode, error) {
 	rows, err := sq.
 		Select("id", "user_id", "name", "parent", "mode", "size", "last_modified_at", "created_at").
 		From(tableName).
@@ -187,6 +175,31 @@ func (s *sqlStorage) GetByNameAndParent(ctx context.Context, userID uuid.UUID, n
 		Select("id", "user_id", "name", "parent", "mode", "size", "last_modified_at", "created_at").
 		From(tableName).
 		Where(sq.Eq{"user_id": string(userID), "parent": string(parent), "name": name, "deleted_at": nil}).
+		RunWith(s.db).
+		ScanContext(ctx, &res.id, &res.userID, &res.name, &res.parent, &res.mode, &res.size, &res.lastModifiedAt, &res.createdAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("sql error: %w", err)
+	}
+
+	return &res, nil
+}
+
+func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*INode, error) {
+	res := INode{}
+
+	query := sq.
+		Select("id", "user_id", "name", "parent", "mode", "size", "last_modified_at", "created_at").
+		From(tableName)
+
+	for _, where := range wheres {
+		query = query.Where(where)
+	}
+
+	err := query.
 		RunWith(s.db).
 		ScanContext(ctx, &res.id, &res.userID, &res.name, &res.parent, &res.mode, &res.size, &res.lastModifiedAt, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {

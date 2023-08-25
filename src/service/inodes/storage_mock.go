@@ -80,6 +80,32 @@ func (_m *MockStorage) GetAllChildrens(ctx context.Context, userID uuid.UUID, pa
 	return r0, r1
 }
 
+// GetAllDeleted provides a mock function with given fields: ctx, limit
+func (_m *MockStorage) GetAllDeleted(ctx context.Context, limit int) ([]INode, error) {
+	ret := _m.Called(ctx, limit)
+
+	var r0 []INode
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int) ([]INode, error)); ok {
+		return rf(ctx, limit)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int) []INode); ok {
+		r0 = rf(ctx, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]INode)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = rf(ctx, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByID provides a mock function with given fields: ctx, id
 func (_m *MockStorage) GetByID(ctx context.Context, id uuid.UUID) (*INode, error) {
 	ret := _m.Called(ctx, id)
@@ -132,25 +158,25 @@ func (_m *MockStorage) GetByNameAndParent(ctx context.Context, userID uuid.UUID,
 	return r0, r1
 }
 
-// GetDeletedINodes provides a mock function with given fields: ctx, limit
-func (_m *MockStorage) GetDeletedINodes(ctx context.Context, limit int) ([]INode, error) {
-	ret := _m.Called(ctx, limit)
+// GetDeleted provides a mock function with given fields: ctx, id
+func (_m *MockStorage) GetDeleted(ctx context.Context, id uuid.UUID) (*INode, error) {
+	ret := _m.Called(ctx, id)
 
-	var r0 []INode
+	var r0 *INode
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int) ([]INode, error)); ok {
-		return rf(ctx, limit)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (*INode, error)); ok {
+		return rf(ctx, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int) []INode); ok {
-		r0 = rf(ctx, limit)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) *INode); ok {
+		r0 = rf(ctx, id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]INode)
+			r0 = ret.Get(0).(*INode)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
-		r1 = rf(ctx, limit)
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
