@@ -16,10 +16,13 @@ type Service interface {
 	GetByID(ctx context.Context, userID uuid.UUID) (*User, error)
 	Authenticate(ctx context.Context, username, password string) (*User, error)
 	GetAll(ctx context.Context, paginateCmd *storage.PaginateCmd) ([]User, error)
+	Delete(ctx context.Context, userID uuid.UUID) error
+	GetDeleted(ctx context.Context, limit int) ([]User, error)
+	HardDelete(ctx context.Context, userID uuid.UUID) error
 }
 
 func Init(tools tools.Tools, db *sql.DB, inodes inodes.Service) Service {
-	storage := newSqlStorage(db)
+	storage := newSqlStorage(db, tools)
 
 	return NewService(tools, storage, inodes)
 }

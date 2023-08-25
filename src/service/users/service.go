@@ -29,6 +29,9 @@ type Storage interface {
 	GetByUsername(ctx context.Context, username string) (*User, error)
 	GetByID(ctx context.Context, userID uuid.UUID) (*User, error)
 	GetAll(ctx context.Context, cmd *storage.PaginateCmd) ([]User, error)
+	Delete(ctx context.Context, userID uuid.UUID) error
+	HardDelete(ctx context.Context, userID uuid.UUID) error
+	GetDeletedUsers(ctx context.Context, limit int) ([]User, error)
 }
 
 // service handling all the logic.
@@ -111,10 +114,22 @@ func (s *UserService) Authenticate(ctx context.Context, username, userPassword s
 	}
 }
 
-func (t *UserService) GetByID(ctx context.Context, userID uuid.UUID) (*User, error) {
-	return t.storage.GetByID(ctx, userID)
+func (s *UserService) GetByID(ctx context.Context, userID uuid.UUID) (*User, error) {
+	return s.storage.GetByID(ctx, userID)
 }
 
-func (t *UserService) GetAll(ctx context.Context, paginateCmd *storage.PaginateCmd) ([]User, error) {
-	return t.storage.GetAll(ctx, paginateCmd)
+func (s *UserService) GetAll(ctx context.Context, paginateCmd *storage.PaginateCmd) ([]User, error) {
+	return s.storage.GetAll(ctx, paginateCmd)
+}
+
+func (s *UserService) Delete(ctx context.Context, userID uuid.UUID) error {
+	return s.storage.Delete(ctx, userID)
+}
+
+func (s *UserService) GetDeleted(ctx context.Context, limit int) ([]User, error) {
+	return s.storage.GetDeletedUsers(ctx, limit)
+}
+
+func (s *UserService) HardDelete(ctx context.Context, userID uuid.UUID) error {
+	return s.storage.HardDelete(ctx, userID)
 }

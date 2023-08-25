@@ -68,6 +68,20 @@ func (_m *MockService) Create(ctx context.Context, user *CreateCmd) (*User, erro
 	return r0, r1
 }
 
+// Delete provides a mock function with given fields: ctx, userID
+func (_m *MockService) Delete(ctx context.Context, userID uuid.UUID) error {
+	ret := _m.Called(ctx, userID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetAll provides a mock function with given fields: ctx, paginateCmd
 func (_m *MockService) GetAll(ctx context.Context, paginateCmd *storage.PaginateCmd) ([]User, error) {
 	ret := _m.Called(ctx, paginateCmd)
@@ -118,6 +132,46 @@ func (_m *MockService) GetByID(ctx context.Context, userID uuid.UUID) (*User, er
 	}
 
 	return r0, r1
+}
+
+// GetDeleted provides a mock function with given fields: ctx, limit
+func (_m *MockService) GetDeleted(ctx context.Context, limit int) ([]User, error) {
+	ret := _m.Called(ctx, limit)
+
+	var r0 []User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int) ([]User, error)); ok {
+		return rf(ctx, limit)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int) []User); ok {
+		r0 = rf(ctx, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = rf(ctx, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// HardDelete provides a mock function with given fields: ctx, userID
+func (_m *MockService) HardDelete(ctx context.Context, userID uuid.UUID) error {
+	ret := _m.Called(ctx, userID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // NewMockService creates a new instance of MockService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
