@@ -22,7 +22,7 @@ type FSService struct {
 	files  files.Service
 }
 
-func NewFSService(userID uuid.UUID, root uuid.UUID, inodes inodes.Service, files files.Service) *FSService {
+func NewFSService(userID, root uuid.UUID, inodes inodes.Service, files files.Service) *FSService {
 	return &FSService{userID, root, inodes, files}
 }
 
