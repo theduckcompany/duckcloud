@@ -24,9 +24,9 @@
             <td>
 
               <form action="/settings/users/{{.ID}}/delete" method="post" target="_top"
-                hx-post="/settings/users/{{.ID}}/delete" hx-target="#content" hx-swap="outerHTML" hx-confirm="Are you
-                sure you wish to delete the account '{{.Username}}' ? All its data and files will be definitively
-                removed." hx-delete="/settings/users/{{.ID}}">
+                hx-post="/settings/users/{{.ID}}/delete" hx-target="#content" hx-swap="outerHTML"
+                hx-confirm="Are you sure you wish to delete the account '{{.Username}}' ? All its data and files will be definitively removed."
+                hx-delete="/settings/users/{{.ID}}">
                 <button type="submit"
                   class="btn btn-link btn-sm btn-rounded {{if (eq .ID $.current.ID)}}disabled{{end}}">Delete</button>
               </form>
@@ -35,6 +35,31 @@
           {{end}}
         </tbody>
       </table>
+
+      <br>
+
+      <form class="row g-3" action="/settings/users" method="post" target="_top" hx-post="/settings/users"
+        hx-target="#content" hx-swap="outerHTML">
+        <div class="col-auto">
+          <label for="username" class="form-label visually-hidden">Username</label>
+          <input type="text" name="username" class="form-control" id="username" placeholder="Username">
+        </div>
+        <div class="col-auto">
+          <label for="password" class="form-label visually-hidden">Username</label>
+          <input type="password" name="password" class="form-control" id="password" placeholder="Password">
+        </div>
+        <div class="col-auto">
+          <select name="role" class="select" id="role">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+          <label class="form-label select-label visually-hidden">Role</label>
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary mb-3">Create new user</button>
+        </div>
+      </form>
+
     </div>
   </div>
 </section>
