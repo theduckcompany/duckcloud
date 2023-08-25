@@ -134,6 +134,9 @@ func (s *WebSessionsService) Logout(r *http.Request, w http.ResponseWriter) erro
 		Expires: time.Now(),
 	})
 
+	w.Header().Set("Location", "/login")
+	w.WriteHeader(http.StatusFound)
+
 	return nil
 }
 

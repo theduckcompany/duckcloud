@@ -56,11 +56,11 @@ func (s *sqlStorage) GetAll(ctx context.Context, cmd *storage.PaginateCmd) ([]Us
 }
 
 func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*User, error) {
-	return s.getByKeys(ctx, sq.Eq{"id": id})
+	return s.getByKeys(ctx, sq.Eq{"id": id, "deleted_at": nil})
 }
 
 func (s *sqlStorage) GetByUsername(ctx context.Context, username string) (*User, error) {
-	return s.getByKeys(ctx, sq.Eq{"username": username})
+	return s.getByKeys(ctx, sq.Eq{"username": username, "deleted_at": nil})
 }
 
 func (s *sqlStorage) GetDeleted(ctx context.Context, id uuid.UUID) (*User, error) {

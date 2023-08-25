@@ -51,6 +51,7 @@ func (h *settingsHandler) Register(r chi.Router, mids router.Middlewares) {
 	auth.Delete("/settings/webdav/{sessionID}", h.deleteDavSession)
 
 	auth.Get("/settings/users", h.getUsers)
+	auth.Delete("/settings/users/{userID}", h.deleteUser)
 }
 
 func (h *settingsHandler) String() string {
@@ -81,7 +82,7 @@ func (h *settingsHandler) getBrowsersSessions(withLayout bool) http.HandlerFunc 
 		}
 
 		if user == nil {
-			w.Write([]byte(`<div class="alert alert-danger role="alert">Invalid user</div>`))
+			_ = h.webSessions.Logout(r, w)
 			return
 		}
 
@@ -128,6 +129,11 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 	user, err := h.users.GetByID(ctx, currentSession.UserID())
 	if err != nil {
 		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
+		return
+	}
+
+	if user == nil {
+		_ = h.webSessions.Logout(r, w)
 		return
 	}
 
@@ -215,8 +221,7 @@ func (h *settingsHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user == nil {
-		w.Write([]byte(`<div class="alert alert-danger role="alert">Invalid user</div>`))
-		w.WriteHeader(http.StatusUnauthorized)
+		_ = h.webSessions.Logout(r, w)
 		return
 	}
 
@@ -240,4 +245,48 @@ func (h *settingsHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 		"current": user,
 		"users":   users,
 	})
+}
+
+func (h *settingsHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	currentSession, err := h.webSessions.GetFromReq(r)
+	if err != nil || currentSession == nil {
+		w.Header().Set("Location", "/login")
+		w.WriteHeader(http.StatusFound)
+		return
+	}
+
+	user, err := h.users.GetByID(ctx, currentSession.UserID())
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
+		return
+	}
+
+	if user == nil {
+		_ = h.webSessions.Logout(r, w)
+		return
+	}
+
+	if !user.IsAdmin() {
+		w.Write([]byte(`<div class="alert alert-danger role="alert">Action reserved to admins</div>`))
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	userToDelete, err := h.uuid.Parse(chi.URLParam(r, "userID"))
+	if err != nil {
+		w.Write([]byte(`<div class="alert alert-danger role="alert">Invalid id</div>`))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = h.users.Delete(ctx, userToDelete)
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
