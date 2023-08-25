@@ -230,6 +230,11 @@ func (h *settingsHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 		StartAfter: map[string]string{"username": ""},
 		Limit:      10,
 	})
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
 	h.response.WriteHTML(w, http.StatusOK, "settings/users.tmpl", false, map[string]interface{}{
 		"current": user,
