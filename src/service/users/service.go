@@ -19,6 +19,7 @@ var (
 	ErrUsernameTaken   = fmt.Errorf("username taken")
 	ErrInvalidUsername = fmt.Errorf("invalid username")
 	ErrInvalidPassword = fmt.Errorf("invalid password")
+	ErrLastAdmin       = fmt.Errorf("can't remove the last admin")
 )
 
 // Storage encapsulates the logic to access user from the data source.
@@ -123,6 +124,26 @@ func (s *UserService) GetAll(ctx context.Context, paginateCmd *storage.PaginateC
 }
 
 func (s *UserService) Delete(ctx context.Context, userID uuid.UUID) error {
+	user, err := s.GetByID(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("failed to GetByID: %w", err)
+	}
+
+	if user == nil {
+		return nil
+	}
+
+	if user.IsAdmin() {
+		users, err := s.GetAll(ctx, &storage.PaginateCmd{})
+		if err != nil {
+			return fmt.Errorf("failed to GetAll: %w", err)
+		}
+
+		if isTheLastAdmin(users) {
+			return errs.Unauthorized(ErrLastAdmin, "you are the last admin, you account can't be removed")
+		}
+	}
+
 	return s.storage.Delete(ctx, userID)
 }
 
@@ -132,4 +153,16 @@ func (s *UserService) GetDeleted(ctx context.Context, limit int) ([]User, error)
 
 func (s *UserService) HardDelete(ctx context.Context, userID uuid.UUID) error {
 	return s.storage.HardDelete(ctx, userID)
+}
+
+func isTheLastAdmin(users []User) bool {
+	nbAdmin := 0
+
+	for _, user := range users {
+		if user.IsAdmin() {
+			nbAdmin++
+		}
+	}
+
+	return nbAdmin <= 1
 }

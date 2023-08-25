@@ -33,7 +33,7 @@ func (u *User) MarshalJSON() ([]byte, error) {
 
 func (u *User) ID() uuid.UUID        { return u.id }
 func (u *User) Username() string     { return u.username }
-func (u *User) Admin() bool          { return u.isAdmin }
+func (u *User) IsAdmin() bool        { return u.isAdmin }
 func (u *User) CreatedAt() time.Time { return u.createdAt }
 func (u *User) RootFS() uuid.UUID    { return u.fsRoot }
 

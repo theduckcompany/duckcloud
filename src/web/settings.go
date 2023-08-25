@@ -86,7 +86,7 @@ func (h *settingsHandler) getBrowsersSessions(withLayout bool) http.HandlerFunc 
 		}
 
 		h.response.WriteHTML(w, http.StatusOK, "settings/browsers.tmpl", withLayout, map[string]interface{}{
-			"isAdmin":        user.Admin(),
+			"isAdmin":        user.IsAdmin(),
 			"currentSession": currentSession,
 			"webSessions":    webSessions,
 		})
@@ -220,7 +220,7 @@ func (h *settingsHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !user.Admin() {
+	if !user.IsAdmin() {
 		w.Write([]byte(`<div class="alert alert-danger role="alert">Action reserved to admins</div>`))
 		w.WriteHeader(http.StatusUnauthorized)
 		return
