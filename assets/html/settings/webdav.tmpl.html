@@ -1,51 +1,86 @@
-<main class="mb-5" style="margin-top: -100px;">
-  <div class="container px-4">
-    <!--Section: Content-->
-    <section>
-      <div class="card shadow-0">
-        <div class="card-header py-4 mb-3">
-          <h4 class="mb-0">WebDav Sessions</h4>
+<!--Section: Content-->
+<section id="content">
+  <div class="card shadow-0">
+    <div class="card-header py-4 mb-3">
+      <h4 class="mb-0">WebDav Sessions</h4>
+    </div>
+    <div class="card-body">
+      {{ $nbWebSessions := len .davSessions }}
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Last activity</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range .davSessions}}
+          <tr>
+            <td> {{.Name}} </td>
+            <td> Seconds ago </td>
+            <td>
+              <form action="/settings/webdav/{{.ID}}/delete" method="post" target="_top"
+                hx-post="/settings/webdav/{{.ID}}/delete" hx-target="#content" hx-swap="outerHTML">
+                <button type="submit" class="btn btn-link btn-sm btn-rounded">Disconnect</button>
+              </form>
+            </td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+
+      <br>
+
+      <form class="row g-3" action="/settings/webdav" method="post" target="_top" hx-post="/settings/webdav"
+        hx-target="#content" hx-swap="outerHTML">
+        <div class="col-auto">
+          <label for="inputDavSession" class="visually-hidden">Name</label>
+          <input type="text" name="name" class="form-control" id="davSessionName" placeholder="App name">
         </div>
-        <div class="card-body">
-          {{ $nbWebSessions := len .davSessions }}
-          <table class="table align-middle mb-0">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Last activity</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {{range .davSessions}}
-              <tr>
-                <td> {{.Name}} </td>
-                <td> Seconds ago </td>
-                <td>
-                  <button type="button" hx-delete="/settings/webdav/{{.ID}}" hx-target="closest tr" hx-swap="outerHTML"
-                    class="btn btn-link btn-sm btn-rounded">Disconnect</button>
-                </td>
-              </tr>
-              {{end}}
-            </tbody>
-          </table>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary mb-3">Create new Dav credentials</button>
+        </div>
+      </form>
 
-          <br>
 
-          <form class="row g-3" hx-post="/settings/webdav" hx-target="this" hx-swap="outerHTML">
-            <div class="col-auto">
-              <label for="inputDavSession" class="visually-hidden">Name</label>
-              <input type="text" name="name" class="form-control" id="davSessionName" placeholder="App name">
+      {{ if .secret }}
+      <div class="alert alert-success" role="alert" data-mdb-color="success">
+        <p><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+            class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+            <path
+              d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
+          </svg> Use the credentials below to configure your app or device. For security
+          reasons this password will only be shown once.</p>
+        <div class="row mb-4">
+          <div class="col-4">
+            <div class="input-group mb-3">
+              <span class="input-group-text" id="button-copy-username">Username</span>
+              <input type="text" aria-label="username" aria-describedby="button-copy-username" id="copy-username-target"
+                class="form-control" value="{{.newSession.Username}}" readonly />
+              <button class="btn btn-outline-primary clipboard" id="button-copy-username"
+                data-mdb-clipboard-target="#copy-username-target" data-mdb-ripple-color="dark">
+                Copy
+              </button>
             </div>
-            <div class="col-auto">
-              <button type="submit" class="btn btn-primary mb-3">Create new Dav credentials</button>
-            </div>
-          </form>
+          </div>
 
+          <div class="col-4">
+            <div class="input-group mb-3">
+              <span class="input-group-text" id="button-copy-password">Password</span>
+              <input type="text" aria-label="password" aria-describedby="button-copy-password" id="copy-password-target"
+                class="form-control text-truncate" value="{{.secret}}" readonly />
+              <button class="btn btn-outline-primary clipboard" id="button-copy-password"
+                data-mdb-clipboard-target="#copy-password-target" data-mdb-ripple-color="dark">
+                Copy
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-    </section>
-    <!--Section: Content-->
+      {{end}}
 
+    </div>
   </div>
-</main>
+</section>
+<!--Section: Content-->

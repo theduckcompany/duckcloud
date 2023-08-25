@@ -15,7 +15,8 @@
   <!--Main Navigation-->
   <header>
     <!-- Sidenav -->
-    <nav id="main-sidenav" class="sidenav sidenav-sm shadow-1" data-mdb-hidden="false" data-mdb-accordion="true">
+    <nav id="main-sidenav" class="sidenav sidenav-sm shadow-1" data-mdb-mode="side" data-mdb-hidden="false"
+      data-mdb-accordion="true">
       <a class="ripple d-flex justify-content-center pt-4 pb-2" href="#!" data-mdb-ripple-color="primary">
         <img id="MDB-logo" src="https://mdbcdn.b-cdn.net/wp-content/uploads/2018/06/logo-mdb-jquery-small.webp"
           alt="MDB Logo" draggable="false" />
@@ -32,11 +33,11 @@
           <span class="sidenav-subheading text-muted text-uppercase fw-bold">Sessions</span>
         </li>
         <li class="sidenav-item">
-          <a class="sidenav-link" href="/settings/browsers" hx-target="main" , hx-swap="outerHTML">
+          <a class="sidenav-link" href="/settings/browsers" hx-target="#content" , hx-swap="outerHTML">
             <i class="bi bi-browser-firefox me-3"></i><span>Browsers</span></a>
         </li>
         <li class="sidenav-item">
-          <a class="sidenav-link" href="/settings/webdav" hx-target="main" , hx-swap="outerHTML">
+          <a class="sidenav-link" href="/settings/webdav" hx-target="#content" , hx-swap="outerHTML">
             <i class="bi bi-folder-fill me-3"></i><span>WebDav</span></a>
         </li>
 
@@ -45,7 +46,7 @@
           <span class="sidenav-subheading text-muted text-uppercase fw-bold">Admin</span>
         </li>
         <li class="sidenav-item">
-          <a class="sidenav-link" href="/settings/users" hx-target="main" , hx-swap="outerHTML">
+          <a class="sidenav-link" href="/settings/users" hx-target="#content" , hx-swap="outerHTML">
             <i class="bi bi-people-fill me-3"></i><span>User Management</span></a>
         </li>
         {{end}}
@@ -135,7 +136,11 @@
 
 
   <!--Main layout-->
-  {{ yield }}
+  <main class="mb-5" style="margin-top: -100px;">
+    <div class="container px-4">
+      {{ yield }}
+    </div>
+  </main>
 
   <style>
     body {
