@@ -21,6 +21,15 @@ func TestPaginate(t *testing.T) {
 		assert.Equal(t, `SELECT col-a, col-b WHERE col-a > ? ORDER BY col-a LIMIT 10`, raw)
 		assert.EqualValues(t, []interface{}{"some-value"}, args)
 	})
+	t.Run("success with nil", func(t *testing.T) {
+		query := PaginateSelection(sq.Select("col-a", "col-b"), nil)
+
+		raw, args, err := query.ToSql()
+		require.NoError(t, err)
+
+		assert.Equal(t, `SELECT col-a, col-b`, raw)
+		assert.EqualValues(t, []interface{}(nil), args)
+	})
 
 	t.Run("success multi-select", func(t *testing.T) {
 		query := PaginateSelection(sq.Select("col-a", "col-b"), &PaginateCmd{
