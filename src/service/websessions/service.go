@@ -11,6 +11,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/clock"
 	"github.com/theduckcompany/duckcloud/src/tools/errs"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
@@ -21,7 +22,7 @@ type Storage interface {
 	Save(ctx context.Context, session *Session) error
 	GetByToken(ctx context.Context, token string) (*Session, error)
 	RemoveByToken(ctx context.Context, token string) error
-	GetAllForUser(ctx context.Context, userID uuid.UUID) ([]Session, error)
+	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error)
 }
 
 type WebSessionsService struct {
@@ -140,6 +141,25 @@ func (s *WebSessionsService) Logout(r *http.Request, w http.ResponseWriter) erro
 	return nil
 }
 
-func (s *WebSessionsService) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]Session, error) {
-	return s.storage.GetAllForUser(ctx, userID)
+func (s *WebSessionsService) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
+	return s.storage.GetAllForUser(ctx, userID, cmd)
+}
+
+func (s *WebSessionsService) RevokeAll(ctx context.Context, userID uuid.UUID) error {
+	sessions, err := s.GetAllForUser(ctx, userID, nil)
+	if err != nil {
+		return fmt.Errorf("failed to GetAllForUser: %w", err)
+	}
+
+	for _, session := range sessions {
+		err = s.Revoke(ctx, &RevokeCmd{
+			UserID: userID,
+			Token:  session.Token(),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to Revoke web session %q: %w", session.Token(), err)
+		}
+	}
+
+	return nil
 }

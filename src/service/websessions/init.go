@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
@@ -21,8 +22,9 @@ type Service interface {
 	GetByToken(ctx context.Context, token string) (*Session, error)
 	GetFromReq(r *http.Request) (*Session, error)
 	Logout(r *http.Request, w http.ResponseWriter) error
-	GetUserSessions(ctx context.Context, userID uuid.UUID) ([]Session, error)
+	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error)
 	Revoke(ctx context.Context, cmd *RevokeCmd) error
+	RevokeAll(ctx context.Context, userID uuid.UUID) error
 }
 
 func Init(tools tools.Tools, db *sql.DB) Service {

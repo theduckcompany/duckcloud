@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
@@ -67,13 +68,13 @@ func (s *sqlStorage) RemoveByToken(ctx context.Context, token string) error {
 	return nil
 }
 
-func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID) ([]Session, error) {
+func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
 	sessions := []Session{}
 
-	rows, err := sq.
+	rows, err := storage.PaginateSelection(sq.
 		Select("token", "user_id", "ip", "device", "created_at").
 		From(tableName).
-		Where(sq.Eq{"user_id": userID}).
+		Where(sq.Eq{"user_id": userID}), cmd).
 		RunWith(s.db).
 		QueryContext(ctx)
 	if err != nil {
