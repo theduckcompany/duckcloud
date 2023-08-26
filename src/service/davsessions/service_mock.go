@@ -115,6 +115,20 @@ func (_m *MockService) Revoke(ctx context.Context, cmd *RevokeCmd) error {
 	return r0
 }
 
+// RevokeAll provides a mock function with given fields: ctx, userID
+func (_m *MockService) RevokeAll(ctx context.Context, userID uuid.UUID) error {
+	ret := _m.Called(ctx, userID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewMockService creates a new instance of MockService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockService(t interface {
