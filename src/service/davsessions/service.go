@@ -136,3 +136,22 @@ func (s *DavSessionsService) Revoke(ctx context.Context, cmd *RevokeCmd) error {
 
 	return nil
 }
+
+func (s *DavSessionsService) RevokeAll(ctx context.Context, userID uuid.UUID) error {
+	davSessions, err := s.GetAllForUser(ctx, userID, nil)
+	if err != nil {
+		return fmt.Errorf("failed to GetAllForUser: %w", err)
+	}
+
+	for _, session := range davSessions {
+		err = s.Revoke(ctx, &RevokeCmd{
+			UserID:    userID,
+			SessionID: session.ID(),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to Revoke dav session %q: %w", session.ID(), err)
+		}
+	}
+
+	return nil
+}
