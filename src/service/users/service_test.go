@@ -171,7 +171,7 @@ func Test_Users_Service(t *testing.T) {
 		anAnotherAdmin.isAdmin = true
 
 		store.On("GetByID", ctx, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
-		store.On("GetAll", ctx, &storage.PaginateCmd{}).Return([]User{ExampleAlice, anAnotherAdmin}, nil).Once()
+		store.On("GetAll", ctx, (*storage.PaginateCmd)(nil)).Return([]User{ExampleAlice, anAnotherAdmin}, nil).Once()
 		store.On("Delete", ctx, ExampleAlice.ID()).Return(nil).Once()
 
 		err := service.Delete(ctx, ExampleAlice.ID())
@@ -197,7 +197,7 @@ func Test_Users_Service(t *testing.T) {
 		service := NewService(tools, store, inodes)
 
 		store.On("GetByID", ctx, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
-		store.On("GetAll", ctx, &storage.PaginateCmd{}).Return([]User{ExampleAlice}, nil).Once() // This is the last admin
+		store.On("GetAll", ctx, (*storage.PaginateCmd)(nil)).Return([]User{ExampleAlice}, nil).Once() // This is the last admin
 
 		err := service.Delete(ctx, ExampleAlice.ID())
 		assert.EqualError(t, err, "unauthorized: can't remove the last admin")

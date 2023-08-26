@@ -14,8 +14,11 @@ type PaginateCmd struct {
 }
 
 func PaginateSelection(query sq.SelectBuilder, cmd *PaginateCmd) sq.SelectBuilder {
-	orderBy := []string{}
+	if cmd == nil {
+		return query
+	}
 
+	orderBy := []string{}
 	for key := range cmd.StartAfter {
 		orderBy = append(orderBy, key)
 	}

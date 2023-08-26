@@ -135,7 +135,7 @@ func (s *UserService) Delete(ctx context.Context, userID uuid.UUID) error {
 	}
 
 	if user.IsAdmin() {
-		users, err := s.GetAll(ctx, &storage.PaginateCmd{})
+		users, err := s.GetAll(ctx, nil)
 		if err != nil {
 			return fmt.Errorf("failed to GetAll: %w", err)
 		}
