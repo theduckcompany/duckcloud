@@ -76,8 +76,22 @@ func (_m *MockService) Delete(ctx context.Context, consentID uuid.UUID) error {
 	return r0
 }
 
-// GetAllForUser provides a mock function with given fields: ctx, userID, cmd
-func (_m *MockService) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Consent, error) {
+// DeleteAll provides a mock function with given fields: ctx, userID
+func (_m *MockService) DeleteAll(ctx context.Context, userID uuid.UUID) error {
+	ret := _m.Called(ctx, userID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GetAll provides a mock function with given fields: ctx, userID, cmd
+func (_m *MockService) GetAll(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Consent, error) {
 	ret := _m.Called(ctx, userID, cmd)
 
 	var r0 []Consent
