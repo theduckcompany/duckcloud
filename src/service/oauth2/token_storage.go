@@ -47,7 +47,7 @@ func (t *tokenStorage) Create(ctx context.Context, info oauth2.TokenInfo) error 
 		return fmt.Errorf("invalid userID: %w", err)
 	}
 
-	err = t.session.Create(ctx, &oauthsessions.CreateCmd{
+	_, err = t.session.Create(ctx, &oauthsessions.CreateCmd{
 		AccessToken:      info.GetAccess(),
 		AccessExpiresAt:  info.GetAccessCreateAt().Add(info.GetAccessExpiresIn()),
 		RefreshToken:     info.GetRefresh(),
