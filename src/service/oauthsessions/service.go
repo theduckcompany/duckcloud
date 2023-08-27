@@ -3,7 +3,6 @@ package oauthsessions
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/clock"
@@ -35,15 +34,15 @@ func NewService(tools tools.Tools, storage Storage) *OauthSessionsService {
 	return &OauthSessionsService{storage, tools.Clock()}
 }
 
-func (t *OauthSessionsService) Create(ctx context.Context, input *CreateCmd) error {
+func (t *OauthSessionsService) Create(ctx context.Context, input *CreateCmd) (*Session, error) {
 	err := input.Validate()
 	if err != nil {
-		return errs.ValidationError(err)
+		return nil, errs.ValidationError(err)
 	}
 
-	now := time.Now()
+	now := t.clock.Now()
 
-	err = t.storage.Save(ctx, &Session{
+	session := Session{
 		accessToken:      input.AccessToken,
 		accessCreatedAt:  now,
 		accessExpiresAt:  input.AccessExpiresAt,
@@ -53,12 +52,14 @@ func (t *OauthSessionsService) Create(ctx context.Context, input *CreateCmd) err
 		clientID:         input.ClientID,
 		userID:           input.UserID,
 		scope:            input.Scope,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to save the refresh session: %w", err)
 	}
 
-	return nil
+	err = t.storage.Save(ctx, &session)
+	if err != nil {
+		return nil, fmt.Errorf("failed to save the refresh session: %w", err)
+	}
+
+	return &session, nil
 }
 
 func (t *OauthSessionsService) RemoveByAccessToken(ctx context.Context, access string) error {
