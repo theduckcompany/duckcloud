@@ -6,6 +6,7 @@ import (
 
 	v "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 type Session struct {
@@ -16,7 +17,7 @@ type Session struct {
 	refreshCreatedAt time.Time
 	refreshExpiresAt time.Time
 	clientID         string
-	userID           string
+	userID           uuid.UUID
 	scope            string
 }
 
@@ -27,7 +28,7 @@ func (s *Session) RefreshToken() string        { return s.refreshToken }
 func (s *Session) RefreshCreatedAt() time.Time { return s.refreshCreatedAt }
 func (s *Session) RefreshExpiresAt() time.Time { return s.refreshExpiresAt }
 func (s *Session) ClientID() string            { return s.clientID }
-func (s *Session) UserID() string              { return s.userID }
+func (s *Session) UserID() uuid.UUID           { return s.userID }
 func (s *Session) Scope() string               { return s.scope }
 
 type CreateCmd struct {
@@ -36,7 +37,7 @@ type CreateCmd struct {
 	RefreshToken     string
 	RefreshExpiresAt time.Time
 	ClientID         string
-	UserID           string
+	UserID           uuid.UUID
 	Scope            string
 }
 

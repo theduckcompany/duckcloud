@@ -8,11 +8,24 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_CreateSessionRequest_is_validatable(t *testing.T) {
+func TestSessionGetter(t *testing.T) {
+	assert.Equal(t, ExampleAliceSession.AccessToken(), ExampleAliceSession.accessToken)
+	assert.Equal(t, ExampleAliceSession.AccessCreatedAt(), ExampleAliceSession.accessCreatedAt)
+	assert.Equal(t, ExampleAliceSession.AccessExpiresAt(), ExampleAliceSession.accessExpiresAt)
+	assert.Equal(t, ExampleAliceSession.RefreshToken(), ExampleAliceSession.refreshToken)
+	assert.Equal(t, ExampleAliceSession.RefreshCreatedAt(), ExampleAliceSession.refreshCreatedAt)
+	assert.Equal(t, ExampleAliceSession.RefreshExpiresAt(), ExampleAliceSession.refreshExpiresAt)
+
+	assert.Equal(t, ExampleAliceSession.ClientID(), ExampleAliceSession.clientID)
+	assert.Equal(t, ExampleAliceSession.UserID(), ExampleAliceSession.userID)
+	assert.Equal(t, ExampleAliceSession.Scope(), ExampleAliceSession.scope)
+}
+
+func Test_CreateCmd_is_validatable(t *testing.T) {
 	assert.Implements(t, (*validation.Validatable)(nil), new(CreateCmd))
 }
 
-func Test_CreateSessionRequest_Validate_success(t *testing.T) {
+func Test_CreateCmd_Validate_success(t *testing.T) {
 	err := CreateCmd{
 		AccessToken:      "some-access-session",
 		AccessExpiresAt:  time.Now(),

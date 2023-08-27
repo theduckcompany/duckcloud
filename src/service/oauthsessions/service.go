@@ -8,26 +8,27 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/clock"
 	"github.com/theduckcompany/duckcloud/src/tools/errs"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 var ErrInvalidExpirationDate = fmt.Errorf("invalid expiration date")
 
-type (
-	//go:generate mockery --name Storage
-	Storage interface {
-		Save(ctx context.Context, session *Session) error
-		RemoveByAccessToken(ctx context.Context, access string) error
-		RemoveByRefreshToken(ctx context.Context, refresh string) error
-		GetByAccessToken(ctx context.Context, access string) (*Session, error)
-		GetByRefreshToken(ctx context.Context, refresh string) (*Session, error)
-	}
+//go:generate mockery --name Storage
+type Storage interface {
+	Save(ctx context.Context, session *Session) error
+	RemoveByAccessToken(ctx context.Context, access string) error
+	RemoveByRefreshToken(ctx context.Context, refresh string) error
+	GetByAccessToken(ctx context.Context, access string) (*Session, error)
+	GetByRefreshToken(ctx context.Context, refresh string) (*Session, error)
+	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error)
+}
 
-	// OauthSessionsService handling all the logic.
-	OauthSessionsService struct {
-		storage Storage
-		clock   clock.Clock
-	}
-)
+// OauthSessionsService handling all the logic.
+type OauthSessionsService struct {
+	storage Storage
+	clock   clock.Clock
+}
 
 // NewService create a new session service.
 func NewService(tools tools.Tools, storage Storage) *OauthSessionsService {
@@ -74,4 +75,8 @@ func (t *OauthSessionsService) GetByAccessToken(ctx context.Context, access stri
 
 func (t *OauthSessionsService) GetByRefreshToken(ctx context.Context, refresh string) (*Session, error) {
 	return t.storage.GetByRefreshToken(ctx, refresh)
+}
+
+func (t *OauthSessionsService) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
+	return t.storage.GetAllForUser(ctx, userID, cmd)
 }

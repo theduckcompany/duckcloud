@@ -42,13 +42,18 @@ func (t *tokenStorage) Create(ctx context.Context, info oauth2.TokenInfo) error 
 		return nil
 	}
 
-	err := t.session.Create(ctx, &oauthsessions.CreateCmd{
+	userID, err := t.uuid.Parse(info.GetUserID())
+	if err != nil {
+		return fmt.Errorf("invalid userID: %w", err)
+	}
+
+	err = t.session.Create(ctx, &oauthsessions.CreateCmd{
 		AccessToken:      info.GetAccess(),
 		AccessExpiresAt:  info.GetAccessCreateAt().Add(info.GetAccessExpiresIn()),
 		RefreshToken:     info.GetRefresh(),
 		RefreshExpiresAt: info.GetRefreshCreateAt().Add(info.GetRefreshExpiresIn()),
 		ClientID:         info.GetClientID(),
-		UserID:           info.GetUserID(),
+		UserID:           userID,
 		Scope:            info.GetScope(),
 	})
 	if err != nil {
@@ -133,7 +138,7 @@ func (t *tokenStorage) sessionToToken(session *oauthsessions.Session) *models.To
 		RefreshCreateAt:  session.RefreshCreatedAt(),
 		RefreshExpiresIn: time.Until(session.RefreshExpiresAt()),
 		ClientID:         session.ClientID(),
-		UserID:           session.UserID(),
+		UserID:           string(session.UserID()),
 		Scope:            session.Scope(),
 	}
 }

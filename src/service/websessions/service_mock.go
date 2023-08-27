@@ -44,6 +44,34 @@ func (_m *MockService) Create(ctx context.Context, cmd *CreateCmd) (*Session, er
 	return r0, r1
 }
 
+// Delete provides a mock function with given fields: ctx, cmd
+func (_m *MockService) Delete(ctx context.Context, cmd *DeleteCmd) error {
+	ret := _m.Called(ctx, cmd)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *DeleteCmd) error); ok {
+		r0 = rf(ctx, cmd)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteAll provides a mock function with given fields: ctx, userID
+func (_m *MockService) DeleteAll(ctx context.Context, userID uuid.UUID) error {
+	ret := _m.Called(ctx, userID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetAllForUser provides a mock function with given fields: ctx, userID, cmd
 func (_m *MockService) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
 	ret := _m.Called(ctx, userID, cmd)
@@ -129,34 +157,6 @@ func (_m *MockService) Logout(r *http.Request, w http.ResponseWriter) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*http.Request, http.ResponseWriter) error); ok {
 		r0 = rf(r, w)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// Delete provides a mock function with given fields: ctx, cmd
-func (_m *MockService) Delete(ctx context.Context, cmd *DeleteCmd) error {
-	ret := _m.Called(ctx, cmd)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *DeleteCmd) error); ok {
-		r0 = rf(ctx, cmd)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// DeleteAll provides a mock function with given fields: ctx, userID
-func (_m *MockService) DeleteAll(ctx context.Context, userID uuid.UUID) error {
-	ret := _m.Called(ctx, userID)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
-		r0 = rf(ctx, userID)
 	} else {
 		r0 = ret.Error(0)
 	}

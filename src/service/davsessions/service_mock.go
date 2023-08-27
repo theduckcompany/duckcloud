@@ -75,32 +75,6 @@ func (_m *MockService) Create(ctx context.Context, cmd *CreateCmd) (*DavSession,
 	return r0, r1, r2
 }
 
-// GetAllForUser provides a mock function with given fields: ctx, userID, paginateCmd
-func (_m *MockService) GetAllForUser(ctx context.Context, userID uuid.UUID, paginateCmd *storage.PaginateCmd) ([]DavSession, error) {
-	ret := _m.Called(ctx, userID, paginateCmd)
-
-	var r0 []DavSession
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) ([]DavSession, error)); ok {
-		return rf(ctx, userID, paginateCmd)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) []DavSession); ok {
-		r0 = rf(ctx, userID, paginateCmd)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]DavSession)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *storage.PaginateCmd) error); ok {
-		r1 = rf(ctx, userID, paginateCmd)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Delete provides a mock function with given fields: ctx, cmd
 func (_m *MockService) Delete(ctx context.Context, cmd *DeleteCmd) error {
 	ret := _m.Called(ctx, cmd)
@@ -127,6 +101,32 @@ func (_m *MockService) DeleteAll(ctx context.Context, userID uuid.UUID) error {
 	}
 
 	return r0
+}
+
+// GetAllForUser provides a mock function with given fields: ctx, userID, paginateCmd
+func (_m *MockService) GetAllForUser(ctx context.Context, userID uuid.UUID, paginateCmd *storage.PaginateCmd) ([]DavSession, error) {
+	ret := _m.Called(ctx, userID, paginateCmd)
+
+	var r0 []DavSession
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) ([]DavSession, error)); ok {
+		return rf(ctx, userID, paginateCmd)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) []DavSession); ok {
+		r0 = rf(ctx, userID, paginateCmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]DavSession)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *storage.PaginateCmd) error); ok {
+		r1 = rf(ctx, userID, paginateCmd)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // NewMockService creates a new instance of MockService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
