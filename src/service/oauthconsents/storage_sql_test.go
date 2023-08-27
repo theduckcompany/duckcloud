@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 func TestConsentSqlStorage(t *testing.T) {
@@ -43,5 +44,19 @@ func TestConsentSqlStorage(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, []Consent{ExampleAliceConsent}, res)
+	})
+
+	t.Run("Delete success", func(t *testing.T) {
+		err := storage.Delete(ctx, ExampleAliceConsent.ID())
+		assert.NoError(t, err)
+
+		res, err := storage.GetByID(ctx, ExampleAliceConsent.ID())
+		assert.NoError(t, err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("Delete with an invalid id", func(t *testing.T) {
+		err := storage.Delete(ctx, uuid.UUID("some-invalid-id"))
+		assert.NoError(t, err)
 	})
 }

@@ -62,6 +62,20 @@ func (_m *MockService) Create(ctx context.Context, cmd *CreateCmd) (*Consent, er
 	return r0, r1
 }
 
+// Delete provides a mock function with given fields: ctx, consentID
+func (_m *MockService) Delete(ctx context.Context, consentID uuid.UUID) error {
+	ret := _m.Called(ctx, consentID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, consentID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetAllForUser provides a mock function with given fields: ctx, userID, cmd
 func (_m *MockService) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Consent, error) {
 	ret := _m.Called(ctx, userID, cmd)

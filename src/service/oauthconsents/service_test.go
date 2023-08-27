@@ -201,4 +201,14 @@ func Test_OauthConsents_Service(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, []Consent{ExampleAliceConsent}, res)
 	})
+
+	t.Run("Delete success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(storageMock, tools)
+
+		storageMock.On("Delete", mock.Anything, ExampleAliceConsent.ID()).Return(nil).Once()
+
+		service.Delete(ctx, ExampleAliceConsent.ID())
+	})
 }

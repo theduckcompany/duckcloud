@@ -78,6 +78,19 @@ func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *s
 	return s.scanRows(rows)
 }
 
+func (s *sqlStorage) Delete(ctx context.Context, consentID uuid.UUID) error {
+	_, err := sq.
+		Delete(tableName).
+		Where(sq.Eq{"id": string(consentID)}).
+		RunWith(s.db).
+		ExecContext(ctx)
+	if err != nil {
+		return fmt.Errorf("sql error: %w", err)
+	}
+
+	return nil
+}
+
 func (s *sqlStorage) scanRows(rows *sql.Rows) ([]Consent, error) {
 	consents := []Consent{}
 
