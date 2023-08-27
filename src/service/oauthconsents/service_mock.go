@@ -10,6 +10,10 @@ import (
 
 	oauthclients "github.com/theduckcompany/duckcloud/src/service/oauthclients"
 
+	storage "github.com/theduckcompany/duckcloud/src/tools/storage"
+
+	uuid "github.com/theduckcompany/duckcloud/src/tools/uuid"
+
 	websessions "github.com/theduckcompany/duckcloud/src/service/websessions"
 )
 
@@ -51,6 +55,32 @@ func (_m *MockService) Create(ctx context.Context, cmd *CreateCmd) (*Consent, er
 
 	if rf, ok := ret.Get(1).(func(context.Context, *CreateCmd) error); ok {
 		r1 = rf(ctx, cmd)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAllForUser provides a mock function with given fields: ctx, userID, cmd
+func (_m *MockService) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Consent, error) {
+	ret := _m.Called(ctx, userID, cmd)
+
+	var r0 []Consent
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) ([]Consent, error)); ok {
+		return rf(ctx, userID, cmd)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) []Consent); ok {
+		r0 = rf(ctx, userID, cmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]Consent)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *storage.PaginateCmd) error); ok {
+		r1 = rf(ctx, userID, cmd)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/go-ozzo/ozzo-validation/is"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/theduckcompany/duckcloud/src/service/oauthclients"
 	"github.com/theduckcompany/duckcloud/src/service/websessions"
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/clock"
 	"github.com/theduckcompany/duckcloud/src/tools/errs"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
@@ -20,7 +21,8 @@ var ErrConsentNotFound = errors.New("consent not found")
 //go:generate mockery --name Storage
 type Storage interface {
 	Save(ctx context.Context, consent *Consent) error
-	GetByID(ctx context.Context, id string) (*Consent, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*Consent, error)
+	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Consent, error)
 }
 
 type OauthConsentsService struct {
@@ -57,10 +59,11 @@ func (s *OauthConsentsService) Create(ctx context.Context, cmd *CreateCmd) (*Con
 }
 
 func (s *OauthConsentsService) Check(r *http.Request, client *oauthclients.Client, session *websessions.Session) error {
-	consentID := r.FormValue("consent_id")
+	rawConsentID := r.FormValue("consent_id")
 
-	if err := is.UUIDv4.Validate(consentID); err != nil {
-		return errs.ValidationError(err)
+	consentID, err := s.uuid.Parse(rawConsentID)
+	if err != nil {
+		return errs.ValidationError(is.ErrUUIDv4)
 	}
 
 	consent, err := s.storage.GetByID(r.Context(), consentID)
@@ -81,4 +84,8 @@ func (s *OauthConsentsService) Check(r *http.Request, client *oauthclients.Clien
 	}
 
 	return nil
+}
+
+func (s *OauthConsentsService) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Consent, error) {
+	return s.storage.GetAllForUser(ctx, userID, cmd)
 }
