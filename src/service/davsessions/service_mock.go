@@ -101,12 +101,12 @@ func (_m *MockService) GetAllForUser(ctx context.Context, userID uuid.UUID, pagi
 	return r0, r1
 }
 
-// Revoke provides a mock function with given fields: ctx, cmd
-func (_m *MockService) Revoke(ctx context.Context, cmd *RevokeCmd) error {
+// Delete provides a mock function with given fields: ctx, cmd
+func (_m *MockService) Delete(ctx context.Context, cmd *DeleteCmd) error {
 	ret := _m.Called(ctx, cmd)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *RevokeCmd) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *DeleteCmd) error); ok {
 		r0 = rf(ctx, cmd)
 	} else {
 		r0 = ret.Error(0)
@@ -115,8 +115,8 @@ func (_m *MockService) Revoke(ctx context.Context, cmd *RevokeCmd) error {
 	return r0
 }
 
-// RevokeAll provides a mock function with given fields: ctx, userID
-func (_m *MockService) RevokeAll(ctx context.Context, userID uuid.UUID) error {
+// DeleteAll provides a mock function with given fields: ctx, userID
+func (_m *MockService) DeleteAll(ctx context.Context, userID uuid.UUID) error {
 	ret := _m.Called(ctx, userID)
 
 	var r0 error

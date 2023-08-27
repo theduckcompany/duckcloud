@@ -170,7 +170,7 @@ func TestDavSessionsService(t *testing.T) {
 		assert.Equal(t, &ExampleAliceSession, res)
 	})
 
-	t.Run("Revoke success", func(t *testing.T) {
+	t.Run("Delete success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
@@ -181,14 +181,14 @@ func TestDavSessionsService(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(&ExampleAliceSession, nil).Once()
 		storageMock.On("RemoveByID", mock.Anything, ExampleAliceSession.ID()).Return(nil).Once()
 
-		err := service.Revoke(ctx, &RevokeCmd{
+		err := service.Delete(ctx, &DeleteCmd{
 			UserID:    ExampleAliceSession.UserID(),
 			SessionID: ExampleAliceSession.ID(),
 		})
 		assert.NoError(t, err)
 	})
 
-	t.Run("Revoke with a validation error", func(t *testing.T) {
+	t.Run("Delete with a validation error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
@@ -196,14 +196,14 @@ func TestDavSessionsService(t *testing.T) {
 
 		service := NewService(storageMock, inodesMock, usersMock, tools)
 
-		err := service.Revoke(ctx, &RevokeCmd{
+		err := service.Delete(ctx, &DeleteCmd{
 			UserID:    ExampleAliceSession.UserID(),
 			SessionID: "some invalid id",
 		})
 		assert.EqualError(t, err, "validation error: SessionID: must be a valid UUID v4.")
 	})
 
-	t.Run("Revoke with a session not found", func(t *testing.T) {
+	t.Run("Delete with a session not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
@@ -213,14 +213,14 @@ func TestDavSessionsService(t *testing.T) {
 
 		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(nil, nil).Once()
 
-		err := service.Revoke(ctx, &RevokeCmd{
+		err := service.Delete(ctx, &DeleteCmd{
 			UserID:    ExampleAliceSession.UserID(),
 			SessionID: ExampleAliceSession.ID(),
 		})
 		assert.NoError(t, err)
 	})
 
-	t.Run("Revoke with a session owner by someone else", func(t *testing.T) {
+	t.Run("Delete with a session owner by someone else", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
@@ -230,7 +230,7 @@ func TestDavSessionsService(t *testing.T) {
 
 		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(&ExampleAliceSession, nil).Once()
 
-		err := service.Revoke(ctx, &RevokeCmd{
+		err := service.Delete(ctx, &DeleteCmd{
 			UserID:    uuid.UUID("de946548-095f-4fa9-8f03-81d3459f8000"), // some random id
 			SessionID: ExampleAliceSession.ID(),
 		})
@@ -238,7 +238,7 @@ func TestDavSessionsService(t *testing.T) {
 		assert.ErrorIs(t, err, errs.ErrNotFound)
 	})
 
-	t.Run("RevokeAll success", func(t *testing.T) {
+	t.Run("DeleteAll success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
@@ -250,11 +250,11 @@ func TestDavSessionsService(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(&ExampleAliceSession, nil).Once()
 		storageMock.On("RemoveByID", mock.Anything, ExampleAliceSession.ID()).Return(nil).Once()
 
-		err := service.RevokeAll(ctx, ExampleAliceSession.UserID())
+		err := service.DeleteAll(ctx, ExampleAliceSession.UserID())
 		assert.NoError(t, err)
 	})
 
-	t.Run("RevokeAll witha GetAll error", func(t *testing.T) {
+	t.Run("DeleteAll witha GetAll error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
@@ -264,11 +264,11 @@ func TestDavSessionsService(t *testing.T) {
 
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.UserID(), (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
 
-		err := service.RevokeAll(ctx, ExampleAliceSession.UserID())
+		err := service.DeleteAll(ctx, ExampleAliceSession.UserID())
 		assert.EqualError(t, err, "failed to GetAllForUser: some-error")
 	})
 
-	t.Run("RevokeAll with a revoke error stop directly", func(t *testing.T) {
+	t.Run("DeleteAll with a revoke error stop directly", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
@@ -281,7 +281,7 @@ func TestDavSessionsService(t *testing.T) {
 		storageMock.On("RemoveByID", mock.Anything, ExampleAliceSession.ID()).Return(fmt.Errorf("some-error")).Once()
 		// Do not call GetByID and RemoveByID a second time
 
-		err := service.RevokeAll(ctx, ExampleAliceSession.UserID())
-		assert.EqualError(t, err, fmt.Sprintf("failed to Revoke dav session %q: failed to RemoveByID: some-error", ExampleAliceSession.id))
+		err := service.DeleteAll(ctx, ExampleAliceSession.UserID())
+		assert.EqualError(t, err, fmt.Sprintf("failed to Delete dav session %q: failed to RemoveByID: some-error", ExampleAliceSession.id))
 	})
 }

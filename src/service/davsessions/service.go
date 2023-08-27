@@ -110,7 +110,7 @@ func (s *DavSessionsService) GetAllForUser(ctx context.Context, userID uuid.UUID
 	return s.storage.GetAllForUser(ctx, userID, paginateCmd)
 }
 
-func (s *DavSessionsService) Revoke(ctx context.Context, cmd *RevokeCmd) error {
+func (s *DavSessionsService) Delete(ctx context.Context, cmd *DeleteCmd) error {
 	err := cmd.Validate()
 	if err != nil {
 		return errs.ValidationError(err)
@@ -137,19 +137,19 @@ func (s *DavSessionsService) Revoke(ctx context.Context, cmd *RevokeCmd) error {
 	return nil
 }
 
-func (s *DavSessionsService) RevokeAll(ctx context.Context, userID uuid.UUID) error {
+func (s *DavSessionsService) DeleteAll(ctx context.Context, userID uuid.UUID) error {
 	davSessions, err := s.GetAllForUser(ctx, userID, nil)
 	if err != nil {
 		return fmt.Errorf("failed to GetAllForUser: %w", err)
 	}
 
 	for _, session := range davSessions {
-		err = s.Revoke(ctx, &RevokeCmd{
+		err = s.Delete(ctx, &DeleteCmd{
 			UserID:    userID,
 			SessionID: session.ID(),
 		})
 		if err != nil {
-			return fmt.Errorf("failed to Revoke dav session %q: %w", session.ID(), err)
+			return fmt.Errorf("failed to Delete dav session %q: %w", session.ID(), err)
 		}
 	}
 

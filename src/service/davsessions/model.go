@@ -42,12 +42,12 @@ func (t CreateCmd) Validate() error {
 	)
 }
 
-type RevokeCmd struct {
+type DeleteCmd struct {
 	UserID    uuid.UUID
 	SessionID uuid.UUID
 }
 
-func (t RevokeCmd) Validate() error {
+func (t DeleteCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.UserID, v.Required, is.UUIDv4),
 		v.Field(&t.SessionID, v.Required, is.UUIDv4),

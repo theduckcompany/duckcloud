@@ -63,7 +63,7 @@ func (s *WebSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*Sessi
 	return session, nil
 }
 
-func (s *WebSessionsService) Revoke(ctx context.Context, cmd *RevokeCmd) error {
+func (s *WebSessionsService) Delete(ctx context.Context, cmd *DeleteCmd) error {
 	err := cmd.Validate()
 	if err != nil {
 		return errs.ValidationError(err)
@@ -145,19 +145,19 @@ func (s *WebSessionsService) GetAllForUser(ctx context.Context, userID uuid.UUID
 	return s.storage.GetAllForUser(ctx, userID, cmd)
 }
 
-func (s *WebSessionsService) RevokeAll(ctx context.Context, userID uuid.UUID) error {
+func (s *WebSessionsService) DeleteAll(ctx context.Context, userID uuid.UUID) error {
 	sessions, err := s.GetAllForUser(ctx, userID, nil)
 	if err != nil {
 		return fmt.Errorf("failed to GetAllForUser: %w", err)
 	}
 
 	for _, session := range sessions {
-		err = s.Revoke(ctx, &RevokeCmd{
+		err = s.Delete(ctx, &DeleteCmd{
 			UserID: userID,
 			Token:  session.Token(),
 		})
 		if err != nil {
-			return fmt.Errorf("failed to Revoke web session %q: %w", session.Token(), err)
+			return fmt.Errorf("failed to Delete web session %q: %w", session.Token(), err)
 		}
 	}
 

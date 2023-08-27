@@ -23,8 +23,8 @@ type Service interface {
 	GetFromReq(r *http.Request) (*Session, error)
 	Logout(r *http.Request, w http.ResponseWriter) error
 	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error)
-	Revoke(ctx context.Context, cmd *RevokeCmd) error
-	RevokeAll(ctx context.Context, userID uuid.UUID) error
+	Delete(ctx context.Context, cmd *DeleteCmd) error
+	DeleteAll(ctx context.Context, userID uuid.UUID) error
 }
 
 func Init(tools tools.Tools, db *sql.DB) Service {
