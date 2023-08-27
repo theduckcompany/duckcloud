@@ -41,7 +41,7 @@ func TestSessionSqlStorage(t *testing.T) {
 	})
 
 	t.Run("GeAllForUser success", func(t *testing.T) {
-		res, err := storage.GetAllForUser(context.Background(), "some-user-id")
+		res, err := storage.GetAllForUser(context.Background(), "some-user-id", nil)
 
 		require.NotNil(t, res)
 		for i, r := range res {

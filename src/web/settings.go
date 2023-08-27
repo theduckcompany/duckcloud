@@ -67,7 +67,7 @@ func (h *settingsHandler) getBrowsersSessions(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	webSessions, err := h.webSessions.GetUserSessions(ctx, session.UserID())
+	webSessions, err := h.webSessions.GetAllForUser(ctx, session.UserID(), nil)
 	if err != nil {
 		h.response.WriteJSONError(w, fmt.Errorf("failed to fetch the websessions: %w", err))
 		return

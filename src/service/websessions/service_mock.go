@@ -8,6 +8,8 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
+	storage "github.com/theduckcompany/duckcloud/src/tools/storage"
+
 	uuid "github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
@@ -35,6 +37,32 @@ func (_m *MockService) Create(ctx context.Context, cmd *CreateCmd) (*Session, er
 
 	if rf, ok := ret.Get(1).(func(context.Context, *CreateCmd) error); ok {
 		r1 = rf(ctx, cmd)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAllForUser provides a mock function with given fields: ctx, userID, cmd
+func (_m *MockService) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
+	ret := _m.Called(ctx, userID, cmd)
+
+	var r0 []Session
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) ([]Session, error)); ok {
+		return rf(ctx, userID, cmd)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) []Session); ok {
+		r0 = rf(ctx, userID, cmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]Session)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *storage.PaginateCmd) error); ok {
+		r1 = rf(ctx, userID, cmd)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -94,32 +122,6 @@ func (_m *MockService) GetFromReq(r *http.Request) (*Session, error) {
 	return r0, r1
 }
 
-// GetUserSessions provides a mock function with given fields: ctx, userID
-func (_m *MockService) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]Session, error) {
-	ret := _m.Called(ctx, userID)
-
-	var r0 []Session
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]Session, error)); ok {
-		return rf(ctx, userID)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []Session); ok {
-		r0 = rf(ctx, userID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]Session)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
-		r1 = rf(ctx, userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Logout provides a mock function with given fields: r, w
 func (_m *MockService) Logout(r *http.Request, w http.ResponseWriter) error {
 	ret := _m.Called(r, w)
@@ -141,6 +143,20 @@ func (_m *MockService) Revoke(ctx context.Context, cmd *RevokeCmd) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *RevokeCmd) error); ok {
 		r0 = rf(ctx, cmd)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RevokeAll provides a mock function with given fields: ctx, userID
+func (_m *MockService) RevokeAll(ctx context.Context, userID uuid.UUID) error {
+	ret := _m.Called(ctx, userID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, userID)
 	} else {
 		r0 = ret.Error(0)
 	}
