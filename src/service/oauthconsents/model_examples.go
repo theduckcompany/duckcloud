@@ -6,7 +6,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
-var now = time.Now()
+var now = time.Now().UTC()
 
 var ExampleAliceConsent = Consent{
 	id:           uuid.UUID("01ce56b3-5ab9-4265-b1d2-e0347dcd4158"),
