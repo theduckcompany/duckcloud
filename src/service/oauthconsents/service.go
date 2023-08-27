@@ -22,6 +22,7 @@ var ErrConsentNotFound = errors.New("consent not found")
 type Storage interface {
 	Save(ctx context.Context, consent *Consent) error
 	GetByID(ctx context.Context, id uuid.UUID) (*Consent, error)
+	Delete(ctx context.Context, consentID uuid.UUID) error
 	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Consent, error)
 }
 
@@ -88,4 +89,8 @@ func (s *OauthConsentsService) Check(r *http.Request, client *oauthclients.Clien
 
 func (s *OauthConsentsService) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Consent, error) {
 	return s.storage.GetAllForUser(ctx, userID, cmd)
+}
+
+func (s *OauthConsentsService) Delete(ctx context.Context, consentID uuid.UUID) error {
+	return s.storage.Delete(ctx, consentID)
 }
