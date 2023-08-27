@@ -7,6 +7,8 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 const tableName = "oauth_sessions"
@@ -19,7 +21,7 @@ func newSqlStorage(db *sql.DB) *sqlStorage {
 	return &sqlStorage{db}
 }
 
-func (t *sqlStorage) Save(ctx context.Context, session *Session) error {
+func (s *sqlStorage) Save(ctx context.Context, session *Session) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(
@@ -44,7 +46,7 @@ func (t *sqlStorage) Save(ctx context.Context, session *Session) error {
 			session.userID,
 			session.scope,
 		).
-		RunWith(t.db).
+		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
 		return fmt.Errorf("sql error: %w", err)
@@ -53,19 +55,24 @@ func (t *sqlStorage) Save(ctx context.Context, session *Session) error {
 	return nil
 }
 
-func (t *sqlStorage) RemoveByAccessToken(ctx context.Context, access string) error {
-	return t.removeByKey(ctx, "access_token", access)
+func (s *sqlStorage) RemoveByAccessToken(ctx context.Context, access string) error {
+	return s.remove(ctx, sq.Eq{"access_token": access})
 }
 
-func (t *sqlStorage) RemoveByRefreshToken(ctx context.Context, refresh string) error {
-	return t.removeByKey(ctx, "refresh_token", refresh)
+func (s *sqlStorage) RemoveByRefreshToken(ctx context.Context, refresh string) error {
+	return s.remove(ctx, sq.Eq{"refresh_token": refresh})
 }
 
-func (t *sqlStorage) removeByKey(ctx context.Context, key, expected string) error {
-	_, err := sq.
-		Delete(tableName).
-		Where(sq.Eq{key: expected}).
-		RunWith(t.db).
+func (s *sqlStorage) remove(ctx context.Context, conditions ...any) error {
+	query := sq.
+		Delete(tableName)
+
+	for _, condition := range conditions {
+		query = query.Where(condition)
+	}
+
+	_, err := query.
+		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
 		return fmt.Errorf("sql error: %w", err)
@@ -74,18 +81,16 @@ func (t *sqlStorage) removeByKey(ctx context.Context, key, expected string) erro
 	return nil
 }
 
-func (t *sqlStorage) GetByAccessToken(ctx context.Context, access string) (*Session, error) {
-	return t.getByKey(ctx, "access_token", access)
+func (s *sqlStorage) GetByAccessToken(ctx context.Context, access string) (*Session, error) {
+	return s.get(ctx, sq.Eq{"access_token": access})
 }
 
-func (t *sqlStorage) GetByRefreshToken(ctx context.Context, refresh string) (*Session, error) {
-	return t.getByKey(ctx, "refresh_token", refresh)
+func (s *sqlStorage) GetByRefreshToken(ctx context.Context, refresh string) (*Session, error) {
+	return s.get(ctx, sq.Eq{"refresh_token": refresh})
 }
 
-func (t *sqlStorage) getByKey(ctx context.Context, key, expected string) (*Session, error) {
-	res := Session{}
-
-	err := sq.
+func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
+	rows, err := storage.PaginateSelection(sq.
 		Select(
 			"access_token",
 			"access_created_at",
@@ -97,9 +102,41 @@ func (t *sqlStorage) getByKey(ctx context.Context, key, expected string) (*Sessi
 			"user_id",
 			"scope",
 		).
-		From(tableName).
-		Where(sq.Eq{key: expected}).
-		RunWith(t.db).
+		Where(sq.Eq{"user_id": userID}).
+		From(tableName), cmd).
+		RunWith(s.db).
+		QueryContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("sql error: %w", err)
+	}
+	defer rows.Close()
+
+	return s.scanRows(rows)
+}
+
+func (s *sqlStorage) get(ctx context.Context, conditions ...any) (*Session, error) {
+	res := Session{}
+
+	query := sq.
+		Select(
+			"access_token",
+			"access_created_at",
+			"access_expires_at",
+			"refresh_token",
+			"refresh_created_at",
+			"refresh_expires_at",
+			"client_id",
+			"user_id",
+			"scope",
+		).
+		From(tableName)
+
+	for _, condition := range conditions {
+		query = query.Where(condition)
+	}
+
+	err := query.
+		RunWith(s.db).
 		ScanContext(ctx,
 			&res.accessToken,
 			&res.accessCreatedAt,
@@ -120,4 +157,35 @@ func (t *sqlStorage) getByKey(ctx context.Context, key, expected string) (*Sessi
 	}
 
 	return &res, nil
+}
+
+func (s *sqlStorage) scanRows(rows *sql.Rows) ([]Session, error) {
+	sessions := []Session{}
+
+	for rows.Next() {
+		var res Session
+
+		err := rows.Scan(
+			&res.accessToken,
+			&res.accessCreatedAt,
+			&res.accessExpiresAt,
+			&res.refreshToken,
+			&res.refreshCreatedAt,
+			&res.refreshExpiresAt,
+			&res.clientID,
+			&res.userID,
+			&res.scope,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan a row: %w", err)
+		}
+
+		sessions = append(sessions, res)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("scan error: %w", err)
+	}
+
+	return sessions, nil
 }
