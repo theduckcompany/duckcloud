@@ -240,7 +240,7 @@ func Test_WebSessions_Service(t *testing.T) {
 		assert.EqualError(t, err, "failed to remove the token: some-error")
 	})
 
-	t.Run("Revoke success", func(t *testing.T) {
+	t.Run("Delete success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
@@ -248,47 +248,47 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock.On("GetByToken", mock.Anything, WebSessionExample.Token()).Return(&WebSessionExample, nil).Once()
 		storageMock.On("RemoveByToken", mock.Anything, WebSessionExample.Token()).Return(nil).Once()
 
-		err := service.Revoke(ctx, &RevokeCmd{
+		err := service.Delete(ctx, &DeleteCmd{
 			UserID: WebSessionExample.UserID(),
 			Token:  WebSessionExample.Token(),
 		})
 		assert.NoError(t, err)
 	})
 
-	t.Run("Revoke with a validation error", func(t *testing.T) {
+	t.Run("Delete with a validation error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
-		err := service.Revoke(ctx, &RevokeCmd{
+		err := service.Delete(ctx, &DeleteCmd{
 			UserID: "some-invalid-id",
 			Token:  WebSessionExample.Token(),
 		})
 		assert.EqualError(t, err, "validation error: UserID: must be a valid UUID v4.")
 	})
 
-	t.Run("Revoke with a token not found", func(t *testing.T) {
+	t.Run("Delete with a token not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
 		storageMock.On("GetByToken", mock.Anything, WebSessionExample.Token()).Return(nil, nil).Once()
 
-		err := service.Revoke(ctx, &RevokeCmd{
+		err := service.Delete(ctx, &DeleteCmd{
 			UserID: WebSessionExample.UserID(),
 			Token:  WebSessionExample.Token(),
 		})
 		assert.NoError(t, err)
 	})
 
-	t.Run("Revoke with a token owned by someone else", func(t *testing.T) {
+	t.Run("Delete with a token owned by someone else", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
 		storageMock.On("GetByToken", mock.Anything, WebSessionExample.Token()).Return(&WebSessionExample, nil).Once()
 
-		err := service.Revoke(ctx, &RevokeCmd{
+		err := service.Delete(ctx, &DeleteCmd{
 			UserID: uuid.UUID("29a81212-9e46-4678-a921-ecaf53aa15bc"), // A random user id
 			Token:  WebSessionExample.Token(),
 		})
@@ -296,7 +296,7 @@ func Test_WebSessions_Service(t *testing.T) {
 		assert.ErrorIs(t, err, errs.ErrNotFound)
 	})
 
-	t.Run("RevokeAll success", func(t *testing.T) {
+	t.Run("DeleteAll success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
@@ -305,22 +305,22 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock.On("GetByToken", mock.Anything, WebSessionExample.Token()).Return(&WebSessionExample, nil).Once()
 		storageMock.On("RemoveByToken", mock.Anything, WebSessionExample.Token()).Return(nil).Once()
 
-		err := service.RevokeAll(ctx, WebSessionExample.UserID())
+		err := service.DeleteAll(ctx, WebSessionExample.UserID())
 		assert.NoError(t, err)
 	})
 
-	t.Run("RevokeAll witha GetAll error", func(t *testing.T) {
+	t.Run("DeleteAll witha GetAll error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
 		storageMock.On("GetAllForUser", mock.Anything, WebSessionExample.UserID(), (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
 
-		err := service.RevokeAll(ctx, WebSessionExample.UserID())
+		err := service.DeleteAll(ctx, WebSessionExample.UserID())
 		assert.EqualError(t, err, "failed to GetAllForUser: some-error")
 	})
 
-	t.Run("RevokeAll with a revoke error stop directly", func(t *testing.T) {
+	t.Run("DeleteAll with a revoke error stop directly", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
@@ -330,7 +330,7 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock.On("RemoveByToken", mock.Anything, WebSessionExample.Token()).Return(fmt.Errorf("some-error")).Once()
 		// Do not call GetByToken and RemoveByToken a second time
 
-		err := service.RevokeAll(ctx, WebSessionExample.UserID())
-		assert.EqualError(t, err, fmt.Sprintf("failed to Revoke web session %q: failed to RemoveByToken: some-error", WebSessionExample.token))
+		err := service.DeleteAll(ctx, WebSessionExample.UserID())
+		assert.EqualError(t, err, fmt.Sprintf("failed to Delete web session %q: failed to RemoveByToken: some-error", WebSessionExample.token))
 	})
 }

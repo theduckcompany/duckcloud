@@ -148,7 +148,7 @@ func (h *settingsHandler) deleteWebSession(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err := h.webSessions.Revoke(ctx, &websessions.RevokeCmd{
+	err := h.webSessions.Delete(ctx, &websessions.DeleteCmd{
 		UserID: user.ID(),
 		Token:  chi.URLParam(r, "sessionToken"),
 	})
@@ -175,7 +175,7 @@ func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = h.davSessions.Revoke(ctx, &davsessions.RevokeCmd{
+	err = h.davSessions.Delete(ctx, &davsessions.DeleteCmd{
 		UserID:    user.ID(),
 		SessionID: sessionID,
 	})

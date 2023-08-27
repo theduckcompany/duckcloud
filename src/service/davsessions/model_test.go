@@ -31,12 +31,12 @@ func Test_CreateRequest_Validate_success(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func Test_RevokeRequest_is_validatable(t *testing.T) {
-	assert.Implements(t, (*validation.Validatable)(nil), new(RevokeCmd))
+func Test_DeleteRequest_is_validatable(t *testing.T) {
+	assert.Implements(t, (*validation.Validatable)(nil), new(DeleteCmd))
 }
 
-func Test_RevokeRequest_Validate_success(t *testing.T) {
-	err := RevokeCmd{
+func Test_DeleteRequest_Validate_success(t *testing.T) {
+	err := DeleteCmd{
 		UserID:    uuid.UUID("2c6b2615-6204-4817-a126-b6c13074afdf"),
 		SessionID: uuid.UUID("d43afe5b-5c3c-4ba4-a08c-031d701f2aef"),
 	}.Validate()

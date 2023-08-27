@@ -16,8 +16,8 @@ type Service interface {
 	GetAllForUser(ctx context.Context, userID uuid.UUID, paginateCmd *storage.PaginateCmd) ([]DavSession, error)
 	Create(ctx context.Context, cmd *CreateCmd) (*DavSession, string, error)
 	Authenticate(ctx context.Context, username, password string) (*DavSession, error)
-	Revoke(ctx context.Context, cmd *RevokeCmd) error
-	RevokeAll(ctx context.Context, userID uuid.UUID) error
+	Delete(ctx context.Context, cmd *DeleteCmd) error
+	DeleteAll(ctx context.Context, userID uuid.UUID) error
 }
 
 func Init(db *sql.DB, inodes inodes.Service, users users.Service, tools tools.Tools) Service {
