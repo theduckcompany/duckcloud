@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
 )
 
 func Test_OauthSessions(t *testing.T) {
@@ -86,7 +87,8 @@ func Test_OauthSessions(t *testing.T) {
 
 		storageMock.On("RemoveByAccessToken", mock.Anything, "some-access-token").Return(nil).Once()
 
-		service.RemoveByAccessToken(ctx, "some-access-token")
+		err := service.RemoveByAccessToken(ctx, "some-access-token")
+		assert.NoError(t, err)
 	})
 
 	t.Run("RemoveByRefreshToken success", func(t *testing.T) {
@@ -96,6 +98,32 @@ func Test_OauthSessions(t *testing.T) {
 
 		storageMock.On("RemoveByRefreshToken", mock.Anything, "some-refresh-token").Return(nil).Once()
 
-		service.RemoveByRefreshToken(ctx, "some-refresh-token")
+		err := service.RemoveByRefreshToken(ctx, "some-refresh-token")
+		assert.NoError(t, err)
+	})
+
+	t.Run("DeleteAllForUser success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.userID, (*storage.PaginateCmd)(nil)).Return([]Session{ExampleAliceSession}, nil).Once()
+		storageMock.On("RemoveByAccessToken", mock.Anything, ExampleAliceSession.accessToken).Return(nil).Once()
+
+		err := service.DeleteAllForUser(ctx, ExampleAliceSession.userID)
+		assert.NoError(t, err)
+	})
+
+	t.Run("DeleteAllForUser stop directly in case of error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.userID, (*storage.PaginateCmd)(nil)).Return([]Session{ExampleAliceSession, ExampleAliceSession}, nil).Once()
+		storageMock.On("RemoveByAccessToken", mock.Anything, ExampleAliceSession.accessToken).Return(fmt.Errorf("some-error")).Once()
+		// Do not call "RemoveByAccessToken" a second time for the second error
+
+		err := service.DeleteAllForUser(ctx, ExampleAliceSession.userID)
+		assert.EqualError(t, err, "faile to RemoveByAccessToken: some-error")
 	})
 }

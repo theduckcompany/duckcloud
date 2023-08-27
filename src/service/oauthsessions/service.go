@@ -34,13 +34,13 @@ func NewService(tools tools.Tools, storage Storage) *OauthSessionsService {
 	return &OauthSessionsService{storage, tools.Clock()}
 }
 
-func (t *OauthSessionsService) Create(ctx context.Context, input *CreateCmd) (*Session, error) {
+func (s *OauthSessionsService) Create(ctx context.Context, input *CreateCmd) (*Session, error) {
 	err := input.Validate()
 	if err != nil {
 		return nil, errs.ValidationError(err)
 	}
 
-	now := t.clock.Now()
+	now := s.clock.Now()
 
 	session := Session{
 		accessToken:      input.AccessToken,
@@ -54,7 +54,7 @@ func (t *OauthSessionsService) Create(ctx context.Context, input *CreateCmd) (*S
 		scope:            input.Scope,
 	}
 
-	err = t.storage.Save(ctx, &session)
+	err = s.storage.Save(ctx, &session)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save the refresh session: %w", err)
 	}
@@ -62,22 +62,38 @@ func (t *OauthSessionsService) Create(ctx context.Context, input *CreateCmd) (*S
 	return &session, nil
 }
 
-func (t *OauthSessionsService) RemoveByAccessToken(ctx context.Context, access string) error {
-	return t.storage.RemoveByAccessToken(ctx, access)
+func (s *OauthSessionsService) RemoveByAccessToken(ctx context.Context, access string) error {
+	return s.storage.RemoveByAccessToken(ctx, access)
 }
 
-func (t *OauthSessionsService) RemoveByRefreshToken(ctx context.Context, refresh string) error {
-	return t.storage.RemoveByRefreshToken(ctx, refresh)
+func (s *OauthSessionsService) RemoveByRefreshToken(ctx context.Context, refresh string) error {
+	return s.storage.RemoveByRefreshToken(ctx, refresh)
 }
 
-func (t *OauthSessionsService) GetByAccessToken(ctx context.Context, access string) (*Session, error) {
-	return t.storage.GetByAccessToken(ctx, access)
+func (s *OauthSessionsService) GetByAccessToken(ctx context.Context, access string) (*Session, error) {
+	return s.storage.GetByAccessToken(ctx, access)
 }
 
-func (t *OauthSessionsService) GetByRefreshToken(ctx context.Context, refresh string) (*Session, error) {
-	return t.storage.GetByRefreshToken(ctx, refresh)
+func (s *OauthSessionsService) GetByRefreshToken(ctx context.Context, refresh string) (*Session, error) {
+	return s.storage.GetByRefreshToken(ctx, refresh)
 }
 
-func (t *OauthSessionsService) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
-	return t.storage.GetAllForUser(ctx, userID, cmd)
+func (s *OauthSessionsService) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
+	return s.storage.GetAllForUser(ctx, userID, cmd)
+}
+
+func (s *OauthSessionsService) DeleteAllForUser(ctx context.Context, userID uuid.UUID) error {
+	sessions, err := s.GetAllForUser(ctx, userID, nil)
+	if err != nil {
+		return fmt.Errorf("failed to GetAllForUser: %w", err)
+	}
+
+	for _, session := range sessions {
+		err = s.RemoveByAccessToken(ctx, session.AccessToken())
+		if err != nil {
+			return fmt.Errorf("faile to RemoveByAccessToken: %w", err)
+		}
+	}
+
+	return nil
 }
