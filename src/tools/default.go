@@ -2,7 +2,9 @@ package tools
 
 import (
 	"log/slog"
+	"testing"
 
+	"github.com/neilotoole/slogt"
 	"github.com/theduckcompany/duckcloud/src/tools/clock"
 	"github.com/theduckcompany/duckcloud/src/tools/logger"
 	"github.com/theduckcompany/duckcloud/src/tools/password"
@@ -15,7 +17,7 @@ type Config struct {
 	Log      logger.Config   `json:"log"`
 }
 
-type Prod struct {
+type Toolbox struct {
 	clock     clock.Clock
 	uuid      uuid.Service
 	resWriter response.Writer
@@ -23,10 +25,10 @@ type Prod struct {
 	password  password.Password
 }
 
-func NewToolbox(cfg Config) *Prod {
+func NewToolbox(cfg Config) *Toolbox {
 	log := logger.NewSLogger(cfg.Log)
 
-	return &Prod{
+	return &Toolbox{
 		clock:     clock.NewDefault(),
 		uuid:      uuid.NewProvider(),
 		log:       log,
@@ -35,34 +37,47 @@ func NewToolbox(cfg Config) *Prod {
 	}
 }
 
+func NewToolboxForTest(t *testing.T) *Toolbox {
+	t.Helper()
+
+	log := slogt.New(t)
+	return &Toolbox{
+		clock:     clock.NewDefault(),
+		uuid:      uuid.NewProvider(),
+		log:       log,
+		resWriter: response.Init(response.Config{PrettyRender: true, HotReload: false}, log),
+		password:  password.NewBcryptPassword(),
+	}
+}
+
 // Clock implements App.
 //
 // Return a clock.Default.
-func (d *Prod) Clock() clock.Clock {
+func (d *Toolbox) Clock() clock.Clock {
 	return d.clock
 }
 
 // UUID implements App.
 //
 // Return a *uuid.Default.
-func (d *Prod) UUID() uuid.Service {
+func (d *Toolbox) UUID() uuid.Service {
 	return d.uuid
 }
 
 // Logger implements App.
 //
 // Return a *logging.StdLogger.
-func (d *Prod) Logger() *slog.Logger {
+func (d *Toolbox) Logger() *slog.Logger {
 	return d.log
 }
 
 // ResWriter implements App.
 //
 // Return a *response.Writer.
-func (d *Prod) ResWriter() response.Writer {
+func (d *Toolbox) ResWriter() response.Writer {
 	return d.resWriter
 }
 
-func (d *Prod) Password() password.Password {
+func (d *Toolbox) Password() password.Password {
 	return d.password
 }

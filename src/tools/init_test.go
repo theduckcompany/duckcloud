@@ -7,6 +7,6 @@ import (
 )
 
 func TestToolsImplementations(t *testing.T) {
-	assert.Implements(t, (*Tools)(nil), new(Prod))
+	assert.Implements(t, (*Tools)(nil), new(Toolbox))
 	assert.Implements(t, (*Tools)(nil), new(Mock))
 }
