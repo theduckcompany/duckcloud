@@ -6,6 +6,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/jobs/fsgc"
 	"github.com/theduckcompany/duckcloud/src/jobs/userdelete"
 	"github.com/theduckcompany/duckcloud/src/service/davsessions"
+	"github.com/theduckcompany/duckcloud/src/service/files"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/src/service/oauthsessions"
@@ -18,6 +19,7 @@ import (
 func StartJobs(
 	lc fx.Lifecycle,
 	users users.Service,
+	files files.Service,
 	webSessions websessions.Service,
 	davSessions davsessions.Service,
 	oauthSessions oauthsessions.Service,
@@ -25,7 +27,7 @@ func StartJobs(
 	inodes inodes.Service,
 	tools tools.Tools,
 ) {
-	fsgcJob := fsgc.NewJob(inodes, tools)
+	fsgcJob := fsgc.NewJob(inodes, files, tools)
 	fsgcJobRunner := NewJobRunner(fsgcJob, 5*time.Second, tools)
 	fsgcJobRunner.FXRegister(lc)
 

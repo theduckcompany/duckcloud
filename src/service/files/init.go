@@ -15,8 +15,10 @@ type Config struct {
 	Path string `json:"path"`
 }
 
+//go:generate mockery --name Service
 type Service interface {
 	Open(ctx context.Context, inodeID uuid.UUID) (afero.File, error)
+	Delete(ctx context.Context, inodeID uuid.UUID) error
 }
 
 func Init(cfg Config, fs afero.Fs, tools tools.Tools) (Service, error) {

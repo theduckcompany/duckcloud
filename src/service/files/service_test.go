@@ -102,4 +102,23 @@ func TestFileService(t *testing.T) {
 		assert.Nil(t, svc)
 		assert.EqualError(t, err, "invalid path: open /foo: it must be a directory")
 	})
+
+	t.Run("Delete success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		fs := afero.NewMemMapFs()
+
+		svc, err := NewFSService(fs, "/", tools.Logger())
+		require.NoError(t, err)
+
+		// Create a file
+		file, err := svc.Open(ctx, uuid.UUID("735277a1-e94f-423a-b1b9-c69488ad72cc"))
+		assert.NoError(t, err)
+		file.WriteString("Hello, World!")
+		err = file.Close()
+		require.NoError(t, err)
+
+		// Delete it
+		err = svc.Delete(ctx, uuid.UUID("735277a1-e94f-423a-b1b9-c69488ad72cc"))
+		assert.NoError(t, err)
+	})
 }
