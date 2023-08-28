@@ -2,6 +2,7 @@ package dav
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -57,14 +58,14 @@ func (h *HTTPHandler) handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session, err := h.davSessions.Authenticate(r.Context(), username, password)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+	if errors.Is(err, davsessions.ErrInvalidCredentials) {
+		w.Header().Add("WWW-Authenticate", `Basic realm="fs"`)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	if session == nil {
-		w.Header().Add("WWW-Authenticate", `Basic realm="fs"`)
-		w.WriteHeader(http.StatusUnauthorized)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
