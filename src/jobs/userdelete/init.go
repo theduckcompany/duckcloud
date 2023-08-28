@@ -1,8 +1,9 @@
-package jobs
+package userdelete
 
 import (
-	"github.com/theduckcompany/duckcloud/src/jobs/fsgc"
-	"github.com/theduckcompany/duckcloud/src/jobs/userdelete"
+	"context"
+	"time"
+
 	"github.com/theduckcompany/duckcloud/src/service/davsessions"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/service/oauthconsents"
@@ -13,7 +14,7 @@ import (
 	"go.uber.org/fx"
 )
 
-func StartJobs(
+func StartJob(
 	lc fx.Lifecycle,
 	users users.Service,
 	webSessions websessions.Service,
@@ -23,6 +24,18 @@ func StartJobs(
 	inodes inodes.Service,
 	tools tools.Tools,
 ) {
-	fsgc.StartJob(lc, inodes, tools)
-	userdelete.StartJob(lc, users, webSessions, davSessions, oauthSessions, oauthConsents, inodes, tools)
+	gc := NewJob(users, webSessions, davSessions, oauthSessions, oauthConsents, inodes, tools)
+
+	lc.Append(fx.Hook{
+		OnStart: func(context.Context) error {
+			//nolint:contextcheck // The context given with "OnStart" will be cancelled once all the methods
+			// have been called. We need a context running for all the server uptime.
+			gc.Start(10 * time.Second)
+			return nil
+		},
+		OnStop: func(context.Context) error {
+			gc.Stop()
+			return nil
+		},
+	})
 }
