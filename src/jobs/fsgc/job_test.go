@@ -1,4 +1,4 @@
-package internal
+package fsgc
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
 )
 
-func TestGC(t *testing.T) {
+func TestFSGC(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("success", func(t *testing.T) {
@@ -35,7 +35,7 @@ func TestGC(t *testing.T) {
 		// We remove the dir itself
 		inodesSvc.On("HardDelete", mock.Anything, inodes.ExampleAliceRoot.ID()).Return(nil).Once()
 
-		svc := NewGCService(inodesSvc, tools)
+		svc := NewJob(inodesSvc, tools)
 
 		err := svc.run(ctx)
 		assert.NoError(t, err)
@@ -48,7 +48,7 @@ func TestGC(t *testing.T) {
 		// First loop to fetch the deleted inodes
 		inodesSvc.On("GetAllDeleted", mock.Anything, 10).Return(nil, fmt.Errorf("some-error")).Once()
 
-		svc := NewGCService(inodesSvc, tools)
+		svc := NewJob(inodesSvc, tools)
 
 		err := svc.run(ctx)
 		assert.EqualError(t, err, "failed to GetAllDeleted: some-error")
@@ -68,7 +68,7 @@ func TestGC(t *testing.T) {
 			FullName: "/",
 		}, &storage.PaginateCmd{Limit: 10}).Return(nil, fmt.Errorf("some-error")).Once()
 
-		svc := NewGCService(inodesSvc, tools)
+		svc := NewJob(inodesSvc, tools)
 
 		err := svc.run(ctx)
 		assert.EqualError(t, err, "failed to delete inode \"f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f\": failed to Readdir: some-error")
@@ -78,7 +78,7 @@ func TestGC(t *testing.T) {
 		tools := tools.NewMock(t)
 		inodesSvc := inodes.NewMockService(t)
 
-		svc := NewGCService(inodesSvc, tools)
+		svc := NewJob(inodesSvc, tools)
 
 		// Start the async job. The first call is done 1s after the call to Start
 		svc.Start(time.Second)
@@ -91,7 +91,7 @@ func TestGC(t *testing.T) {
 		tools := tools.NewMock(t)
 		inodesSvc := inodes.NewMockService(t)
 
-		svc := NewGCService(inodesSvc, tools)
+		svc := NewJob(inodesSvc, tools)
 
 		svc.Start(time.Millisecond)
 

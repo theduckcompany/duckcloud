@@ -3,11 +3,11 @@ package server
 import (
 	"github.com/spf13/afero"
 	"github.com/theduckcompany/duckcloud/assets"
+	"github.com/theduckcompany/duckcloud/src/jobs"
 	"github.com/theduckcompany/duckcloud/src/service/dav"
 	"github.com/theduckcompany/duckcloud/src/service/davsessions"
 	"github.com/theduckcompany/duckcloud/src/service/debug"
 	"github.com/theduckcompany/duckcloud/src/service/files"
-	"github.com/theduckcompany/duckcloud/src/service/fs"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/service/oauth2"
 	"github.com/theduckcompany/duckcloud/src/service/oauthclients"
@@ -72,7 +72,7 @@ func start(cfg *Config, invoke fx.Option) *fx.App {
 		),
 
 		// Start the command
-		fx.Invoke(fs.StartGC),
+		fx.Invoke(jobs.StartJobs),
 		fx.Invoke(storage.RunMigrations),
 		invoke,
 	)
