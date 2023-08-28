@@ -45,7 +45,7 @@ func TestUserDeleteJob(t *testing.T) {
 		oauthConsentMock.On("DeleteAll", mock.Anything, users.ExampleAlice.ID()).Return(nil).Once()
 		usersMock.On("HardDelete", mock.Anything, users.ExampleAlice.ID()).Return(nil).Once()
 
-		err := job.run(ctx)
+		err := job.Run(ctx)
 		assert.NoError(t, err)
 	})
 
@@ -63,7 +63,7 @@ func TestUserDeleteJob(t *testing.T) {
 		// Fetch all the users to delete
 		usersMock.On("GetAllDeleted", mock.Anything, gcBatchSize).Return(nil, fmt.Errorf("some-error")).Once()
 
-		err := job.run(ctx)
+		err := job.Run(ctx)
 		assert.EqualError(t, err, "failed to GetAllDeleted: some-error")
 	})
 
@@ -84,7 +84,7 @@ func TestUserDeleteJob(t *testing.T) {
 		// For each users remove all the data
 		webSessionsMock.On("DeleteAll", mock.Anything, users.ExampleAlice.ID()).Return(fmt.Errorf("some-error")).Once()
 
-		err := job.run(ctx)
+		err := job.Run(ctx)
 		assert.EqualError(t, err, "failed to delete user \"86bffce3-3f53-4631-baf8-8530773884f3\": failed to delete all web sessions: some-error")
 	})
 
@@ -106,7 +106,7 @@ func TestUserDeleteJob(t *testing.T) {
 		webSessionsMock.On("DeleteAll", mock.Anything, users.ExampleAlice.ID()).Return(nil).Once()
 		davSessionsMock.On("DeleteAll", mock.Anything, users.ExampleAlice.ID()).Return(fmt.Errorf("some-error")).Once()
 
-		err := job.run(ctx)
+		err := job.Run(ctx)
 		assert.EqualError(t, err, "failed to delete user \"86bffce3-3f53-4631-baf8-8530773884f3\": failed to delete all dav sessions: some-error")
 	})
 
@@ -129,7 +129,7 @@ func TestUserDeleteJob(t *testing.T) {
 		davSessionsMock.On("DeleteAll", mock.Anything, users.ExampleAlice.ID()).Return(nil).Once()
 		oauthSessionsMock.On("DeleteAllForUser", mock.Anything, users.ExampleAlice.ID()).Return(fmt.Errorf("some-error")).Once()
 
-		err := job.run(ctx)
+		err := job.Run(ctx)
 		assert.EqualError(t, err, "failed to delete user \"86bffce3-3f53-4631-baf8-8530773884f3\": failed to delete all oauth sessions: some-error")
 	})
 
@@ -157,7 +157,7 @@ func TestUserDeleteJob(t *testing.T) {
 			FullName: "/",
 		}).Return(fmt.Errorf("some-error")).Once()
 
-		err := job.run(ctx)
+		err := job.Run(ctx)
 		assert.EqualError(t, err, "failed to delete user \"86bffce3-3f53-4631-baf8-8530773884f3\": failed to delete the user root fs: some-error")
 	})
 
@@ -186,7 +186,7 @@ func TestUserDeleteJob(t *testing.T) {
 		}).Return(nil).Once()
 		oauthConsentMock.On("DeleteAll", mock.Anything, users.ExampleAlice.ID()).Return(fmt.Errorf("some-error")).Once()
 
-		err := job.run(ctx)
+		err := job.Run(ctx)
 		assert.EqualError(t, err, "failed to delete user \"86bffce3-3f53-4631-baf8-8530773884f3\": failed to delete all oauth consents: some-error")
 	})
 
@@ -216,7 +216,7 @@ func TestUserDeleteJob(t *testing.T) {
 		oauthConsentMock.On("DeleteAll", mock.Anything, users.ExampleAlice.ID()).Return(nil).Once()
 		usersMock.On("HardDelete", mock.Anything, users.ExampleAlice.ID()).Return(fmt.Errorf("some-error")).Once()
 
-		err := job.run(ctx)
+		err := job.Run(ctx)
 		assert.EqualError(t, err, "failed to delete user \"86bffce3-3f53-4631-baf8-8530773884f3\": failed to hard delete the user: some-error")
 	})
 }

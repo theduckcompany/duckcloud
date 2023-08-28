@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"time"
 
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/tools"
@@ -24,36 +23,7 @@ func NewJob(inodes inodes.Service, tools tools.Tools) *Job {
 	return &Job{inodes, tools.Logger(), nil, make(chan struct{})}
 }
 
-func (j *Job) Start(pauseDuration time.Duration) {
-	ticker := time.NewTicker(pauseDuration)
-	ctx, cancel := context.WithCancel(context.Background())
-	j.cancel = cancel
-
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				err := j.run(ctx)
-				if err != nil {
-					j.log.Error("fs gc error", slog.String("error", err.Error()))
-				}
-			case <-j.quit:
-				ticker.Stop()
-				cancel()
-			}
-		}
-	}()
-}
-
-func (j *Job) Stop() {
-	close(j.quit)
-
-	if j.cancel != nil {
-		j.cancel()
-	}
-}
-
-func (j *Job) run(ctx context.Context) error {
+func (j *Job) Run(ctx context.Context) error {
 	for {
 		toDelete, err := j.inodes.GetAllDeleted(ctx, gcBatchSize)
 		if err != nil {

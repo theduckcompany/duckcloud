@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -37,7 +36,7 @@ func TestFSGC(t *testing.T) {
 
 		svc := NewJob(inodesSvc, tools)
 
-		err := svc.run(ctx)
+		err := svc.Run(ctx)
 		assert.NoError(t, err)
 	})
 
@@ -50,7 +49,7 @@ func TestFSGC(t *testing.T) {
 
 		svc := NewJob(inodesSvc, tools)
 
-		err := svc.run(ctx)
+		err := svc.Run(ctx)
 		assert.EqualError(t, err, "failed to GetAllDeleted: some-error")
 	})
 
@@ -70,40 +69,7 @@ func TestFSGC(t *testing.T) {
 
 		svc := NewJob(inodesSvc, tools)
 
-		err := svc.run(ctx)
+		err := svc.Run(ctx)
 		assert.EqualError(t, err, "failed to delete inode \"f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f\": failed to Readdir: some-error")
-	})
-
-	t.Run("Start an async job and stop it with Stop", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		inodesSvc := inodes.NewMockService(t)
-
-		svc := NewJob(inodesSvc, tools)
-
-		// Start the async job. The first call is done 1s after the call to Start
-		svc.Start(time.Second)
-
-		// Stop will interrupt the job before the second.
-		svc.Stop()
-	})
-
-	t.Run("Stop interrupt the running job", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		inodesSvc := inodes.NewMockService(t)
-
-		svc := NewJob(inodesSvc, tools)
-
-		svc.Start(time.Millisecond)
-
-		// First loop to fetch the deleted inodes. Make it take more than a 1s.
-		inodesSvc.On("GetAllDeleted", mock.Anything, 10).WaitUntil(time.After(time.Minute)).Return([]inodes.INode{inodes.ExampleAliceRoot}, nil).Once()
-
-		// Wait some time in order to be just to have the job running and waiting for the end of "GetAllDeleted".
-		time.Sleep(20 * time.Millisecond)
-
-		// Stop will interrupt the job before the second.
-		start := time.Now()
-		svc.Stop()
-		assert.WithinDuration(t, time.Now(), start, 10*time.Millisecond)
 	})
 }
