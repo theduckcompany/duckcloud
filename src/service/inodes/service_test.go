@@ -368,20 +368,7 @@ func TestINodes(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
 
-		storageMock.On("GetDeleted", mock.Anything, ExampleAliceFile.ID()).Return(&ExampleAliceFile, nil).Once()
 		storageMock.On("HardDelete", mock.Anything, ExampleAliceFile.ID()).Return(nil).Once()
-
-		err := service.HardDelete(ctx, ExampleAliceFile.ID())
-		assert.NoError(t, err)
-	})
-
-	t.Run("HardDelete an non sofdeleted inode does nothing", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
-		service := NewService(tools, storageMock)
-
-		storageMock.On("GetDeleted", mock.Anything, ExampleAliceFile.ID()).Return(nil, nil).Once()
-		// The HardeDelete method is not called as we haven't found the deletedINode
 
 		err := service.HardDelete(ctx, ExampleAliceFile.ID())
 		assert.NoError(t, err)
