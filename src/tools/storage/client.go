@@ -18,7 +18,7 @@ func NewSQliteClient(cfg Config, log *slog.Logger) (*sql.DB, error) {
 	var db *sql.DB
 	var err error
 
-	dsn := "file:" + cfg.Path
+	dsn := "file:" + cfg.Path + "?_journal=WAL&_synchronous=normal&_busy_timeout=500"
 	log.Info(fmt.Sprintf("load database file from %s", cfg.Path))
 
 	switch cfg.Debug {
@@ -32,6 +32,16 @@ func NewSQliteClient(cfg Config, log *slog.Logger) (*sql.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create the sqlite db: %w", err)
 	}
+
+	// Due to the background jobs we often have some sql query ending up with an error
+	// "database is locked".
+	//
+	// Following [this issue](https://github.com/mattn/go-sqlite3/issues/209) this is due
+	// to some concurency issues. The easier solution (not the better) is to ensure that only
+	// on request
+	//
+	// This is the same a wrapping a mutex around every DB access.
+	db.SetMaxOpenConns(1)
 
 	err = db.Ping()
 	if err != nil {
