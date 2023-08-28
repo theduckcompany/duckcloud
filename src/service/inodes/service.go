@@ -145,16 +145,7 @@ func (s *INodeService) GetAllDeleted(ctx context.Context, limit int) ([]INode, e
 }
 
 func (s *INodeService) HardDelete(ctx context.Context, inode uuid.UUID) error {
-	res, err := s.storage.GetDeleted(ctx, inode)
-	if err != nil {
-		return fmt.Errorf("failed to GetDeleted: %w", err)
-	}
-
-	if res == nil {
-		return nil
-	}
-
-	return s.storage.HardDelete(ctx, res.ID())
+	return s.storage.HardDelete(ctx, inode)
 }
 
 func (s *INodeService) RemoveAll(ctx context.Context, cmd *PathCmd) error {
