@@ -87,10 +87,26 @@ func (s *OauthConsentsService) Check(r *http.Request, client *oauthclients.Clien
 	return nil
 }
 
-func (s *OauthConsentsService) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Consent, error) {
+func (s *OauthConsentsService) GetAll(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Consent, error) {
 	return s.storage.GetAllForUser(ctx, userID, cmd)
 }
 
 func (s *OauthConsentsService) Delete(ctx context.Context, consentID uuid.UUID) error {
 	return s.storage.Delete(ctx, consentID)
+}
+
+func (s *OauthConsentsService) DeleteAll(ctx context.Context, userID uuid.UUID) error {
+	consents, err := s.GetAll(ctx, userID, nil)
+	if err != nil {
+		return fmt.Errorf("failed to GetAllForUser: %w", err)
+	}
+
+	for _, consent := range consents {
+		err = s.Delete(ctx, consent.ID())
+		if err != nil {
+			return fmt.Errorf("failed to Delete an oauth consent %q: %w", consent.ID(), err)
+		}
+	}
+
+	return nil
 }

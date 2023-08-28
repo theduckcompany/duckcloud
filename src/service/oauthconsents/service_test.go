@@ -3,6 +3,7 @@ package oauthconsents
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -171,7 +172,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		ExampleAliceConsent := Consent{
 			id:     uuid.UUID("some-ExampleAliceConsent-id"),
 			userID: uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-			// The sessionToken doesn't match the one inside the session
+			// The sessionID doesn't match the one inside the session
 			sessionToken: "some-other-token",
 			clientID:     "alice-oauth-client",
 			scopes:       []string{"scopeA", "scopeB"},
@@ -197,7 +198,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceConsent.UserID(), (*storage.PaginateCmd)(nil)).Return([]Consent{ExampleAliceConsent}, nil).Once()
 
-		res, err := service.GetAllForUser(ctx, ExampleAliceConsent.UserID(), nil)
+		res, err := service.GetAll(ctx, ExampleAliceConsent.UserID(), nil)
 		assert.NoError(t, err)
 		assert.Equal(t, []Consent{ExampleAliceConsent}, res)
 	})
@@ -210,5 +211,41 @@ func Test_OauthConsents_Service(t *testing.T) {
 		storageMock.On("Delete", mock.Anything, ExampleAliceConsent.ID()).Return(nil).Once()
 
 		service.Delete(ctx, ExampleAliceConsent.ID())
+	})
+
+	t.Run("DeleteAll success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(storageMock, tools)
+
+		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceConsent.UserID(), (*storage.PaginateCmd)(nil)).Return([]Consent{ExampleAliceConsent}, nil).Once()
+		storageMock.On("Delete", mock.Anything, ExampleAliceConsent.ID()).Return(nil).Once()
+
+		err := service.DeleteAll(ctx, ExampleAliceConsent.UserID())
+		assert.NoError(t, err)
+	})
+
+	t.Run("DeleteAll with a GetAll error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(storageMock, tools)
+
+		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceConsent.UserID(), (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
+
+		err := service.DeleteAll(ctx, ExampleAliceConsent.UserID())
+		assert.EqualError(t, err, "failed to GetAllForUser: some-error")
+	})
+
+	t.Run("DeleteAll with a revoke error stop directly", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(storageMock, tools)
+
+		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceConsent.UserID(), (*storage.PaginateCmd)(nil)).Return([]Consent{ExampleAliceConsent, ExampleAliceConsent}, nil).Once()
+		storageMock.On("Delete", mock.Anything, ExampleAliceConsent.ID()).Return(fmt.Errorf("some-error")).Once()
+		// Do not call GetByID and DeleteByID a second time
+
+		err := service.DeleteAll(ctx, ExampleAliceConsent.UserID())
+		assert.EqualError(t, err, fmt.Sprintf("failed to Delete an oauth consent %q: some-error", ExampleAliceConsent.ID()))
 	})
 }
