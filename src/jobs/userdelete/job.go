@@ -14,7 +14,10 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools"
 )
 
-const gcBatchSize = 10
+const (
+	gcBatchSize = 10
+	jobName     = "userdelete"
+)
 
 type Job struct {
 	users         users.Service
@@ -35,6 +38,7 @@ func NewJob(
 	inodes inodes.Service,
 	tools tools.Tools,
 ) *Job {
+	logger := tools.Logger().With(slog.String("job", jobName))
 	return &Job{
 		users,
 		webSessions,
@@ -42,11 +46,12 @@ func NewJob(
 		oauthSessions,
 		oauthConsents,
 		inodes,
-		tools.Logger(),
+		logger,
 	}
 }
 
 func (j *Job) Run(ctx context.Context) error {
+	j.log.DebugContext(ctx, "start job")
 	for {
 		users, err := j.users.GetAllDeleted(ctx, gcBatchSize)
 		if err != nil {
@@ -60,10 +65,11 @@ func (j *Job) Run(ctx context.Context) error {
 			}
 
 			j.log.DebugContext(ctx, "user successfully deleted", slog.String("user", string(user.ID())))
+		}
 
-			if len(users) < gcBatchSize {
-				return nil
-			}
+		if len(users) < gcBatchSize {
+			j.log.DebugContext(ctx, "end job")
+			return nil
 		}
 	}
 }
