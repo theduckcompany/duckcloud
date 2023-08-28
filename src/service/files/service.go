@@ -63,3 +63,10 @@ func (s *FSService) Open(ctx context.Context, inodeID uuid.UUID) (afero.File, er
 
 	return file, nil
 }
+
+func (s *FSService) Delete(ctx context.Context, inodeID uuid.UUID) error {
+	idStr := string(inodeID)
+	filePath := path.Join(idStr[:2], string(inodeID))
+
+	return s.fs.Remove(filePath)
+}

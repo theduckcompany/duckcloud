@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/theduckcompany/duckcloud/src/service/files"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
@@ -17,14 +18,15 @@ const (
 
 type Job struct {
 	inodes inodes.Service
+	files  files.Service
 	log    *slog.Logger
 	cancel context.CancelFunc
 	quit   chan struct{}
 }
 
-func NewJob(inodes inodes.Service, tools tools.Tools) *Job {
+func NewJob(inodes inodes.Service, files files.Service, tools tools.Tools) *Job {
 	logger := tools.Logger().With(slog.String("job", jobName))
-	return &Job{inodes, logger, nil, make(chan struct{})}
+	return &Job{inodes, files, logger, nil, make(chan struct{})}
 }
 
 func (j *Job) Run(ctx context.Context) error {
@@ -53,20 +55,33 @@ func (j *Job) Run(ctx context.Context) error {
 
 func (j *Job) deleteINode(ctx context.Context, inode *inodes.INode) error {
 	if inode.Mode().IsDir() {
-		childs, err := j.inodes.Readdir(ctx, &inodes.PathCmd{
-			Root:     inode.ID(),
-			UserID:   inode.UserID(),
-			FullName: "/",
-		}, &storage.PaginateCmd{Limit: 10})
-		if err != nil {
-			return fmt.Errorf("failed to Readdir: %w", err)
-		}
-
-		for _, child := range childs {
-			err = j.deleteINode(ctx, &child)
+		for {
+			childs, err := j.inodes.Readdir(ctx, &inodes.PathCmd{
+				Root:     inode.ID(),
+				UserID:   inode.UserID(),
+				FullName: "/",
+			}, &storage.PaginateCmd{Limit: gcBatchSize})
 			if err != nil {
-				return fmt.Errorf("failed to deleteINode %q: %w", child.ID(), err)
+				return fmt.Errorf("failed to Readdir: %w", err)
 			}
+
+			for _, child := range childs {
+				err = j.deleteINode(ctx, &child)
+				if err != nil {
+					return fmt.Errorf("failed to deleteINode %q: %w", child.ID(), err)
+				}
+			}
+
+			if len(childs) < gcBatchSize {
+				break
+			}
+		}
+	}
+
+	if !inode.Mode().IsDir() {
+		err := j.files.Delete(ctx, inode.ID())
+		if err != nil {
+			return fmt.Errorf("failed to remove the file %q: %w", inode.ID(), err)
 		}
 	}
 
