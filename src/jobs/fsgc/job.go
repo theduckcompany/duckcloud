@@ -10,7 +10,10 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
 )
 
-const gcBatchSize = 10
+const (
+	gcBatchSize = 10
+	jobName     = "fsgc"
+)
 
 type Job struct {
 	inodes inodes.Service
@@ -20,10 +23,12 @@ type Job struct {
 }
 
 func NewJob(inodes inodes.Service, tools tools.Tools) *Job {
-	return &Job{inodes, tools.Logger(), nil, make(chan struct{})}
+	logger := tools.Logger().With(slog.String("job", jobName))
+	return &Job{inodes, logger, nil, make(chan struct{})}
 }
 
 func (j *Job) Run(ctx context.Context) error {
+	j.log.DebugContext(ctx, "start job")
 	for {
 		toDelete, err := j.inodes.GetAllDeleted(ctx, gcBatchSize)
 		if err != nil {
@@ -40,6 +45,7 @@ func (j *Job) Run(ctx context.Context) error {
 		}
 
 		if len(toDelete) < gcBatchSize {
+			j.log.DebugContext(ctx, "end job")
 			return nil
 		}
 	}
