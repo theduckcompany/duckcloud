@@ -244,7 +244,7 @@ func (s *INodeService) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 // returns an error, the walk will be aborted and return that same error.
 //
 // dir is the directory at that step, frag is the name fragment, and final is
-// whether it is the final step. For example, walking "/foo/bar/x" will result
+// whether it is the final step. For example, walking "./foo/bar/x" will result
 // in 3 calls to f:
 //   - "/", "foo", false
 //   - "/foo/", "bar", false
@@ -254,7 +254,7 @@ func (s *INodeService) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 // ends at that root node.
 func (s *INodeService) walk(ctx context.Context, cmd *PathCmd, op string, f func(dir *INode, frag string, final bool) error) error {
 	original := cmd.FullName
-	fullname := slashClean(cmd.FullName)
+	fullname := path.Clean("/" + cmd.FullName)
 
 	// Strip any leading "/"s to make fullname a relative path, as the walk
 	// starts at fs.root.
@@ -323,13 +323,4 @@ func (s *INodeService) walk(ctx context.Context, cmd *PathCmd, op string, f func
 	}
 
 	return nil
-}
-
-// slashClean is equivalent to but slightly more efficient than
-// path.Clean("/" + name).
-func slashClean(name string) string {
-	if name == "" || name[0] != '/' {
-		name = "/" + name
-	}
-	return path.Clean(name)
 }

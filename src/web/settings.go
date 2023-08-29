@@ -97,7 +97,6 @@ func (h *settingsHandler) getDavSessions(w http.ResponseWriter, r *http.Request)
 	}
 
 	fullPage := r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == ""
-	fmt.Printf("is full page: %v\n\n", fullPage)
 
 	h.response.WriteHTML(w, http.StatusOK, "settings/webdav.tmpl", fullPage, map[string]interface{}{
 		"isAdmin":     user.IsAdmin(),
@@ -130,7 +129,6 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 	}
 
 	fullPage := r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == ""
-	fmt.Printf("is full page: %v\n\n", fullPage)
 
 	h.response.WriteHTML(w, http.StatusOK, "settings/webdav.tmpl", fullPage, map[string]interface{}{
 		"isAdmin":     user.IsAdmin(),
