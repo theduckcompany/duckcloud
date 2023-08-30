@@ -2,6 +2,8 @@ package inodes
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io/fs"
 	"testing"
@@ -9,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	mock "github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/ptr"
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
@@ -588,5 +591,27 @@ func TestINodes(t *testing.T) {
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "bad request: this user is already bootstraped")
+	})
+
+	t.Run("RegisterWrite success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		now := time.Now()
+		hash := sha256.New()
+		n, err := hash.Write([]byte("some-content"))
+		require.NoError(t, err)
+
+		updatedInode := ExampleAliceFile
+		updatedInode.lastModifiedAt = now
+		updatedInode.checksum = hex.EncodeToString(hash.Sum(nil))
+		updatedInode.size = ExampleAliceFile.size + int64(n)
+
+		tools.ClockMock.On("Now").Return(now).Once()
+		storageMock.On("UpdateModifiedSizeAndChecksum", mock.Anything, &updatedInode).Return(nil).Once()
+
+		err = service.RegisterWrite(ctx, &ExampleAliceFile, n, hash)
+		assert.NoError(t, err)
 	})
 }

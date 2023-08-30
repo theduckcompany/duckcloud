@@ -4,8 +4,10 @@ package inodes
 
 import (
 	context "context"
+	hash "hash"
 
 	mock "github.com/stretchr/testify/mock"
+
 	storage "github.com/theduckcompany/duckcloud/src/tools/storage"
 
 	uuid "github.com/theduckcompany/duckcloud/src/tools/uuid"
@@ -186,13 +188,13 @@ func (_m *MockService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *s
 	return r0, r1
 }
 
-// RegisterWrite provides a mock function with given fields: ctx, inode, sizeWrite
-func (_m *MockService) RegisterWrite(ctx context.Context, inode *INode, sizeWrite int) error {
-	ret := _m.Called(ctx, inode, sizeWrite)
+// RegisterWrite provides a mock function with given fields: ctx, inode, sizeWrite, h
+func (_m *MockService) RegisterWrite(ctx context.Context, inode *INode, sizeWrite int, h hash.Hash) error {
+	ret := _m.Called(ctx, inode, sizeWrite, h)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *INode, int) error); ok {
-		r0 = rf(ctx, inode, sizeWrite)
+	if rf, ok := ret.Get(0).(func(context.Context, *INode, int, hash.Hash) error); ok {
+		r0 = rf(ctx, inode, sizeWrite, h)
 	} else {
 		r0 = ret.Error(0)
 	}

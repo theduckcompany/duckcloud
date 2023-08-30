@@ -48,6 +48,7 @@ type INode struct {
 	parent         *uuid.UUID
 	mode           fs.FileMode
 	name           string
+	checksum       string
 	size           int64
 	createdAt      time.Time
 	lastModifiedAt time.Time
@@ -63,4 +64,5 @@ func (n *INode) ModTime() time.Time        { return n.lastModifiedAt }
 func (n *INode) CreatedAt() time.Time      { return n.createdAt }
 func (n *INode) LastModifiedAt() time.Time { return n.lastModifiedAt }
 func (n *INode) IsDir() bool               { return n.mode.IsDir() }
+func (n *INode) Checksum() string          { return n.checksum }
 func (n *INode) Sys() any                  { return nil }

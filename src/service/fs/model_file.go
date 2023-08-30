@@ -106,7 +106,7 @@ func (f *File) Sync() error {
 		return err
 	}
 
-	err = f.inodes.RegisterWrite(context.Background(), f.inode, sizeWrite)
+	err = f.inodes.RegisterWrite(context.Background(), f.inode, sizeWrite, f.hasher)
 	if err != nil {
 		return fmt.Errorf("failed to RegisterWrite: %w", err)
 	}
