@@ -118,7 +118,7 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 		FSRoot: user.RootFS(),
 	})
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
+		fmt.Fprintf(w, `<div class="alert alert-danger role="alert">%s</div>`, err)
 		return
 	}
 
@@ -151,7 +151,7 @@ func (h *settingsHandler) deleteWebSession(w http.ResponseWriter, r *http.Reques
 		Token:  chi.URLParam(r, "sessionToken"),
 	})
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
+		fmt.Fprintf(w, `<div class="alert alert-danger role="alert">%s</div>`, err)
 		return
 	}
 
@@ -178,7 +178,7 @@ func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Reques
 		SessionID: sessionID,
 	})
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
+		fmt.Fprintf(w, `<div class="alert alert-danger role="alert">%s</div>`, err)
 		return
 	}
 
