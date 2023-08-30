@@ -27,11 +27,12 @@ func NewFSService(userID, root uuid.UUID, inodes inodes.Service, files files.Ser
 }
 
 func (s *FSService) CreateDir(ctx context.Context, name string, perm os.FileMode) error {
-	if name == "" {
-		name = "/"
+	name, err := validatePath(name)
+	if err != nil {
+		return err
 	}
 
-	_, err := s.inodes.CreateDir(ctx, &inodes.PathCmd{
+	_, err = s.inodes.CreateDir(ctx, &inodes.PathCmd{
 		Root:     s.root,
 		UserID:   s.userID,
 		FullName: name,
@@ -43,9 +44,14 @@ func (s *FSService) CreateDir(ctx context.Context, name string, perm os.FileMode
 	return nil
 }
 
-func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os.FileMode) (*File, error) {
-	if name == "" {
-		name = "/"
+func (s *FSService) Open(name string) (fs.File, error) {
+	return s.OpenFile(context.Background(), name, os.O_RDONLY, 0)
+}
+
+func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os.FileMode) (FileOrDirectory, error) {
+	name, err := validatePath(name)
+	if err != nil {
+		return nil, err
 	}
 
 	pathCmd := inodes.PathCmd{
@@ -65,7 +71,7 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 	}
 
 	if inode != nil && inode.Mode().IsDir() {
-		return &File{inode, s.inodes, s.files, &pathCmd, nil}, nil
+		return NewDirectory(inode, s.inodes, &pathCmd), nil
 	}
 
 	if flag&(os.O_SYNC|os.O_APPEND) != 0 {
@@ -94,11 +100,12 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 }
 
 func (s *FSService) RemoveAll(ctx context.Context, name string) error {
-	if name == "" {
-		name = "/"
+	name, err := validatePath(name)
+	if err != nil {
+		return err
 	}
 
-	err := s.inodes.RemoveAll(ctx, &inodes.PathCmd{
+	err = s.inodes.RemoveAll(ctx, &inodes.PathCmd{
 		Root:     s.root,
 		UserID:   s.userID,
 		FullName: name,
@@ -111,12 +118,23 @@ func (s *FSService) RemoveAll(ctx context.Context, name string) error {
 }
 
 func (s *FSService) Rename(ctx context.Context, oldName, newName string) error {
+	_, err := validatePath(oldName)
+	if err != nil {
+		return err
+	}
+
+	_, err = validatePath(newName)
+	if err != nil {
+		return err
+	}
+
 	return ErrNotImplemented
 }
 
 func (s *FSService) Stat(ctx context.Context, name string) (os.FileInfo, error) {
-	if name == "" {
-		name = "/"
+	name, err := validatePath(name)
+	if err != nil {
+		return nil, err
 	}
 
 	res, err := s.inodes.Get(ctx, &inodes.PathCmd{
@@ -161,4 +179,16 @@ func (s *FSService) createFile(ctx context.Context, cmd *inodes.PathCmd, perm fs
 	}
 
 	return file, nil
+}
+
+func validatePath(name string) (string, error) {
+	if name == "" {
+		return ".", nil
+	}
+
+	if !fs.ValidPath(name) {
+		return "", &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
+	}
+
+	return path.Clean(name), nil
 }
