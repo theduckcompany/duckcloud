@@ -3,6 +3,7 @@ package inodes
 import (
 	"context"
 	"database/sql"
+	"hash"
 
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
@@ -19,7 +20,7 @@ type Service interface {
 	HardDelete(ctx context.Context, inode uuid.UUID) error
 	CreateDir(ctx context.Context, cmd *PathCmd) (*INode, error)
 	CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INode, error)
-	RegisterWrite(ctx context.Context, inode *INode, sizeWrite int) error
+	RegisterWrite(ctx context.Context, inode *INode, sizeWrite int, h hash.Hash) error
 }
 
 func Init(tools tools.Tools, db *sql.DB) Service {

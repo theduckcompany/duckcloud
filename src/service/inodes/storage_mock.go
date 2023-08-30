@@ -212,8 +212,8 @@ func (_m *MockStorage) Save(ctx context.Context, dir *INode) error {
 	return r0
 }
 
-// UpdateModifiedSizeAndDirty provides a mock function with given fields: ctx, inode
-func (_m *MockStorage) UpdateModifiedSizeAndDirty(ctx context.Context, inode *INode) error {
+// UpdateModifiedSizeAndChecksum provides a mock function with given fields: ctx, inode
+func (_m *MockStorage) UpdateModifiedSizeAndChecksum(ctx context.Context, inode *INode) error {
 	ret := _m.Called(ctx, inode)
 
 	var r0 error

@@ -2,12 +2,13 @@ package inodes
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"hash"
 	"io/fs"
 	"path"
 	"strings"
-	"time"
 
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/clock"
@@ -25,7 +26,7 @@ var (
 //go:generate mockery --name Storage
 type Storage interface {
 	Save(ctx context.Context, dir *INode) error
-	UpdateModifiedSizeAndDirty(ctx context.Context, inode *INode) error
+	UpdateModifiedSizeAndChecksum(ctx context.Context, inode *INode) error
 	GetByID(ctx context.Context, id uuid.UUID) (*INode, error)
 	CountUserINodes(ctx context.Context, userID uuid.UUID) (uint, error)
 	GetByNameAndParent(ctx context.Context, userID uuid.UUID, name string, parent uuid.UUID) (*INode, error)
@@ -114,11 +115,12 @@ func (s *INodeService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INo
 	return &inode, nil
 }
 
-func (s *INodeService) RegisterWrite(ctx context.Context, inode *INode, sizeWrite int) error {
-	inode.lastModifiedAt = time.Now()
+func (s *INodeService) RegisterWrite(ctx context.Context, inode *INode, sizeWrite int, h hash.Hash) error {
+	inode.lastModifiedAt = s.clock.Now()
 	inode.size += int64(sizeWrite)
+	inode.checksum = hex.EncodeToString(h.Sum(nil))
 
-	return s.storage.UpdateModifiedSizeAndDirty(ctx, inode)
+	return s.storage.UpdateModifiedSizeAndChecksum(ctx, inode)
 }
 
 func (s *INodeService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
