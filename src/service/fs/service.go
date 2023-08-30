@@ -81,7 +81,7 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 
 	if flag&os.O_EXCL != 0 && inode != nil {
 		// The flag require that the file doesn't exists but we found one.
-		return nil, os.ErrExist
+		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrExist}
 	}
 
 	if inode == nil {
