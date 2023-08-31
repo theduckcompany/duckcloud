@@ -162,6 +162,9 @@
   <script src="/assets/js/mdb.min.js"
     integrity="sha384-86bjnImr4rwXHzuk1/uQJdQKP/9/hGMYfmHi3Gw0S0canvKXJDieCKZVR4Pr/usG"
     crossorigin="anonymous"></script>
+  <script src="/assets/js/htmx.min.js"
+    integrity="sha384-UA0tebWwml7YAJLaVDuzHObJRsmBMTLreFpmSf5x8bNLyEekjwDKMgyPF1epRXNh"
+    crossorigin="anonymous"></script>
 
   <script>
     const sidenav = document.getElementById("main-sidenav");
@@ -190,14 +193,25 @@
 
     // Event listeners
     window.addEventListener("resize", setMode);
-  </script>
 
-  <script src="/assets/js/htmx.min.js"
-    integrity="sha384-UA0tebWwml7YAJLaVDuzHObJRsmBMTLreFpmSf5x8bNLyEekjwDKMgyPF1epRXNh"
-    crossorigin="anonymous"></script>
-  <script src="/assets/js/mdb.min.js"
-    integrity="sha384-86bjnImr4rwXHzuk1/uQJdQKP/9/hGMYfmHi3Gw0S0canvKXJDieCKZVR4Pr/usG"
-    crossorigin="anonymous"></script>
+    // Make all the selects pretty even with the dynamic content
+    document.body.addEventListener("htmx:afterSwap", function (evt) {
+      document.querySelectorAll('.select').forEach((select) => {
+        const res = mdb.Select.getInstance(select);
+        if (res) {
+          res.dispose();
+        }
+        new mdb.Select(select);
+      });
+    })
+
+    document.body.addEventListener("htmx:afterSettle", function (evt) {
+      document.querySelectorAll('.select').forEach((select) => {
+        select.classList.add('select-initialized');
+      });
+    });
+
+  </script>
 </body>
 
 </html>
