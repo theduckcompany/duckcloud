@@ -12,8 +12,9 @@ import (
 
 //go:generate mockery --name Service
 type Service interface {
-	CreateRootDir(ctx context.Context, userID uuid.UUID) (*INode, error)
+	CreateRootDir(ctx context.Context) (*INode, error)
 	Get(ctx context.Context, cmd *PathCmd) (*INode, error)
+	GetByID(ctx context.Context, inodeID uuid.UUID) (*INode, error)
 	Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error)
 	RemoveAll(ctx context.Context, cmd *PathCmd) error
 	GetAllDeleted(ctx context.Context, limit int) ([]INode, error)

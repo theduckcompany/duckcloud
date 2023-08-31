@@ -58,7 +58,6 @@ func (j *Job) deleteINode(ctx context.Context, inode *inodes.INode) error {
 		for {
 			childs, err := j.inodes.Readdir(ctx, &inodes.PathCmd{
 				Root:     inode.ID(),
-				UserID:   inode.UserID(),
 				FullName: "/",
 			}, &storage.PaginateCmd{Limit: gcBatchSize})
 			if err != nil {

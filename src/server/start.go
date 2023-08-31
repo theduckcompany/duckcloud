@@ -8,6 +8,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/service/davsessions"
 	"github.com/theduckcompany/duckcloud/src/service/debug"
 	"github.com/theduckcompany/duckcloud/src/service/files"
+	"github.com/theduckcompany/duckcloud/src/service/folders"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/service/oauth2"
 	"github.com/theduckcompany/duckcloud/src/service/oauthclients"
@@ -57,6 +58,7 @@ func start(cfg *Config, invoke fx.Option) *fx.App {
 			fx.Annotate(inodes.Init, fx.As(new(inodes.Service))),
 			fx.Annotate(files.Init, fx.As(new(files.Service))),
 			fx.Annotate(davsessions.Init, fx.As(new(davsessions.Service))),
+			fx.Annotate(folders.Init, fx.As(new(folders.Service))),
 
 			// HTTP handlers
 			AsRoute(dav.NewHTTPHandler),

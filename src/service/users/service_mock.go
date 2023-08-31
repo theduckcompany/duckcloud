@@ -6,8 +6,6 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
-	inodes "github.com/theduckcompany/duckcloud/src/service/inodes"
-
 	storage "github.com/theduckcompany/duckcloud/src/tools/storage"
 
 	uuid "github.com/theduckcompany/duckcloud/src/tools/uuid"
@@ -176,25 +174,25 @@ func (_m *MockService) HardDelete(ctx context.Context, userID uuid.UUID) error {
 	return r0
 }
 
-// SaveBootstrapInfos provides a mock function with given fields: ctx, userID, rootDir
-func (_m *MockService) SaveBootstrapInfos(ctx context.Context, userID uuid.UUID, rootDir *inodes.INode) (*User, error) {
-	ret := _m.Called(ctx, userID, rootDir)
+// MarkInitAsFinished provides a mock function with given fields: ctx, userID
+func (_m *MockService) MarkInitAsFinished(ctx context.Context, userID uuid.UUID) (*User, error) {
+	ret := _m.Called(ctx, userID)
 
 	var r0 *User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *inodes.INode) (*User, error)); ok {
-		return rf(ctx, userID, rootDir)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (*User, error)); ok {
+		return rf(ctx, userID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *inodes.INode) *User); ok {
-		r0 = rf(ctx, userID, rootDir)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) *User); ok {
+		r0 = rf(ctx, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*User)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *inodes.INode) error); ok {
-		r1 = rf(ctx, userID, rootDir)
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, userID)
 	} else {
 		r1 = ret.Error(1)
 	}

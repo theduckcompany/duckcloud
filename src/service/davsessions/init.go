@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/theduckcompany/duckcloud/src/service/inodes"
+	"github.com/theduckcompany/duckcloud/src/service/folders"
 	"github.com/theduckcompany/duckcloud/src/service/users"
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
@@ -20,8 +20,8 @@ type Service interface {
 	DeleteAll(ctx context.Context, userID uuid.UUID) error
 }
 
-func Init(db *sql.DB, inodes inodes.Service, users users.Service, tools tools.Tools) Service {
+func Init(db *sql.DB, folders folders.Service, users users.Service, tools tools.Tools) Service {
 	storage := newSqlStorage(db)
 
-	return NewService(storage, inodes, users, tools)
+	return NewService(storage, users, folders, tools)
 }

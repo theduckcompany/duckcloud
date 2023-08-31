@@ -26,7 +26,6 @@ func TestFSGC(t *testing.T) {
 
 		// This is a dir we will delete all its content
 		inodesSvc.On("Readdir", mock.Anything, &inodes.PathCmd{
-			UserID:   inodes.ExampleAliceRoot.UserID(),
 			Root:     inodes.ExampleAliceRoot.ID(),
 			FullName: "/",
 		}, &storage.PaginateCmd{Limit: 10}).Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
@@ -67,7 +66,6 @@ func TestFSGC(t *testing.T) {
 
 		// This is a dir we will delete all its content
 		inodesSvc.On("Readdir", mock.Anything, &inodes.PathCmd{
-			UserID:   inodes.ExampleAliceRoot.UserID(),
 			Root:     inodes.ExampleAliceRoot.ID(),
 			FullName: "/",
 		}, &storage.PaginateCmd{Limit: 10}).Return(nil, fmt.Errorf("some-error")).Once()

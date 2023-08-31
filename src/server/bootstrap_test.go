@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"github.com/theduckcompany/duckcloud/src/service/folders"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/service/users"
 	"github.com/theduckcompany/duckcloud/src/tools"
@@ -34,7 +35,8 @@ func TestBootstrap(t *testing.T) {
 	db, err := storage.NewSQliteClient(cfg.Storage, tools.Logger())
 	require.NoError(t, err)
 	inodesSvc := inodes.Init(tools, db)
-	usersSvc := users.Init(tools, db, inodesSvc)
+	foldersSvc := folders.Init(tools, db, inodesSvc)
+	usersSvc := users.Init(tools, db, inodesSvc, foldersSvc)
 
 	tools.PasswordMock.On("Compare", mock.Anything, mock.AnythingOfType("string"), "qwert1234").Return(nil).Once()
 

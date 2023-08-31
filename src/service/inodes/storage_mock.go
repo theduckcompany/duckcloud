@@ -16,30 +16,6 @@ type MockStorage struct {
 	mock.Mock
 }
 
-// CountUserINodes provides a mock function with given fields: ctx, userID
-func (_m *MockStorage) CountUserINodes(ctx context.Context, userID uuid.UUID) (uint, error) {
-	ret := _m.Called(ctx, userID)
-
-	var r0 uint
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (uint, error)); ok {
-		return rf(ctx, userID)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) uint); ok {
-		r0 = rf(ctx, userID)
-	} else {
-		r0 = ret.Get(0).(uint)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
-		r1 = rf(ctx, userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Delete provides a mock function with given fields: ctx, id
 func (_m *MockStorage) Delete(ctx context.Context, id uuid.UUID) error {
 	ret := _m.Called(ctx, id)
@@ -54,25 +30,25 @@ func (_m *MockStorage) Delete(ctx context.Context, id uuid.UUID) error {
 	return r0
 }
 
-// GetAllChildrens provides a mock function with given fields: ctx, userID, parent, cmd
-func (_m *MockStorage) GetAllChildrens(ctx context.Context, userID uuid.UUID, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error) {
-	ret := _m.Called(ctx, userID, parent, cmd)
+// GetAllChildrens provides a mock function with given fields: ctx, parent, cmd
+func (_m *MockStorage) GetAllChildrens(ctx context.Context, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error) {
+	ret := _m.Called(ctx, parent, cmd)
 
 	var r0 []INode
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, *storage.PaginateCmd) ([]INode, error)); ok {
-		return rf(ctx, userID, parent, cmd)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) ([]INode, error)); ok {
+		return rf(ctx, parent, cmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, *storage.PaginateCmd) []INode); ok {
-		r0 = rf(ctx, userID, parent, cmd)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) []INode); ok {
+		r0 = rf(ctx, parent, cmd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]INode)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID, *storage.PaginateCmd) error); ok {
-		r1 = rf(ctx, userID, parent, cmd)
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *storage.PaginateCmd) error); ok {
+		r1 = rf(ctx, parent, cmd)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -132,25 +108,25 @@ func (_m *MockStorage) GetByID(ctx context.Context, id uuid.UUID) (*INode, error
 	return r0, r1
 }
 
-// GetByNameAndParent provides a mock function with given fields: ctx, userID, name, parent
-func (_m *MockStorage) GetByNameAndParent(ctx context.Context, userID uuid.UUID, name string, parent uuid.UUID) (*INode, error) {
-	ret := _m.Called(ctx, userID, name, parent)
+// GetByNameAndParent provides a mock function with given fields: ctx, name, parent
+func (_m *MockStorage) GetByNameAndParent(ctx context.Context, name string, parent uuid.UUID) (*INode, error) {
+	ret := _m.Called(ctx, name, parent)
 
 	var r0 *INode
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, string, uuid.UUID) (*INode, error)); ok {
-		return rf(ctx, userID, name, parent)
+	if rf, ok := ret.Get(0).(func(context.Context, string, uuid.UUID) (*INode, error)); ok {
+		return rf(ctx, name, parent)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, string, uuid.UUID) *INode); ok {
-		r0 = rf(ctx, userID, name, parent)
+	if rf, ok := ret.Get(0).(func(context.Context, string, uuid.UUID) *INode); ok {
+		r0 = rf(ctx, name, parent)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*INode)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, string, uuid.UUID) error); ok {
-		r1 = rf(ctx, userID, name, parent)
+	if rf, ok := ret.Get(1).(func(context.Context, string, uuid.UUID) error); ok {
+		r1 = rf(ctx, name, parent)
 	} else {
 		r1 = ret.Error(1)
 	}

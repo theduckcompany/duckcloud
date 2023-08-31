@@ -16,14 +16,14 @@ import (
 var ErrNotImplemented = errors.New("not implemented")
 
 type FSService struct {
-	userID uuid.UUID
-	root   uuid.UUID
-	inodes inodes.Service
-	files  files.Service
+	folderID uuid.UUID
+	root     uuid.UUID
+	inodes   inodes.Service
+	files    files.Service
 }
 
-func NewFSService(userID, root uuid.UUID, inodes inodes.Service, files files.Service) *FSService {
-	return &FSService{userID, root, inodes, files}
+func NewFSService(folderID, root uuid.UUID, inodes inodes.Service, files files.Service) *FSService {
+	return &FSService{folderID, root, inodes, files}
 }
 
 func (s *FSService) CreateDir(ctx context.Context, name string, perm os.FileMode) error {
@@ -34,7 +34,6 @@ func (s *FSService) CreateDir(ctx context.Context, name string, perm os.FileMode
 
 	_, err = s.inodes.CreateDir(ctx, &inodes.PathCmd{
 		Root:     s.root,
-		UserID:   s.userID,
 		FullName: name,
 	})
 	if err != nil {
@@ -56,7 +55,6 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 
 	pathCmd := inodes.PathCmd{
 		Root:     s.root,
-		UserID:   s.userID,
 		FullName: name,
 	}
 
@@ -107,7 +105,6 @@ func (s *FSService) RemoveAll(ctx context.Context, name string) error {
 
 	err = s.inodes.RemoveAll(ctx, &inodes.PathCmd{
 		Root:     s.root,
-		UserID:   s.userID,
 		FullName: name,
 	})
 	if err != nil {
@@ -139,7 +136,6 @@ func (s *FSService) Stat(ctx context.Context, name string) (os.FileInfo, error) 
 
 	res, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Root:     s.root,
-		UserID:   s.userID,
 		FullName: name,
 	})
 	if err != nil {
@@ -161,7 +157,6 @@ func (s *FSService) createFile(ctx context.Context, cmd *inodes.PathCmd, perm fs
 
 	parent, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Root:     cmd.Root,
-		UserID:   cmd.UserID,
 		FullName: dir,
 	})
 	if err != nil {
@@ -170,7 +165,6 @@ func (s *FSService) createFile(ctx context.Context, cmd *inodes.PathCmd, perm fs
 
 	file, err := s.inodes.CreateFile(ctx, &inodes.CreateFileCmd{
 		Parent: parent.ID(),
-		UserID: cmd.UserID,
 		Mode:   perm,
 		Name:   fileName,
 	})

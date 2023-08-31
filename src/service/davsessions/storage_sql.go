@@ -24,8 +24,8 @@ func newSqlStorage(db *sql.DB) *sqlStorage {
 func (t *sqlStorage) Save(ctx context.Context, session *DavSession) error {
 	_, err := sq.
 		Insert(tableName).
-		Columns("id", "username", "name", "password", "user_id", "fs_root", "created_at").
-		Values(session.id, session.username, session.name, session.password, session.userID, session.fsRoot, session.createdAt).
+		Columns("id", "username", "name", "password", "user_id", "folders", "created_at").
+		Values(session.id, session.username, session.name, session.password, session.userID, session.folders, session.createdAt).
 		RunWith(t.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -39,11 +39,11 @@ func (t *sqlStorage) GetByID(ctx context.Context, sessionID uuid.UUID) (*DavSess
 	res := DavSession{}
 
 	err := sq.
-		Select("id", "username", "name", "password", "user_id", "fs_root", "created_at").
+		Select("id", "username", "name", "password", "user_id", "folders", "created_at").
 		From(tableName).
 		Where(sq.Eq{"id": sessionID}).
 		RunWith(t.db).
-		ScanContext(ctx, &res.id, &res.username, &res.name, &res.password, &res.userID, &res.fsRoot, &res.createdAt)
+		ScanContext(ctx, &res.id, &res.username, &res.name, &res.password, &res.userID, &res.folders, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -72,11 +72,11 @@ func (t *sqlStorage) GetByUsernameAndPassHash(ctx context.Context, username, pas
 	res := DavSession{}
 
 	err := sq.
-		Select("id", "username", "name", "password", "user_id", "fs_root", "created_at").
+		Select("id", "username", "name", "password", "user_id", "folders", "created_at").
 		From(tableName).
 		Where(sq.Eq{"username": username, "password": password}).
 		RunWith(t.db).
-		ScanContext(ctx, &res.id, &res.username, &res.name, &res.password, &res.userID, &res.fsRoot, &res.createdAt)
+		ScanContext(ctx, &res.id, &res.username, &res.name, &res.password, &res.userID, &res.folders, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -90,7 +90,7 @@ func (t *sqlStorage) GetByUsernameAndPassHash(ctx context.Context, username, pas
 
 func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]DavSession, error) {
 	rows, err := storage.PaginateSelection(sq.
-		Select("id", "username", "name", "password", "user_id", "fs_root", "created_at").
+		Select("id", "username", "name", "password", "user_id", "folders", "created_at").
 		Where(sq.Eq{"user_id": string(userID)}).
 		From(tableName), cmd).
 		RunWith(s.db).
@@ -114,7 +114,7 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]DavSession, error) {
 	for rows.Next() {
 		var res DavSession
 
-		err := rows.Scan(&res.id, &res.username, &res.name, &res.password, &res.userID, &res.fsRoot, &res.createdAt)
+		err := rows.Scan(&res.id, &res.username, &res.name, &res.password, &res.userID, &res.folders, &res.createdAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}

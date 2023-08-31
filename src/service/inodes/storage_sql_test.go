@@ -41,7 +41,6 @@ func TestINodeSqlstore(t *testing.T) {
 		for i := 0; i < 10; i++ {
 			err := store.Save(ctx, &INode{
 				id:             uuid.UUID(fmt.Sprintf("some-child-id-%d", i)),
-				userID:         ExampleBobRoot.UserID(),
 				parent:         ptr.To(ExampleBobRoot.ID()),
 				name:           fmt.Sprintf("child-%d", i),
 				mode:           0o660 | fs.ModeDir,
@@ -53,7 +52,7 @@ func TestINodeSqlstore(t *testing.T) {
 	})
 
 	t.Run("GetAllChildrens success", func(t *testing.T) {
-		res, err := store.GetAllChildrens(ctx, ExampleBobRoot.UserID(), ExampleBobRoot.ID(), &storage.PaginateCmd{
+		res, err := store.GetAllChildrens(ctx, ExampleBobRoot.ID(), &storage.PaginateCmd{
 			StartAfter: map[string]string{"id": "some-child-id-4"},
 			Limit:      5,
 		})
@@ -67,7 +66,6 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.Len(t, res, 5)
 		assert.Equal(t, res[0], INode{
 			id:             uuid.UUID("some-child-id-5"),
-			userID:         ExampleBobRoot.UserID(),
 			parent:         ptr.To(ExampleBobRoot.ID()),
 			name:           "child-5",
 			mode:           0o660 | fs.ModeDir,
@@ -84,11 +82,10 @@ func TestINodeSqlstore(t *testing.T) {
 	})
 
 	t.Run("GetByNameAndParent success", func(t *testing.T) {
-		res, err := store.GetByNameAndParent(ctx, ExampleBobRoot.UserID(), "child-5", ExampleBobRoot.ID())
+		res, err := store.GetByNameAndParent(ctx, "child-5", ExampleBobRoot.ID())
 		assert.NoError(t, err)
 		assert.EqualValues(t, &INode{
 			id:             uuid.UUID("some-child-id-5"),
-			userID:         ExampleBobRoot.UserID(),
 			parent:         ptr.To(ExampleBobRoot.ID()),
 			name:           "child-5",
 			mode:           0o660 | fs.ModeDir,
@@ -98,24 +95,9 @@ func TestINodeSqlstore(t *testing.T) {
 	})
 
 	t.Run("GetByNameAndParent not matching", func(t *testing.T) {
-		res, err := store.GetByNameAndParent(ctx, ExampleBobRoot.UserID(), "invalid-name", ExampleBobRoot.ID())
+		res, err := store.GetByNameAndParent(ctx, "invalid-name", ExampleBobRoot.ID())
 		assert.NoError(t, err)
 		assert.Nil(t, res)
-	})
-
-	t.Run("CountUserINodes success", func(t *testing.T) {
-		res, err := store.CountUserINodes(ctx, ExampleBobRoot.UserID())
-
-		assert.NoError(t, err)
-		// the 10 files + ExampleAliceFile
-		assert.EqualValues(t, uint(11), res)
-	})
-
-	t.Run("CountUserINodes not found", func(t *testing.T) {
-		res, err := store.CountUserINodes(ctx, uuid.UUID("some-invalid-uuid"))
-
-		assert.NoError(t, err)
-		assert.Equal(t, uint(0), res)
 	})
 
 	t.Run("UpdateModifiedSizeAndChecksum success", func(t *testing.T) {
@@ -156,7 +138,6 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.Len(t, res, 1)
 		assert.Equal(t, INode{
 			id:             uuid.UUID("some-child-id-5"),
-			userID:         ExampleBobRoot.UserID(),
 			parent:         ptr.To(ExampleBobRoot.ID()),
 			name:           "child-5",
 			mode:           0o660 | fs.ModeDir,

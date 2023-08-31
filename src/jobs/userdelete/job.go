@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/theduckcompany/duckcloud/src/service/davsessions"
+	"github.com/theduckcompany/duckcloud/src/service/folders"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/src/service/oauthsessions"
@@ -26,6 +27,7 @@ type Job struct {
 	davSessions   davsessions.Service
 	oauthSessions oauthsessions.Service
 	oauthConsents oauthconsents.Service
+	folders       folders.Service
 	inodes        inodes.Service
 	log           *slog.Logger
 }
@@ -36,6 +38,7 @@ func NewJob(
 	davSessions davsessions.Service,
 	oauthSessions oauthsessions.Service,
 	oauthConsents oauthconsents.Service,
+	folders folders.Service,
 	inodes inodes.Service,
 	tools tools.Tools,
 ) *Job {
@@ -46,6 +49,7 @@ func NewJob(
 		davSessions,
 		oauthSessions,
 		oauthConsents,
+		folders,
 		inodes,
 		logger,
 	}
@@ -92,14 +96,29 @@ func (j *Job) deleteUser(ctx context.Context, user *users.User) error {
 		return fmt.Errorf("failed to delete all oauth sessions: %w", err)
 	}
 
-	// Then delete the data
-	err = j.inodes.RemoveAll(ctx, &inodes.PathCmd{
-		Root:     user.RootFS(),
-		UserID:   user.ID(),
-		FullName: "/",
-	})
+	folders, err := j.folders.GetAllUserFolders(ctx, user.ID(), nil)
 	if err != nil {
-		return fmt.Errorf("failed to delete the user root fs: %w", err)
+		return fmt.Errorf("failed to GetAllUserFolders: %w", err)
+	}
+
+	for _, folder := range folders {
+		if folder.IsPublic() {
+			continue
+		}
+
+		// Then delete the data
+		err = j.inodes.RemoveAll(ctx, &inodes.PathCmd{
+			Root:     folder.RootFS(),
+			FullName: "/",
+		})
+		if err != nil {
+			return fmt.Errorf("failed to delete the user root fs: %w", err)
+		}
+
+		err = j.folders.Delete(ctx, folder.ID())
+		if err != nil {
+			return fmt.Errorf("failed to delet the folder %q: %w", folder.ID(), err)
+		}
 	}
 
 	err = j.oauthConsents.DeleteAll(ctx, user.ID())
