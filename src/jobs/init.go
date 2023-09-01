@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/theduckcompany/duckcloud/src/jobs/fsgc"
+	"github.com/theduckcompany/duckcloud/src/jobs/usercreate"
 	"github.com/theduckcompany/duckcloud/src/jobs/userdelete"
 	"github.com/theduckcompany/duckcloud/src/service/davsessions"
 	"github.com/theduckcompany/duckcloud/src/service/files"
@@ -30,6 +31,10 @@ func StartJobs(
 	fsgcJob := fsgc.NewJob(inodes, files, tools)
 	fsgcJobRunner := NewJobRunner(fsgcJob, 5*time.Second, tools)
 	fsgcJobRunner.FXRegister(lc)
+
+	userCreateJob := usercreate.NewJob(users, inodes, tools)
+	userCreateJobRunner := NewJobRunner(userCreateJob, 2*time.Second, tools)
+	userCreateJobRunner.FXRegister(lc)
 
 	userDeleteJob := userdelete.NewJob(users, webSessions, davSessions, oauthSessions, oauthConsents, inodes, tools)
 	userDeleteJobRunner := NewJobRunner(userDeleteJob, 10*time.Second, tools)
