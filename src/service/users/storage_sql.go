@@ -47,7 +47,6 @@ func (s *sqlStorage) GetAll(ctx context.Context, cmd *storage.PaginateCmd) ([]Us
 	rows, err := storage.PaginateSelection(sq.
 		Select(allFields...).
 		From(tableName), cmd).
-		Where(sq.Eq{"deleted_at": nil}).
 		RunWith(s.db).
 		QueryContext(ctx)
 	if err != nil {
@@ -58,15 +57,11 @@ func (s *sqlStorage) GetAll(ctx context.Context, cmd *storage.PaginateCmd) ([]Us
 }
 
 func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*User, error) {
-	return s.getByKeys(ctx, sq.Eq{"id": id, "deleted_at": nil})
+	return s.getByKeys(ctx, sq.Eq{"id": id})
 }
 
 func (s *sqlStorage) GetByUsername(ctx context.Context, username string) (*User, error) {
-	return s.getByKeys(ctx, sq.Eq{"username": username, "deleted_at": nil})
-}
-
-func (s *sqlStorage) GetDeleted(ctx context.Context, id uuid.UUID) (*User, error) {
-	return s.getByKeys(ctx, sq.Eq{"id": id}, sq.NotEq{"deleted_at": nil})
+	return s.getByKeys(ctx, sq.Eq{"username": username})
 }
 
 func (s *sqlStorage) Patch(ctx context.Context, userID uuid.UUID, fields map[string]any) error {
@@ -82,10 +77,6 @@ func (s *sqlStorage) Patch(ctx context.Context, userID uuid.UUID, fields map[str
 	return nil
 }
 
-func (s *sqlStorage) Delete(ctx context.Context, userID uuid.UUID) error {
-	return s.Patch(ctx, userID, map[string]any{"deleted_at": s.clock.Now()})
-}
-
 func (s *sqlStorage) HardDelete(ctx context.Context, userID uuid.UUID) error {
 	_, err := sq.
 		Delete(tableName).
@@ -97,27 +88,6 @@ func (s *sqlStorage) HardDelete(ctx context.Context, userID uuid.UUID) error {
 	}
 
 	return nil
-}
-
-func (s *sqlStorage) GetAllDeleted(ctx context.Context, limit int) ([]User, error) {
-	rows, err := sq.
-		Select(allFields...).
-		From(tableName).
-		Where(sq.NotEq{"deleted_at": nil}).
-		Limit(uint64(limit)).
-		RunWith(s.db).
-		QueryContext(ctx)
-	if errors.Is(err, sql.ErrNoRows) {
-		return []User{}, nil
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("sql error: %w", err)
-	}
-
-	defer rows.Close()
-
-	return s.scanRows(rows)
 }
 
 func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*User, error) {

@@ -31,10 +31,7 @@ type Storage interface {
 	GetByUsername(ctx context.Context, username string) (*User, error)
 	GetByID(ctx context.Context, userID uuid.UUID) (*User, error)
 	GetAll(ctx context.Context, cmd *storage.PaginateCmd) ([]User, error)
-	Delete(ctx context.Context, userID uuid.UUID) error
 	HardDelete(ctx context.Context, userID uuid.UUID) error
-	GetAllDeleted(ctx context.Context, limit int) ([]User, error)
-	GetDeleted(ctx context.Context, id uuid.UUID) (*User, error)
 	Patch(ctx context.Context, userID uuid.UUID, fields map[string]any) error
 }
 
@@ -162,7 +159,7 @@ func (s *UserService) GetAll(ctx context.Context, paginateCmd *storage.PaginateC
 	return s.storage.GetAll(ctx, paginateCmd)
 }
 
-func (s *UserService) Delete(ctx context.Context, userID uuid.UUID) error {
+func (s *UserService) AddToDeletion(ctx context.Context, userID uuid.UUID) error {
 	user, err := s.GetByID(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("failed to GetByID: %w", err)
@@ -183,21 +180,26 @@ func (s *UserService) Delete(ctx context.Context, userID uuid.UUID) error {
 		}
 	}
 
-	return s.storage.Delete(ctx, userID)
-}
+	err = s.storage.Patch(ctx, userID, map[string]any{"status": "deleting"})
+	if err != nil {
+		return fmt.Errorf("failed to patch the user: %w", err)
+	}
 
-func (s *UserService) GetAllDeleted(ctx context.Context, limit int) ([]User, error) {
-	return s.storage.GetAllDeleted(ctx, limit)
+	return nil
 }
 
 func (s *UserService) HardDelete(ctx context.Context, userID uuid.UUID) error {
-	res, err := s.storage.GetDeleted(ctx, userID)
+	res, err := s.storage.GetByID(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("failed to GetDeleted: %w", err)
 	}
 
 	if res == nil {
 		return nil
+	}
+
+	if res.status != "deleting" {
+		return ErrInvalidStatus
 	}
 
 	return s.storage.HardDelete(ctx, userID)

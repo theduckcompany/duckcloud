@@ -8,16 +8,6 @@ import (
 
 var now = time.Now().UTC()
 
-var ExampleInitializingAlice = User{
-	id:        uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-	username:  "Alice",
-	fsRoot:    "",
-	isAdmin:   true,
-	status:    "initializing",
-	password:  "alice-encrypted-password",
-	createdAt: now,
-}
-
 var ExampleAlice = User{
 	id:        uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 	username:  "Alice",
@@ -35,5 +25,25 @@ var ExampleBob = User{
 	fsRoot:    uuid.UUID("49f06ad8-a7c2-4e21-b8c1-60d56dc83842"),
 	status:    "active",
 	password:  "bob-encrypted-password",
+	createdAt: now,
+}
+
+var ExampleInitializingAlice = User{
+	id:        uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+	username:  "Alice",
+	fsRoot:    "",
+	isAdmin:   true,
+	status:    "initializing",
+	password:  "alice-encrypted-password",
+	createdAt: now,
+}
+
+var ExampleDeletingAlice = User{
+	id:        uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+	username:  "Alice",
+	fsRoot:    "",
+	isAdmin:   true,
+	status:    "deleting",
+	password:  "alice-encrypted-password",
 	createdAt: now,
 }

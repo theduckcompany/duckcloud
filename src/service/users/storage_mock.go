@@ -16,20 +16,6 @@ type MockStorage struct {
 	mock.Mock
 }
 
-// Delete provides a mock function with given fields: ctx, userID
-func (_m *MockStorage) Delete(ctx context.Context, userID uuid.UUID) error {
-	ret := _m.Called(ctx, userID)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
-		r0 = rf(ctx, userID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // GetAll provides a mock function with given fields: ctx, cmd
 func (_m *MockStorage) GetAll(ctx context.Context, cmd *storage.PaginateCmd) ([]User, error) {
 	ret := _m.Called(ctx, cmd)
@@ -49,32 +35,6 @@ func (_m *MockStorage) GetAll(ctx context.Context, cmd *storage.PaginateCmd) ([]
 
 	if rf, ok := ret.Get(1).(func(context.Context, *storage.PaginateCmd) error); ok {
 		r1 = rf(ctx, cmd)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetAllDeleted provides a mock function with given fields: ctx, limit
-func (_m *MockStorage) GetAllDeleted(ctx context.Context, limit int) ([]User, error) {
-	ret := _m.Called(ctx, limit)
-
-	var r0 []User
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int) ([]User, error)); ok {
-		return rf(ctx, limit)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, int) []User); ok {
-		r0 = rf(ctx, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]User)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
-		r1 = rf(ctx, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -127,32 +87,6 @@ func (_m *MockStorage) GetByUsername(ctx context.Context, username string) (*Use
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, username)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetDeleted provides a mock function with given fields: ctx, id
-func (_m *MockStorage) GetDeleted(ctx context.Context, id uuid.UUID) (*User, error) {
-	ret := _m.Called(ctx, id)
-
-	var r0 *User
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (*User, error)); ok {
-		return rf(ctx, id)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) *User); ok {
-		r0 = rf(ctx, id)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*User)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
-		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}

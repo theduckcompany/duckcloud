@@ -240,7 +240,7 @@ func (h *settingsHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.users.Delete(ctx, userToDelete)
+	err = h.users.AddToDeletion(ctx, userToDelete)
 	if err != nil {
 		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
 		w.WriteHeader(http.StatusBadRequest)
