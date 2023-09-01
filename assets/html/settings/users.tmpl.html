@@ -9,18 +9,27 @@
           <tr>
             <th>UserName</th>
             <th>Admin</th>
+            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {{range .users}}
+          {{$badgeStatus := ""}}
+          {{ if (eq .Status "active") }}
+          {{$badgeStatus = "badge-success"}}
+          {{else}}
+          {{$badgeStatus = "badge-warning"}}
+          {{end}}
+
           <tr>
             <td> {{.Username}}
               {{ if (eq .ID $.current.ID) }}
               <span class="badge text-bg-primary">You</span>
               {{ end }}
             </td>
-            <td> {{.IsAdmin}} </td>
+            <td>{{.IsAdmin}}</td>
+            <td><span class="badge {{$badgeStatus}}">{{.Status}}</span> </td>
             <td>
 
               <form action="/settings/users/{{.ID}}/delete" method="post" target="_top"

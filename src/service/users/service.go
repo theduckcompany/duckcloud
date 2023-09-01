@@ -20,6 +20,7 @@ var (
 	ErrInvalidUsername = fmt.Errorf("invalid username")
 	ErrInvalidPassword = fmt.Errorf("invalid password")
 	ErrLastAdmin       = fmt.Errorf("can't remove the last admin")
+	ErrInvalidStatus   = fmt.Errorf("invalid status")
 )
 
 // Storage encapsulates the logic to access user from the data source.
@@ -68,11 +69,6 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 
 	newUserID := s.uuid.New()
 
-	rootDir, err := s.inodes.CreateRootDir(ctx, newUserID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to bootstrap the user inodes: %w", err)
-	}
-
 	hashedPassword, err := s.password.Encrypt(ctx, cmd.Password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash the password: %w", err)
@@ -83,8 +79,9 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 		username:  cmd.Username,
 		isAdmin:   cmd.IsAdmin,
 		password:  hashedPassword,
-		fsRoot:    rootDir.ID(),
+		fsRoot:    "",
 		createdAt: s.clock.Now(),
+		status:    "initializing",
 	}
 
 	err = s.storage.Save(ctx, &user)
@@ -93,6 +90,46 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 	}
 
 	return &user, nil
+}
+
+func (s *UserService) SaveBootstrapInfos(ctx context.Context, userID uuid.UUID, rootDir *inodes.INode) (*User, error) {
+	user, err := s.GetByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to GetByID: %w", err)
+	}
+
+	if user.status != "initializing" {
+		return nil, ErrInvalidStatus
+	}
+
+	user.fsRoot = rootDir.ID()
+	user.status = "active"
+
+	err = s.storage.Patch(ctx, userID, map[string]any{
+		"fs_root": rootDir.ID(),
+		"status":  "active",
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to patch the user: %w", err)
+	}
+
+	return user, nil
+}
+
+func (s *UserService) GetAllWithStatus(ctx context.Context, status string, cmd *storage.PaginateCmd) ([]User, error) {
+	allUsers, err := s.GetAll(ctx, cmd)
+	if err != nil {
+		return nil, fmt.Errorf("failed to GetAll users: %w", err)
+	}
+
+	res := []User{}
+	for _, user := range allUsers {
+		if user.status == status {
+			res = append(res, user)
+		}
+	}
+
+	return res, nil
 }
 
 // Authenticate return the user corresponding to the given username only if the password is correct.

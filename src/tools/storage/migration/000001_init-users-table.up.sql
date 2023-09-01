@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
   "admin" BOOL NOT NULL,
   "fs_root" TEXT NOT NULL,
   "password" TEXT NOT NULL,
+  "status" TEXT NOT NULL,
   "created_at" DATETIME NOT NULL,
   "deleted_at" DATETIME DEFAULT NULL
 );

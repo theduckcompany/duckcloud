@@ -19,6 +19,7 @@ type User struct {
 	createdAt time.Time
 	fsRoot    uuid.UUID
 	password  string
+	status    string
 }
 
 func (u *User) MarshalJSON() ([]byte, error) {
@@ -28,6 +29,7 @@ func (u *User) MarshalJSON() ([]byte, error) {
 		"admin":     u.isAdmin,
 		"createdAt": u.createdAt,
 		"fsRoot":    u.fsRoot,
+		"status":    u.status,
 	})
 }
 
@@ -36,6 +38,7 @@ func (u *User) Username() string     { return u.username }
 func (u *User) IsAdmin() bool        { return u.isAdmin }
 func (u *User) CreatedAt() time.Time { return u.createdAt }
 func (u *User) RootFS() uuid.UUID    { return u.fsRoot }
+func (u *User) Status() string       { return u.status }
 
 // CreateCmd represents an user creation request.
 type CreateCmd struct {

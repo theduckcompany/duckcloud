@@ -6,6 +6,8 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
+	inodes "github.com/theduckcompany/duckcloud/src/service/inodes"
+
 	storage "github.com/theduckcompany/duckcloud/src/tools/storage"
 
 	uuid "github.com/theduckcompany/duckcloud/src/tools/uuid"
@@ -134,6 +136,32 @@ func (_m *MockService) GetAllDeleted(ctx context.Context, limit int) ([]User, er
 	return r0, r1
 }
 
+// GetAllWithStatus provides a mock function with given fields: ctx, status, cmd
+func (_m *MockService) GetAllWithStatus(ctx context.Context, status string, cmd *storage.PaginateCmd) ([]User, error) {
+	ret := _m.Called(ctx, status, cmd)
+
+	var r0 []User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, *storage.PaginateCmd) ([]User, error)); ok {
+		return rf(ctx, status, cmd)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, *storage.PaginateCmd) []User); ok {
+		r0 = rf(ctx, status, cmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, *storage.PaginateCmd) error); ok {
+		r1 = rf(ctx, status, cmd)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByID provides a mock function with given fields: ctx, userID
 func (_m *MockService) GetByID(ctx context.Context, userID uuid.UUID) (*User, error) {
 	ret := _m.Called(ctx, userID)
@@ -172,6 +200,32 @@ func (_m *MockService) HardDelete(ctx context.Context, userID uuid.UUID) error {
 	}
 
 	return r0
+}
+
+// SaveBootstrapInfos provides a mock function with given fields: ctx, userID, rootDir
+func (_m *MockService) SaveBootstrapInfos(ctx context.Context, userID uuid.UUID, rootDir *inodes.INode) (*User, error) {
+	ret := _m.Called(ctx, userID, rootDir)
+
+	var r0 *User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *inodes.INode) (*User, error)); ok {
+		return rf(ctx, userID, rootDir)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *inodes.INode) *User); ok {
+		r0 = rf(ctx, userID, rootDir)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *inodes.INode) error); ok {
+		r1 = rf(ctx, userID, rootDir)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // NewMockService creates a new instance of MockService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

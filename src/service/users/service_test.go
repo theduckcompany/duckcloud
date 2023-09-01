@@ -27,12 +27,10 @@ func Test_Users_Service(t *testing.T) {
 
 		tools.UUIDMock.On("New").Return(ExampleAlice.ID()).Once()
 
-		inodesSvc.On("CreateRootDir", ctx, ExampleAlice.ID()).Return(&inodes.ExampleAliceRoot, nil).Once()
-
 		tools.ClockMock.On("Now").Return(now).Once()
 		tools.PasswordMock.On("Encrypt", ctx, "some-password").Return(ExampleAlice.password, nil).Once()
 
-		store.On("Save", ctx, &ExampleAlice).Return(nil)
+		store.On("Save", ctx, &ExampleInitializingAlice).Return(nil)
 
 		res, err := service.Create(ctx, &CreateCmd{
 			Username: ExampleAlice.Username(),
@@ -40,7 +38,8 @@ func Test_Users_Service(t *testing.T) {
 			IsAdmin:  true,
 		})
 		assert.NoError(t, err)
-		assert.Equal(t, &ExampleAlice, res)
+
+		assert.Equal(t, &ExampleInitializingAlice, res)
 	})
 
 	t.Run("Create with a taken username", func(t *testing.T) {
@@ -161,6 +160,19 @@ func Test_Users_Service(t *testing.T) {
 		assert.Equal(t, []User{ExampleAlice}, res)
 	})
 
+	t.Run("GetAllWithStatus success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		store := NewMockStorage(t)
+		inodes := inodes.NewMockService(t)
+		service := NewService(tools, store, inodes)
+
+		store.On("GetAll", ctx, &storage.PaginateCmd{Limit: 10}).Return([]User{ExampleAlice}, nil).Once()
+
+		res, err := service.GetAllWithStatus(ctx, "active", &storage.PaginateCmd{Limit: 10})
+		assert.NoError(t, err)
+		assert.Equal(t, []User{ExampleAlice}, res)
+	})
+
 	t.Run("Delete success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
@@ -241,5 +253,36 @@ func Test_Users_Service(t *testing.T) {
 
 		err := service.HardDelete(ctx, ExampleAlice.ID())
 		assert.NoError(t, err)
+	})
+
+	t.Run("SaveBootstrapInfos success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		store := NewMockStorage(t)
+		inodesMock := inodes.NewMockService(t)
+		service := NewService(tools, store, inodesMock)
+
+		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&ExampleInitializingAlice, nil).Once()
+		store.On("Patch", mock.Anything, ExampleAlice.ID(), map[string]any{
+			"fs_root": inodes.ExampleAliceRoot.ID(),
+			"status":  "active",
+		}).Return(nil).Once()
+
+		res, err := service.SaveBootstrapInfos(ctx, ExampleAlice.ID(), &inodes.ExampleAliceRoot)
+		assert.NoError(t, err)
+		assert.EqualValues(t, &ExampleAlice, res)
+	})
+
+	t.Run("SaveBootstrapInfos with a user with an invalid status", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		store := NewMockStorage(t)
+		inodesMock := inodes.NewMockService(t)
+		service := NewService(tools, store, inodesMock)
+
+		// ExampleAlice is already initialized.
+		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
+
+		res, err := service.SaveBootstrapInfos(ctx, ExampleAlice.ID(), &inodes.ExampleAliceRoot)
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, ErrInvalidStatus)
 	})
 }

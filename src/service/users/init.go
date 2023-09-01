@@ -19,6 +19,8 @@ type Service interface {
 	Delete(ctx context.Context, userID uuid.UUID) error
 	GetAllDeleted(ctx context.Context, limit int) ([]User, error)
 	HardDelete(ctx context.Context, userID uuid.UUID) error
+	GetAllWithStatus(ctx context.Context, status string, cmd *storage.PaginateCmd) ([]User, error)
+	SaveBootstrapInfos(ctx context.Context, userID uuid.UUID, rootDir *inodes.INode) (*User, error)
 }
 
 func Init(tools tools.Tools, db *sql.DB, inodes inodes.Service) Service {
