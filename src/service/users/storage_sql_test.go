@@ -47,6 +47,24 @@ func TestUserSqlStorage(t *testing.T) {
 		assert.Nil(t, res)
 	})
 
+	t.Run("Patch success", func(t *testing.T) {
+		// Restore the old username
+		t.Cleanup(func() {
+			err := store.Patch(ctx, ExampleAlice.ID(), map[string]any{"username": ExampleAlice.username})
+			assert.NoError(t, err)
+		})
+
+		err := store.Patch(ctx, ExampleAlice.ID(), map[string]any{"username": "new-username"})
+		assert.NoError(t, err)
+
+		res, err := store.GetByID(ctx, ExampleAlice.ID())
+
+		aliceWithNewUsername := ExampleAlice
+		aliceWithNewUsername.username = "new-username"
+
+		assert.Equal(t, &aliceWithNewUsername, res)
+	})
+
 	t.Run("GetByUsername success", func(t *testing.T) {
 		res, err := store.GetByUsername(ctx, ExampleAlice.Username())
 

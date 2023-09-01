@@ -34,6 +34,7 @@ type Storage interface {
 	HardDelete(ctx context.Context, userID uuid.UUID) error
 	GetAllDeleted(ctx context.Context, limit int) ([]User, error)
 	GetDeleted(ctx context.Context, id uuid.UUID) (*User, error)
+	Patch(ctx context.Context, userID uuid.UUID, fields map[string]any) error
 }
 
 // service handling all the logic.
