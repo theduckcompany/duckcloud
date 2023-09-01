@@ -174,6 +174,20 @@ func (_m *MockStorage) HardDelete(ctx context.Context, userID uuid.UUID) error {
 	return r0
 }
 
+// Patch provides a mock function with given fields: ctx, userID, fields
+func (_m *MockStorage) Patch(ctx context.Context, userID uuid.UUID, fields map[string]interface{}) error {
+	ret := _m.Called(ctx, userID, fields)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, map[string]interface{}) error); ok {
+		r0 = rf(ctx, userID, fields)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: ctx, user
 func (_m *MockStorage) Save(ctx context.Context, user *User) error {
 	ret := _m.Called(ctx, user)

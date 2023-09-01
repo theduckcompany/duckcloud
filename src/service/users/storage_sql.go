@@ -15,6 +15,8 @@ import (
 
 const tableName = "users"
 
+var allFields = []string{"id", "username", "admin", "fs_root", "password", "created_at"}
+
 // sqlStorage use to save/retrieve Users
 type sqlStorage struct {
 	db    *sql.DB
@@ -30,7 +32,7 @@ func newSqlStorage(db *sql.DB, tools tools.Tools) *sqlStorage {
 func (s *sqlStorage) Save(ctx context.Context, user *User) error {
 	_, err := sq.
 		Insert(tableName).
-		Columns("id", "username", "admin", "fs_root", "password", "created_at").
+		Columns(allFields...).
 		Values(user.id, user.username, user.isAdmin, user.fsRoot, user.password, user.createdAt).
 		RunWith(s.db).
 		ExecContext(ctx)
@@ -43,7 +45,7 @@ func (s *sqlStorage) Save(ctx context.Context, user *User) error {
 
 func (s *sqlStorage) GetAll(ctx context.Context, cmd *storage.PaginateCmd) ([]User, error) {
 	rows, err := storage.PaginateSelection(sq.
-		Select("id", "username", "admin", "fs_root", "password", "created_at").
+		Select(allFields...).
 		From(tableName), cmd).
 		Where(sq.Eq{"deleted_at": nil}).
 		RunWith(s.db).
@@ -67,11 +69,10 @@ func (s *sqlStorage) GetDeleted(ctx context.Context, id uuid.UUID) (*User, error
 	return s.getByKeys(ctx, sq.Eq{"id": id}, sq.NotEq{"deleted_at": nil})
 }
 
-func (s *sqlStorage) Delete(ctx context.Context, userID uuid.UUID) error {
-	_, err := sq.
-		Update(tableName).
+func (s *sqlStorage) Patch(ctx context.Context, userID uuid.UUID, fields map[string]any) error {
+	_, err := sq.Update(tableName).
+		SetMap(fields).
 		Where(sq.Eq{"id": userID}).
-		Set("deleted_at", s.clock.Now()).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -79,6 +80,10 @@ func (s *sqlStorage) Delete(ctx context.Context, userID uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func (s *sqlStorage) Delete(ctx context.Context, userID uuid.UUID) error {
+	return s.Patch(ctx, userID, map[string]any{"deleted_at": s.clock.Now()})
 }
 
 func (s *sqlStorage) HardDelete(ctx context.Context, userID uuid.UUID) error {
@@ -96,7 +101,7 @@ func (s *sqlStorage) HardDelete(ctx context.Context, userID uuid.UUID) error {
 
 func (s *sqlStorage) GetAllDeleted(ctx context.Context, limit int) ([]User, error) {
 	rows, err := sq.
-		Select("id", "username", "admin", "fs_root", "password", "created_at").
+		Select(allFields...).
 		From(tableName).
 		Where(sq.NotEq{"deleted_at": nil}).
 		Limit(uint64(limit)).
@@ -119,7 +124,7 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*User, error
 	res := User{}
 
 	query := sq.
-		Select("id", "username", "admin", "fs_root", "password", "created_at").
+		Select(allFields...).
 		From(tableName)
 
 	for _, where := range wheres {
@@ -147,9 +152,6 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]User, error) {
 		var res User
 
 		err := rows.Scan(&res.id, &res.username, &res.isAdmin, &res.fsRoot, &res.password, &res.createdAt)
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan a row: %w", err)
-		}
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}
