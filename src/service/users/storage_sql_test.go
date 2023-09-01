@@ -3,7 +3,6 @@ package users
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/theduckcompany/duckcloud/src/tools"
@@ -89,31 +88,12 @@ func TestUserSqlStorage(t *testing.T) {
 		assert.Equal(t, []User{ExampleAlice}, res)
 	})
 
-	t.Run("Delete success", func(t *testing.T) {
-		tools.ClockMock.On("Now").Return(time.Now()).Once()
-
-		err := store.Delete(ctx, ExampleAlice.ID())
-		assert.NoError(t, err)
-
-		// Check that the node is no more available
-		res, err := store.GetAllDeleted(ctx, 1)
-		assert.NoError(t, err)
-		assert.Equal(t, res[0].ID(), ExampleAlice.ID())
-	})
-
-	t.Run("GetDeletedINodes", func(t *testing.T) {
-		res, err := store.GetAllDeleted(ctx, 10)
-
-		assert.NoError(t, err)
-		assert.Equal(t, []User{ExampleAlice}, res)
-	})
-
 	t.Run("HardDelete success", func(t *testing.T) {
 		err := store.HardDelete(ctx, ExampleAlice.ID())
 		assert.NoError(t, err)
 
 		// Check that the node is no more available even as a soft deleted one
-		res, err := store.GetAllDeleted(ctx, 10)
+		res, err := store.GetAll(ctx, nil)
 		assert.NoError(t, err)
 		assert.Len(t, res, 0)
 	})

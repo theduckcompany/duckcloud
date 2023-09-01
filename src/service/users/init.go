@@ -16,8 +16,7 @@ type Service interface {
 	GetByID(ctx context.Context, userID uuid.UUID) (*User, error)
 	Authenticate(ctx context.Context, username, password string) (*User, error)
 	GetAll(ctx context.Context, paginateCmd *storage.PaginateCmd) ([]User, error)
-	Delete(ctx context.Context, userID uuid.UUID) error
-	GetAllDeleted(ctx context.Context, limit int) ([]User, error)
+	AddToDeletion(ctx context.Context, userID uuid.UUID) error
 	HardDelete(ctx context.Context, userID uuid.UUID) error
 	GetAllWithStatus(ctx context.Context, status string, cmd *storage.PaginateCmd) ([]User, error)
 	SaveBootstrapInfos(ctx context.Context, userID uuid.UUID, rootDir *inodes.INode) (*User, error)
