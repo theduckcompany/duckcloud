@@ -18,10 +18,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
-var (
-	ErrInvalidParent      = errors.New("invalid parent")
-	ErrAlreadyBootstraped = errors.New("this user is already bootstraped")
-)
+var ErrInvalidParent = errors.New("invalid parent")
 
 //go:generate mockery --name Storage
 type Storage interface {
@@ -47,16 +44,7 @@ func NewService(tools tools.Tools, storage Storage) *INodeService {
 	return &INodeService{storage, tools.Clock(), tools.UUID()}
 }
 
-func (s *INodeService) BootstrapUser(ctx context.Context, userID uuid.UUID) (*INode, error) {
-	nb, err := s.storage.CountUserINodes(ctx, userID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to count the number of inodes: %w", err)
-	}
-
-	if nb > 0 {
-		return nil, errs.BadRequest(ErrAlreadyBootstraped, "user alread bootstraped")
-	}
-
+func (s *INodeService) CreateRootDir(ctx context.Context, userID uuid.UUID) (*INode, error) {
 	now := s.clock.Now()
 
 	node := INode{
@@ -68,7 +56,7 @@ func (s *INodeService) BootstrapUser(ctx context.Context, userID uuid.UUID) (*IN
 		lastModifiedAt: now,
 	}
 
-	err = s.storage.Save(ctx, &node)
+	err := s.storage.Save(ctx, &node)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save the node into the storage: %w", err)
 	}

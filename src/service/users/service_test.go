@@ -27,7 +27,7 @@ func Test_Users_Service(t *testing.T) {
 
 		tools.UUIDMock.On("New").Return(ExampleAlice.ID()).Once()
 
-		inodesSvc.On("BootstrapUser", ctx, ExampleAlice.ID()).Return(&inodes.ExampleAliceRoot, nil).Once()
+		inodesSvc.On("CreateRootDir", ctx, ExampleAlice.ID()).Return(&inodes.ExampleAliceRoot, nil).Once()
 
 		tools.ClockMock.On("Now").Return(now).Once()
 		tools.PasswordMock.On("Encrypt", ctx, "some-password").Return(ExampleAlice.password, nil).Once()

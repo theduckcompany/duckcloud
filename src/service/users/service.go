@@ -68,7 +68,7 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 
 	newUserID := s.uuid.New()
 
-	rootDir, err := s.inodes.BootstrapUser(ctx, newUserID)
+	rootDir, err := s.inodes.CreateRootDir(ctx, newUserID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to bootstrap the user inodes: %w", err)
 	}

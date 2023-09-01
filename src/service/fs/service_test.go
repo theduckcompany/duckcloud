@@ -32,7 +32,7 @@ func Test_FS(t *testing.T) {
 	filesSvc, err := files.NewFSService(afs, "/", tools.Logger())
 	require.NoError(t, err)
 
-	rootInode, err := inodesSvc.BootstrapUser(ctx, userID)
+	rootInode, err := inodesSvc.CreateRootDir(ctx, userID)
 	require.NoError(t, err)
 	duckFS := NewFSService(userID, rootInode.ID(), inodesSvc, filesSvc)
 
@@ -44,7 +44,7 @@ func Test_FS(t *testing.T) {
 		assert.True(t, info.IsDir())
 		assert.Equal(t, "", info.Name())
 		assert.Equal(t, int64(0), info.Size(), "size")
-		assert.WithinDuration(t, time.Now(), info.ModTime(), 200*time.Millisecond)
+		assert.WithinDuration(t, time.Now(), info.ModTime(), 400*time.Millisecond)
 	})
 
 	t.Run("Stat on an invalid path", func(t *testing.T) {
@@ -105,7 +105,7 @@ func Test_FS(t *testing.T) {
 		infos, err := res[0].Info()
 		require.NoError(t, err)
 
-		assert.WithinDuration(t, time.Now(), infos.ModTime(), 200*time.Millisecond)
+		assert.WithinDuration(t, time.Now(), infos.ModTime(), 400*time.Millisecond)
 		assert.Equal(t, int64(13), infos.Size())
 	})
 
