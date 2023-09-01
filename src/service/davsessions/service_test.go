@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"github.com/theduckcompany/duckcloud/src/service/inodes"
+	"github.com/theduckcompany/duckcloud/src/service/folders"
 	"github.com/theduckcompany/duckcloud/src/service/users"
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/errs"
@@ -23,15 +23,11 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
-		service := NewService(storageMock, inodesMock, usersMock, tools)
+		foldersMock := folders.NewMockService(t)
+		service := NewService(storageMock, usersMock, foldersMock, tools)
 
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Root:     inodes.ExampleAliceRoot.ID(),
-			UserID:   users.ExampleAlice.ID(),
-			FullName: "/",
-		}).Return(&inodes.ExampleAliceRoot, nil).Once()
+		foldersMock.On("GetByID", mock.Anything, folders.ExampleAlicePersonalFolder.ID()).Return(&folders.ExampleAlicePersonalFolder, nil).Once()
 
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-password")).Once()
 		tools.UUIDMock.On("New").Return(ExampleAliceSession.ID()).Once()
@@ -40,9 +36,9 @@ func TestDavSessionsService(t *testing.T) {
 		storageMock.On("Save", mock.Anything, &ExampleAliceSession).Return(nil).Once()
 
 		res, secret, err := service.Create(ctx, &CreateCmd{
-			Name:   ExampleAliceSession.Name(),
-			UserID: users.ExampleAlice.ID(),
-			FSRoot: inodes.ExampleAliceRoot.ID(),
+			Name:    ExampleAliceSession.Name(),
+			UserID:  users.ExampleAlice.ID(),
+			Folders: []uuid.UUID{folders.ExampleAlicePersonalFolder.ID()},
 		})
 
 		assert.NotEmpty(t, secret)
@@ -54,13 +50,13 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
-		service := NewService(storageMock, inodesMock, usersMock, tools)
+		foldersMock := folders.NewMockService(t)
+		service := NewService(storageMock, usersMock, foldersMock, tools)
 
 		res, secret, err := service.Create(ctx, &CreateCmd{
-			Name:   ExampleAliceSession.Name(),
-			UserID: uuid.UUID("some-invalid-id"),
-			FSRoot: inodes.ExampleAliceRoot.ID(),
+			Name:    ExampleAliceSession.Name(),
+			UserID:  uuid.UUID("some-invalid-id"),
+			Folders: []uuid.UUID{folders.ExampleAlicePersonalFolder.ID()},
 		})
 
 		assert.Nil(t, res)
@@ -72,15 +68,15 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
-		service := NewService(storageMock, inodesMock, usersMock, tools)
+		foldersMock := folders.NewMockService(t)
+		service := NewService(storageMock, usersMock, foldersMock, tools)
 
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(nil, nil).Once()
 
 		res, secret, err := service.Create(ctx, &CreateCmd{
-			Name:   ExampleAliceSession.Name(),
-			UserID: users.ExampleAlice.ID(),
-			FSRoot: inodes.ExampleAliceRoot.ID(),
+			Name:    ExampleAliceSession.Name(),
+			UserID:  users.ExampleAlice.ID(),
+			Folders: []uuid.UUID{folders.ExampleAlicePersonalFolder.ID()},
 		})
 
 		assert.Nil(t, res)
@@ -88,63 +84,54 @@ func TestDavSessionsService(t *testing.T) {
 		assert.EqualError(t, err, "validation error: userID: not found")
 	})
 
-	t.Run("Create with a rootFS not found", func(t *testing.T) {
+	t.Run("Create with a folder not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
-		service := NewService(storageMock, inodesMock, usersMock, tools)
+		foldersMock := folders.NewMockService(t)
+		service := NewService(storageMock, usersMock, foldersMock, tools)
 
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Root:     inodes.ExampleAliceRoot.ID(),
-			UserID:   users.ExampleAlice.ID(),
-			FullName: "/",
-		}).Return(nil, nil).Once()
+		foldersMock.On("GetByID", mock.Anything, folders.ExampleAlicePersonalFolder.ID()).Return(nil, nil).Once()
 
 		res, secret, err := service.Create(ctx, &CreateCmd{
-			Name:   ExampleAliceSession.Name(),
-			UserID: users.ExampleAlice.ID(),
-			FSRoot: inodes.ExampleAliceRoot.ID(),
+			Name:    ExampleAliceSession.Name(),
+			UserID:  users.ExampleAlice.ID(),
+			Folders: []uuid.UUID{folders.ExampleAlicePersonalFolder.ID()},
 		})
 
 		assert.Nil(t, res)
 		assert.Empty(t, secret)
-		assert.EqualError(t, err, "validation error: rootFS: not found")
+		assert.EqualError(t, err, "bad request: invalid folderID")
 	})
 
-	t.Run("Create with a rootFs not owner by the given user", func(t *testing.T) {
+	t.Run("Create with a folder not owned by the given user", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
-		service := NewService(storageMock, inodesMock, usersMock, tools)
+		foldersMock := folders.NewMockService(t)
+		service := NewService(storageMock, usersMock, foldersMock, tools)
 
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			UserID:   users.ExampleAlice.ID(),    // Alice user id
-			Root:     inodes.ExampleBobRoot.ID(), // Bob fs root
-			FullName: "/",
-		}).Return(nil, nil).Once()
+		foldersMock.On("GetByID", mock.Anything, folders.ExampleBobPersonalFolder.ID()).Return(&folders.ExampleBobPersonalFolder, nil).Once()
 
 		res, secret, err := service.Create(ctx, &CreateCmd{
-			Name:   ExampleAliceSession.Name(),
-			UserID: users.ExampleAlice.ID(),
-			FSRoot: inodes.ExampleBobRoot.ID(),
+			Name:    ExampleAliceSession.Name(),
+			UserID:  users.ExampleAlice.ID(),
+			Folders: []uuid.UUID{folders.ExampleBobPersonalFolder.ID()},
 		})
 
 		assert.Nil(t, res)
 		assert.Empty(t, secret)
-		assert.EqualError(t, err, "validation error: rootFS: not found")
+		assert.EqualError(t, err, "bad request: invalid folderID")
 	})
 
 	t.Run("GetAllForUser success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
-
-		service := NewService(storageMock, inodesMock, usersMock, tools)
+		foldersMock := folders.NewMockService(t)
+		service := NewService(storageMock, usersMock, foldersMock, tools)
 
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.id, &storage.PaginateCmd{Limit: 10}).Return([]DavSession{ExampleAliceSession}, nil).Once()
 
@@ -157,9 +144,8 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
-
-		service := NewService(storageMock, inodesMock, usersMock, tools)
+		foldersMock := folders.NewMockService(t)
+		service := NewService(storageMock, usersMock, foldersMock, tools)
 
 		hashedPasswd := "f0ce9d6e7315534d2f3603d11f496dafcda25f2f5bc2b4f8292a8ee34fe7735b" // sha256 of "some-password"
 
@@ -174,9 +160,8 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
-
-		service := NewService(storageMock, inodesMock, usersMock, tools)
+		foldersMock := folders.NewMockService(t)
+		service := NewService(storageMock, usersMock, foldersMock, tools)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(&ExampleAliceSession, nil).Once()
 		storageMock.On("RemoveByID", mock.Anything, ExampleAliceSession.ID()).Return(nil).Once()
@@ -192,9 +177,8 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
-
-		service := NewService(storageMock, inodesMock, usersMock, tools)
+		foldersMock := folders.NewMockService(t)
+		service := NewService(storageMock, usersMock, foldersMock, tools)
 
 		err := service.Delete(ctx, &DeleteCmd{
 			UserID:    ExampleAliceSession.UserID(),
@@ -207,9 +191,8 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
-
-		service := NewService(storageMock, inodesMock, usersMock, tools)
+		foldersMock := folders.NewMockService(t)
+		service := NewService(storageMock, usersMock, foldersMock, tools)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(nil, nil).Once()
 
@@ -224,9 +207,8 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
-
-		service := NewService(storageMock, inodesMock, usersMock, tools)
+		foldersMock := folders.NewMockService(t)
+		service := NewService(storageMock, usersMock, foldersMock, tools)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(&ExampleAliceSession, nil).Once()
 
@@ -242,9 +224,8 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
-
-		service := NewService(storageMock, inodesMock, usersMock, tools)
+		foldersMock := folders.NewMockService(t)
+		service := NewService(storageMock, usersMock, foldersMock, tools)
 
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.UserID(), (*storage.PaginateCmd)(nil)).Return([]DavSession{ExampleAliceSession}, nil).Once()
 		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(&ExampleAliceSession, nil).Once()
@@ -258,9 +239,8 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
-
-		service := NewService(storageMock, inodesMock, usersMock, tools)
+		foldersMock := folders.NewMockService(t)
+		service := NewService(storageMock, usersMock, foldersMock, tools)
 
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.UserID(), (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
 
@@ -272,9 +252,8 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
-
-		service := NewService(storageMock, inodesMock, usersMock, tools)
+		foldersMock := folders.NewMockService(t)
+		service := NewService(storageMock, usersMock, foldersMock, tools)
 
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.UserID(), (*storage.PaginateCmd)(nil)).Return([]DavSession{ExampleAliceSession, ExampleAliceSession}, nil).Once()
 		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(&ExampleAliceSession, nil).Once()

@@ -32,7 +32,7 @@ func Test_FS(t *testing.T) {
 	filesSvc, err := files.NewFSService(afs, "/", tools.Logger())
 	require.NoError(t, err)
 
-	rootInode, err := inodesSvc.CreateRootDir(ctx, userID)
+	rootInode, err := inodesSvc.CreateRootDir(ctx)
 	require.NoError(t, err)
 	duckFS := NewFSService(userID, rootInode.ID(), inodesSvc, filesSvc)
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/theduckcompany/duckcloud/src/service/folders"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/service/users"
 	"github.com/theduckcompany/duckcloud/src/tools"
@@ -17,20 +18,23 @@ const (
 )
 
 type Job struct {
-	users  users.Service
-	inodes inodes.Service
-	log    *slog.Logger
+	users   users.Service
+	inodes  inodes.Service
+	folders folders.Service
+	log     *slog.Logger
 }
 
 func NewJob(
 	users users.Service,
 	inodes inodes.Service,
+	folders folders.Service,
 	tools tools.Tools,
 ) *Job {
 	logger := tools.Logger().With(slog.String("job", jobName))
 	return &Job{
 		users,
 		inodes,
+		folders,
 		logger,
 	}
 }
@@ -60,15 +64,17 @@ func (j *Job) Run(ctx context.Context) error {
 }
 
 func (j *Job) bootstrapUser(ctx context.Context, user *users.User) error {
-	// TODO: This action is not idempotent and could lead to orphan root dirs.
-	rootDir, err := j.inodes.CreateRootDir(ctx, user.ID())
+	_, err := j.folders.CreatePersonalFolder(ctx, &folders.CreatePersonalFolderCmd{
+		Name:  "My files",
+		Owner: user.ID(),
+	})
 	if err != nil {
-		return fmt.Errorf("failed to bootstrap the user inodes: %w", err)
+		return fmt.Errorf("failed to CreatePersonalFolder: %w", err)
 	}
 
-	_, err = j.users.SaveBootstrapInfos(ctx, user.ID(), rootDir)
+	_, err = j.users.MarkInitAsFinished(ctx, user.ID())
 	if err != nil {
-		return fmt.Errorf("failed to SaveBootstrapInfos: %w", err)
+		return fmt.Errorf("failed to MarkInitAsFinished: %w", err)
 	}
 
 	return nil

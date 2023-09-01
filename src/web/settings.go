@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/theduckcompany/duckcloud/src/service/davsessions"
+	"github.com/theduckcompany/duckcloud/src/service/folders"
 	"github.com/theduckcompany/duckcloud/src/service/users"
 	"github.com/theduckcompany/duckcloud/src/service/websessions"
 	"github.com/theduckcompany/duckcloud/src/tools"
@@ -19,6 +20,7 @@ type settingsHandler struct {
 	response    response.Writer
 	webSessions websessions.Service
 	davSessions davsessions.Service
+	folders     folders.Service
 	users       users.Service
 	uuid        uuid.Service
 }
@@ -27,12 +29,14 @@ func newSettingsHandler(
 	tools tools.Tools,
 	webSessions websessions.Service,
 	davSessions davsessions.Service,
+	folders folders.Service,
 	users users.Service,
 ) *settingsHandler {
 	return &settingsHandler{
 		response:    tools.ResWriter(),
 		webSessions: webSessions,
 		davSessions: davSessions,
+		folders:     folders,
 		users:       users,
 		uuid:        tools.UUID(),
 	}
@@ -96,11 +100,18 @@ func (h *settingsHandler) getDavSessions(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	folders, err := h.folders.GetAllUserFolders(ctx, user.ID(), nil)
+	if err != nil {
+		h.response.WriteJSONError(w, fmt.Errorf("failed to fetch the folders: %w", err))
+		return
+	}
+
 	fullPage := r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == ""
 
 	h.response.WriteHTML(w, http.StatusOK, "settings/webdav.tmpl", fullPage, map[string]interface{}{
 		"isAdmin":     user.IsAdmin(),
 		"davSessions": davSessions,
+		"folders":     folders,
 	})
 }
 
@@ -112,10 +123,12 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	fmt.Printf("input folders: %v\n\n", r.FormValue("folders"))
+
 	newSession, secret, err := h.davSessions.Create(ctx, &davsessions.CreateCmd{
-		UserID: user.ID(),
-		Name:   r.FormValue("name"),
-		FSRoot: user.RootFS(),
+		UserID:  user.ID(),
+		Name:    r.FormValue("name"),
+		Folders: []uuid.UUID{},
 	})
 	if err != nil {
 		fmt.Fprintf(w, `<div class="alert alert-danger role="alert">%s</div>`, err)

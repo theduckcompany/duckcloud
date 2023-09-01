@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/theduckcompany/duckcloud/src/service/folders"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/clock"
@@ -42,11 +43,23 @@ type UserService struct {
 	uuid     uuid.Service
 	password password.Password
 	inodes   inodes.Service
+	folders  folders.Service
 }
 
 // NewService create a new user service.
-func NewService(tools tools.Tools, storage Storage, inodes inodes.Service) *UserService {
-	return &UserService{storage, tools.Clock(), tools.UUID(), tools.Password(), inodes}
+func NewService(tools tools.Tools,
+	storage Storage,
+	inodes inodes.Service,
+	folders folders.Service,
+) *UserService {
+	return &UserService{
+		storage,
+		tools.Clock(),
+		tools.UUID(),
+		tools.Password(),
+		inodes,
+		folders,
+	}
 }
 
 // Create will create and register a new user.
@@ -76,7 +89,6 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 		username:  cmd.Username,
 		isAdmin:   cmd.IsAdmin,
 		password:  hashedPassword,
-		fsRoot:    "",
 		createdAt: s.clock.Now(),
 		status:    "initializing",
 	}
@@ -89,7 +101,7 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 	return &user, nil
 }
 
-func (s *UserService) SaveBootstrapInfos(ctx context.Context, userID uuid.UUID, rootDir *inodes.INode) (*User, error) {
+func (s *UserService) MarkInitAsFinished(ctx context.Context, userID uuid.UUID) (*User, error) {
 	user, err := s.GetByID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to GetByID: %w", err)
@@ -99,13 +111,9 @@ func (s *UserService) SaveBootstrapInfos(ctx context.Context, userID uuid.UUID, 
 		return nil, ErrInvalidStatus
 	}
 
-	user.fsRoot = rootDir.ID()
 	user.status = "active"
 
-	err = s.storage.Patch(ctx, userID, map[string]any{
-		"fs_root": rootDir.ID(),
-		"status":  "active",
-	})
+	err = s.storage.Patch(ctx, userID, map[string]any{"status": "active"})
 	if err != nil {
 		return nil, fmt.Errorf("failed to patch the user: %w", err)
 	}

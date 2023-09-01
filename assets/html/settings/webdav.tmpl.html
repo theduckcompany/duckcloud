@@ -9,6 +9,7 @@
         <thead>
           <tr>
             <th>Name</th>
+            <th>Folders</th>
             <th>Last activity</th>
             <th>Actions</th>
           </tr>
@@ -16,7 +17,8 @@
         <tbody>
           {{range .davSessions}}
           <tr>
-            <td> {{.Name}} </td>
+            <td>{{.Name}}</td>
+            <td>Some-dir</td>
             <td> Seconds ago </td>
             <td>
               <form action="/settings/webdav/{{.ID}}/delete" method="post" target="_top"
@@ -37,6 +39,16 @@
           <label for="inputDavSession" class="visually-hidden">Name</label>
           <input type="text" name="name" class="form-control" id="davSessionName" placeholder="App name">
         </div>
+
+        <div class="col-auto">
+          <select id="davSessionFolders" name="folders" class="select" multiple>
+            {{ range .folders}}
+            <option value="{{.ID}}" selected>{{.Name}}</option>
+            {{end}}
+          </select>
+          <label for="davSessionFolders" class="form-label select-label">Folders</label>
+        </div>
+
         <div class="col-auto">
           <button type="submit" class="btn btn-primary mb-3">Create new Dav credentials</button>
         </div>

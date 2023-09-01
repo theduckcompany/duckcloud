@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/theduckcompany/duckcloud/src/service/folders"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
@@ -19,11 +20,15 @@ type Service interface {
 	AddToDeletion(ctx context.Context, userID uuid.UUID) error
 	HardDelete(ctx context.Context, userID uuid.UUID) error
 	GetAllWithStatus(ctx context.Context, status string, cmd *storage.PaginateCmd) ([]User, error)
-	SaveBootstrapInfos(ctx context.Context, userID uuid.UUID, rootDir *inodes.INode) (*User, error)
+	MarkInitAsFinished(ctx context.Context, userID uuid.UUID) (*User, error)
 }
 
-func Init(tools tools.Tools, db *sql.DB, inodes inodes.Service) Service {
+func Init(tools tools.Tools,
+	db *sql.DB,
+	inodes inodes.Service,
+	folders folders.Service,
+) Service {
 	storage := newSqlStorage(db, tools)
 
-	return NewService(tools, storage, inodes)
+	return NewService(tools, storage, inodes, folders)
 }

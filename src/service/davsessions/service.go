@@ -6,8 +6,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"slices"
 
-	"github.com/theduckcompany/duckcloud/src/service/inodes"
+	"github.com/theduckcompany/duckcloud/src/service/folders"
 	"github.com/theduckcompany/duckcloud/src/service/users"
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/clock"
@@ -17,8 +18,9 @@ import (
 )
 
 var (
-	ErrInvalidCredentials = fmt.Errorf("invalid credentials")
+	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrUserIDNotMatching  = errors.New("user ids are not matching")
+	ErrInvalidFolderID    = errors.New("invalid folderID")
 )
 
 //go:generate mockery --name Storage
@@ -32,14 +34,18 @@ type Storage interface {
 
 type DavSessionsService struct {
 	storage Storage
-	inodes  inodes.Service
 	users   users.Service
+	folders folders.Service
 	uuid    uuid.Service
 	clock   clock.Clock
 }
 
-func NewService(storage Storage, inodes inodes.Service, users users.Service, tools tools.Tools) *DavSessionsService {
-	return &DavSessionsService{storage, inodes, users, tools.UUID(), tools.Clock()}
+func NewService(storage Storage,
+	users users.Service,
+	folders folders.Service,
+	tools tools.Tools,
+) *DavSessionsService {
+	return &DavSessionsService{storage, users, folders, tools.UUID(), tools.Clock()}
 }
 
 func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSession, string, error) {
@@ -57,17 +63,15 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 		return nil, "", errs.ValidationError(errors.New("userID: not found"))
 	}
 
-	rootInode, err := s.inodes.Get(ctx, &inodes.PathCmd{
-		Root:     cmd.FSRoot,
-		UserID:   user.ID(),
-		FullName: "/",
-	})
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to inodes.Get: %w", err)
-	}
+	for _, folderID := range cmd.Folders {
+		folder, err := s.folders.GetByID(ctx, folderID)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to get the folder %q by id: %w", folderID, err)
+		}
 
-	if rootInode == nil {
-		return nil, "", errs.ValidationError(errors.New("rootFS: not found"))
+		if folder == nil || !slices.Contains(folder.Owners(), cmd.UserID) {
+			return nil, "", errs.BadRequest(ErrInvalidFolderID, "invalid folders")
+		}
 	}
 
 	password := string(s.uuid.New())
@@ -79,7 +83,7 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 		name:      cmd.Name,
 		username:  user.Username(),
 		password:  hex.EncodeToString(rawSha[:]),
-		fsRoot:    rootInode.ID(),
+		folders:   cmd.Folders,
 		createdAt: s.clock.Now(),
 	}
 

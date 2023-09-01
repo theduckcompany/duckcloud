@@ -25,9 +25,8 @@ type Storage interface {
 	Save(ctx context.Context, dir *INode) error
 	UpdateModifiedSizeAndChecksum(ctx context.Context, inode *INode) error
 	GetByID(ctx context.Context, id uuid.UUID) (*INode, error)
-	CountUserINodes(ctx context.Context, userID uuid.UUID) (uint, error)
-	GetByNameAndParent(ctx context.Context, userID uuid.UUID, name string, parent uuid.UUID) (*INode, error)
-	GetAllChildrens(ctx context.Context, userID, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error)
+	GetByNameAndParent(ctx context.Context, name string, parent uuid.UUID) (*INode, error)
+	GetAllChildrens(ctx context.Context, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	HardDelete(ctx context.Context, id uuid.UUID) error
 	GetAllDeleted(ctx context.Context, limit int) ([]INode, error)
@@ -44,12 +43,24 @@ func NewService(tools tools.Tools, storage Storage) *INodeService {
 	return &INodeService{storage, tools.Clock(), tools.UUID()}
 }
 
-func (s *INodeService) CreateRootDir(ctx context.Context, userID uuid.UUID) (*INode, error) {
+func (s *INodeService) GetByID(ctx context.Context, inodeID uuid.UUID) (*INode, error) {
+	res, err := s.storage.GetByID(ctx, inodeID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to GetByID: %w", err)
+	}
+
+	if res == nil {
+		return nil, nil
+	}
+
+	return res, nil
+}
+
+func (s *INodeService) CreateRootDir(ctx context.Context) (*INode, error) {
 	now := s.clock.Now()
 
 	node := INode{
 		id:             s.uuid.New(),
-		userID:         userID,
 		parent:         nil,
 		mode:           0o660 | fs.ModeDir,
 		createdAt:      now,
@@ -79,15 +90,10 @@ func (s *INodeService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INo
 		return nil, fmt.Errorf("%w: parent %q not found", ErrInvalidParent, cmd.Parent)
 	}
 
-	if parent.UserID() != cmd.UserID {
-		return nil, fmt.Errorf("%w: parent %q is owned by someone else", ErrInvalidParent, cmd.Parent)
-	}
-
 	now := s.clock.Now()
 	inode := INode{
 		id:             s.uuid.New(),
 		parent:         ptr.To(parent.ID()),
-		userID:         cmd.UserID,
 		mode:           cmd.Mode,
 		size:           0,
 		name:           cmd.Name,
@@ -122,7 +128,7 @@ func (s *INodeService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *s
 		return nil, fmt.Errorf("failed to open %q: %w", cmd.FullName, err)
 	}
 
-	res, err := s.storage.GetAllChildrens(ctx, cmd.UserID, dir.ID(), paginateCmd)
+	res, err := s.storage.GetAllChildrens(ctx, dir.ID(), paginateCmd)
 	if err != nil {
 		return nil, fmt.Errorf("failed to GetAllChildrens: %w", err)
 	}
@@ -177,7 +183,6 @@ func (s *INodeService) CreateDir(ctx context.Context, cmd *PathCmd) (*INode, err
 
 		inode = &INode{
 			id:             s.uuid.New(),
-			userID:         cmd.UserID,
 			mode:           0o660 | fs.ModeDir,
 			parent:         ptr.To(dir.ID()),
 			name:           frag,
@@ -216,7 +221,7 @@ func (s *INodeService) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 			return nil
 		}
 
-		inode, err = s.storage.GetByNameAndParent(ctx, cmd.UserID, frag, dir.ID())
+		inode, err = s.storage.GetByNameAndParent(ctx, frag, dir.ID())
 		if err != nil {
 			return fmt.Errorf("failed to fetch a file by name and parent: %w", err)
 		}
@@ -261,10 +266,6 @@ func (s *INodeService) walk(ctx context.Context, cmd *PathCmd, op string, f func
 		return errs.NotFound(fmt.Errorf("root %q not found", cmd.Root), "root not found")
 	}
 
-	if dir.UserID() != cmd.UserID {
-		return errs.NotFound(fmt.Errorf("dir %q is not owned by %q", cmd.Root, cmd.UserID), "access denied")
-	}
-
 	for {
 		frag, remaining := fullname, ""
 		i := strings.IndexRune(fullname, '/')
@@ -289,7 +290,7 @@ func (s *INodeService) walk(ctx context.Context, cmd *PathCmd, op string, f func
 			break
 		}
 
-		child, err := s.storage.GetByNameAndParent(ctx, cmd.UserID, frag, dir.ID())
+		child, err := s.storage.GetByNameAndParent(ctx, frag, dir.ID())
 		if err != nil {
 			return fmt.Errorf("failed to get child %q from %q", frag, remaining)
 		}

@@ -13,7 +13,6 @@ const NoParent = uuid.UUID("00000000-0000-0000-0000-00000000000")
 
 type PathCmd struct {
 	Root     uuid.UUID
-	UserID   uuid.UUID
 	FullName string
 }
 
@@ -21,14 +20,12 @@ type PathCmd struct {
 func (t PathCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.Root, v.Required, is.UUIDv4),
-		v.Field(&t.UserID, v.Required, is.UUIDv4),
 		v.Field(&t.FullName, v.Required, v.Length(1, 1024)),
 	)
 }
 
 type CreateFileCmd struct {
 	Parent uuid.UUID
-	UserID uuid.UUID
 	Name   string
 	Mode   fs.FileMode
 }
@@ -37,14 +34,12 @@ type CreateFileCmd struct {
 func (t CreateFileCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.Parent, v.Required, is.UUIDv4),
-		v.Field(&t.UserID, v.Required, is.UUIDv4),
 		v.Field(&t.Name, v.Required, v.Length(1, 255)),
 	)
 }
 
 type INode struct {
 	id             uuid.UUID
-	userID         uuid.UUID
 	parent         *uuid.UUID
 	mode           fs.FileMode
 	name           string
@@ -55,7 +50,6 @@ type INode struct {
 }
 
 func (n *INode) ID() uuid.UUID             { return n.id }
-func (n *INode) UserID() uuid.UUID         { return n.userID }
 func (n *INode) Parent() *uuid.UUID        { return n.parent }
 func (n *INode) Name() string              { return n.name }
 func (n *INode) Size() int64               { return n.size }
