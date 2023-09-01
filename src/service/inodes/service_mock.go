@@ -18,32 +18,6 @@ type MockService struct {
 	mock.Mock
 }
 
-// BootstrapUser provides a mock function with given fields: ctx, userID
-func (_m *MockService) BootstrapUser(ctx context.Context, userID uuid.UUID) (*INode, error) {
-	ret := _m.Called(ctx, userID)
-
-	var r0 *INode
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (*INode, error)); ok {
-		return rf(ctx, userID)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) *INode); ok {
-		r0 = rf(ctx, userID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*INode)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
-		r1 = rf(ctx, userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // CreateDir provides a mock function with given fields: ctx, cmd
 func (_m *MockService) CreateDir(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	ret := _m.Called(ctx, cmd)
@@ -89,6 +63,32 @@ func (_m *MockService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INo
 
 	if rf, ok := ret.Get(1).(func(context.Context, *CreateFileCmd) error); ok {
 		r1 = rf(ctx, cmd)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateRootDir provides a mock function with given fields: ctx, userID
+func (_m *MockService) CreateRootDir(ctx context.Context, userID uuid.UUID) (*INode, error) {
+	ret := _m.Called(ctx, userID)
+
+	var r0 *INode
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (*INode, error)); ok {
+		return rf(ctx, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) *INode); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*INode)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, userID)
 	} else {
 		r1 = ret.Error(1)
 	}

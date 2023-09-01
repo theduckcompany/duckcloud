@@ -554,7 +554,7 @@ func TestINodes(t *testing.T) {
 		assert.EqualError(t, err, "open /foo/bar: invalid argument")
 	})
 
-	t.Run("BootstrapUser success", func(t *testing.T) {
+	t.Run("CreateRootDir success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
@@ -569,28 +569,14 @@ func TestINodes(t *testing.T) {
 			lastModifiedAt: now,
 		}
 
-		storageMock.On("CountUserINodes", mock.Anything, uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3")).Return(uint(0), nil).Once()
 		tools.ClockMock.On("Now").Return(now).Once()
 		tools.UUIDMock.On("New").Return(uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62")).Once()
 		storageMock.On("Save", mock.Anything, inode).Return(nil).Once()
 
-		res, err := service.BootstrapUser(ctx, uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"))
+		res, err := service.CreateRootDir(ctx, uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"))
 
 		assert.NoError(t, err)
 		assert.EqualValues(t, inode, res)
-	})
-
-	t.Run("BootstrapUser with an already bootstraped fs", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
-		service := NewService(tools, storageMock)
-
-		storageMock.On("CountUserINodes", mock.Anything, uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3")).Return(uint(2), nil).Once()
-
-		res, err := service.BootstrapUser(ctx, uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"))
-
-		assert.Nil(t, res)
-		assert.EqualError(t, err, "bad request: this user is already bootstraped")
 	})
 
 	t.Run("RegisterWrite success", func(t *testing.T) {

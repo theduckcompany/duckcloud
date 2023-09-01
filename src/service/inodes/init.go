@@ -12,7 +12,7 @@ import (
 
 //go:generate mockery --name Service
 type Service interface {
-	BootstrapUser(ctx context.Context, userID uuid.UUID) (*INode, error)
+	CreateRootDir(ctx context.Context, userID uuid.UUID) (*INode, error)
 	Get(ctx context.Context, cmd *PathCmd) (*INode, error)
 	Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error)
 	RemoveAll(ctx context.Context, cmd *PathCmd) error
