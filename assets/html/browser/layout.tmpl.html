@@ -9,18 +9,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/assets/css/bootstrap-icons.min.css"
     integrity="sha384-sAjZvrYXacB9bJ0LVUOAvlGp7N5A9s6krO+1oZ2bSc1hG7q3UpoTU50kWYTKDOQC" crossorigin="anonymous">
+  <link rel="stylesheet" href="/assets/css/fontawesome.min.css"
+    integrity="sha384-BY+fdrpOd3gfeRvTSMT+VUZmA728cfF9Z2G42xpaRkUGu2i3DyzpTURDo5A6CaLK" crossorigin="anonymous">
 </head>
 
 <body>
-  <style>
-    :root {
-      --mdb-primary: #0082C8;
-      --bs-primary: #0082C8;
-      --bs-primary-rgb: 0, 130, 200;
-      --mdb-primary-rgb: 0, 130, 200;
-    }
-  </style>
-
   <!--Main Navigation-->
   <header>
     <!-- Sidenav -->
@@ -33,29 +26,23 @@
 
       <hr class="hr">
       <ul class="sidenav-menu px-2 pb-5" hx-boost="true">
-        <li class="sidenav-item">
-          <a class="sidenav-link" href="">
-            <i class="bi bi-speedometer me-3"></i><span>Overview</span></a>
-        </li>
 
         <li class="sidenav-item pt-3">
-          <span class="sidenav-subheading text-muted text-uppercase fw-bold">Sessions</span>
+          <span class="sidenav-subheading text-muted text-uppercase fw-bold">Folders</span>
         </li>
+        {{range .folders}}
         <li class="sidenav-item">
-          <a class="sidenav-link" href="/settings/browsers" hx-target="#content" hx-swap="outerHTML">
-            <i class="bi bi-browser-firefox me-3"></i><span>Browsers</span></a>
+          <a class="sidenav-link" href="/browser/{{.ID}}/" hx-target="#content" , hx-swap="outerHTML">
+            <i class="bi bi-folder-fill me-3"></i><span>{{.Name}}</span></a>
         </li>
-        <li class="sidenav-item">
-          <a class="sidenav-link" href="/settings/webdav" hx-target="#content" hx-swap="outerHTML">
-            <i class="bi bi-folder-fill me-3"></i><span>WebDav</span></a>
-        </li>
+        {{end}}
 
         {{ if (eq .isAdmin true)}}
         <li class="sidenav-item pt-3">
           <span class="sidenav-subheading text-muted text-uppercase fw-bold">Admin</span>
         </li>
         <li class="sidenav-item">
-          <a class="sidenav-link" href="/settings/users" hx-target="#content" hx-swap="outerHTML">
+          <a class="sidenav-link" href="/settings/users" hx-target="#content" , hx-swap="outerHTML">
             <i class="bi bi-people-fill me-3"></i><span>User Management</span></a>
         </li>
         {{end}}
@@ -64,7 +51,7 @@
     <!-- Sidenav -->
 
     <!-- Navbar -->
-    <nav id="main-navbar" class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-0">
+    <nav id="main-navbar" class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-1">
       <!-- Container wrapper -->
       <div class="container-fluid">
         <!-- Toggler -->

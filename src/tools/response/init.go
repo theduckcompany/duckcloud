@@ -6,7 +6,10 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"text/template"
 
+	"github.com/dustin/go-humanize"
+	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 	"github.com/unrolled/render"
 )
 
@@ -33,6 +36,33 @@ func Init(cfg Config, log *slog.Logger) Writer {
 		Layout:        "",
 		IsDevelopment: cfg.HotReload,
 		Extensions:    []string{".tmpl", ".html"},
+		Funcs: []template.FuncMap{
+			{
+				"humanTime": humanize.Time,
+				"humanSize": humanize.Bytes,
+			},
+			{
+				"pathJoin": func(elems ...any) string {
+					strElems := make([]string, len(elems))
+					for i, elem := range elems {
+						switch elem := elem.(type) {
+						case uuid.UUID:
+							strElems[i] = string(elem)
+						default:
+							strElems[i] = elem.(string)
+						}
+					}
+					return path.Join(strElems...)
+				},
+				"getInodeIconClass": func(name string, isDir bool) string {
+					if isDir {
+						return "bi-folder-fill text-primary"
+					}
+
+					return "bi-file-earmark-fill text-muted"
+				},
+			},
+		},
 	}
 
 	if cfg.PrettyRender {

@@ -8,6 +8,7 @@ require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/adrg/xdg v0.4.0
+	github.com/dustin/go-humanize v1.0.1
 	github.com/gavv/httpexpect/v2 v2.15.0
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-chi/cors v1.2.1

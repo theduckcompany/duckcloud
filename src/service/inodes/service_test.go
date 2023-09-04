@@ -532,7 +532,7 @@ func TestINodes(t *testing.T) {
 		storageMock.On("Patch", mock.Anything, ExampleAliceFile.id, map[string]any{
 			"checksum":         hex.EncodeToString(hash.Sum(nil)),
 			"last_modified_at": now,
-			"size":             ExampleAliceFile.size + int64(n),
+			"size":             ExampleAliceFile.size + uint64(n),
 		}).Return(nil).Once()
 
 		err = service.RegisterWrite(ctx, &ExampleAliceFile, n, hash)

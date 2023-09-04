@@ -44,7 +44,7 @@ type INode struct {
 	mode           fs.FileMode
 	name           string
 	checksum       string
-	size           int64
+	size           uint64
 	createdAt      time.Time
 	lastModifiedAt time.Time
 }
@@ -52,7 +52,8 @@ type INode struct {
 func (n *INode) ID() uuid.UUID             { return n.id }
 func (n *INode) Parent() *uuid.UUID        { return n.parent }
 func (n *INode) Name() string              { return n.name }
-func (n *INode) Size() int64               { return n.size }
+func (n *INode) Size() int64               { return int64(n.size) }
+func (n *INode) USize() uint64             { return n.size }
 func (n *INode) Mode() fs.FileMode         { return n.mode }
 func (n *INode) ModTime() time.Time        { return n.lastModifiedAt }
 func (n *INode) CreatedAt() time.Time      { return n.createdAt }
