@@ -58,6 +58,9 @@ func (f *File) Read(p []byte) (int, error) {
 
 func (f *File) Write(p []byte) (int, error) {
 	pLen, err := f.buffer.Write(p)
+	if err != nil {
+		return 0, err
+	}
 
 	_, err = f.hasher.Write(p)
 	if err != nil {
