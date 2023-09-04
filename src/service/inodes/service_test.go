@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
+	"errors"
 	"io/fs"
 	"testing"
 	"time"
@@ -178,6 +178,8 @@ func TestINodes(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
 
+		now := time.Now().UTC()
+		tools.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
 
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&INode{
@@ -188,7 +190,7 @@ func TestINodes(t *testing.T) {
 			// some other unused fields
 		}, nil).Once()
 
-		storageMock.On("Delete", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(nil).Once()
+		storageMock.On("Patch", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"), map[string]any{"deleted_at": now}).Return(nil).Once()
 
 		err := service.RemoveAll(ctx, &PathCmd{
 			Root:     ExampleAliceRoot.ID(),
@@ -235,6 +237,8 @@ func TestINodes(t *testing.T) {
 
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
 
+		now := time.Now().UTC()
+		tools.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&INode{
 			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
 			parent: ptr.To(ExampleAliceRoot.ID()),
@@ -243,14 +247,14 @@ func TestINodes(t *testing.T) {
 			// some other unused fields
 		}, nil).Once()
 
-		storageMock.On("Delete", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(fmt.Errorf("some-error")).Once()
+		storageMock.On("Patch", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"), map[string]any{"deleted_at": now}).Return(errors.New("some-error")).Once()
 
 		err := service.RemoveAll(ctx, &PathCmd{
 			Root:     ExampleAliceRoot.ID(),
 			FullName: "/foo",
 		})
 
-		assert.EqualError(t, err, "failed to soft delete the inode \"f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f\": some-error")
+		assert.EqualError(t, err, "some-error")
 	})
 
 	t.Run("Get success", func(t *testing.T) {
@@ -515,18 +519,21 @@ func TestINodes(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
 
+		t.Cleanup(func() {
+			ExampleAliceFile.lastModifiedAt = now2
+		})
+
 		now := time.Now()
 		hash := sha256.New()
 		n, err := hash.Write([]byte("some-content"))
 		require.NoError(t, err)
 
-		updatedInode := ExampleAliceFile
-		updatedInode.lastModifiedAt = now
-		updatedInode.checksum = hex.EncodeToString(hash.Sum(nil))
-		updatedInode.size = ExampleAliceFile.size + int64(n)
-
 		tools.ClockMock.On("Now").Return(now).Once()
-		storageMock.On("UpdateModifiedSizeAndChecksum", mock.Anything, &updatedInode).Return(nil).Once()
+		storageMock.On("Patch", mock.Anything, ExampleAliceFile.id, map[string]any{
+			"checksum":         hex.EncodeToString(hash.Sum(nil)),
+			"last_modified_at": now,
+			"size":             ExampleAliceFile.size + int64(n),
+		}).Return(nil).Once()
 
 		err = service.RegisterWrite(ctx, &ExampleAliceFile, n, hash)
 		assert.NoError(t, err)

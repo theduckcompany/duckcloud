@@ -100,18 +100,14 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.Nil(t, res)
 	})
 
-	t.Run("UpdateModifiedSizeAndChecksum success", func(t *testing.T) {
-		nowUpdated := time.Now().UTC()
-
+	t.Run("Patch success", func(t *testing.T) {
 		err := store.Save(ctx, &ExampleAliceFile)
 		require.NoError(t, err)
 
 		modifiedINode := ExampleAliceFile
 		modifiedINode.checksum = "some-new-checksum"
-		modifiedINode.lastModifiedAt = nowUpdated
-		modifiedINode.size = 84
 
-		err = store.UpdateModifiedSizeAndChecksum(ctx, &modifiedINode)
+		err = store.Patch(ctx, ExampleAliceFile.id, map[string]any{"checksum": "some-new-checksum"})
 		assert.NoError(t, err)
 
 		res, err := store.GetByID(ctx, ExampleAliceFile.ID())
@@ -119,16 +115,9 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.EqualValues(t, &modifiedINode, res)
 	})
 
-	t.Run("Delete success", func(t *testing.T) {
-		tools.ClockMock.On("Now").Return(time.Now()).Once()
-
-		err := store.Delete(ctx, uuid.UUID("some-child-id-5"))
+	t.Run("Delete via a Patch", func(t *testing.T) {
+		err := store.Patch(ctx, uuid.UUID("some-child-id-5"), map[string]any{"deleted_at": time.Now().UTC()})
 		assert.NoError(t, err)
-
-		// Check that the node is no more available
-		res, err := store.GetAllDeleted(ctx, 1)
-		assert.NoError(t, err)
-		assert.Equal(t, res[0].ID(), uuid.UUID("some-child-id-5"))
 	})
 
 	t.Run("GetAllDeleted", func(t *testing.T) {

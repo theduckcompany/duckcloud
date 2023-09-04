@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	now  time.Time = time.Now().UTC()
-	now2 time.Time = time.Now().UTC().Add(time.Minute)
+	now  = time.Now().UTC()
+	now2 = time.Now().Add(time.Minute).UTC()
 )
 
 var ExampleAliceRoot INode = INode{
@@ -21,7 +21,7 @@ var ExampleAliceRoot INode = INode{
 	mode:           0o660 | fs.ModeDir,
 	size:           0,
 	createdAt:      now,
-	lastModifiedAt: now,
+	lastModifiedAt: now2,
 }
 
 var ExampleAliceFile INode = INode{
@@ -31,7 +31,7 @@ var ExampleAliceFile INode = INode{
 	checksum:       "some-sha256-checksum",
 	size:           42,
 	mode:           0o660,
-	createdAt:      now2,
+	createdAt:      now,
 	lastModifiedAt: now2,
 }
 
@@ -43,5 +43,5 @@ var ExampleBobRoot INode = INode{
 	mode:           0o660 | fs.ModeDir,
 	size:           0,
 	createdAt:      now,
-	lastModifiedAt: now,
+	lastModifiedAt: now2,
 }
