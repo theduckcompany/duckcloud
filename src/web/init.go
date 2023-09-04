@@ -15,6 +15,7 @@ import (
 type HTTPHandler struct {
 	auth     *authHandler
 	settings *settingsHandler
+	home     *homeHandler
 }
 
 func NewHTTPHandler(
@@ -29,12 +30,14 @@ func NewHTTPHandler(
 	return &HTTPHandler{
 		auth:     newAuthHandler(tools, users, clients, oauthConsent, webSessions),
 		settings: newSettingsHandler(tools, webSessions, davSessions, folders, users),
+		home:     newHomeHandler(tools, webSessions, users),
 	}
 }
 
 func (h *HTTPHandler) Register(r chi.Router, mids router.Middlewares) {
 	h.auth.Register(r, mids)
 	h.settings.Register(r, mids)
+	h.home.Register(r, mids)
 }
 
 func (h *HTTPHandler) String() string {
