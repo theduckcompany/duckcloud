@@ -16,20 +16,6 @@ type MockStorage struct {
 	mock.Mock
 }
 
-// Delete provides a mock function with given fields: ctx, id
-func (_m *MockStorage) Delete(ctx context.Context, id uuid.UUID) error {
-	ret := _m.Called(ctx, id)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
-		r0 = rf(ctx, id)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // GetAllChildrens provides a mock function with given fields: ctx, parent, cmd
 func (_m *MockStorage) GetAllChildrens(ctx context.Context, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error) {
 	ret := _m.Called(ctx, parent, cmd)
@@ -174,13 +160,13 @@ func (_m *MockStorage) HardDelete(ctx context.Context, id uuid.UUID) error {
 	return r0
 }
 
-// Save provides a mock function with given fields: ctx, dir
-func (_m *MockStorage) Save(ctx context.Context, dir *INode) error {
-	ret := _m.Called(ctx, dir)
+// Patch provides a mock function with given fields: ctx, inode, fields
+func (_m *MockStorage) Patch(ctx context.Context, inode uuid.UUID, fields map[string]interface{}) error {
+	ret := _m.Called(ctx, inode, fields)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *INode) error); ok {
-		r0 = rf(ctx, dir)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, map[string]interface{}) error); ok {
+		r0 = rf(ctx, inode, fields)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -188,13 +174,13 @@ func (_m *MockStorage) Save(ctx context.Context, dir *INode) error {
 	return r0
 }
 
-// UpdateModifiedSizeAndChecksum provides a mock function with given fields: ctx, inode
-func (_m *MockStorage) UpdateModifiedSizeAndChecksum(ctx context.Context, inode *INode) error {
-	ret := _m.Called(ctx, inode)
+// Save provides a mock function with given fields: ctx, dir
+func (_m *MockStorage) Save(ctx context.Context, dir *INode) error {
+	ret := _m.Called(ctx, dir)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *INode) error); ok {
-		r0 = rf(ctx, inode)
+		r0 = rf(ctx, dir)
 	} else {
 		r0 = ret.Error(0)
 	}

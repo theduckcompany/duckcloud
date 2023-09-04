@@ -23,14 +23,13 @@ var ErrInvalidParent = errors.New("invalid parent")
 //go:generate mockery --name Storage
 type Storage interface {
 	Save(ctx context.Context, dir *INode) error
-	UpdateModifiedSizeAndChecksum(ctx context.Context, inode *INode) error
 	GetByID(ctx context.Context, id uuid.UUID) (*INode, error)
 	GetByNameAndParent(ctx context.Context, name string, parent uuid.UUID) (*INode, error)
 	GetAllChildrens(ctx context.Context, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error)
-	Delete(ctx context.Context, id uuid.UUID) error
 	HardDelete(ctx context.Context, id uuid.UUID) error
 	GetAllDeleted(ctx context.Context, limit int) ([]INode, error)
 	GetDeleted(ctx context.Context, id uuid.UUID) (*INode, error)
+	Patch(ctx context.Context, inode uuid.UUID, fields map[string]any) error
 }
 
 type INodeService struct {
@@ -114,7 +113,11 @@ func (s *INodeService) RegisterWrite(ctx context.Context, inode *INode, sizeWrit
 	inode.size += int64(sizeWrite)
 	inode.checksum = hex.EncodeToString(h.Sum(nil))
 
-	return s.storage.UpdateModifiedSizeAndChecksum(ctx, inode)
+	return s.storage.Patch(ctx, inode.ID(), map[string]any{
+		"last_modified_at": inode.lastModifiedAt,
+		"size":             inode.size,
+		"checksum":         inode.checksum,
+	})
 }
 
 func (s *INodeService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
@@ -159,12 +162,7 @@ func (s *INodeService) RemoveAll(ctx context.Context, cmd *PathCmd) error {
 		return nil
 	}
 
-	err = s.storage.Delete(ctx, inode.ID())
-	if err != nil {
-		return fmt.Errorf("failed to soft delete the inode %q: %w", inode.ID(), err)
-	}
-
-	return nil
+	return s.storage.Patch(ctx, inode.ID(), map[string]any{"deleted_at": s.clock.Now()})
 }
 
 func (s *INodeService) CreateDir(ctx context.Context, cmd *PathCmd) (*INode, error) {

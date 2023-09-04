@@ -40,15 +40,10 @@ func (s *sqlStorage) Save(ctx context.Context, inode *INode) error {
 	return nil
 }
 
-func (s *sqlStorage) UpdateModifiedSizeAndChecksum(ctx context.Context, inode *INode) error {
-	_, err := sq.
-		Update(tableName).
-		Where(sq.Eq{"id": string(inode.id)}).
-		SetMap(map[string]interface{}{
-			"last_modified_at": inode.lastModifiedAt,
-			"size":             inode.size,
-			"checksum":         inode.checksum,
-		}).
+func (s *sqlStorage) Patch(ctx context.Context, inode uuid.UUID, fields map[string]any) error {
+	_, err := sq.Update(tableName).
+		SetMap(fields).
+		Where(sq.Eq{"id": inode}).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -60,20 +55,6 @@ func (s *sqlStorage) UpdateModifiedSizeAndChecksum(ctx context.Context, inode *I
 
 func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*INode, error) {
 	return s.getByKeys(ctx, sq.Eq{"id": id})
-}
-
-func (s *sqlStorage) Delete(ctx context.Context, id uuid.UUID) error {
-	_, err := sq.
-		Update(tableName).
-		Where(sq.Eq{"id": string(id)}).
-		Set("deleted_at", s.clock.Now()).
-		RunWith(s.db).
-		ExecContext(ctx)
-	if err != nil {
-		return fmt.Errorf("sql error: %w", err)
-	}
-
-	return nil
 }
 
 func (s *sqlStorage) HardDelete(ctx context.Context, id uuid.UUID) error {

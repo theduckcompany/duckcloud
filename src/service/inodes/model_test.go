@@ -15,7 +15,7 @@ func TestInodeGetter(t *testing.T) {
 	assert.Nil(t, ExampleAliceRoot.Parent())
 	assert.Equal(t, ExampleAliceRoot.Mode(), 0o660|fs.ModeDir)
 	assert.Equal(t, ExampleAliceRoot.CreatedAt(), now)
-	assert.Equal(t, ExampleAliceRoot.LastModifiedAt(), now)
+	assert.Equal(t, ExampleAliceRoot.LastModifiedAt(), now2)
 	assert.Equal(t, ExampleAliceRoot.Size(), int64(0))
 
 	assert.Equal(t, ExampleAliceFile.Size(), int64(42))
