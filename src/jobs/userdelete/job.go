@@ -2,6 +2,7 @@ package userdelete
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/service/users"
 	"github.com/theduckcompany/duckcloud/src/service/websessions"
 	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/errs"
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
 )
 
@@ -111,13 +113,14 @@ func (j *Job) deleteUser(ctx context.Context, user *users.User) error {
 			Root:     folder.RootFS(),
 			FullName: "/",
 		})
-		if err != nil {
+		if err != nil && !errors.Is(err, errs.ErrNotFound) {
+			fmt.Printf("this error: %q\n\n", err)
 			return fmt.Errorf("failed to delete the user root fs: %w", err)
 		}
 
 		err = j.folders.Delete(ctx, folder.ID())
 		if err != nil {
-			return fmt.Errorf("failed to delet the folder %q: %w", folder.ID(), err)
+			return fmt.Errorf("failed to delete the folder %q: %w", folder.ID(), err)
 		}
 	}
 
