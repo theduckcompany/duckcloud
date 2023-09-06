@@ -17,6 +17,7 @@ var (
 	ErrRootFSNotFound = errors.New("rootFS not found")
 	ErrRootFSExist    = errors.New("rootFS exists")
 	ErrInvalidRootFS  = errors.New("invalid rootFS")
+	ErrNotFound       = errors.New("folder not found")
 )
 
 //go:generate mockery --name Storage
@@ -25,6 +26,7 @@ type Storage interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*Folder, error)
 	GetAllUserFolders(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error)
 	Delete(ctx context.Context, folderID uuid.UUID) error
+	Patch(ctx context.Context, folderID uuid.UUID, fields map[string]any) error
 }
 
 type FolderService struct {
@@ -54,13 +56,16 @@ func (s *FolderService) CreatePersonalFolder(ctx context.Context, cmd *CreatePer
 		return nil, errs.BadRequest(ErrInvalidRootFS, "invalid rootFS")
 	}
 
+	now := s.clock.Now()
 	folder := Folder{
-		id:        s.uuid.New(),
-		name:      cmd.Name,
-		isPublic:  false,
-		owners:    Owners{cmd.Owner},
-		rootFS:    inode.ID(),
-		createdAt: s.clock.Now(),
+		id:             s.uuid.New(),
+		name:           cmd.Name,
+		isPublic:       false,
+		owners:         Owners{cmd.Owner},
+		rootFS:         inode.ID(),
+		size:           0,
+		createdAt:      now,
+		lastModifiedAt: now,
 	}
 
 	err = s.storage.Save(ctx, &folder)
@@ -69,6 +74,30 @@ func (s *FolderService) CreatePersonalFolder(ctx context.Context, cmd *CreatePer
 	}
 
 	return &folder, nil
+}
+
+func (s *FolderService) RegisterWrite(ctx context.Context, folderID uuid.UUID, size uint64) (*Folder, error) {
+	folder, err := s.GetByID(ctx, folderID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to GetByID: %w", err)
+	}
+
+	if folder == nil {
+		return nil, ErrNotFound
+	}
+
+	folder.lastModifiedAt = s.clock.Now()
+	folder.size += size
+
+	err = s.storage.Patch(ctx, folderID, map[string]any{
+		"last_modified_at": folder.lastModifiedAt,
+		"size":             folder.size,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to Patch: %w", err)
+	}
+
+	return folder, nil
 }
 
 func (s *FolderService) Delete(ctx context.Context, folderID uuid.UUID) error {

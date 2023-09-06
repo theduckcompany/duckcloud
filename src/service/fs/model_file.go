@@ -12,31 +12,36 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/theduckcompany/duckcloud/src/service/files"
+	"github.com/theduckcompany/duckcloud/src/service/folders"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 )
 
 const maxBufSize = 1024 * 1024
 
 type File struct {
-	inode  *inodes.INode
-	inodes inodes.Service
-	files  files.Service
-	cmd    *inodes.PathCmd
-	file   afero.File
-	buffer *bytes.Buffer
-	hasher hash.Hash
+	inode   *inodes.INode
+	inodes  inodes.Service
+	folder  *folders.Folder
+	folders folders.Service
+	files   files.Service
+	cmd     *inodes.PathCmd
+	file    afero.File
+	buffer  *bytes.Buffer
+	hasher  hash.Hash
 }
 
 func NewFile(inode *inodes.INode,
 	inodes inodes.Service,
 	files files.Service,
+	folder *folders.Folder,
+	folders folders.Service,
 	cmd *inodes.PathCmd,
 	file afero.File,
 ) *File {
 	buffer := new(bytes.Buffer)
 	buffer.Grow(maxBufSize)
 
-	return &File{inode, inodes, files, cmd, file, buffer, sha256.New()}
+	return &File{inode, inodes, folder, folders, files, cmd, file, buffer, sha256.New()}
 }
 
 func (f *File) Close() error {
@@ -112,6 +117,11 @@ func (f *File) Sync() error {
 	err = f.inodes.RegisterWrite(context.Background(), f.inode, sizeWrite, f.hasher)
 	if err != nil {
 		return fmt.Errorf("failed to RegisterWrite: %w", err)
+	}
+
+	f.folder, err = f.folders.RegisterWrite(context.Background(), f.folder.ID(), uint64(sizeWrite))
+	if err != nil {
+		return fmt.Errorf("failed to RegisterWrite into folder: %w", err)
 	}
 
 	f.buffer.Reset()

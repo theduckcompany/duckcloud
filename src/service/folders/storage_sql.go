@@ -15,6 +15,8 @@ import (
 
 const tableName = "fs_folders"
 
+var allFields = []string{"id", "name", "public", "size", "owners", "root_fs", "created_at", "last_modified_at"}
+
 type sqlStorage struct {
 	db    *sql.DB
 	clock clock.Clock
@@ -27,8 +29,8 @@ func newSqlStorage(db *sql.DB, tools tools.Tools) *sqlStorage {
 func (s *sqlStorage) Save(ctx context.Context, folder *Folder) error {
 	_, err := sq.
 		Insert(tableName).
-		Columns("id", "name", "public", "owners", "root_fs", "created_at").
-		Values(folder.id, folder.name, folder.isPublic, folder.owners, folder.rootFS, folder.createdAt).
+		Columns(allFields...).
+		Values(folder.id, folder.name, folder.isPublic, folder.size, folder.owners, folder.rootFS, folder.createdAt, folder.lastModifiedAt).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -40,7 +42,7 @@ func (s *sqlStorage) Save(ctx context.Context, folder *Folder) error {
 
 func (s *sqlStorage) GetAllUserFolders(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error) {
 	rows, err := storage.PaginateSelection(sq.
-		Select("id", "name", "public", "owners", "root_fs", "created_at").
+		Select(allFields...).
 		Where(sq.Like{"owners": fmt.Sprintf("%%%s%%", userID)}).
 		From(tableName), cmd).
 		RunWith(s.db).
@@ -71,11 +73,24 @@ func (s *sqlStorage) Delete(ctx context.Context, folderID uuid.UUID) error {
 	return nil
 }
 
+func (s *sqlStorage) Patch(ctx context.Context, folderID uuid.UUID, fields map[string]any) error {
+	_, err := sq.Update(tableName).
+		SetMap(fields).
+		Where(sq.Eq{"id": folderID}).
+		RunWith(s.db).
+		ExecContext(ctx)
+	if err != nil {
+		return fmt.Errorf("sql error: %w", err)
+	}
+
+	return nil
+}
+
 func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*Folder, error) {
 	res := Folder{}
 
 	query := sq.
-		Select("id", "name", "public", "owners", "root_fs", "created_at").
+		Select(allFields...).
 		From(tableName)
 
 	for _, where := range wheres {
@@ -84,7 +99,7 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*Folder, err
 
 	err := query.
 		RunWith(s.db).
-		ScanContext(ctx, &res.id, &res.name, &res.isPublic, &res.owners, &res.rootFS, &res.createdAt)
+		ScanContext(ctx, &res.id, &res.name, &res.isPublic, &res.size, &res.owners, &res.rootFS, &res.createdAt, &res.lastModifiedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -102,7 +117,7 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]Folder, error) {
 	for rows.Next() {
 		var res Folder
 
-		err := rows.Scan(&res.id, &res.name, &res.isPublic, &res.owners, &res.rootFS, &res.createdAt)
+		err := rows.Scan(&res.id, &res.name, &res.isPublic, &res.size, &res.owners, &res.rootFS, &res.createdAt, &res.lastModifiedAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}

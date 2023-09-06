@@ -9,21 +9,26 @@ import (
 	"path"
 
 	"github.com/theduckcompany/duckcloud/src/service/files"
+	"github.com/theduckcompany/duckcloud/src/service/folders"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
-	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 var ErrNotImplemented = errors.New("not implemented")
 
 type FSService struct {
-	folderID uuid.UUID
-	root     uuid.UUID
-	inodes   inodes.Service
-	files    files.Service
+	inodes  inodes.Service
+	files   files.Service
+	folder  *folders.Folder
+	folders folders.Service
 }
 
-func NewFSService(folderID, root uuid.UUID, inodes inodes.Service, files files.Service) *FSService {
-	return &FSService{folderID, root, inodes, files}
+func NewFSService(
+	inodes inodes.Service,
+	files files.Service,
+	folder *folders.Folder,
+	folders folders.Service,
+) *FSService {
+	return &FSService{inodes, files, folder, folders}
 }
 
 func (s *FSService) CreateDir(ctx context.Context, name string, perm os.FileMode) error {
@@ -33,7 +38,7 @@ func (s *FSService) CreateDir(ctx context.Context, name string, perm os.FileMode
 	}
 
 	_, err = s.inodes.CreateDir(ctx, &inodes.PathCmd{
-		Root:     s.root,
+		Root:     s.folder.RootFS(),
 		FullName: name,
 	})
 	if err != nil {
@@ -54,7 +59,7 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 	}
 
 	pathCmd := inodes.PathCmd{
-		Root:     s.root,
+		Root:     s.folder.RootFS(),
 		FullName: name,
 	}
 
@@ -94,7 +99,7 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 		return nil, fmt.Errorf("failed to Open the file %q: %w", inode.ID(), err)
 	}
 
-	return NewFile(inode, s.inodes, s.files, &pathCmd, file), nil
+	return NewFile(inode, s.inodes, s.files, s.folder, s.folders, &pathCmd, file), nil
 }
 
 func (s *FSService) RemoveAll(ctx context.Context, name string) error {
@@ -104,7 +109,7 @@ func (s *FSService) RemoveAll(ctx context.Context, name string) error {
 	}
 
 	err = s.inodes.RemoveAll(ctx, &inodes.PathCmd{
-		Root:     s.root,
+		Root:     s.folder.RootFS(),
 		FullName: name,
 	})
 	if err != nil {
@@ -135,7 +140,7 @@ func (s *FSService) Stat(ctx context.Context, name string) (os.FileInfo, error) 
 	}
 
 	res, err := s.inodes.Get(ctx, &inodes.PathCmd{
-		Root:     s.root,
+		Root:     s.folder.RootFS(),
 		FullName: name,
 	})
 	if err != nil {

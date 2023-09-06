@@ -3,8 +3,10 @@ package folders
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
@@ -42,6 +44,21 @@ func TestFolderSqlstore(t *testing.T) {
 		res, err := store.GetAllUserFolders(ctx, AliceID, nil)
 		assert.NoError(t, err)
 		assert.EqualValues(t, []Folder{ExampleAlicePersonalFolder}, res)
+	})
+
+	t.Run("Patch success", func(t *testing.T) {
+		now := time.Now().UTC()
+
+		err := store.Patch(ctx, ExampleAlicePersonalFolder.id, map[string]any{"last_modified_at": now})
+		require.NoError(t, err)
+
+		res, err := store.GetByID(ctx, ExampleAlicePersonalFolder.id)
+
+		expected := ExampleAlicePersonalFolder
+		expected.lastModifiedAt = now
+
+		assert.NoError(t, err)
+		assert.Equal(t, &expected, res)
 	})
 
 	t.Run("Delete success", func(t *testing.T) {

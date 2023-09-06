@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/src/service/files"
+	"github.com/theduckcompany/duckcloud/src/service/folders"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/logger"
@@ -28,13 +29,19 @@ func Test_FS(t *testing.T) {
 	barTxtContent := []byte("Hello, World!")
 
 	inodesSvc := inodes.Init(tools, db)
+	foldersSvc := folders.Init(tools, db, inodesSvc)
+
 	afs := afero.NewMemMapFs()
 	filesSvc, err := files.NewFSService(afs, "/", tools.Logger())
 	require.NoError(t, err)
 
-	rootInode, err := inodesSvc.CreateRootDir(ctx)
+	folder, err := foldersSvc.CreatePersonalFolder(ctx, &folders.CreatePersonalFolderCmd{
+		Name:  "My folder",
+		Owner: userID,
+	})
 	require.NoError(t, err)
-	duckFS := NewFSService(userID, rootInode.ID(), inodesSvc, filesSvc)
+
+	duckFS := NewFSService(inodesSvc, filesSvc, folder, foldersSvc)
 
 	var file FileOrDirectory
 
