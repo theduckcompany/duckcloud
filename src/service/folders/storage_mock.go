@@ -82,6 +82,20 @@ func (_m *MockStorage) GetByID(ctx context.Context, id uuid.UUID) (*Folder, erro
 	return r0, r1
 }
 
+// Patch provides a mock function with given fields: ctx, folderID, fields
+func (_m *MockStorage) Patch(ctx context.Context, folderID uuid.UUID, fields map[string]interface{}) error {
+	ret := _m.Called(ctx, folderID, fields)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, map[string]interface{}) error); ok {
+		r0 = rf(ctx, folderID, fields)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: ctx, folder
 func (_m *MockStorage) Save(ctx context.Context, folder *Folder) error {
 	ret := _m.Called(ctx, folder)

@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/theduckcompany/duckcloud/src/service/davsessions"
@@ -123,12 +124,21 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	fmt.Printf("input folders: %v\n\n", r.FormValue("folders"))
+	folders := []uuid.UUID{}
+	for _, rawUUID := range strings.Split(r.FormValue("folders"), ",") {
+		id, err := h.uuid.Parse(rawUUID)
+		if err != nil {
+			fmt.Fprintf(w, `<div class="alert alert-danger role="alert">invalid id: %s</div>`, err)
+			return
+		}
+
+		folders = append(folders, id)
+	}
 
 	newSession, secret, err := h.davSessions.Create(ctx, &davsessions.CreateCmd{
 		UserID:  user.ID(),
 		Name:    r.FormValue("name"),
-		Folders: []uuid.UUID{},
+		Folders: folders,
 	})
 	if err != nil {
 		fmt.Fprintf(w, `<div class="alert alert-danger role="alert">%s</div>`, err)

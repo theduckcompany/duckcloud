@@ -108,6 +108,32 @@ func (_m *MockService) GetByID(ctx context.Context, folderID uuid.UUID) (*Folder
 	return r0, r1
 }
 
+// RegisterWrite provides a mock function with given fields: ctx, folderID, size
+func (_m *MockService) RegisterWrite(ctx context.Context, folderID uuid.UUID, size uint64) (*Folder, error) {
+	ret := _m.Called(ctx, folderID, size)
+
+	var r0 *Folder
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uint64) (*Folder, error)); ok {
+		return rf(ctx, folderID, size)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uint64) *Folder); ok {
+		r0 = rf(ctx, folderID, size)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*Folder)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uint64) error); ok {
+		r1 = rf(ctx, folderID, size)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewMockService creates a new instance of MockService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockService(t interface {

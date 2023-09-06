@@ -20,7 +20,9 @@ func Test_Folder_Getters(t *testing.T) {
 	assert.Equal(t, ExampleAlicePersonalFolder.IsPublic(), ExampleAlicePersonalFolder.isPublic)
 	assert.Equal(t, ExampleAlicePersonalFolder.Owners(), ExampleAlicePersonalFolder.owners)
 	assert.Equal(t, ExampleAlicePersonalFolder.RootFS(), ExampleAlicePersonalFolder.rootFS)
+	assert.Equal(t, ExampleAlicePersonalFolder.Size(), ExampleAlicePersonalFolder.size)
 	assert.Equal(t, ExampleAlicePersonalFolder.CreatedAt(), ExampleAlicePersonalFolder.createdAt)
+	assert.Equal(t, ExampleAlicePersonalFolder.LastModifiedAt(), ExampleAlicePersonalFolder.lastModifiedAt)
 }
 
 func Test_Owners_Getters(t *testing.T) {

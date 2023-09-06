@@ -16,6 +16,7 @@ type Service interface {
 	GetAllUserFolders(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error)
 	GetByID(ctx context.Context, folderID uuid.UUID) (*Folder, error)
 	Delete(ctx context.Context, folderID uuid.UUID) error
+	RegisterWrite(ctx context.Context, folderID uuid.UUID, size uint64) (*Folder, error)
 }
 
 func Init(tools tools.Tools, db *sql.DB, inodes inodes.Service) Service {

@@ -12,20 +12,24 @@ import (
 )
 
 type Folder struct {
-	id        uuid.UUID
-	name      string
-	isPublic  bool
-	owners    Owners
-	rootFS    uuid.UUID
-	createdAt time.Time
+	id             uuid.UUID
+	name           string
+	isPublic       bool
+	owners         Owners
+	size           uint64
+	rootFS         uuid.UUID
+	createdAt      time.Time
+	lastModifiedAt time.Time
 }
 
-func (f *Folder) ID() uuid.UUID        { return f.id }
-func (f *Folder) Name() string         { return f.name }
-func (f *Folder) IsPublic() bool       { return f.isPublic }
-func (f *Folder) Owners() Owners       { return f.owners }
-func (f *Folder) RootFS() uuid.UUID    { return f.rootFS }
-func (f *Folder) CreatedAt() time.Time { return f.createdAt }
+func (f *Folder) ID() uuid.UUID             { return f.id }
+func (f *Folder) Name() string              { return f.name }
+func (f *Folder) IsPublic() bool            { return f.isPublic }
+func (f *Folder) Owners() Owners            { return f.owners }
+func (f *Folder) RootFS() uuid.UUID         { return f.rootFS }
+func (f *Folder) Size() uint64              { return f.size }
+func (f *Folder) CreatedAt() time.Time      { return f.createdAt }
+func (f *Folder) LastModifiedAt() time.Time { return f.lastModifiedAt }
 
 type Owners []uuid.UUID
 
