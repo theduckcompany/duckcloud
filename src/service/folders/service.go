@@ -86,6 +86,14 @@ func (s *FolderService) RegisterWrite(ctx context.Context, folderID uuid.UUID, s
 	lock.Lock()
 	defer lock.Unlock()
 
+	return s.registerSizeChange(ctx, folderID, size, true)
+}
+
+func (s *FolderService) RegisterDeletion(ctx context.Context, folderID uuid.UUID, size uint64) (*Folder, error) {
+	return s.registerSizeChange(ctx, folderID, size, false)
+}
+
+func (s *FolderService) registerSizeChange(ctx context.Context, folderID uuid.UUID, size uint64, positif bool) (*Folder, error) {
 	folder, err := s.GetByID(ctx, folderID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to GetByID: %w", err)
@@ -96,7 +104,15 @@ func (s *FolderService) RegisterWrite(ctx context.Context, folderID uuid.UUID, s
 	}
 
 	folder.lastModifiedAt = s.clock.Now()
-	folder.size += size
+	switch {
+	case positif:
+		folder.size += size
+	case !positif && size < folder.size:
+		folder.size -= size
+	default:
+		// We try to remove more bytes than there is.
+		folder.size = 0
+	}
 
 	err = s.storage.Patch(ctx, folderID, map[string]any{
 		"last_modified_at": folder.lastModifiedAt,

@@ -99,7 +99,7 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 		return nil, fmt.Errorf("failed to Open the file %q: %w", inode.ID(), err)
 	}
 
-	return NewFile(inode, s.inodes, s.files, s.folder, s.folders, &pathCmd, file), nil
+	return NewFile(inode, s.inodes, s.files, s.folder.ID(), s.folders, &pathCmd, file), nil
 }
 
 func (s *FSService) RemoveAll(ctx context.Context, name string) error {

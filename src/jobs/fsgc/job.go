@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/theduckcompany/duckcloud/src/service/files"
+	"github.com/theduckcompany/duckcloud/src/service/folders"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
@@ -17,16 +18,17 @@ const (
 )
 
 type Job struct {
-	inodes inodes.Service
-	files  files.Service
-	log    *slog.Logger
-	cancel context.CancelFunc
-	quit   chan struct{}
+	inodes  inodes.Service
+	files   files.Service
+	folders folders.Service
+	log     *slog.Logger
+	cancel  context.CancelFunc
+	quit    chan struct{}
 }
 
-func NewJob(inodes inodes.Service, files files.Service, tools tools.Tools) *Job {
+func NewJob(inodes inodes.Service, files files.Service, folders folders.Service, tools tools.Tools) *Job {
 	logger := tools.Logger().With(slog.String("job", jobName))
-	return &Job{inodes, files, logger, nil, make(chan struct{})}
+	return &Job{inodes, files, folders, logger, nil, make(chan struct{})}
 }
 
 func (j *Job) Run(ctx context.Context) error {
@@ -53,36 +55,72 @@ func (j *Job) Run(ctx context.Context) error {
 	}
 }
 
+func (j *Job) deleteDirINode(ctx context.Context, inode *inodes.INode) error {
+	for {
+		childs, err := j.inodes.Readdir(ctx, &inodes.PathCmd{
+			Root:     inode.ID(),
+			FullName: "/",
+		}, &storage.PaginateCmd{Limit: gcBatchSize})
+		if err != nil {
+			return fmt.Errorf("failed to Readdir: %w", err)
+		}
+
+		for _, child := range childs {
+			err = j.deleteINode(ctx, &child)
+			if err != nil {
+				return fmt.Errorf("failed to deleteINode %q: %w", child.ID(), err)
+			}
+		}
+
+		if len(childs) < gcBatchSize {
+			break
+		}
+	}
+
+	err := j.inodes.HardDelete(ctx, inode.ID())
+	if err != nil {
+		return fmt.Errorf("failed to HardDelete: %w", err)
+	}
+
+	return nil
+}
+
 func (j *Job) deleteINode(ctx context.Context, inode *inodes.INode) error {
 	if inode.Mode().IsDir() {
-		for {
-			childs, err := j.inodes.Readdir(ctx, &inodes.PathCmd{
-				Root:     inode.ID(),
-				FullName: "/",
-			}, &storage.PaginateCmd{Limit: gcBatchSize})
-			if err != nil {
-				return fmt.Errorf("failed to Readdir: %w", err)
-			}
-
-			for _, child := range childs {
-				err = j.deleteINode(ctx, &child)
-				if err != nil {
-					return fmt.Errorf("failed to deleteINode %q: %w", child.ID(), err)
-				}
-			}
-
-			if len(childs) < gcBatchSize {
-				break
-			}
-		}
+		return j.deleteDirINode(ctx, inode)
 	}
 
-	if !inode.Mode().IsDir() {
-		err := j.files.Delete(ctx, inode.ID())
+	// For the file we have several steps:
+	//
+	// - Reduce all the concerned folder size
+	// - Remove the corresponding file
+	// - Remove the corresponding inode
+	rootInode, err := j.inodes.GetINodeRoot(ctx, inode)
+	if err != nil {
+		return fmt.Errorf("failed to GetINodeRoot: %w", err)
+	}
+
+	folders, err := j.folders.GetAllFoldersWithRoot(ctx, rootInode.ID(), nil)
+	if err != nil {
+		return fmt.Errorf("failed to GetAllFoldersWithRoot: %w", err)
+	}
+
+	for _, folder := range folders {
+		_, err = j.folders.RegisterDeletion(ctx, folder.ID(), uint64(inode.Size()))
 		if err != nil {
-			return fmt.Errorf("failed to remove the file %q: %w", inode.ID(), err)
+			return fmt.Errorf("failed to RegisterDeletion: %w", err)
 		}
 	}
 
-	return j.inodes.HardDelete(ctx, inode.ID())
+	err = j.files.Delete(ctx, inode.ID())
+	if err != nil {
+		return fmt.Errorf("failed to remove the file %q: %w", inode.ID(), err)
+	}
+
+	err = j.inodes.HardDelete(ctx, inode.ID())
+	if err != nil {
+		return fmt.Errorf("failed to HardDelete: %w", err)
+	}
+
+	return nil
 }

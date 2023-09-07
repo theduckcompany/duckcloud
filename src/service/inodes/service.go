@@ -235,17 +235,21 @@ func (s *INodeService) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 
 // GetINodeRoot returns the Root folder for any given inode.
 func (s *INodeService) GetINodeRoot(ctx context.Context, inode *INode) (*INode, error) {
-	var err error
-
 	for {
 		if inode.parent == nil {
 			return inode, nil
 		}
 
-		inode, err = s.GetByID(ctx, *inode.Parent())
+		parent, err := s.GetByID(ctx, *inode.Parent())
 		if err != nil {
 			return nil, fmt.Errorf("failed to GetByID: %w", err)
 		}
+
+		if parent == nil {
+			return inode, nil
+		}
+
+		inode = parent
 	}
 }
 

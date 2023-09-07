@@ -56,6 +56,32 @@ func (_m *MockService) Delete(ctx context.Context, folderID uuid.UUID) error {
 	return r0
 }
 
+// GetAllFoldersWithRoot provides a mock function with given fields: ctx, rootID, cmd
+func (_m *MockService) GetAllFoldersWithRoot(ctx context.Context, rootID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error) {
+	ret := _m.Called(ctx, rootID, cmd)
+
+	var r0 []Folder
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) ([]Folder, error)); ok {
+		return rf(ctx, rootID, cmd)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) []Folder); ok {
+		r0 = rf(ctx, rootID, cmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]Folder)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *storage.PaginateCmd) error); ok {
+		r1 = rf(ctx, rootID, cmd)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetAllUserFolders provides a mock function with given fields: ctx, userID, cmd
 func (_m *MockService) GetAllUserFolders(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error) {
 	ret := _m.Called(ctx, userID, cmd)
@@ -101,6 +127,32 @@ func (_m *MockService) GetByID(ctx context.Context, folderID uuid.UUID) (*Folder
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
 		r1 = rf(ctx, folderID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RegisterDeletion provides a mock function with given fields: ctx, folderID, size
+func (_m *MockService) RegisterDeletion(ctx context.Context, folderID uuid.UUID, size uint64) (*Folder, error) {
+	ret := _m.Called(ctx, folderID, size)
+
+	var r0 *Folder
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uint64) (*Folder, error)); ok {
+		return rf(ctx, folderID, size)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uint64) *Folder); ok {
+		r0 = rf(ctx, folderID, size)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*Folder)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uint64) error); ok {
+		r1 = rf(ctx, folderID, size)
 	} else {
 		r1 = ret.Error(1)
 	}
