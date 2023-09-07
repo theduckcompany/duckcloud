@@ -13,6 +13,8 @@ import (
 
 const tableName = "oauth_sessions"
 
+var allFields = []string{"access_token", "access_created_at", "access_expires_at", "refresh_token", "refresh_created_at", "refresh_expires_at", "client_id", "user_id", "scope"}
+
 type sqlStorage struct {
 	db *sql.DB
 }
@@ -24,17 +26,7 @@ func newSqlStorage(db *sql.DB) *sqlStorage {
 func (s *sqlStorage) Save(ctx context.Context, session *Session) error {
 	_, err := sq.
 		Insert(tableName).
-		Columns(
-			"access_token",
-			"access_created_at",
-			"access_expires_at",
-			"refresh_token",
-			"refresh_created_at",
-			"refresh_expires_at",
-			"client_id",
-			"user_id",
-			"scope",
-		).
+		Columns(allFields...).
 		Values(
 			session.accessToken,
 			session.accessCreatedAt,
@@ -91,17 +83,7 @@ func (s *sqlStorage) GetByRefreshToken(ctx context.Context, refresh string) (*Se
 
 func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
 	rows, err := storage.PaginateSelection(sq.
-		Select(
-			"access_token",
-			"access_created_at",
-			"access_expires_at",
-			"refresh_token",
-			"refresh_created_at",
-			"refresh_expires_at",
-			"client_id",
-			"user_id",
-			"scope",
-		).
+		Select(allFields...).
 		Where(sq.Eq{"user_id": userID}).
 		From(tableName), cmd).
 		RunWith(s.db).
@@ -118,17 +100,7 @@ func (s *sqlStorage) get(ctx context.Context, conditions ...any) (*Session, erro
 	res := Session{}
 
 	query := sq.
-		Select(
-			"access_token",
-			"access_created_at",
-			"access_expires_at",
-			"refresh_token",
-			"refresh_created_at",
-			"refresh_expires_at",
-			"client_id",
-			"user_id",
-			"scope",
-		).
+		Select(allFields...).
 		From(tableName)
 
 	for _, condition := range conditions {

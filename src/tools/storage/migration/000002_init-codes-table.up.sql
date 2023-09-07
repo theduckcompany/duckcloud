@@ -10,5 +10,4 @@ CREATE TABLE IF NOT EXISTS oauth_codes (
   "scope" TEXT NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_oauth_codes_expires_at ON oauth_codes (expires_at);
-CREATE INDEX IF NOT EXISTS idx_oauth_codes_pair ON oauth_codes (code);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_oauth_codes_code ON oauth_codes(code);

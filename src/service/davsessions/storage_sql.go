@@ -13,6 +13,8 @@ import (
 
 const tableName = "dav_sessions"
 
+var allFields = []string{"id", "username", "name", "password", "user_id", "folders", "created_at"}
+
 type sqlStorage struct {
 	db *sql.DB
 }
@@ -24,7 +26,7 @@ func newSqlStorage(db *sql.DB) *sqlStorage {
 func (t *sqlStorage) Save(ctx context.Context, session *DavSession) error {
 	_, err := sq.
 		Insert(tableName).
-		Columns("id", "username", "name", "password", "user_id", "folders", "created_at").
+		Columns(allFields...).
 		Values(session.id, session.username, session.name, session.password, session.userID, session.folders, session.createdAt).
 		RunWith(t.db).
 		ExecContext(ctx)
@@ -39,7 +41,7 @@ func (t *sqlStorage) GetByID(ctx context.Context, sessionID uuid.UUID) (*DavSess
 	res := DavSession{}
 
 	err := sq.
-		Select("id", "username", "name", "password", "user_id", "folders", "created_at").
+		Select(allFields...).
 		From(tableName).
 		Where(sq.Eq{"id": sessionID}).
 		RunWith(t.db).
@@ -72,7 +74,7 @@ func (t *sqlStorage) GetByUsernameAndPassHash(ctx context.Context, username, pas
 	res := DavSession{}
 
 	err := sq.
-		Select("id", "username", "name", "password", "user_id", "folders", "created_at").
+		Select(allFields...).
 		From(tableName).
 		Where(sq.Eq{"username": username, "password": password}).
 		RunWith(t.db).
@@ -90,7 +92,7 @@ func (t *sqlStorage) GetByUsernameAndPassHash(ctx context.Context, username, pas
 
 func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]DavSession, error) {
 	rows, err := storage.PaginateSelection(sq.
-		Select("id", "username", "name", "password", "user_id", "folders", "created_at").
+		Select(allFields...).
 		Where(sq.Eq{"user_id": string(userID)}).
 		From(tableName), cmd).
 		RunWith(s.db).

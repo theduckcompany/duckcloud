@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS oauth_clients (
-  "id" TEXT  NOT NULL PRIMARY KEY,
+  "id" TEXT  NOT NULL,
   "name" TEXT NOT NULL,
   "secret" TEXT NOT NULL,
   "redirect_uri" TEXT NOT NULL,
@@ -9,3 +9,5 @@ CREATE TABLE IF NOT EXISTS oauth_clients (
   "is_public" BOOLEAN NOT NULL,
   "skip_validation" BOOLEAN NOT NULL
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_oauth_clients_id ON oauth_clients(id);

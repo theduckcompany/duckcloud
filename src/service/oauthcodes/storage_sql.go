@@ -11,6 +11,8 @@ import (
 
 const tableName = "oauth_codes"
 
+var allFields = []string{"code", "created_at", "expires_at", "client_id", "user_id", "redirect_uri", "scope", "challenge", "challenge_method"}
+
 type sqlStorage struct {
 	db *sql.DB
 }
@@ -22,17 +24,7 @@ func newSqlStorage(db *sql.DB) *sqlStorage {
 func (t *sqlStorage) Save(ctx context.Context, code *Code) error {
 	_, err := sq.
 		Insert(tableName).
-		Columns(
-			"code",
-			"created_at",
-			"expires_at",
-			"client_id",
-			"user_id",
-			"redirect_uri",
-			"scope",
-			"challenge",
-			"challenge_method",
-		).
+		Columns(allFields...).
 		Values(
 			code.code,
 			code.createdAt,
@@ -70,17 +62,7 @@ func (t *sqlStorage) GetByCode(ctx context.Context, code string) (*Code, error) 
 	res := Code{}
 
 	err := sq.
-		Select(
-			"code",
-			"created_at",
-			"expires_at",
-			"client_id",
-			"user_id",
-			"redirect_uri",
-			"scope",
-			"challenge",
-			"challenge_method",
-		).
+		Select(allFields...).
 		From(tableName).
 		Where(sq.Eq{"code": code}).
 		RunWith(t.db).
