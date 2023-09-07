@@ -233,6 +233,22 @@ func (s *INodeService) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	return inode, nil
 }
 
+// GetINodeRoot returns the Root folder for any given inode.
+func (s *INodeService) GetINodeRoot(ctx context.Context, inode *INode) (*INode, error) {
+	var err error
+
+	for {
+		if inode.parent == nil {
+			return inode, nil
+		}
+
+		inode, err = s.GetByID(ctx, *inode.Parent())
+		if err != nil {
+			return nil, fmt.Errorf("failed to GetByID: %w", err)
+		}
+	}
+}
+
 // walk walks the directory tree for the fullname, calling f at each step. If f
 // returns an error, the walk will be aborted and return that same error.
 //

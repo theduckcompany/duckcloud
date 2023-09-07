@@ -22,6 +22,7 @@ type Service interface {
 	CreateDir(ctx context.Context, cmd *PathCmd) (*INode, error)
 	CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INode, error)
 	RegisterWrite(ctx context.Context, inode *INode, sizeWrite int, h hash.Hash) error
+	GetINodeRoot(ctx context.Context, inode *INode) (*INode, error)
 }
 
 func Init(tools tools.Tools, db *sql.DB) Service {
