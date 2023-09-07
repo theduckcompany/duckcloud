@@ -538,4 +538,28 @@ func TestINodes(t *testing.T) {
 		err = service.RegisterWrite(ctx, &ExampleAliceFile, n, hash)
 		assert.NoError(t, err)
 	})
+
+	t.Run("GetINodeRoot success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		storageMock.On("GetByID", mock.Anything, *ExampleAliceFile.parent).Return(&ExampleAliceRoot, nil).Once()
+
+		res, err := service.GetINodeRoot(ctx, &ExampleAliceFile)
+		assert.NoError(t, err)
+		assert.EqualValues(t, &ExampleAliceRoot, res)
+	})
+
+	t.Run("GetINodeRoot with a root", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		// There is not call to GetByID because there is no parent.
+
+		res, err := service.GetINodeRoot(ctx, &ExampleAliceRoot)
+		assert.NoError(t, err)
+		assert.EqualValues(t, &ExampleAliceRoot, res)
+	})
 }

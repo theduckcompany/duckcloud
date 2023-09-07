@@ -174,6 +174,32 @@ func (_m *MockService) GetByID(ctx context.Context, inodeID uuid.UUID) (*INode, 
 	return r0, r1
 }
 
+// GetINodeRoot provides a mock function with given fields: ctx, inode
+func (_m *MockService) GetINodeRoot(ctx context.Context, inode *INode) (*INode, error) {
+	ret := _m.Called(ctx, inode)
+
+	var r0 *INode
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *INode) (*INode, error)); ok {
+		return rf(ctx, inode)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *INode) *INode); ok {
+		r0 = rf(ctx, inode)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*INode)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *INode) error); ok {
+		r1 = rf(ctx, inode)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // HardDelete provides a mock function with given fields: ctx, inode
 func (_m *MockService) HardDelete(ctx context.Context, inode uuid.UUID) error {
 	ret := _m.Called(ctx, inode)
