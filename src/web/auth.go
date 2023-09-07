@@ -50,7 +50,8 @@ func newAuthHandler(
 func (h *authHandler) Register(r chi.Router, mids router.Middlewares) {
 	auth := r.With(mids.RealIP, mids.StripSlashed, mids.Logger, mids.CORS)
 
-	auth.HandleFunc("/login", h.handleLoginPage)
+	auth.Get("/login", h.printLoginPage)
+	auth.Post("/login", h.applyLogin)
 	auth.HandleFunc("/consent", h.handleConsentPage)
 }
 
@@ -58,14 +59,20 @@ func (h *authHandler) String() string {
 	return "web.auth"
 }
 
-func (h *authHandler) handleLoginPage(w http.ResponseWriter, r *http.Request) {
-	_ = r.ParseForm()
+func (h *authHandler) printLoginPage(w http.ResponseWriter, r *http.Request) {
+	currentSession, _ := h.webSession.GetFromReq(r)
 
-	if r.Method == http.MethodGet {
-		w.Header().Set("HX-Refresh", "true")
-		h.response.WriteHTML(w, http.StatusOK, "auth/login.tmpl", true, nil)
+	if currentSession != nil {
+		h.chooseRedirection(w, r)
 		return
 	}
+
+	w.Header().Set("HX-Refresh", "true")
+	h.response.WriteHTML(w, http.StatusOK, "auth/login.tmpl", true, nil)
+}
+
+func (h *authHandler) applyLogin(w http.ResponseWriter, r *http.Request) {
+	_ = r.ParseForm()
 
 	inputs := map[string]string{}
 	loginErrors := map[string]string{}
@@ -96,16 +103,6 @@ func (h *authHandler) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var client *oauthclients.Client
-	clientID, err := h.uuid.Parse(r.FormValue("client_id"))
-	if err == nil {
-		client, err = h.clients.GetByID(r.Context(), clientID)
-		if err != nil {
-			h.response.WriteJSONError(w, errs.BadRequest(oauth2.ErrClientNotFound, "client not found"))
-			return
-		}
-	}
-
 	session, err := h.webSession.Create(r.Context(), &websessions.CreateCmd{
 		UserID: string(user.ID()),
 		Req:    r,
@@ -119,16 +116,30 @@ func (h *authHandler) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 	c := http.Cookie{
 		Name:     "session_token",
 		Value:    session.Token(),
-		Secure:   false,
+		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 		Path:     "/",
 	}
 	http.SetCookie(w, &c)
 
+	h.chooseRedirection(w, r)
+}
+
+func (h *authHandler) chooseRedirection(w http.ResponseWriter, r *http.Request) {
+	var client *oauthclients.Client
+	clientID, err := h.uuid.Parse(r.FormValue("client_id"))
+	if err == nil {
+		client, err = h.clients.GetByID(r.Context(), clientID)
+		if err != nil {
+			h.response.WriteJSONError(w, errs.BadRequest(oauth2.ErrClientNotFound, "client not found"))
+			return
+		}
+	}
+
 	switch {
 	case client == nil:
-		w.Header().Set("Location", "/settings")
+		w.Header().Set("Location", "/")
 		w.WriteHeader(http.StatusFound)
 	case client.SkipValidation():
 		w.Header().Set("Location", "/auth/authorize")
