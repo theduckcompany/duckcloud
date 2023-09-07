@@ -46,6 +46,18 @@ func TestFolderSqlstore(t *testing.T) {
 		assert.EqualValues(t, []Folder{ExampleAlicePersonalFolder}, res)
 	})
 
+	t.Run("GetAllFoldersWithRoot success", func(t *testing.T) {
+		res, err := store.GetAllFoldersWithRoot(ctx, ExampleAlicePersonalFolder.rootFS, nil)
+		assert.NoError(t, err)
+		assert.EqualValues(t, []Folder{ExampleAlicePersonalFolder}, res)
+	})
+
+	t.Run("GetAllFoldersWithRoot with an invalid id", func(t *testing.T) {
+		res, err := store.GetAllFoldersWithRoot(ctx, "some-invalid-id", nil)
+		assert.NoError(t, err)
+		assert.EqualValues(t, []Folder{}, res)
+	})
+
 	t.Run("Patch success", func(t *testing.T) {
 		now := time.Now().UTC()
 
