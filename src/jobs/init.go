@@ -30,7 +30,7 @@ func StartJobs(
 	inodes inodes.Service,
 	tools tools.Tools,
 ) {
-	fsgcJob := fsgc.NewJob(inodes, files, tools)
+	fsgcJob := fsgc.NewJob(inodes, files, folders, tools)
 	fsgcJobRunner := NewJobRunner(fsgcJob, 5*time.Second, tools)
 	fsgcJobRunner.FXRegister(lc)
 

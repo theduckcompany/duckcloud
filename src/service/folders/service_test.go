@@ -125,6 +125,58 @@ func Test_FolderService(t *testing.T) {
 		assert.Equal(t, []Folder{ExampleAlicePersonalFolder}, res)
 	})
 
+	t.Run("RegisterDeletion success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		inodesMock := inodes.NewMockService(t)
+		storageMock := NewMockStorage(t)
+		svc := NewService(tools, storageMock, inodesMock)
+
+		folderWithContent := ExampleAlicePersonalFolder
+		folderWithContent.size = uint64(42)
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.id).Return(&folderWithContent, nil).Once()
+		tools.ClockMock.On("Now").Return(now).Once()
+		storageMock.On("Patch", mock.Anything, ExampleAlicePersonalFolder.id, map[string]any{
+			"last_modified_at": now,
+			"size":             uint64(32),
+		}).Return(nil).Once()
+
+		expected := ExampleAlicePersonalFolder
+		expected.lastModifiedAt = now
+		expected.size = uint64(32)
+
+		// Register a file deletion of size 10
+		res, err := svc.RegisterDeletion(ctx, ExampleAlicePersonalFolder.id, 10)
+		assert.NoError(t, err)
+		assert.Equal(t, &expected, res)
+	})
+
+	t.Run("RegisterDeletion with a biggest size than the folder size", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		inodesMock := inodes.NewMockService(t)
+		storageMock := NewMockStorage(t)
+		svc := NewService(tools, storageMock, inodesMock)
+
+		folderWithContent := ExampleAlicePersonalFolder
+		folderWithContent.size = uint64(42)
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.id).Return(&folderWithContent, nil).Once()
+		tools.ClockMock.On("Now").Return(now).Once()
+		storageMock.On("Patch", mock.Anything, ExampleAlicePersonalFolder.id, map[string]any{
+			"last_modified_at": now,
+			"size":             uint64(0),
+		}).Return(nil).Once()
+
+		expected := ExampleAlicePersonalFolder
+		expected.lastModifiedAt = now
+		expected.size = uint64(0)
+
+		// Register a file deletion of size 120 which is bigger than 42
+		res, err := svc.RegisterDeletion(ctx, ExampleAlicePersonalFolder.id, 120)
+		assert.NoError(t, err)
+		assert.Equal(t, &expected, res)
+	})
+
 	t.Run("Delete success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		inodesMock := inodes.NewMockService(t)
