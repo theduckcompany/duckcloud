@@ -68,23 +68,42 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 		return nil, fmt.Errorf("failed to open inodes: %w", err)
 	}
 
-	if inode == nil && flag&os.O_CREATE == 0 {
-		// We try to open witout creating a non existing file.
-		return nil, fs.ErrNotExist
-	}
-
 	if inode != nil && inode.Mode().IsDir() {
 		return NewDirectory(inode, s.inodes, &pathCmd), nil
-	}
-
-	if flag&(os.O_SYNC|os.O_APPEND) != 0 {
-		// We doesn't support these flags yet.
-		return nil, fmt.Errorf("%w: O_SYNC and O_APPEND not supported", os.ErrInvalid)
 	}
 
 	if flag&os.O_EXCL != 0 && inode != nil {
 		// The flag require that the file doesn't exists but we found one.
 		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrExist}
+	}
+
+	if inode == nil && flag&os.O_CREATE == 0 {
+		// We try to open witout creating a non existing file.
+		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrNotExist}
+	}
+
+	// The APPEND flag is not supported yet.
+	if flag&(os.O_SYNC|os.O_APPEND) != 0 {
+		return nil, fmt.Errorf("%w: O_SYNC and O_APPEND not supported", os.ErrInvalid)
+	}
+
+	// At the moment we are only able to write into new files. This situation apprear only at two occations:
+	// - the open command have the CREATE flag set and the file doesn't exists
+	// - the open command have the TRUNC flag set and the file already exists
+	//
+	// For all the other cases like APPEND in a existing file or Seek to a position and then write into the file for example are
+	// not authorized yet.
+	if (flag&os.O_WRONLY != 0 || flag&os.O_RDWR != 0) && ((inode != nil && flag&os.O_TRUNC == 0) || (inode == nil && flag&os.O_CREATE == 0)) {
+		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
+	}
+
+	if flag&os.O_TRUNC != 0 {
+		err = s.RemoveAll(ctx, name)
+		if err != nil {
+			return nil, fmt.Errorf("failed to RemoveAll for TRUNC: %w", err)
+		}
+
+		inode = nil
 	}
 
 	if inode == nil {

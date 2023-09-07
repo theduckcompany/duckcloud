@@ -31,7 +31,8 @@ type File struct {
 	hasher   hash.Hash
 }
 
-func NewFile(inode *inodes.INode,
+func NewFile(
+	inode *inodes.INode,
 	inodes inodes.Service,
 	files files.Service,
 	folderID uuid.UUID,
