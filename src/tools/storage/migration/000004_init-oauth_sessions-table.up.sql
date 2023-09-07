@@ -10,6 +10,6 @@ CREATE TABLE IF NOT EXISTS oauth_sessions (
   "scope" TEXT NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_oauth_sessions_expires_at ON oauth_sessions (refresh_expires_at);
-CREATE INDEX IF NOT EXISTS idx_oauth_sessions_access ON oauth_sessions (access_token);
-CREATE INDEX IF NOT EXISTS idx_oauth_sessions_refresh ON oauth_sessions (refresh_token);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_oauth_sessions_access_token ON oauth_sessions(access_token);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_oauth_sessions_refresh_token ON oauth_sessions(refresh_token);
+CREATE INDEX IF NOT EXISTS idx_oauth_sessions_user_id ON oauth_sessions(user_id);

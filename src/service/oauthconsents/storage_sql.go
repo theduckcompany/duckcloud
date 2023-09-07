@@ -14,6 +14,8 @@ import (
 
 const tableName = "oauth_consents"
 
+var allFields = []string{"id", "user_id", "client_id", "scopes", "session_token", "created_at"}
+
 type sqlStorage struct {
 	db *sql.DB
 }
@@ -27,7 +29,7 @@ func (s *sqlStorage) Save(ctx context.Context, consent *Consent) error {
 
 	_, err := sq.
 		Insert(tableName).
-		Columns("id", "user_id", "client_id", "scopes", "session_token", "created_at").
+		Columns(allFields...).
 		Values(consent.id, consent.userID, consent.clientID, scopes, consent.sessionToken, consent.createdAt).
 		RunWith(s.db).
 		ExecContext(ctx)
@@ -44,7 +46,7 @@ func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*Consent, error
 	var rawScopes string
 
 	err := sq.
-		Select("id", "user_id", "client_id", "scopes", "session_token", "created_at").
+		Select(allFields...).
 		From(tableName).
 		Where(sq.Eq{"id": id}).
 		RunWith(s.db).
@@ -64,7 +66,7 @@ func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*Consent, error
 
 func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Consent, error) {
 	rows, err := storage.PaginateSelection(sq.
-		Select("id", "user_id", "client_id", "scopes", "session_token", "created_at").
+		Select(allFields...).
 		Where(sq.Eq{"user_id": string(userID)}).
 		From(tableName), cmd).
 		RunWith(s.db).

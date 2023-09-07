@@ -12,6 +12,8 @@ import (
 
 const tableName = "oauth_clients"
 
+var allFields = []string{"id", "name", "secret", "redirect_uri", "user_id", "scopes", "is_public", "skip_validation", "created_at"}
+
 type sqlStorage struct {
 	db *sql.DB
 }
@@ -23,15 +25,7 @@ func newSqlStorage(db *sql.DB) *sqlStorage {
 func (t *sqlStorage) Save(ctx context.Context, client *Client) error {
 	_, err := sq.
 		Insert(tableName).
-		Columns("id",
-			"name",
-			"secret",
-			"redirect_uri",
-			"user_id",
-			"scopes",
-			"is_public",
-			"skip_validation",
-			"created_at").
+		Columns(allFields...).
 		Values(client.id,
 			client.name,
 			client.secret,
@@ -54,15 +48,7 @@ func (t *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*Client, error)
 	var res Client
 
 	err := sq.
-		Select("id",
-			"name",
-			"secret",
-			"redirect_uri",
-			"user_id",
-			"scopes",
-			"is_public",
-			"skip_validation",
-			"created_at").
+		Select(allFields...).
 		From(tableName).
 		Where(sq.Eq{"id": id}).
 		RunWith(t.db).

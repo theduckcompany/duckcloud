@@ -13,6 +13,8 @@ import (
 
 const tableName = "web_sessions"
 
+var allFields = []string{"token", "user_id", "ip", "device", "created_at"}
+
 type sqlStorage struct {
 	db *sql.DB
 }
@@ -24,7 +26,7 @@ func newSQLStorage(db *sql.DB) *sqlStorage {
 func (s *sqlStorage) Save(ctx context.Context, session *Session) error {
 	_, err := sq.
 		Insert(tableName).
-		Columns("token", "user_id", "ip", "device", "created_at").
+		Columns(allFields...).
 		Values(session.token, session.userID, session.ip, session.device, session.createdAt).
 		RunWith(s.db).
 		ExecContext(ctx)
@@ -39,7 +41,7 @@ func (s *sqlStorage) GetByToken(ctx context.Context, token string) (*Session, er
 	res := Session{}
 
 	err := sq.
-		Select("token", "user_id", "ip", "device", "created_at").
+		Select(allFields...).
 		From(tableName).
 		Where(sq.Eq{"token": token}).
 		RunWith(s.db).
@@ -72,7 +74,7 @@ func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *s
 	sessions := []Session{}
 
 	rows, err := storage.PaginateSelection(sq.
-		Select("token", "user_id", "ip", "device", "created_at").
+		Select(allFields...).
 		From(tableName).
 		Where(sq.Eq{"user_id": userID}), cmd).
 		RunWith(s.db).

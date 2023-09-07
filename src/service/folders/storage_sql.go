@@ -41,7 +41,7 @@ func (s *sqlStorage) Save(ctx context.Context, folder *Folder) error {
 }
 
 func (s *sqlStorage) GetAllFoldersWithRoot(ctx context.Context, rootID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error) {
-	return s.getAllbyKeys(ctx, cmd, sq.Like{"root_fs": rootID})
+	return s.getAllbyKeys(ctx, cmd, sq.Eq{"root_fs": rootID})
 }
 
 func (s *sqlStorage) GetAllUserFolders(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error) {

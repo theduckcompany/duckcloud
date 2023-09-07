@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS fs_inodes (
-  "id" TEXT PRIMARY KEY,
+  "id" TEXT NOT NULL,
   "parent" TEXT DEFAULT NULL,
   "name" TEXT NOT NULL,
   "size" NUMERIC NOT NULL,
@@ -10,4 +10,6 @@ CREATE TABLE IF NOT EXISTS fs_inodes (
   "deleted_at" DATETIME DEFAULT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_fs_inodes_parent_name ON fs_inodes (parent, name);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_fs_inodes_id ON fs_inodes(id);
+CREATE INDEX IF NOT EXISTS idx_fs_inodes_parent_name ON fs_inodes(parent, name);
+CREATE INDEX IF NOT EXISTS idx_fs_inodes_deleted ON fs_inodes(deleted_at);
