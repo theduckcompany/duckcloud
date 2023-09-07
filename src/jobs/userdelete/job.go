@@ -114,7 +114,6 @@ func (j *Job) deleteUser(ctx context.Context, user *users.User) error {
 			FullName: "/",
 		})
 		if err != nil && !errors.Is(err, errs.ErrNotFound) {
-			fmt.Printf("this error: %q\n\n", err)
 			return fmt.Errorf("failed to delete the user root fs: %w", err)
 		}
 

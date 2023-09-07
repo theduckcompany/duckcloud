@@ -2,6 +2,7 @@ package fs
 
 import (
 	"context"
+	"io"
 	"io/fs"
 	"os"
 	"testing"
@@ -142,6 +143,33 @@ func Test_FS(t *testing.T) {
 
 		err = res.Close()
 		assert.NoError(t, err)
+	})
+
+	t.Run("OpenFile with O_TRUNC succeed", func(t *testing.T) {
+		// Check the state first
+		//nolint: contextcheck // ??!
+		startfile, err := duckFS.Open("foo/bar.txt")
+		require.NoError(t, err)
+		startRes, err := io.ReadAll(startfile)
+		require.NoError(t, err)
+		assert.Equal(t, "Hello, World!", string(startRes))
+		require.NoError(t, file.Close())
+
+		// Then truncate an put some new content
+		file, err := duckFS.OpenFile(ctx, "foo/bar.txt", os.O_TRUNC, 0o700)
+		require.NoError(t, err)
+		file.Write([]byte("foobar"))
+		require.NoError(t, file.Close())
+
+		// Then read the new content
+		//nolint: contextcheck // ??!
+		res, err := duckFS.Open("foo/bar.txt")
+		require.NoError(t, err)
+		rawRes, err := io.ReadAll(res)
+		require.NoError(t, err)
+		require.NoError(t, file.Close())
+
+		assert.Equal(t, "foobar", string(rawRes))
 	})
 
 	t.Run("RemoveAll success", func(t *testing.T) {
