@@ -112,6 +112,19 @@ func Test_FolderService(t *testing.T) {
 		assert.ErrorIs(t, err, ErrNotFound)
 	})
 
+	t.Run("GetAllFoldersWithRoot success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		inodesMock := inodes.NewMockService(t)
+		storageMock := NewMockStorage(t)
+		svc := NewService(tools, storageMock, inodesMock)
+
+		storageMock.On("GetAllFoldersWithRoot", mock.Anything, ExampleAlicePersonalFolder.rootFS, (*storage.PaginateCmd)(nil)).Return([]Folder{ExampleAlicePersonalFolder}, nil).Once()
+
+		res, err := svc.GetAllFoldersWithRoot(ctx, ExampleAlicePersonalFolder.rootFS, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, []Folder{ExampleAlicePersonalFolder}, res)
+	})
+
 	t.Run("Delete success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		inodesMock := inodes.NewMockService(t)

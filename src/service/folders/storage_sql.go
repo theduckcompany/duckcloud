@@ -40,20 +40,12 @@ func (s *sqlStorage) Save(ctx context.Context, folder *Folder) error {
 	return nil
 }
 
+func (s *sqlStorage) GetAllFoldersWithRoot(ctx context.Context, rootID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error) {
+	return s.getAllbyKeys(ctx, cmd, sq.Like{"root_fs": rootID})
+}
+
 func (s *sqlStorage) GetAllUserFolders(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error) {
-	rows, err := storage.PaginateSelection(sq.
-		Select(allFields...).
-		Where(sq.Like{"owners": fmt.Sprintf("%%%s%%", userID)}).
-		From(tableName), cmd).
-		RunWith(s.db).
-		QueryContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("sql error: %w", err)
-	}
-
-	defer rows.Close()
-
-	return s.scanRows(rows)
+	return s.getAllbyKeys(ctx, cmd, sq.Like{"owners": fmt.Sprintf("%%%s%%", userID)})
 }
 
 func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*Folder, error) {
@@ -84,6 +76,28 @@ func (s *sqlStorage) Patch(ctx context.Context, folderID uuid.UUID, fields map[s
 	}
 
 	return nil
+}
+
+func (s *sqlStorage) getAllbyKeys(ctx context.Context, cmd *storage.PaginateCmd, wheres ...any) ([]Folder, error) {
+	query := sq.
+		Select(allFields...).
+		From(tableName)
+
+	for _, where := range wheres {
+		query = query.Where(where)
+	}
+
+	query = storage.PaginateSelection(query, cmd)
+
+	rows, err := query.RunWith(s.db).
+		QueryContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("sql error: %w", err)
+	}
+
+	defer rows.Close()
+
+	return s.scanRows(rows)
 }
 
 func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*Folder, error) {

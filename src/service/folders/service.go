@@ -28,6 +28,7 @@ type Storage interface {
 	GetAllUserFolders(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error)
 	Delete(ctx context.Context, folderID uuid.UUID) error
 	Patch(ctx context.Context, folderID uuid.UUID, fields map[string]any) error
+	GetAllFoldersWithRoot(ctx context.Context, rootID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error)
 }
 
 type FolderService struct {
@@ -139,6 +140,10 @@ func (s *FolderService) Delete(ctx context.Context, folderID uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func (s *FolderService) GetAllFoldersWithRoot(ctx context.Context, rootID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error) {
+	return s.storage.GetAllFoldersWithRoot(ctx, rootID, cmd)
 }
 
 func (s *FolderService) GetByID(ctx context.Context, folderID uuid.UUID) (*Folder, error) {
