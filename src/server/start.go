@@ -1,6 +1,8 @@
 package server
 
 import (
+	"database/sql"
+
 	"github.com/spf13/afero"
 	"github.com/theduckcompany/duckcloud/assets"
 	"github.com/theduckcompany/duckcloud/src/jobs"
@@ -36,15 +38,15 @@ func AsRoute(f any) any {
 	)
 }
 
-func start(cfg *Config, invoke fx.Option) *fx.App {
+func start(cfg *Config, db *sql.DB, fs afero.Fs, invoke fx.Option) *fx.App {
 	app := fx.New(
 		fx.WithLogger(func(tools tools.Tools) fxevent.Logger { return logger.NewFxLogger(tools.Logger()) }),
 		fx.Provide(
 			func() Config { return *cfg },
-			afero.NewOsFs,
+			func() afero.Fs { return fs },
+			func() *sql.DB { return db },
 
 			// Tools
-			storage.Init,
 			fx.Annotate(tools.NewToolbox, fx.As(new(tools.Tools))),
 
 			// Services

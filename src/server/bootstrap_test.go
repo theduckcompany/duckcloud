@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -17,10 +18,12 @@ import (
 func TestBootstrap(t *testing.T) {
 	ctx := context.Background()
 	tools := tools.NewMock(t)
+	fs := afero.NewMemMapFs()
 
 	cfg := NewDefaultConfig()
-	cfg.Storage.Path = t.TempDir() + "/db.sqlite"
-	err := storage.RunMigrations(cfg.Storage, tools)
+	db := storage.NewTestStorage(t)
+
+	err := storage.RunMigrations(cfg.Storage, db, tools)
 	require.NoError(t, err)
 
 	user := users.CreateCmd{
@@ -29,11 +32,9 @@ func TestBootstrap(t *testing.T) {
 		IsAdmin:  true,
 	}
 
-	err = Bootstrap(ctx, cfg, user)
+	err = Bootstrap(ctx, db, fs, cfg, user)
 	require.NoError(t, err)
 
-	db, err := storage.NewSQliteClient(cfg.Storage, tools.Logger())
-	require.NoError(t, err)
 	inodesSvc := inodes.Init(tools, db)
 	foldersSvc := folders.Init(tools, db, inodesSvc)
 	usersSvc := users.Init(tools, db, inodesSvc, foldersSvc)

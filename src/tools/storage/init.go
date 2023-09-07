@@ -1,40 +1,30 @@
 package storage
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/afero"
-	"github.com/theduckcompany/duckcloud/src/tools"
-	"go.uber.org/fx"
 )
 
-func Init(lc fx.Lifecycle, fs afero.Fs, cfg Config, tools tools.Tools) (*sql.DB, error) {
+func Init(fs afero.Fs, cfg *Config, logger *slog.Logger) (*sql.DB, error) {
 	err := fs.MkdirAll(filepath.Dir(cfg.Path), 0o700)
 	if err != nil && !errors.Is(err, os.ErrExist) {
 		return nil, fmt.Errorf("failed to create the database directory: %w", err)
 	}
 
-	db, err := NewSQliteClient(cfg, tools.Logger())
+	db, err := NewSQliteClient(cfg, logger)
 	if err != nil {
 		return nil, fmt.Errorf("sqlite error: %w", err)
 	}
 
-	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
-			if err := db.PingContext(ctx); err != nil {
-				return fmt.Errorf("db unreachable: %w", err)
-			}
-			return nil
-		},
-		OnStop: func(context.Context) error {
-			return db.Close()
-		},
-	})
+	if err := db.Ping(); err != nil {
+		return nil, fmt.Errorf("db unreachable: %w", err)
+	}
 
 	return db, nil
 }

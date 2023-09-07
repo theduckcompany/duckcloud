@@ -1,17 +1,22 @@
 package server
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/theduckcompany/duckcloud/cmd/config"
 	"github.com/theduckcompany/duckcloud/src/server"
+	"github.com/theduckcompany/duckcloud/src/tools/storage"
 )
 
 func NewRunCmd(binaryName string) *cobra.Command {
 	var debug bool
 	var dev bool
+
+	fs := afero.NewOsFs()
 
 	cmd := cobra.Command{
 		Short: "Run your server",
@@ -35,7 +40,14 @@ func NewRunCmd(binaryName string) *cobra.Command {
 				cfg.Tools.Log.Level = slog.LevelDebug
 			}
 
-			server.Run(cfg)
+			fmt.Printf("load database file from %q\n", cfg.Storage.Path)
+			db, err := storage.Init(fs, &cfg.Storage, nil)
+			if err != nil {
+				cmd.PrintErrln(err)
+				os.Exit(1)
+			}
+
+			server.Run(cfg, db, fs)
 		},
 	}
 
