@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/tools"
@@ -34,10 +35,11 @@ type FolderService struct {
 	inodes  inodes.Service
 	clock   clock.Clock
 	uuid    uuid.Service
+	lockMap sync.Map
 }
 
 func NewService(tools tools.Tools, storage Storage, inodes inodes.Service) *FolderService {
-	return &FolderService{storage, inodes, tools.Clock(), tools.UUID()}
+	return &FolderService{storage, inodes, tools.Clock(), tools.UUID(), sync.Map{}}
 }
 
 func (s *FolderService) CreatePersonalFolder(ctx context.Context, cmd *CreatePersonalFolderCmd) (*Folder, error) {
@@ -77,6 +79,12 @@ func (s *FolderService) CreatePersonalFolder(ctx context.Context, cmd *CreatePer
 }
 
 func (s *FolderService) RegisterWrite(ctx context.Context, folderID uuid.UUID, size uint64) (*Folder, error) {
+	val, _ := s.lockMap.LoadOrStore(folderID, new(sync.Mutex))
+	lock := val.(*sync.Mutex)
+
+	lock.Lock()
+	defer lock.Unlock()
+
 	folder, err := s.GetByID(ctx, folderID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to GetByID: %w", err)
@@ -101,6 +109,12 @@ func (s *FolderService) RegisterWrite(ctx context.Context, folderID uuid.UUID, s
 }
 
 func (s *FolderService) Delete(ctx context.Context, folderID uuid.UUID) error {
+	val, _ := s.lockMap.LoadOrStore(folderID, new(sync.Mutex))
+	lock := val.(*sync.Mutex)
+
+	lock.Lock()
+	defer lock.Unlock()
+
 	folder, err := s.storage.GetByID(ctx, folderID)
 	if err != nil {
 		return fmt.Errorf("failed to GetByID: %w", err)
