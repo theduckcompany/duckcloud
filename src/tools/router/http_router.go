@@ -91,8 +91,9 @@ func NewServer(routes []Registerer, cfgs []Config, lc fx.Lifecycle, mids Middlew
 
 func createHandler(cfg Config, routes []Registerer, mids Middlewares) (chi.Router, error) {
 	r := chi.NewMux()
-	r.NotFound(func(_ http.ResponseWriter, r *http.Request) {
-		fmt.Printf("not found: %q\n\n", r.URL.String())
+	r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Location", "/login")
+		w.WriteHeader(http.StatusFound)
 	})
 
 	for _, svc := range cfg.Services {
