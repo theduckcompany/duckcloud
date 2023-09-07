@@ -9,13 +9,13 @@ import (
 )
 
 func TestRunMigration(t *testing.T) {
-	cfg := Config{Path: t.TempDir() + "/db.sqlite"}
-
 	tools := tools.NewMock(t)
-	err := RunMigrations(cfg, tools)
+
+	cfg := Config{Path: ":memory:"}
+	client, err := NewSQliteClient(&cfg, tools.Logger())
 	require.NoError(t, err)
 
-	client, err := NewSQliteClient(cfg, tools.Logger())
+	err = RunMigrations(cfg, client, tools)
 	require.NoError(t, err)
 
 	row := client.QueryRow(`SELECT COUNT(*) FROM sqlite_schema 
@@ -29,21 +29,16 @@ func TestRunMigration(t *testing.T) {
 	assert.Greater(t, res, 3)
 }
 
-func TestRunMigrationWithAnInvalidPath(t *testing.T) {
-	cfg := Config{Path: "/foo/some-invali-path"}
-
-	tools := tools.NewMock(t)
-	err := RunMigrations(cfg, tools)
-	require.EqualError(t, err, "failed to create a migrate manager: unable to open database file: no such file or directory")
-}
-
 func TestRunMigrationTwice(t *testing.T) {
-	cfg := Config{Path: t.TempDir() + "/db.sqlite"}
-
 	tools := tools.NewMock(t)
-	err := RunMigrations(cfg, tools)
+
+	cfg := Config{Path: ":memory:"}
+	client, err := NewSQliteClient(&cfg, tools.Logger())
 	require.NoError(t, err)
 
-	err = RunMigrations(cfg, tools)
+	err = RunMigrations(cfg, client, tools)
+	require.NoError(t, err)
+
+	err = RunMigrations(cfg, client, tools)
 	require.NoError(t, err)
 }

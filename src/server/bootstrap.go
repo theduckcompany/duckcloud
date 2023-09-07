@@ -2,8 +2,10 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
+	"github.com/spf13/afero"
 	"github.com/theduckcompany/duckcloud/src/service/oauthclients"
 	"github.com/theduckcompany/duckcloud/src/service/users"
 	"go.uber.org/fx"
@@ -14,9 +16,9 @@ type BootstrapCmd struct {
 	Password string
 }
 
-func Bootstrap(ctx context.Context, cfg *Config, user users.CreateCmd) error {
+func Bootstrap(ctx context.Context, db *sql.DB, fs afero.Fs, cfg *Config, user users.CreateCmd) error {
 	//nolint:contextcheck // the bootstrap fonction must not use this context
-	app := start(cfg, fx.Invoke(bootstrap(user)))
+	app := start(cfg, db, fs, fx.Invoke(bootstrap(user)))
 
 	err := app.Start(ctx)
 	if err != nil {

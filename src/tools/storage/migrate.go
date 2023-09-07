@@ -1,12 +1,14 @@
 package storage
 
 import (
+	"database/sql"
 	"embed"
 	"errors"
 	"fmt"
 	"log/slog"
 
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
@@ -16,11 +18,15 @@ import (
 //go:embed migration/*.sql
 var fs embed.FS
 
-func RunMigrations(cfg Config, tools tools.Tools) error {
+func RunMigrations(cfg Config, db *sql.DB, tools tools.Tools) error {
 	// Error not possible
 	d, _ := iofs.New(fs, "migration")
 
-	m, err := migrate.NewWithSourceInstance("iofs", d, "sqlite3://"+cfg.Path)
+	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
+	if err != nil {
+		return fmt.Errorf("failed to setup the sqlite3 instance: %w", err)
+	}
+	m, err := migrate.NewWithInstance("iofs", d, "sqlite3", driver)
 	if err != nil {
 		return fmt.Errorf("failed to create a migrate manager: %w", err)
 	}

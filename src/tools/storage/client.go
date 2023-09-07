@@ -14,18 +14,16 @@ type Config struct {
 	Debug bool   `json:"debug"`
 }
 
-func NewSQliteClient(cfg Config, log *slog.Logger) (*sql.DB, error) {
+func NewSQliteClient(cfg *Config, log *slog.Logger) (*sql.DB, error) {
 	var db *sql.DB
 	var err error
 
 	dsn := "file:" + cfg.Path + "?_journal=WAL&_synchronous=normal&_busy_timeout=500"
-	log.Info(fmt.Sprintf("load database file from %s", cfg.Path))
 
-	switch cfg.Debug {
-	case true:
+	if cfg.Debug && log != nil {
 		sql.Register("sqlite3WithDebugHooks", sqlhooks.Wrap(&sqlite3.SQLiteDriver{}, newDebugHook(log)))
 		db, err = sql.Open("sqlite3WithDebugHooks", dsn)
-	case false:
+	} else {
 		db, err = sql.Open("sqlite3", dsn)
 	}
 
@@ -33,14 +31,6 @@ func NewSQliteClient(cfg Config, log *slog.Logger) (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to create the sqlite db: %w", err)
 	}
 
-	// Due to the background jobs we often have some sql query ending up with an error
-	// "database is locked".
-	//
-	// Following [this issue](https://github.com/mattn/go-sqlite3/issues/209) this is due
-	// to some concurency issues. The easier solution (not the better) is to ensure that only
-	// on request
-	//
-	// This is the same a wrapping a mutex around every DB access.
 	db.SetMaxOpenConns(1)
 
 	err = db.Ping()
