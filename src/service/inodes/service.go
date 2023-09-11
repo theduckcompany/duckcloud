@@ -188,6 +188,15 @@ func (s *INodeService) CreateDir(ctx context.Context, cmd *PathCmd) (*INode, err
 			createdAt:      now,
 		}
 
+		res, err := s.storage.GetByNameAndParent(ctx, frag, dir.ID())
+		if err != nil {
+			return fmt.Errorf("failed to GetByNameAndParent: %w", err)
+		}
+
+		if res != nil {
+			return fs.ErrExist
+		}
+
 		err = s.storage.Save(ctx, inode)
 		if err != nil {
 			return fmt.Errorf("failed to save into the storage: %w", err)
