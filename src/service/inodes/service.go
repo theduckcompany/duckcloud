@@ -110,7 +110,7 @@ func (s *INodeService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INo
 
 func (s *INodeService) RegisterWrite(ctx context.Context, inode *INode, sizeWrite int, h hash.Hash) error {
 	inode.lastModifiedAt = s.clock.Now()
-	inode.size += int64(sizeWrite)
+	inode.size += uint64(sizeWrite)
 	inode.checksum = hex.EncodeToString(h.Sum(nil))
 
 	return s.storage.Patch(ctx, inode.ID(), map[string]any{
