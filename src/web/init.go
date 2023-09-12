@@ -1,8 +1,6 @@
 package web
 
 import (
-	"net/http"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/theduckcompany/duckcloud/src/service/davsessions"
 	"github.com/theduckcompany/duckcloud/src/service/files"
@@ -16,11 +14,6 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/router"
 	"github.com/theduckcompany/duckcloud/src/web/html"
 )
-
-type HTMLWriter interface {
-	WriteHTML(w http.ResponseWriter, r *http.Request, status int, template string, args any)
-	WriteHTMLErrorPage(w http.ResponseWriter, r *http.Request, err error)
-}
 
 type Config struct {
 	HTML html.Config `json:"html"`

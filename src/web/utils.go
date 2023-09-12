@@ -5,6 +5,7 @@ import (
 
 	"github.com/theduckcompany/duckcloud/src/service/users"
 	"github.com/theduckcompany/duckcloud/src/service/websessions"
+	"github.com/theduckcompany/duckcloud/src/web/html"
 )
 
 type AccessType int
@@ -17,10 +18,10 @@ const (
 type Authenticator struct {
 	webSessions websessions.Service
 	users       users.Service
-	html        HTMLWriter
+	html        html.Writer
 }
 
-func NewAuthenticator(webSessions websessions.Service, users users.Service, html HTMLWriter) *Authenticator {
+func NewAuthenticator(webSessions websessions.Service, users users.Service, html html.Writer) *Authenticator {
 	return &Authenticator{webSessions, users, html}
 }
 

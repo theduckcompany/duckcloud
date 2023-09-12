@@ -93,11 +93,11 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, WebSessionExample.userID, &storage.PaginateCmd{Limit: 10}).Return([]Session{WebSessionExample}, nil).Once()
+		storageMock.On("GetAllForUser", mock.Anything, AliceWebSessionExample.userID, &storage.PaginateCmd{Limit: 10}).Return([]Session{AliceWebSessionExample}, nil).Once()
 
-		res, err := service.GetAllForUser(ctx, WebSessionExample.userID, &storage.PaginateCmd{Limit: 10})
+		res, err := service.GetAllForUser(ctx, AliceWebSessionExample.userID, &storage.PaginateCmd{Limit: 10})
 		assert.NoError(t, err)
-		assert.Equal(t, []Session{WebSessionExample}, res)
+		assert.Equal(t, []Session{AliceWebSessionExample}, res)
 	})
 
 	t.Run("GetByToken success", func(t *testing.T) {
@@ -245,12 +245,12 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
-		storageMock.On("GetByToken", mock.Anything, WebSessionExample.Token()).Return(&WebSessionExample, nil).Once()
-		storageMock.On("RemoveByToken", mock.Anything, WebSessionExample.Token()).Return(nil).Once()
+		storageMock.On("GetByToken", mock.Anything, AliceWebSessionExample.Token()).Return(&AliceWebSessionExample, nil).Once()
+		storageMock.On("RemoveByToken", mock.Anything, AliceWebSessionExample.Token()).Return(nil).Once()
 
 		err := service.Delete(ctx, &DeleteCmd{
-			UserID: WebSessionExample.UserID(),
-			Token:  WebSessionExample.Token(),
+			UserID: AliceWebSessionExample.UserID(),
+			Token:  AliceWebSessionExample.Token(),
 		})
 		assert.NoError(t, err)
 	})
@@ -262,7 +262,7 @@ func Test_WebSessions_Service(t *testing.T) {
 
 		err := service.Delete(ctx, &DeleteCmd{
 			UserID: "some-invalid-id",
-			Token:  WebSessionExample.Token(),
+			Token:  AliceWebSessionExample.Token(),
 		})
 		assert.EqualError(t, err, "validation error: UserID: must be a valid UUID v4.")
 	})
@@ -272,11 +272,11 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
-		storageMock.On("GetByToken", mock.Anything, WebSessionExample.Token()).Return(nil, nil).Once()
+		storageMock.On("GetByToken", mock.Anything, AliceWebSessionExample.Token()).Return(nil, nil).Once()
 
 		err := service.Delete(ctx, &DeleteCmd{
-			UserID: WebSessionExample.UserID(),
-			Token:  WebSessionExample.Token(),
+			UserID: AliceWebSessionExample.UserID(),
+			Token:  AliceWebSessionExample.Token(),
 		})
 		assert.NoError(t, err)
 	})
@@ -286,11 +286,11 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
-		storageMock.On("GetByToken", mock.Anything, WebSessionExample.Token()).Return(&WebSessionExample, nil).Once()
+		storageMock.On("GetByToken", mock.Anything, AliceWebSessionExample.Token()).Return(&AliceWebSessionExample, nil).Once()
 
 		err := service.Delete(ctx, &DeleteCmd{
 			UserID: uuid.UUID("29a81212-9e46-4678-a921-ecaf53aa15bc"), // A random user id
-			Token:  WebSessionExample.Token(),
+			Token:  AliceWebSessionExample.Token(),
 		})
 		assert.EqualError(t, err, "not found: user ids are not matching")
 		assert.ErrorIs(t, err, errs.ErrNotFound)
@@ -301,11 +301,11 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, WebSessionExample.UserID(), (*storage.PaginateCmd)(nil)).Return([]Session{WebSessionExample}, nil).Once()
-		storageMock.On("GetByToken", mock.Anything, WebSessionExample.Token()).Return(&WebSessionExample, nil).Once()
-		storageMock.On("RemoveByToken", mock.Anything, WebSessionExample.Token()).Return(nil).Once()
+		storageMock.On("GetAllForUser", mock.Anything, AliceWebSessionExample.UserID(), (*storage.PaginateCmd)(nil)).Return([]Session{AliceWebSessionExample}, nil).Once()
+		storageMock.On("GetByToken", mock.Anything, AliceWebSessionExample.Token()).Return(&AliceWebSessionExample, nil).Once()
+		storageMock.On("RemoveByToken", mock.Anything, AliceWebSessionExample.Token()).Return(nil).Once()
 
-		err := service.DeleteAll(ctx, WebSessionExample.UserID())
+		err := service.DeleteAll(ctx, AliceWebSessionExample.UserID())
 		assert.NoError(t, err)
 	})
 
@@ -314,9 +314,9 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, WebSessionExample.UserID(), (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
+		storageMock.On("GetAllForUser", mock.Anything, AliceWebSessionExample.UserID(), (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
 
-		err := service.DeleteAll(ctx, WebSessionExample.UserID())
+		err := service.DeleteAll(ctx, AliceWebSessionExample.UserID())
 		assert.EqualError(t, err, "failed to GetAllForUser: some-error")
 	})
 
@@ -325,12 +325,12 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, WebSessionExample.UserID(), (*storage.PaginateCmd)(nil)).Return([]Session{WebSessionExample, WebSessionExample}, nil).Once()
-		storageMock.On("GetByToken", mock.Anything, WebSessionExample.Token()).Return(&WebSessionExample, nil).Once()
-		storageMock.On("RemoveByToken", mock.Anything, WebSessionExample.Token()).Return(fmt.Errorf("some-error")).Once()
+		storageMock.On("GetAllForUser", mock.Anything, AliceWebSessionExample.UserID(), (*storage.PaginateCmd)(nil)).Return([]Session{AliceWebSessionExample, AliceWebSessionExample}, nil).Once()
+		storageMock.On("GetByToken", mock.Anything, AliceWebSessionExample.Token()).Return(&AliceWebSessionExample, nil).Once()
+		storageMock.On("RemoveByToken", mock.Anything, AliceWebSessionExample.Token()).Return(fmt.Errorf("some-error")).Once()
 		// Do not call GetByToken and RemoveByToken a second time
 
-		err := service.DeleteAll(ctx, WebSessionExample.UserID())
-		assert.EqualError(t, err, fmt.Sprintf("failed to Delete web session %q: failed to RemoveByToken: some-error", WebSessionExample.token))
+		err := service.DeleteAll(ctx, AliceWebSessionExample.UserID())
+		assert.EqualError(t, err, fmt.Sprintf("failed to Delete web session %q: failed to RemoveByToken: some-error", AliceWebSessionExample.token))
 	})
 }

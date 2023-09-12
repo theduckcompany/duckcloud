@@ -23,6 +23,12 @@ type Config struct {
 	HotReload    bool `mapstructure:"hotReload"`
 }
 
+//go:generate mockery --name Writer
+type Writer interface {
+	WriteHTML(w http.ResponseWriter, r *http.Request, status int, template string, args any)
+	WriteHTMLErrorPage(w http.ResponseWriter, r *http.Request, err error)
+}
+
 type Renderer struct {
 	render *render.Render
 }
