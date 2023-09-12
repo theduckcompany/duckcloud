@@ -586,4 +586,132 @@ func TestINodes(t *testing.T) {
 		assert.NoError(t, err)
 		assert.EqualValues(t, &ExampleAliceRoot, res)
 	})
+
+	t.Run("MkdirAll success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		now := time.Now().UTC()
+		fooDir := INode{
+			id:             uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62"),
+			name:           "foo",
+			parent:         ptr.To(ExampleAliceRoot.ID()),
+			mode:           0o660 | fs.ModeDir,
+			createdAt:      now,
+			lastModifiedAt: now,
+		}
+		barDir := INode{
+			id:             uuid.UUID("1afc4ef3-d0e8-4efe-8e37-4d23acc5df9c"),
+			name:           "bar",
+			parent:         ptr.To(uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62")),
+			mode:           0o660 | fs.ModeDir,
+			createdAt:      now,
+			lastModifiedAt: now,
+		}
+
+		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
+
+		// Check if the folder /foo exists
+		storageMock.On("GetByNameAndParent", mock.Anything, "foo", uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(nil, nil).Once()
+
+		// CreateDir("/foo") internal
+		// Check if the folder already exists
+		storageMock.On("GetByID", mock.Anything, ExampleAliceRoot.ID()).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, nil).Once()
+		// Generate an save ""/foo/bar"" folder
+		tools.ClockMock.On("Now").Return(now).Once()
+		tools.UUIDMock.On("New").Return(fooDir.ID()).Once()
+		storageMock.On("Save", mock.Anything, &fooDir).Return(nil).Once()
+
+		// Check if the folder /foo and /foo/bar exists
+		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&fooDir, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "bar", fooDir.ID()).Return(nil, nil).Once()
+
+		// CreateDir("/foo/bar") internal
+		// Check if the folder already exists
+		storageMock.On("GetByID", mock.Anything, fooDir.ID()).Return(&fooDir, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "bar", fooDir.ID()).Return(nil, nil).Once()
+		// Generate an save ""/foo/bar"" folder
+		tools.ClockMock.On("Now").Return(now).Once()
+		tools.UUIDMock.On("New").Return(barDir.ID()).Once()
+		storageMock.On("Save", mock.Anything, &barDir).Return(nil).Once()
+
+		res, err := service.MkdirAll(ctx, &PathCmd{
+			Root:     ExampleAliceRoot.ID(),
+			FullName: "/foo/bar",
+		})
+
+		assert.NoError(t, err)
+		assert.EqualValues(t, &barDir, res)
+	})
+
+	t.Run("MkdirAll with a folder already existing", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		now := time.Now().UTC()
+		fooDir := INode{
+			id:             uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62"),
+			name:           "foo",
+			parent:         ptr.To(ExampleAliceRoot.ID()),
+			mode:           0o660 | fs.ModeDir,
+			createdAt:      now,
+			lastModifiedAt: now,
+		}
+		barDir := INode{
+			id:             uuid.UUID("1afc4ef3-d0e8-4efe-8e37-4d23acc5df9c"),
+			name:           "bar",
+			parent:         ptr.To(uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62")),
+			mode:           0o660 | fs.ModeDir,
+			createdAt:      now,
+			lastModifiedAt: now,
+		}
+
+		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
+
+		// Check if the folder /foo exists
+		storageMock.On("GetByNameAndParent", mock.Anything, "foo", uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&fooDir, nil).Once()
+
+		// Check if the folder /foo and /foo/bar exists
+		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&fooDir, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "bar", fooDir.ID()).Return(nil, nil).Once()
+
+		// CreateDir("/foo/bar") internal
+		// Check if the folder already exists
+		storageMock.On("GetByID", mock.Anything, fooDir.ID()).Return(&fooDir, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "bar", fooDir.ID()).Return(nil, nil).Once()
+		// Generate an save ""/foo/bar"" folder
+		tools.ClockMock.On("Now").Return(now).Once()
+		tools.UUIDMock.On("New").Return(barDir.ID()).Once()
+		storageMock.On("Save", mock.Anything, &barDir).Return(nil).Once()
+
+		res, err := service.MkdirAll(ctx, &PathCmd{
+			Root:     ExampleAliceRoot.ID(),
+			FullName: "/foo/bar",
+		})
+
+		assert.NoError(t, err)
+		assert.EqualValues(t, &barDir, res)
+	})
+
+	t.Run("MkdirAll with a an existing file", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
+
+		// Check if the folder /foo exists
+		storageMock.On("GetByNameAndParent", mock.Anything, "foo", uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceFile, nil).Once()
+
+		res, err := service.MkdirAll(ctx, &PathCmd{
+			Root:     ExampleAliceRoot.ID(),
+			FullName: "/foo/bar",
+		})
+
+		assert.Nil(t, res)
+		assert.EqualError(t, err, "mkdir /foo/bar: not a directory")
+	})
 }
