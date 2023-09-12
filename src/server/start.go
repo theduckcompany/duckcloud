@@ -64,7 +64,6 @@ func start(cfg *Config, db *sql.DB, fs afero.Fs, invoke fx.Option) *fx.App {
 
 			// HTTP handlers
 			AsRoute(dav.NewHTTPHandler),
-			AsRoute(users.NewHTTPHandler),
 			AsRoute(oauth2.NewHTTPHandler),
 			AsRoute(assets.NewHTTPHandler),
 			AsRoute(web.NewHTTPHandler),
