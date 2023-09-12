@@ -18,7 +18,10 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
-var ErrInvalidParent = errors.New("invalid parent")
+var (
+	ErrInvalidParent = errors.New("invalid parent")
+	ErrIsNotDir      = errors.New("not a directory")
+)
 
 //go:generate mockery --name Storage
 type Storage interface {
@@ -53,6 +56,44 @@ func (s *INodeService) GetByID(ctx context.Context, inodeID uuid.UUID) (*INode, 
 	}
 
 	return res, nil
+}
+
+func (s *INodeService) MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, error) {
+	err := cmd.Validate()
+	if err != nil {
+		return nil, errs.ValidationError(err)
+	}
+
+	var inode *INode
+	err = s.walk(ctx, cmd, "mkdir", func(dir *INode, frag string, _ bool) error {
+		nextDir, err := s.storage.GetByNameAndParent(ctx, frag, dir.ID())
+		if err != nil {
+			return fmt.Errorf("failed to GetByNameAndParent: %w", err)
+		}
+
+		if nextDir != nil && nextDir.IsDir() {
+			return nil
+		}
+
+		if nextDir != nil && !nextDir.IsDir() {
+			return ErrIsNotDir
+		}
+
+		inode, err = s.CreateDir(ctx, &PathCmd{
+			Root:     dir.ID(),
+			FullName: frag,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to CreateDir: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return inode, nil
 }
 
 func (s *INodeService) CreateRootDir(ctx context.Context) (*INode, error) {

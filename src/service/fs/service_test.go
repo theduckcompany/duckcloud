@@ -62,9 +62,6 @@ func Test_FS(t *testing.T) {
 	})
 
 	t.Run("Stat on an unknown file", func(t *testing.T) {
-		// refFS := afero.NewMemMapFs()
-		// info, err := refFS.Stat("foo")
-
 		info, err := duckFS.Stat(ctx, "unknown-file")
 		assert.Nil(t, info)
 		assert.ErrorIs(t, err, fs.ErrNotExist)
