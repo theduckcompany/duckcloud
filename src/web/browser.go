@@ -1,13 +1,20 @@
 package web
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"path"
+	"slices"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/theduckcompany/duckcloud/src/service/files"
 	"github.com/theduckcompany/duckcloud/src/service/folders"
+	"github.com/theduckcompany/duckcloud/src/service/fs"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/service/users"
 	"github.com/theduckcompany/duckcloud/src/service/websessions"
@@ -17,12 +24,17 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
+const MaxMemoryCache = 20 * 1024 * 1024 // 20MB
+
+var ErrInvalidFolderID = errors.New("invalid folderID")
+
 type browserHandler struct {
 	response    response.Writer
 	webSessions websessions.Service
 	folders     folders.Service
 	users       users.Service
 	inodes      inodes.Service
+	files       files.Service
 	uuid        uuid.Service
 }
 
@@ -32,6 +44,7 @@ func newBrowserHandler(
 	folders folders.Service,
 	users users.Service,
 	inodes inodes.Service,
+	files files.Service,
 	uuid uuid.Service,
 ) *browserHandler {
 	return &browserHandler{
@@ -40,6 +53,7 @@ func newBrowserHandler(
 		folders:     folders,
 		users:       users,
 		inodes:      inodes,
+		files:       files,
 		uuid:        uuid,
 	}
 }
@@ -48,6 +62,7 @@ func (h *browserHandler) Register(r chi.Router, mids router.Middlewares) {
 	browser := r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
 
 	browser.Get("/browser", h.getBrowserHome)
+	browser.Post("/browser/upload", h.upload)
 	browser.Get("/browser/*", h.getBrowserContent)
 }
 
@@ -158,6 +173,77 @@ func (h *browserHandler) getBrowserContent(w http.ResponseWriter, r *http.Reques
 	})
 }
 
+func (h *browserHandler) upload(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	user, _ := h.getUserAndSession(w, r)
+	if user == nil {
+		return
+	}
+
+	reader, err := r.MultipartReader()
+	if err != nil {
+		fmt.Fprintf(w, `<div class="alert alert-danger role="alert">%s</div>`, err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var name, rawFolderID, rootPath, relPath []byte
+
+	for {
+		p, err := reader.NextPart()
+		if err == io.EOF {
+			break
+		}
+
+		if p.FileName() != "" {
+			folderID, err := h.uuid.Parse(string(rawFolderID))
+			if err != nil {
+				fmt.Fprintf(w, `<div class="alert alert-danger role="alert">%s</div>`, err)
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+
+			cmd := lauchUploadCmd{
+				user:       user,
+				name:       string(name),
+				folderID:   folderID,
+				relPath:    string(relPath),
+				rootPath:   string(rootPath),
+				fileReader: p,
+			}
+
+			defer p.Close()
+			err = h.lauchUpload(ctx, &cmd)
+			if err != nil {
+				fmt.Printf("failed to upload: %s -> %#v\n\n\n", err, cmd)
+			}
+
+			return
+		}
+
+		switch p.FormName() {
+		case "name":
+			name, err = io.ReadAll(p)
+		// case "type":
+		// 	ftype, err = io.ReadAll(p)
+		case "rootPath":
+			rootPath, err = io.ReadAll(p)
+		case "folderID":
+			rawFolderID, err = io.ReadAll(p)
+		case "relativePath":
+			relPath, err = io.ReadAll(p)
+		}
+		if err != nil {
+			fmt.Fprintf(w, `<div class="alert alert-danger role="alert">%s</div>`, err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func (h *browserHandler) getUserAndSession(w http.ResponseWriter, r *http.Request) (*users.User, *websessions.Session) {
 	ctx := r.Context()
 
@@ -215,4 +301,63 @@ func generateBreadCrumb(folder *folders.Folder, fullPath string) []breadCrumbEle
 	res[len(res)-1].Current = true
 
 	return res
+}
+
+type lauchUploadCmd struct {
+	user       *users.User
+	name       string
+	folderID   uuid.UUID
+	rootPath   string
+	relPath    string
+	fileReader io.Reader
+}
+
+func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
+	folder, err := h.folders.GetByID(ctx, cmd.folderID)
+	if err != nil {
+		return fmt.Errorf("failed to GetByID: %w", err)
+	}
+
+	if !slices.Contains[[]uuid.UUID, uuid.UUID](folder.Owners(), cmd.user.ID()) {
+		return ErrInvalidFolderID
+	}
+
+	fs := fs.NewFSService(h.inodes, h.files, folder, h.folders)
+
+	var fullPath string
+	if cmd.relPath == "null" {
+		fullPath = path.Join(cmd.rootPath, cmd.name)
+	} else {
+		fullPath = path.Join(cmd.rootPath, cmd.relPath)
+
+		_, err = h.inodes.MkdirAll(ctx, &inodes.PathCmd{
+			Root:     folder.RootFS(),
+			FullName: path.Dir(fullPath),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to Mkdirall: %w", err)
+		}
+	}
+
+	if fullPath[0] == '/' {
+		fullPath = fullPath[1:]
+	}
+
+	file, err := fs.OpenFile(ctx, fullPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0)
+	if err != nil {
+		return fmt.Errorf("failed to OpenFile: %w", err)
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, cmd.fileReader)
+	if err != nil {
+		return fmt.Errorf("failed to Copy: %w", err)
+	}
+
+	err = file.Close()
+	if err != nil {
+		return fmt.Errorf("failed to Close file: %w", err)
+	}
+
+	return nil
 }

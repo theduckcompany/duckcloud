@@ -2,15 +2,26 @@
 <section id="content">
   <div class="card shadow-0">
     <div class="card-body">
-      <nav aria-label="breadcrumb">
-        <ol class="breadcrumb user-select-none">
-          {{range .breadcrumb}}
-          <li class="breadcrumb-item{{if not .Current}} active{{end}}" {{if .Current}}aria_current="page" {{end}}>
-            {{if not .Current}}<a href="{{.Href}}">{{.Name}}</a>{{else}}{{.Name}}{{end}}
-          </li>
-          {{end}}
-        </ol>
-      </nav>
+      <div id="status-bar"></div>
+      <div class="row justify-content-between">
+        <div class="col-6">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb user-select-none">
+              {{range .breadcrumb}}
+              <li class="breadcrumb-item{{if not .Current}} active{{end}}" {{if .Current}}aria_current="page" {{end}}>
+                {{if not .Current}}<a href="{{.Href}}">{{.Name}}</a>{{else}}{{.Name}}{{end}}
+              </li>
+              {{end}}
+            </ol>
+          </nav>
+        </div>
+
+        <div class="col-2">
+          <button id="upload-btn" class="btn btn-primary button-lg">Upload</button>
+        </div>
+      </div>
+
+      <br>
 
       <div class="row user-select-none">
         <div class="col-8">Name</div>
@@ -35,4 +46,22 @@
     </div>
   </div>
 </section>
+<script type="module">
+  import {Uppy, XHRUpload, Dashboard, StatusBar} from "/assets/js/uppy.min.mjs"
+  let client = new Uppy().use(XHRUpload, {
+    endpoint: 'http://localhost:8080/browser/upload',
+  })
+
+  client.setMeta({rootPath: {{$.fullPath}}})
+  client.setMeta({folderID: {{$.folder.ID}}})
+
+  client.use(Dashboard, {
+    fileManagerSelectionType: 'both',
+    proudlyDisplayPoweredByUppy: false,
+    trigger: "#upload-btn",
+    showProgressDetails: true,
+    closeModalOnClickOutside: true,
+  })
+  client.use(StatusBar, {target: '#status-bar'});
+</script>
 <!--Section: Content-->

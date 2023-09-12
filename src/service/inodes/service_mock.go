@@ -214,6 +214,32 @@ func (_m *MockService) HardDelete(ctx context.Context, inode uuid.UUID) error {
 	return r0
 }
 
+// MkdirAll provides a mock function with given fields: ctx, cmd
+func (_m *MockService) MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, error) {
+	ret := _m.Called(ctx, cmd)
+
+	var r0 *INode
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) (*INode, error)); ok {
+		return rf(ctx, cmd)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) *INode); ok {
+		r0 = rf(ctx, cmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*INode)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *PathCmd) error); ok {
+		r1 = rf(ctx, cmd)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Readdir provides a mock function with given fields: ctx, cmd, paginateCmd
 func (_m *MockService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
 	ret := _m.Called(ctx, cmd, paginateCmd)
