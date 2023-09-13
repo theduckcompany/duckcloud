@@ -33,7 +33,7 @@
       <br>
 
       <form class="row g-3" action="/settings/webdav" method="post" target="_top" hx-post="/settings/webdav"
-        hx-target="#content" hx-swap="outerHTML">
+        hx-target="#content" hx-swap="outerHTML" hx-target-4*="#validation-alert">
         <div class="col-auto">
           <label for="inputDavSession" class="visually-hidden">Name</label>
           <input type="text" name="name" class="form-control" id="davSessionName" placeholder="App name">
@@ -51,11 +51,11 @@
         <div class="col-auto">
           <button type="submit" class="btn btn-primary mb-3">Create new Dav credentials</button>
         </div>
+        {{if .error}}
+        <div id="validation-alert" class="alert alert-danger role=">{{.error.Error}}</div>
+        {{end}}
       </form>
 
-      {{if .error}}
-      <div class="alert alert-danger role=">{{.error.Error}}</div>
-      {{end}}
 
       {{ if .secret }}
       <div class="alert alert-success" role="alert" data-mdb-color="success">

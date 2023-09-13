@@ -1,0 +1,20 @@
+<section id="content">
+  <div class="container-fluid d-flex flex-column">
+    <div class="row align-items-center justify-content-center">
+      <div class="col-md-9 col-lg-6 my-5">
+        <div class="text-center error-page">
+          <h1 class="display-1 text-secondary">500</h1>
+          <h2 class="mb-4">Sorry, something went wrong!</h2>
+          <p class="w-sm-80 mx-auto mb-4">Hm... Unfortunately, the server crashed. Apologies.</p>
+          <div>
+            <a href="/" class="btn btn-info btn-lg me-sm-2 mb-2 mb-sm-0">Return Home</a>
+          </div>
+          <div class="my-5 bg-secondary bg-gradient bg-opacity-10">
+            <h5>Details for the support:</h5>
+            <code class="user-select-all">
+              RequestID: {{.requestID}}
+            </code>
+          </div>
+        </div>
+      </div>
+</section>

@@ -23,6 +23,7 @@ type Writer interface {
 	WriteJSON(w http.ResponseWriter, statusCode int, res any)
 	WriteJSONError(w http.ResponseWriter, err error)
 	WriteHTML(w http.ResponseWriter, r *http.Request, status int, template string, args any)
+	WriteHTMLErrorPage(w http.ResponseWriter, r *http.Request, err error)
 }
 
 func Init(cfg Config, log *slog.Logger) Writer {
@@ -54,7 +55,7 @@ func Init(cfg Config, log *slog.Logger) Writer {
 					}
 					return path.Join(strElems...)
 				},
-				"getInodeIconClass": func(name string, isDir bool) string {
+				"getInodeIconClass": func(_ string, isDir bool) string {
 					if isDir {
 						return "bi-folder-fill text-primary"
 					}

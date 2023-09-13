@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	chi "github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"go.uber.org/fx"
 )
@@ -92,9 +93,10 @@ func NewServer(routes []Registerer, cfgs []Config, lc fx.Lifecycle, mids *Middle
 func createHandler(cfg Config, routes []Registerer, mids *Middlewares) (chi.Router, error) {
 	r := chi.NewMux()
 	r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Location", "/login")
+		w.Header().Set("Location", "/")
 		w.WriteHeader(http.StatusFound)
 	})
+	r.Use(middleware.RequestID)
 
 	for _, svc := range cfg.Services {
 		svcIdx := -1
