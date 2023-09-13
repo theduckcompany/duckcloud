@@ -6,32 +6,28 @@ import (
 
 	"github.com/neilotoole/slogt"
 	"github.com/theduckcompany/duckcloud/src/tools/clock"
-	"github.com/theduckcompany/duckcloud/src/tools/logger"
 	"github.com/theduckcompany/duckcloud/src/tools/password"
 	"github.com/theduckcompany/duckcloud/src/tools/response"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 type Mock struct {
-	ClockMock    *clock.MockClock
-	UUIDMock     *uuid.MockService
-	LogTest      *slog.Logger
-	PasswordMock *password.MockPassword
-	resWriter    response.Writer
+	ClockMock     *clock.MockClock
+	UUIDMock      *uuid.MockService
+	LogTest       *slog.Logger
+	PasswordMock  *password.MockPassword
+	ResWriterMock *response.MockWriter
 }
 
 func NewMock(t *testing.T) *Mock {
 	t.Helper()
 
 	return &Mock{
-		ClockMock:    clock.NewMockClock(t),
-		UUIDMock:     uuid.NewMockService(t),
-		LogTest:      slogt.New(t),
-		PasswordMock: password.NewMockPassword(t),
-		resWriter: response.Init(response.Config{
-			PrettyRender: true,
-			HotReload:    false,
-		}, logger.NewNoop()),
+		ClockMock:     clock.NewMockClock(t),
+		UUIDMock:      uuid.NewMockService(t),
+		LogTest:       slogt.New(t),
+		PasswordMock:  password.NewMockPassword(t),
+		ResWriterMock: response.NewMockWriter(t),
 	}
 }
 
@@ -51,7 +47,7 @@ func (m *Mock) Logger() *slog.Logger {
 }
 
 func (m *Mock) ResWriter() response.Writer {
-	return m.resWriter
+	return m.ResWriterMock
 }
 
 func (m *Mock) Password() password.Password {
