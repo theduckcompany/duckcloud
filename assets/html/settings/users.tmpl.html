@@ -68,6 +68,9 @@
           <button type="submit" class="btn btn-primary mb-3">Create new user</button>
         </div>
       </form>
+      {{if .error}}
+      <div class="alert alert-danger role=">{{.error.Error}}</div>
+      {{end}}
 
     </div>
   </div>
