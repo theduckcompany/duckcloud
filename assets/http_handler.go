@@ -24,7 +24,7 @@ func NewHTTPHandler(cfg Config) *HTTPHandler {
 }
 
 // Register the http endpoints into the given mux server.
-func (h *HTTPHandler) Register(r chi.Router, _ router.Middlewares) {
+func (h *HTTPHandler) Register(r chi.Router, _ *router.Middlewares) {
 	var server http.Handler
 
 	switch h.cfg.HotReload {

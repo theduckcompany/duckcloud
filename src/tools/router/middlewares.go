@@ -21,8 +21,8 @@ type Middlewares struct {
 	CORS         Middleware
 }
 
-func InitMiddlewares(tools tools.Tools) Middlewares {
-	return Middlewares{
+func InitMiddlewares(tools tools.Tools) *Middlewares {
+	return &Middlewares{
 		StripSlashed: middleware.StripSlashes,
 		Logger:       internal.NewStructuredLogger(tools.Logger()),
 		OnlyJSON:     middleware.AllowContentType("application/json"),

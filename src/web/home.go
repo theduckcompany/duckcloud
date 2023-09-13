@@ -30,10 +30,12 @@ func newHomeHandler(
 	}
 }
 
-func (h *homeHandler) Register(r chi.Router, mids router.Middlewares) {
-	home := r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
+func (h *homeHandler) Register(r chi.Router, mids *router.Middlewares) {
+	if mids != nil {
+		r = r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
+	}
 
-	home.Get("/", h.getHome)
+	r.Get("/", h.getHome)
 }
 
 func (h *homeHandler) String() string {

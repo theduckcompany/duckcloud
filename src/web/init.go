@@ -40,7 +40,7 @@ func NewHTTPHandler(
 	}
 }
 
-func (h *HTTPHandler) Register(r chi.Router, mids router.Middlewares) {
+func (h *HTTPHandler) Register(r chi.Router, mids *router.Middlewares) {
 	h.auth.Register(r, mids)
 	h.settings.Register(r, mids)
 	h.home.Register(r, mids)

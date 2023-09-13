@@ -77,13 +77,15 @@ func NewHTTPHandler(
 }
 
 // Register the http endpoints into the given mux server.
-func (h *HTTPHandler) Register(r chi.Router, mids router.Middlewares) {
-	auth := r.With(mids.RealIP, mids.StripSlashed, mids.Logger, mids.CORS)
+func (h *HTTPHandler) Register(r chi.Router, mids *router.Middlewares) {
+	if mids != nil {
+		r = r.With(mids.RealIP, mids.StripSlashed, mids.Logger, mids.CORS)
+	}
 
 	// Actions
-	auth.Post("/auth/logout", h.handleLogoutEndpoint)
-	auth.HandleFunc("/auth/authorize", h.handleAuthorizationEndpoint)
-	auth.HandleFunc("/auth/token", h.handleTokenEndpoint)
+	r.Post("/auth/logout", h.handleLogoutEndpoint)
+	r.HandleFunc("/auth/authorize", h.handleAuthorizationEndpoint)
+	r.HandleFunc("/auth/token", h.handleTokenEndpoint)
 }
 
 func (h *HTTPHandler) String() string {

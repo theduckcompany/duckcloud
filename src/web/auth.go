@@ -47,12 +47,14 @@ func newAuthHandler(
 	}
 }
 
-func (h *authHandler) Register(r chi.Router, mids router.Middlewares) {
-	auth := r.With(mids.RealIP, mids.StripSlashed, mids.Logger, mids.CORS)
+func (h *authHandler) Register(r chi.Router, mids *router.Middlewares) {
+	if mids != nil {
+		r = r.With(mids.RealIP, mids.StripSlashed, mids.Logger, mids.CORS)
+	}
 
-	auth.Get("/login", h.printLoginPage)
-	auth.Post("/login", h.applyLogin)
-	auth.HandleFunc("/consent", h.handleConsentPage)
+	r.Get("/login", h.printLoginPage)
+	r.Post("/login", h.applyLogin)
+	r.HandleFunc("/consent", h.handleConsentPage)
 }
 
 func (h *authHandler) String() string {

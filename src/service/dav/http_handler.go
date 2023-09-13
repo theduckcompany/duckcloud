@@ -39,11 +39,13 @@ func NewHTTPHandler(tools tools.Tools, inodes inodes.Service, files files.Servic
 	}
 }
 
-func (h *HTTPHandler) Register(r chi.Router, mids router.Middlewares) {
-	dav := r.With(mids.StripSlashed, mids.Logger)
+func (h *HTTPHandler) Register(r chi.Router, mids *router.Middlewares) {
+	if mids != nil {
+		r = r.With(mids.StripSlashed, mids.Logger)
+	}
 
-	dav.HandleFunc("/dav", h.handle)
-	dav.HandleFunc("/dav/*", h.handle)
+	r.HandleFunc("/dav", h.handle)
+	r.HandleFunc("/dav/*", h.handle)
 }
 
 func (h *HTTPHandler) String() string {
