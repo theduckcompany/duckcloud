@@ -1,4 +1,4 @@
-<section id="content">
+<section id="content" hx-target-4*="this">
   <div class="card shadow-0">
     <div class="card-header py-4 mb-3">
       <h4 class="mb-0">User management</h4>
@@ -69,7 +69,7 @@
         </div>
       </form>
       {{if .error}}
-      <div class="alert alert-danger role=">{{.error.Error}}</div>
+      <div id="validation-alert" class="alert alert-danger role=">{{.error.Error}}</div>
       {{end}}
 
     </div>
