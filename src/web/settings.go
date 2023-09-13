@@ -118,13 +118,7 @@ func (h *settingsHandler) getDavSessions(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	h.renderDavSessions(w, r, renderDavCmd{
-		User:       user,
-		Session:    session,
-		NewSession: nil,
-		Secret:     "",
-		Error:      nil,
-	})
+	h.renderDavSessions(w, r, renderDavCmd{User: user, Session: session, NewSession: nil, Secret: "", Error: nil})
 }
 
 func (h *settingsHandler) renderDavSessions(w http.ResponseWriter, r *http.Request, cmd renderDavCmd) {
@@ -142,7 +136,12 @@ func (h *settingsHandler) renderDavSessions(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	h.response.WriteHTML(w, r, http.StatusOK, "settings/webdav.tmpl", map[string]interface{}{
+	status := http.StatusOK
+	if cmd.Error != nil {
+		status = http.StatusUnprocessableEntity
+	}
+
+	h.response.WriteHTML(w, r, status, "settings/webdav.tmpl", map[string]interface{}{
 		"isAdmin":     cmd.User.IsAdmin(),
 		"newSession":  cmd.NewSession,
 		"davSessions": davSessions,

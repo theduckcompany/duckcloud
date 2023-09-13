@@ -1,10 +1,15 @@
-<!--Section: Content-->
-<section id="content">
+<section id="content" hx-target-4*="this">
   <div class="card shadow-0">
     <div class="card-header py-4 mb-3">
       <h4 class="mb-0">Browsers</h4>
     </div>
     <div class="card-body">
+      {{ if .error }}
+      <div class="alert alert-dismissible fade show" role="alert" data-mdb-color="danger">
+        {{.error.Error}}
+        <button type="button" class="btn-close" data-mdb-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {{end}}
       {{ $nbWebSessions := len .webSessions }}
       <table class="table align-middle mb-0">
         <thead>
@@ -41,4 +46,3 @@
     </div>
   </div>
 </section>
-<!--Section: Content-->
