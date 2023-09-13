@@ -1,4 +1,4 @@
-package internal
+package router
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 // own. Also take a look at https://github.com/go-chi/httplog for a dedicated pkg based
 // on this work, designed for context-based http routers.
 
-func NewStructuredLogger(log *slog.Logger) func(next http.Handler) http.Handler {
+func newStructuredLogger(log *slog.Logger) func(next http.Handler) http.Handler {
 	return middleware.RequestLogger(&structuredLogger{logger: log.Handler()})
 }
 
