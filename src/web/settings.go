@@ -78,9 +78,7 @@ func (h *settingsHandler) getBrowsersSessions(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	fullPage := r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == ""
-
-	h.response.WriteHTML(w, http.StatusOK, "settings/browsers.tmpl", fullPage, map[string]interface{}{
+	h.response.WriteHTML(w, r, http.StatusOK, "settings/browsers.tmpl", map[string]interface{}{
 		"isAdmin":        user.IsAdmin(),
 		"currentSession": session,
 		"webSessions":    webSessions,
@@ -107,9 +105,7 @@ func (h *settingsHandler) getDavSessions(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	fullPage := r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == ""
-
-	h.response.WriteHTML(w, http.StatusOK, "settings/webdav.tmpl", fullPage, map[string]interface{}{
+	h.response.WriteHTML(w, r, http.StatusOK, "settings/webdav.tmpl", map[string]interface{}{
 		"isAdmin":     user.IsAdmin(),
 		"davSessions": davSessions,
 		"folders":     folders,
@@ -151,9 +147,7 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	fullPage := r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == ""
-
-	h.response.WriteHTML(w, http.StatusOK, "settings/webdav.tmpl", fullPage, map[string]interface{}{
+	h.response.WriteHTML(w, r, http.StatusOK, "settings/webdav.tmpl", map[string]interface{}{
 		"isAdmin":     user.IsAdmin(),
 		"davSessions": davSessions,
 		"newSession":  newSession,
@@ -233,9 +227,7 @@ func (h *settingsHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fullPage := r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == ""
-
-	h.response.WriteHTML(w, http.StatusOK, "settings/users.tmpl", fullPage, map[string]interface{}{
+	h.response.WriteHTML(w, r, http.StatusOK, "settings/users.tmpl", map[string]interface{}{
 		"isAdmin": user.IsAdmin(),
 		"current": user,
 		"users":   users,

@@ -48,10 +48,10 @@ func (t *Default) WriteJSONError(w http.ResponseWriter, err error) {
 	}
 }
 
-func (t *Default) WriteHTML(w http.ResponseWriter, status int, template string, withLayout bool, args any) {
+func (t *Default) WriteHTML(w http.ResponseWriter, r *http.Request, status int, template string, args any) {
 	layout := ""
 
-	if withLayout {
+	if r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == "" {
 		layout = path.Join(path.Dir(template), "layout.tmpl")
 	}
 
