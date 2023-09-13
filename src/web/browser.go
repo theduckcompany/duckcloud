@@ -84,8 +84,7 @@ func (h *browserHandler) getBrowserHome(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	fullPage := r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == ""
-	h.response.WriteHTML(w, http.StatusOK, "browser/home.tmpl", fullPage, map[string]interface{}{
+	h.response.WriteHTML(w, r, http.StatusOK, "browser/home.tmpl", map[string]interface{}{
 		"folders": folders,
 	})
 }
@@ -163,8 +162,7 @@ func (h *browserHandler) getBrowserContent(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	fullPage := r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == ""
-	h.response.WriteHTML(w, http.StatusOK, "browser/content.tmpl", fullPage, map[string]interface{}{
+	h.response.WriteHTML(w, r, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
 		"fullPath":   fullPath,
 		"folder":     folder,
 		"breadcrumb": generateBreadCrumb(folder, fullPath),

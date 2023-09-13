@@ -46,8 +46,7 @@ func (h *homeHandler) getHome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fullPage := r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == ""
-	h.response.WriteHTML(w, http.StatusOK, "home/home.tmpl", fullPage, map[string]interface{}{})
+	h.response.WriteHTML(w, r, http.StatusOK, "home/home.tmpl", map[string]interface{}{})
 }
 
 func (h *homeHandler) getUserAndSession(w http.ResponseWriter, r *http.Request) (*users.User, *websessions.Session) {

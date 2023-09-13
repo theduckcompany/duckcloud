@@ -68,7 +68,7 @@ func (h *authHandler) printLoginPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("HX-Refresh", "true")
-	h.response.WriteHTML(w, http.StatusOK, "auth/login.tmpl", true, nil)
+	h.response.WriteHTML(w, r, http.StatusOK, "auth/login.tmpl", nil)
 }
 
 func (h *authHandler) applyLogin(w http.ResponseWriter, r *http.Request) {
@@ -96,7 +96,7 @@ func (h *authHandler) applyLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(loginErrors) > 0 {
-		h.response.WriteHTML(w, status, "auth/login.tmpl", true, map[string]interface{}{
+		h.response.WriteHTML(w, r, status, "auth/login.tmpl", map[string]interface{}{
 			"inputs": inputs,
 			"errors": loginErrors,
 		})
@@ -205,7 +205,7 @@ func (h *authHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	h.response.WriteHTML(w, http.StatusOK, "auth/consent.tmpl", true, map[string]interface{}{
+	h.response.WriteHTML(w, r, http.StatusOK, "auth/consent.tmpl", map[string]interface{}{
 		"clientName": client.Name(),
 		"username":   user.Username,
 		"scope":      strings.Split(r.FormValue("scope"), ","),
