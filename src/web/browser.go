@@ -58,12 +58,14 @@ func newBrowserHandler(
 	}
 }
 
-func (h *browserHandler) Register(r chi.Router, mids router.Middlewares) {
-	browser := r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
+func (h *browserHandler) Register(r chi.Router, mids *router.Middlewares) {
+	if mids != nil {
+		r = r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
+	}
 
-	browser.Get("/browser", h.getBrowserHome)
-	browser.Post("/browser/upload", h.upload)
-	browser.Get("/browser/*", h.getBrowserContent)
+	r.Get("/browser", h.getBrowserHome)
+	r.Post("/browser/upload", h.upload)
+	r.Get("/browser/*", h.getBrowserContent)
 }
 
 func (h *browserHandler) String() string {

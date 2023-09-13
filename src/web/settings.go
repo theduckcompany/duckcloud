@@ -43,21 +43,23 @@ func newSettingsHandler(
 	}
 }
 
-func (h *settingsHandler) Register(r chi.Router, mids router.Middlewares) {
-	auth := r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
+func (h *settingsHandler) Register(r chi.Router, mids *router.Middlewares) {
+	if mids != nil {
+		r = r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
+	}
 
-	auth.Get("/settings", h.getBrowsersSessions)
+	r.Get("/settings", h.getBrowsersSessions)
 
-	auth.Get("/settings/browsers", h.getBrowsersSessions)
-	auth.Post("/settings/browsers/{sessionToken}/delete", h.deleteWebSession)
+	r.Get("/settings/browsers", h.getBrowsersSessions)
+	r.Post("/settings/browsers/{sessionToken}/delete", h.deleteWebSession)
 
-	auth.Get("/settings/webdav", h.getDavSessions)
-	auth.Post("/settings/webdav", h.createDavSession)
-	auth.Post("/settings/webdav/{sessionID}/delete", h.deleteDavSession)
+	r.Get("/settings/webdav", h.getDavSessions)
+	r.Post("/settings/webdav", h.createDavSession)
+	r.Post("/settings/webdav/{sessionID}/delete", h.deleteDavSession)
 
-	auth.Get("/settings/users", h.getUsers)
-	auth.Post("/settings/users", h.createUser)
-	auth.Post("/settings/users/{userID}/delete", h.deleteUser)
+	r.Get("/settings/users", h.getUsers)
+	r.Post("/settings/users", h.createUser)
+	r.Post("/settings/users/{userID}/delete", h.deleteUser)
 }
 
 func (h *settingsHandler) String() string {

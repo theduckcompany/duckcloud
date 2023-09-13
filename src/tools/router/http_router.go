@@ -23,7 +23,7 @@ type Config struct {
 }
 
 type Registerer interface {
-	Register(r chi.Router, mids Middlewares)
+	Register(r chi.Router, mids *Middlewares)
 	String() string
 }
 
@@ -48,7 +48,7 @@ func init() {
 	chi.RegisterMethod("VERSION-CONTROL")
 }
 
-func NewServer(routes []Registerer, cfgs []Config, lc fx.Lifecycle, mids Middlewares, tools tools.Tools) (*API, error) {
+func NewServer(routes []Registerer, cfgs []Config, lc fx.Lifecycle, mids *Middlewares, tools tools.Tools) (*API, error) {
 	for idx, cfg := range cfgs {
 		handler, err := createHandler(cfg, routes, mids)
 		if err != nil {
@@ -89,7 +89,7 @@ func NewServer(routes []Registerer, cfgs []Config, lc fx.Lifecycle, mids Middlew
 	return &API{}, nil
 }
 
-func createHandler(cfg Config, routes []Registerer, mids Middlewares) (chi.Router, error) {
+func createHandler(cfg Config, routes []Registerer, mids *Middlewares) (chi.Router, error) {
 	r := chi.NewMux()
 	r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Location", "/login")

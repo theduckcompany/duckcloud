@@ -13,7 +13,7 @@ func NewHTTPHandler() *HTTPHandler {
 	return &HTTPHandler{}
 }
 
-func (t *HTTPHandler) Register(r chi.Router, mids router.Middlewares) {
+func (t *HTTPHandler) Register(r chi.Router, _ *router.Middlewares) {
 	r.HandleFunc("/debug/pprof/", pprof.Index)
 	r.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
 	r.HandleFunc("/debug/pprof/profile", pprof.Profile)
