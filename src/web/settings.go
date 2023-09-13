@@ -1,6 +1,7 @@
 package web
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -11,11 +12,31 @@ import (
 	"github.com/theduckcompany/duckcloud/src/service/users"
 	"github.com/theduckcompany/duckcloud/src/service/websessions"
 	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/errs"
 	"github.com/theduckcompany/duckcloud/src/tools/response"
 	"github.com/theduckcompany/duckcloud/src/tools/router"
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
+
+type renderUsersCmd struct {
+	User    *users.User
+	Session *websessions.Session
+	Error   error
+}
+
+type renderDavCmd struct {
+	User       *users.User
+	Session    *websessions.Session
+	NewSession *davsessions.DavSession
+	Secret     string
+	Error      error
+}
+
+type renderBrowsersCmd struct {
+	User    *users.User
+	Session *websessions.Session
+}
 
 type settingsHandler struct {
 	response    response.Writer
@@ -67,57 +88,74 @@ func (h *settingsHandler) String() string {
 }
 
 func (h *settingsHandler) getBrowsersSessions(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
 	user, session := h.getUserAndSession(w, r)
 	if user == nil {
 		return
 	}
 
-	webSessions, err := h.webSessions.GetAllForUser(ctx, session.UserID(), nil)
+	h.renderBrowsersSessions(w, r, renderBrowsersCmd{User: user, Session: session})
+}
+
+func (h *settingsHandler) renderBrowsersSessions(w http.ResponseWriter, r *http.Request, cmd renderBrowsersCmd) {
+	ctx := r.Context()
+
+	webSessions, err := h.webSessions.GetAllForUser(ctx, cmd.Session.UserID(), nil)
 	if err != nil {
 		h.response.WriteJSONError(w, fmt.Errorf("failed to fetch the websessions: %w", err))
 		return
 	}
 
 	h.response.WriteHTML(w, r, http.StatusOK, "settings/browsers.tmpl", map[string]interface{}{
-		"isAdmin":        user.IsAdmin(),
-		"currentSession": session,
+		"isAdmin":        cmd.User.IsAdmin(),
+		"currentSession": cmd.Session,
 		"webSessions":    webSessions,
 	})
 }
 
 func (h *settingsHandler) getDavSessions(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	user, _ := h.getUserAndSession(w, r)
+	user, session := h.getUserAndSession(w, r)
 	if user == nil {
 		return
 	}
 
-	davSessions, err := h.davSessions.GetAllForUser(ctx, user.ID(), &storage.PaginateCmd{Limit: 10})
+	h.renderDavSessions(w, r, renderDavCmd{
+		User:       user,
+		Session:    session,
+		NewSession: nil,
+		Secret:     "",
+		Error:      nil,
+	})
+}
+
+func (h *settingsHandler) renderDavSessions(w http.ResponseWriter, r *http.Request, cmd renderDavCmd) {
+	ctx := r.Context()
+
+	davSessions, err := h.davSessions.GetAllForUser(ctx, cmd.User.ID(), &storage.PaginateCmd{Limit: 10})
 	if err != nil {
 		h.response.WriteJSONError(w, fmt.Errorf("failed to fetch the davsessions: %w", err))
 		return
 	}
 
-	folders, err := h.folders.GetAllUserFolders(ctx, user.ID(), nil)
+	folders, err := h.folders.GetAllUserFolders(ctx, cmd.User.ID(), nil)
 	if err != nil {
 		h.response.WriteJSONError(w, fmt.Errorf("failed to fetch the folders: %w", err))
 		return
 	}
 
 	h.response.WriteHTML(w, r, http.StatusOK, "settings/webdav.tmpl", map[string]interface{}{
-		"isAdmin":     user.IsAdmin(),
+		"isAdmin":     cmd.User.IsAdmin(),
+		"newSession":  cmd.NewSession,
 		"davSessions": davSessions,
 		"folders":     folders,
+		"secret":      cmd.Secret,
+		"error":       cmd.Error,
 	})
 }
 
 func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	user, _ := h.getUserAndSession(w, r)
+	user, session := h.getUserAndSession(w, r)
 	if user == nil {
 		return
 	}
@@ -138,29 +176,29 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 		Name:    r.FormValue("name"),
 		Folders: folders,
 	})
+	if errors.Is(err, errs.ErrValidation) {
+		h.renderDavSessions(w, r, renderDavCmd{User: user, Session: session, Error: err})
+		return
+	}
+
 	if err != nil {
 		fmt.Fprintf(w, `<div class="alert alert-danger role="alert">%s</div>`, err)
 		return
 	}
 
-	davSessions, err := h.davSessions.GetAllForUser(ctx, user.ID(), &storage.PaginateCmd{Limit: 10})
-	if err != nil {
-		h.response.WriteJSONError(w, fmt.Errorf("failed to fetch the davsessions: %w", err))
-		return
-	}
-
-	h.response.WriteHTML(w, r, http.StatusOK, "settings/webdav.tmpl", map[string]interface{}{
-		"isAdmin":     user.IsAdmin(),
-		"davSessions": davSessions,
-		"newSession":  newSession,
-		"secret":      secret,
+	h.renderDavSessions(w, r, renderDavCmd{
+		User:       user,
+		Session:    session,
+		NewSession: newSession,
+		Secret:     secret,
+		Error:      nil,
 	})
 }
 
 func (h *settingsHandler) deleteWebSession(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	user, _ := h.getUserAndSession(w, r)
+	user, session := h.getUserAndSession(w, r)
 	if user == nil {
 		return
 	}
@@ -174,14 +212,13 @@ func (h *settingsHandler) deleteWebSession(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	w.Header().Set("Location", "/settings/browsers")
-	w.WriteHeader(http.StatusFound)
+	h.renderBrowsersSessions(w, r, renderBrowsersCmd{User: user, Session: session})
 }
 
 func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	user, _ := h.getUserAndSession(w, r)
+	user, session := h.getUserAndSession(w, r)
 	if user == nil {
 		return
 	}
@@ -201,19 +238,22 @@ func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	w.Header().Set("Location", "/settings/webdav")
-	w.WriteHeader(http.StatusFound)
+	h.renderDavSessions(w, r, renderDavCmd{User: user, Session: session, Error: nil})
 }
 
 func (h *settingsHandler) getUsers(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	user, _ := h.getUserAndSession(w, r)
+	user, session := h.getUserAndSession(w, r)
 	if user == nil {
 		return
 	}
 
-	if !user.IsAdmin() {
+	h.renderUsers(w, r, renderUsersCmd{User: user, Session: session, Error: nil})
+}
+
+func (h *settingsHandler) renderUsers(w http.ResponseWriter, r *http.Request, cmd renderUsersCmd) {
+	ctx := r.Context()
+
+	if !cmd.User.IsAdmin() {
 		w.Write([]byte(`<div class="alert alert-danger role="alert">Action reserved to admins</div>`))
 		w.WriteHeader(http.StatusUnauthorized)
 		return
@@ -230,16 +270,17 @@ func (h *settingsHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.response.WriteHTML(w, r, http.StatusOK, "settings/users.tmpl", map[string]interface{}{
-		"isAdmin": user.IsAdmin(),
-		"current": user,
+		"isAdmin": cmd.User.IsAdmin(),
+		"current": cmd.User,
 		"users":   users,
+		"error":   cmd.Error,
 	})
 }
 
 func (h *settingsHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	user, _ := h.getUserAndSession(w, r)
+	user, session := h.getUserAndSession(w, r)
 	if user == nil {
 		return
 	}
@@ -264,31 +305,33 @@ func (h *settingsHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Location", "/settings/users")
-	w.WriteHeader(http.StatusFound)
+	h.renderUsers(w, r, renderUsersCmd{User: user, Session: session, Error: nil})
 }
 
 func (h *settingsHandler) createUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	user, _ := h.getUserAndSession(w, r)
+	user, session := h.getUserAndSession(w, r)
 	if user == nil {
 		return
 	}
 
-	user, err := h.users.Create(ctx, &users.CreateCmd{
+	_, err := h.users.Create(ctx, &users.CreateCmd{
 		Username: r.FormValue("username"),
 		Password: r.FormValue("password"),
 		IsAdmin:  r.FormValue("role") == "admin",
 	})
+	if errors.Is(err, errs.ErrValidation) {
+		h.renderUsers(w, r, renderUsersCmd{User: user, Session: session, Error: err})
+		return
+	}
 	if err != nil {
 		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	w.Header().Set("Location", "/settings/users")
-	w.WriteHeader(http.StatusFound)
+	h.renderUsers(w, r, renderUsersCmd{User: user, Session: session, Error: nil})
 }
 
 func (h *settingsHandler) getUserAndSession(w http.ResponseWriter, r *http.Request) (*users.User, *websessions.Session) {

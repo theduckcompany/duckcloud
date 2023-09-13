@@ -54,6 +54,9 @@
         </div>
       </form>
 
+      {{if .error}}
+      <div class="alert alert-danger role=">{{.error.Error}}</div>
+      {{end}}
 
       {{ if .secret }}
       <div class="alert alert-success" role="alert" data-mdb-color="success">
