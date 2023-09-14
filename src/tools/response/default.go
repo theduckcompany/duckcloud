@@ -63,7 +63,10 @@ func (t *Default) WriteHTML(w http.ResponseWriter, r *http.Request, status int, 
 func (t *Default) WriteHTMLErrorPage(w http.ResponseWriter, r *http.Request, err error) {
 	layout := ""
 
-	reqID := r.Context().Value(middleware.RequestIDKey).(string)
+	reqID, ok := r.Context().Value(middleware.RequestIDKey).(string)
+	if !ok {
+		reqID = "??1?"
+	}
 
 	if r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == "" {
 		layout = path.Join("home/layout.tmpl")

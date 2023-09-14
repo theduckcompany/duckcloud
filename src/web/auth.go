@@ -8,13 +8,12 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/theduckcompany/duckcloud/src/service/oauth2"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/theduckcompany/duckcloud/src/service/oauthclients"
 	"github.com/theduckcompany/duckcloud/src/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/src/service/users"
 	"github.com/theduckcompany/duckcloud/src/service/websessions"
 	"github.com/theduckcompany/duckcloud/src/tools"
-	"github.com/theduckcompany/duckcloud/src/tools/errs"
 	"github.com/theduckcompany/duckcloud/src/tools/response"
 	"github.com/theduckcompany/duckcloud/src/tools/router"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
@@ -110,7 +109,7 @@ func (h *authHandler) applyLogin(w http.ResponseWriter, r *http.Request) {
 		Req:    r,
 	})
 	if err != nil {
-		h.response.WriteJSONError(w, r, fmt.Errorf("failed to create the websession: %w", err))
+		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to create the websession: %w", err))
 		return
 	}
 
@@ -130,11 +129,12 @@ func (h *authHandler) applyLogin(w http.ResponseWriter, r *http.Request) {
 
 func (h *authHandler) chooseRedirection(w http.ResponseWriter, r *http.Request) {
 	var client *oauthclients.Client
+	fmt.Printf("clientid: %q\n\n\n", r.FormValue("client_id"))
 	clientID, err := h.uuid.Parse(r.FormValue("client_id"))
 	if err == nil {
 		client, err = h.clients.GetByID(r.Context(), clientID)
 		if err != nil {
-			h.response.WriteJSONError(w, r, errs.BadRequest(oauth2.ErrClientNotFound, "client not found"))
+			h.printClientErrorPage(w, r, errors.New("Oauth client not found"))
 			return
 		}
 	}
@@ -163,29 +163,29 @@ func (h *authHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err != nil {
-		h.response.WriteJSONError(w, r, err)
+		h.response.WriteHTMLErrorPage(w, r, err)
 		return
 	}
 
 	user, err := h.users.GetByID(r.Context(), session.UserID())
 	if err != nil || user == nil {
-		h.response.WriteJSONError(w, r, errs.BadRequest(fmt.Errorf("failed to find the user %q: %w", session.UserID(), err), "user not found"))
+		h.printClientErrorPage(w, r, errors.New("user not found"))
 		return
 	}
 
 	clientID, err := h.uuid.Parse(r.FormValue("client_id"))
 	if err != nil {
-		h.response.WriteJSONError(w, r, errs.BadRequest(oauth2.ErrClientNotFound, "client not found"))
+		h.printClientErrorPage(w, r, errors.New("invalid client_id"))
 		return
 	}
 
 	client, err := h.clients.GetByID(r.Context(), clientID)
 	if err != nil {
-		h.response.WriteJSONError(w, r, errs.BadRequest(err, "invalid request"))
+		h.response.WriteHTMLErrorPage(w, r, err)
 		return
 	}
 	if client == nil {
-		h.response.WriteJSONError(w, r, errs.BadRequest(oauth2.ErrClientNotFound, "invalid request"))
+		h.printClientErrorPage(w, r, errors.New("invalid client_id"))
 		return
 	}
 
@@ -197,7 +197,7 @@ func (h *authHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) 
 			Scopes:       strings.Split(r.FormValue("scope"), ","),
 		})
 		if err != nil {
-			h.response.WriteJSONError(w, r, fmt.Errorf("failed to create the consent: %w", err))
+			h.response.WriteHTMLErrorPage(w, r, err)
 			return
 		}
 
@@ -212,5 +212,17 @@ func (h *authHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) 
 		"username":   user.Username,
 		"scope":      strings.Split(r.FormValue("scope"), ","),
 		"redirect":   template.URL("/consent?" + r.Form.Encode()),
+	})
+}
+
+func (h *authHandler) printClientErrorPage(w http.ResponseWriter, r *http.Request, err error) {
+	reqID, ok := r.Context().Value(middleware.RequestIDKey).(string)
+	if !ok {
+		reqID = "??1?"
+	}
+
+	h.response.WriteHTML(w, r, http.StatusBadRequest, "auth/error.tmpl", map[string]interface{}{
+		"reqID": reqID,
+		"error": err,
 	})
 }
