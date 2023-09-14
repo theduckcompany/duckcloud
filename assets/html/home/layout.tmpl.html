@@ -14,18 +14,8 @@
 </head>
 
 <body>
-  <style>
-    :root {
-      --mdb-primary: #0082C8;
-      --bs-primary: #0082C8;
-      --bs-primary-rgb: 0, 130, 200;
-      --mdb-primary-rgb: 0, 130, 200;
-    }
-  </style>
-
-
   <header>
-    <nav id="main-navbar" class="navbar navbar-expand-lg navbar-light bg-primary fixed-top shadow-0">
+    <nav id="main-navbar" class="navbar navbar-expand-lg navbar-light fixed-top shadow-0">
       <!-- Container wrapper -->
       <div class="container-fluid">
         <!-- Toggler -->
@@ -76,11 +66,14 @@
     </nav>
   </header>
 
-  <div class="bg-image" style="background-image:url('/assets/images/home-background.jpg'); height: 100vh">
-    <main class="container p-5">
-      {{ yield }}
-    </main>
+  <main class="container p-5">
+    {{ yield }}
+  </main>
+
+
+  <script src="/assets/js/response-targets.js"
+    integrity="sha384-gusmZslx0upZyzPbfjGh/OqGlmWvx5bzxyM8yYKj67DTIsUhzEo44hVhrgAgAv9V"
+    crossorigin="anonymous"></script>
 </body>
-</div>
 
 </html>

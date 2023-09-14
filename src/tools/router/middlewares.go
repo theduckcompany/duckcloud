@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/theduckcompany/duckcloud/src/tools"
+	"github.com/theduckcompany/duckcloud/src/tools/logger"
 )
 
 type Middleware func(next http.Handler) http.Handler
@@ -23,7 +24,7 @@ type Middlewares struct {
 func InitMiddlewares(tools tools.Tools) *Middlewares {
 	return &Middlewares{
 		StripSlashed: middleware.StripSlashes,
-		Logger:       newStructuredLogger(tools.Logger()),
+		Logger:       logger.NewRouterLogger(tools.Logger()),
 		OnlyJSON:     middleware.AllowContentType("application/json"),
 		RealIP:       middleware.RealIP,
 		CORS: cors.Handler(cors.Options{

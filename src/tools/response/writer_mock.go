@@ -18,6 +18,11 @@ func (_m *MockWriter) WriteHTML(w http.ResponseWriter, r *http.Request, status i
 	_m.Called(w, r, status, template, args)
 }
 
+// WriteHTMLErrorPage provides a mock function with given fields: w, r, err
+func (_m *MockWriter) WriteHTMLErrorPage(w http.ResponseWriter, r *http.Request, err error) {
+	_m.Called(w, r, err)
+}
+
 // WriteJSON provides a mock function with given fields: w, statusCode, res
 func (_m *MockWriter) WriteJSON(w http.ResponseWriter, statusCode int, res interface{}) {
 	_m.Called(w, statusCode, res)

@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/theduckcompany/duckcloud/src/tools/errs"
+	"github.com/theduckcompany/duckcloud/src/tools/logger"
 	"github.com/unrolled/render"
 )
 
@@ -56,6 +58,24 @@ func (t *Default) WriteHTML(w http.ResponseWriter, r *http.Request, status int, 
 	}
 
 	if err := t.render.HTML(w, status, template, args, render.HTMLOptions{Layout: layout}); err != nil {
+		t.log.Error("failed to render a json response", slog.String("error", err.Error()))
+	}
+}
+
+func (t *Default) WriteHTMLErrorPage(w http.ResponseWriter, r *http.Request, err error) {
+	layout := ""
+
+	reqID := r.Context().Value(middleware.RequestIDKey).(string)
+
+	if r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == "" {
+		layout = path.Join("home/layout.tmpl")
+	}
+
+	logger.LogEntrySetField(r, "error", err.Error())
+
+	if err := t.render.HTML(w, http.StatusInternalServerError, "home/500.tmpl", map[string]any{
+		"requestID": reqID,
+	}, render.HTMLOptions{Layout: layout}); err != nil {
 		t.log.Error("failed to render a json response", slog.String("error", err.Error()))
 	}
 }

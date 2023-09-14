@@ -101,7 +101,7 @@ func (h *settingsHandler) renderBrowsersSessions(w http.ResponseWriter, r *http.
 
 	webSessions, err := h.webSessions.GetAllForUser(ctx, cmd.Session.UserID(), nil)
 	if err != nil {
-		h.response.WriteJSONError(w, fmt.Errorf("failed to fetch the websessions: %w", err))
+		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetAllForUser: %w", err))
 		return
 	}
 
@@ -126,13 +126,13 @@ func (h *settingsHandler) renderDavSessions(w http.ResponseWriter, r *http.Reque
 
 	davSessions, err := h.davSessions.GetAllForUser(ctx, cmd.User.ID(), &storage.PaginateCmd{Limit: 10})
 	if err != nil {
-		h.response.WriteJSONError(w, fmt.Errorf("failed to fetch the davsessions: %w", err))
+		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetAllForUser: %w", err))
 		return
 	}
 
 	folders, err := h.folders.GetAllUserFolders(ctx, cmd.User.ID(), nil)
 	if err != nil {
-		h.response.WriteJSONError(w, fmt.Errorf("failed to fetch the folders: %w", err))
+		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetAllUserFolders: %w", err))
 		return
 	}
 
@@ -163,7 +163,7 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 	for _, rawUUID := range strings.Split(r.FormValue("folders"), ",") {
 		id, err := h.uuid.Parse(rawUUID)
 		if err != nil {
-			fmt.Fprintf(w, `<div class="alert alert-danger role="alert">invalid id: %s</div>`, err)
+			h.renderDavSessions(w, r, renderDavCmd{User: user, Session: session, Error: errors.New("invalid folder id")})
 			return
 		}
 
@@ -181,7 +181,7 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 	}
 
 	if err != nil {
-		fmt.Fprintf(w, `<div class="alert alert-danger role="alert">%s</div>`, err)
+		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Create dav session: %w", err))
 		return
 	}
 
@@ -207,7 +207,7 @@ func (h *settingsHandler) deleteWebSession(w http.ResponseWriter, r *http.Reques
 		Token:  chi.URLParam(r, "sessionToken"),
 	})
 	if err != nil {
-		fmt.Fprintf(w, `<div class="alert alert-danger role="alert">%s</div>`, err)
+		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to websession.Delete: %w", err))
 		return
 	}
 
@@ -224,7 +224,7 @@ func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Reques
 
 	sessionID, err := h.uuid.Parse(chi.URLParam(r, "sessionID"))
 	if err != nil {
-		w.Write([]byte(`<div class="alert alert-danger role="alert">Invalid session id</div>`))
+		h.renderDavSessions(w, r, renderDavCmd{User: user, Session: session, Error: errors.New("invalid session id")})
 		return
 	}
 
@@ -233,7 +233,7 @@ func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Reques
 		SessionID: sessionID,
 	})
 	if err != nil {
-		fmt.Fprintf(w, `<div class="alert alert-danger role="alert">%s</div>`, err)
+		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to davSession.Delete: %w", err))
 		return
 	}
 
@@ -263,8 +263,7 @@ func (h *settingsHandler) renderUsers(w http.ResponseWriter, r *http.Request, cm
 		Limit:      10,
 	})
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
-		w.WriteHeader(http.StatusUnauthorized)
+		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to users.GetAll: %w", err))
 		return
 	}
 
@@ -292,15 +291,13 @@ func (h *settingsHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 
 	userToDelete, err := h.uuid.Parse(chi.URLParam(r, "userID"))
 	if err != nil {
-		w.Write([]byte(`<div class="alert alert-danger role="alert">Invalid id</div>`))
-		w.WriteHeader(http.StatusBadRequest)
+		h.renderUsers(w, r, renderUsersCmd{User: user, Session: session, Error: errors.New("invalid user id")})
 		return
 	}
 
 	err = h.users.AddToDeletion(ctx, userToDelete)
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
-		w.WriteHeader(http.StatusBadRequest)
+		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to users.AddToDeletion: %w", err))
 		return
 	}
 
@@ -325,8 +322,7 @@ func (h *settingsHandler) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
-		w.WriteHeader(http.StatusBadRequest)
+		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to users.Create: %w", err))
 		return
 	}
 
