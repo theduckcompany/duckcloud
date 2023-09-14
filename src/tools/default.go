@@ -32,7 +32,7 @@ func NewToolbox(cfg Config) *Toolbox {
 		clock:     clock.NewDefault(),
 		uuid:      uuid.NewProvider(),
 		log:       log,
-		resWriter: response.Init(cfg.Response, log),
+		resWriter: response.Init(cfg.Response),
 		password:  password.NewBcryptPassword(),
 	}
 }
@@ -45,7 +45,7 @@ func NewToolboxForTest(t *testing.T) *Toolbox {
 		clock:     clock.NewDefault(),
 		uuid:      uuid.NewProvider(),
 		log:       log,
-		resWriter: response.Init(response.Config{PrettyRender: true, HotReload: false}, log),
+		resWriter: response.Init(response.Config{PrettyRender: true, HotReload: false}),
 		password:  password.NewBcryptPassword(),
 	}
 }

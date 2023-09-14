@@ -11,7 +11,6 @@ import (
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/stretchr/testify/assert"
 	"github.com/theduckcompany/duckcloud/src/tools/errs"
-	"github.com/theduckcompany/duckcloud/src/tools/logger"
 	"github.com/unrolled/render"
 )
 
@@ -48,11 +47,12 @@ func TestWriteJSONError(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			resWriter := New(logger.NewNoop(), render.New())
+			resWriter := New(render.New())
 
+			r := httptest.NewRequest(http.MethodGet, "/foo", nil)
 			w := httptest.NewRecorder()
 
-			resWriter.WriteJSONError(w, test.Input)
+			resWriter.WriteJSONError(w, r, test.Input)
 
 			res := w.Result()
 			defer res.Body.Close()
@@ -78,13 +78,14 @@ func (t someCmd) Validate() error {
 }
 
 func TestWriteJSONError_validation(t *testing.T) {
-	resWriter := New(logger.NewNoop(), render.New())
+	resWriter := New(render.New())
 
+	r := httptest.NewRequest(http.MethodGet, "/foo", nil)
 	w := httptest.NewRecorder()
 
 	cmd := someCmd{Username: "valid", Email: "invalid-input"}
 	err := errs.ValidationError(cmd.Validate())
-	resWriter.WriteJSONError(w, err)
+	resWriter.WriteJSONError(w, r, err)
 
 	res := w.Result()
 	defer res.Body.Close()
@@ -96,12 +97,13 @@ func TestWriteJSONError_validation(t *testing.T) {
 }
 
 func TestWriteUnhandledError(t *testing.T) {
-	resWriter := New(logger.NewNoop(), render.New())
+	resWriter := New(render.New())
 
+	r := httptest.NewRequest(http.MethodGet, "/foo", nil)
 	w := httptest.NewRecorder()
 
 	err := errors.New("some unknown error")
-	resWriter.WriteJSONError(w, err)
+	resWriter.WriteJSONError(w, r, err)
 
 	res := w.Result()
 	defer res.Body.Close()
