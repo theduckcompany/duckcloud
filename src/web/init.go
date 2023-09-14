@@ -32,11 +32,13 @@ func NewHTTPHandler(
 	davSessions davsessions.Service,
 	inodes inodes.Service,
 ) *HTTPHandler {
+	auth := NewAuthenticator(webSessions, users, tools.ResWriter())
+
 	return &HTTPHandler{
 		auth:     newAuthHandler(tools, users, clients, oauthConsent, webSessions),
-		settings: newSettingsHandler(tools, webSessions, davSessions, folders, users),
-		home:     newHomeHandler(tools, webSessions, users),
-		browser:  newBrowserHandler(tools, webSessions, folders, users, inodes, files, tools.UUID()),
+		settings: newSettingsHandler(tools, webSessions, davSessions, folders, users, auth),
+		home:     newHomeHandler(tools, auth),
+		browser:  newBrowserHandler(tools, folders, inodes, files, tools.UUID(), auth),
 	}
 }
 
