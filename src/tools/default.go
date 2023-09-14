@@ -45,7 +45,7 @@ func NewToolboxForTest(t *testing.T) *Toolbox {
 		clock:     clock.NewDefault(),
 		uuid:      uuid.NewProvider(),
 		log:       log,
-		resWriter: response.Init(response.Config{PrettyRender: true, HotReload: false}),
+		resWriter: response.Init(response.Config{PrettyRender: true}),
 		password:  password.NewBcryptPassword(),
 	}
 }

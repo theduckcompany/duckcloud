@@ -5,7 +5,6 @@ import (
 
 	"github.com/theduckcompany/duckcloud/src/service/users"
 	"github.com/theduckcompany/duckcloud/src/service/websessions"
-	"github.com/theduckcompany/duckcloud/src/tools/response"
 )
 
 type AccessType int
@@ -18,11 +17,11 @@ const (
 type Authenticator struct {
 	webSessions websessions.Service
 	users       users.Service
-	resWriter   response.Writer
+	html        HTMLWriter
 }
 
-func NewAuthenticator(webSessions websessions.Service, users users.Service, resWriter response.Writer) *Authenticator {
-	return &Authenticator{webSessions, users, resWriter}
+func NewAuthenticator(webSessions websessions.Service, users users.Service, html HTMLWriter) *Authenticator {
+	return &Authenticator{webSessions, users, html}
 }
 
 func (a *Authenticator) getUserAndSession(w http.ResponseWriter, r *http.Request, access AccessType) (*users.User, *websessions.Session, bool) {
@@ -35,7 +34,7 @@ func (a *Authenticator) getUserAndSession(w http.ResponseWriter, r *http.Request
 
 	user, err := a.users.GetByID(r.Context(), currentSession.UserID())
 	if err != nil {
-		a.resWriter.WriteHTMLErrorPage(w, r, err)
+		a.html.WriteHTMLErrorPage(w, r, err)
 		return nil, nil, true
 	}
 

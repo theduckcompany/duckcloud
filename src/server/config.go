@@ -12,6 +12,8 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools/response"
 	"github.com/theduckcompany/duckcloud/src/tools/router"
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
+	"github.com/theduckcompany/duckcloud/src/web"
+	"github.com/theduckcompany/duckcloud/src/web/html"
 	"go.uber.org/fx"
 )
 
@@ -24,6 +26,7 @@ type Config struct {
 	Storage   storage.Config  `json:"storage"`
 	Files     files.Config    `json:"files"`
 	Tools     tools.Config    `json:"tools"`
+	Web       web.Config      `json:"web"`
 }
 
 func NewDefaultConfig() *Config {
@@ -62,6 +65,12 @@ func NewDefaultConfig() *Config {
 			},
 			Log: logger.Config{
 				Level: slog.LevelInfo,
+			},
+		},
+		Web: web.Config{
+			HTML: html.Config{
+				PrettyRender: false,
+				HotReload:    false,
 			},
 		},
 	}

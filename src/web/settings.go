@@ -13,10 +13,10 @@ import (
 	"github.com/theduckcompany/duckcloud/src/service/websessions"
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/errs"
-	"github.com/theduckcompany/duckcloud/src/tools/response"
 	"github.com/theduckcompany/duckcloud/src/tools/router"
 	"github.com/theduckcompany/duckcloud/src/tools/storage"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
+	"github.com/theduckcompany/duckcloud/src/web/html"
 )
 
 type renderUsersCmd struct {
@@ -39,7 +39,7 @@ type renderBrowsersCmd struct {
 }
 
 type settingsHandler struct {
-	response    response.Writer
+	html        *html.Renderer
 	webSessions websessions.Service
 	davSessions davsessions.Service
 	folders     folders.Service
@@ -50,6 +50,7 @@ type settingsHandler struct {
 
 func newSettingsHandler(
 	tools tools.Tools,
+	html *html.Renderer,
 	webSessions websessions.Service,
 	davSessions davsessions.Service,
 	folders folders.Service,
@@ -57,7 +58,7 @@ func newSettingsHandler(
 	authent *Authenticator,
 ) *settingsHandler {
 	return &settingsHandler{
-		response:    tools.ResWriter(),
+		html:        html,
 		webSessions: webSessions,
 		davSessions: davSessions,
 		folders:     folders,
@@ -102,11 +103,11 @@ func (h *settingsHandler) getBrowsersSessions(w http.ResponseWriter, r *http.Req
 func (h *settingsHandler) renderBrowsersSessions(w http.ResponseWriter, r *http.Request, cmd renderBrowsersCmd) {
 	webSessions, err := h.webSessions.GetAllForUser(r.Context(), cmd.Session.UserID(), nil)
 	if err != nil {
-		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetAllForUser: %w", err))
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetAllForUser: %w", err))
 		return
 	}
 
-	h.response.WriteHTML(w, r, http.StatusOK, "settings/browsers.tmpl", map[string]interface{}{
+	h.html.WriteHTML(w, r, http.StatusOK, "settings/browsers.tmpl", map[string]interface{}{
 		"isAdmin":        cmd.User.IsAdmin(),
 		"currentSession": cmd.Session,
 		"webSessions":    webSessions,
@@ -127,13 +128,13 @@ func (h *settingsHandler) renderDavSessions(w http.ResponseWriter, r *http.Reque
 
 	davSessions, err := h.davSessions.GetAllForUser(ctx, cmd.User.ID(), &storage.PaginateCmd{Limit: 10})
 	if err != nil {
-		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetAllForUser: %w", err))
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetAllForUser: %w", err))
 		return
 	}
 
 	folders, err := h.folders.GetAllUserFolders(ctx, cmd.User.ID(), nil)
 	if err != nil {
-		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetAllUserFolders: %w", err))
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetAllUserFolders: %w", err))
 		return
 	}
 
@@ -142,7 +143,7 @@ func (h *settingsHandler) renderDavSessions(w http.ResponseWriter, r *http.Reque
 		status = http.StatusUnprocessableEntity
 	}
 
-	h.response.WriteHTML(w, r, status, "settings/webdav.tmpl", map[string]interface{}{
+	h.html.WriteHTML(w, r, status, "settings/webdav.tmpl", map[string]interface{}{
 		"isAdmin":     cmd.User.IsAdmin(),
 		"newSession":  cmd.NewSession,
 		"davSessions": davSessions,
@@ -180,7 +181,7 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 	}
 
 	if err != nil {
-		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Create dav session: %w", err))
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Create dav session: %w", err))
 		return
 	}
 
@@ -204,7 +205,7 @@ func (h *settingsHandler) deleteWebSession(w http.ResponseWriter, r *http.Reques
 		Token:  chi.URLParam(r, "sessionToken"),
 	})
 	if err != nil {
-		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to websession.Delete: %w", err))
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to websession.Delete: %w", err))
 		return
 	}
 
@@ -228,7 +229,7 @@ func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Reques
 		SessionID: sessionID,
 	})
 	if err != nil {
-		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to davSession.Delete: %w", err))
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to davSession.Delete: %w", err))
 		return
 	}
 
@@ -252,11 +253,11 @@ func (h *settingsHandler) renderUsers(w http.ResponseWriter, r *http.Request, cm
 		Limit:      10,
 	})
 	if err != nil {
-		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to users.GetAll: %w", err))
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to users.GetAll: %w", err))
 		return
 	}
 
-	h.response.WriteHTML(w, r, http.StatusOK, "settings/users.tmpl", map[string]interface{}{
+	h.html.WriteHTML(w, r, http.StatusOK, "settings/users.tmpl", map[string]interface{}{
 		"isAdmin": cmd.User.IsAdmin(),
 		"current": cmd.User,
 		"users":   users,
@@ -278,7 +279,7 @@ func (h *settingsHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 
 	err = h.users.AddToDeletion(r.Context(), userToDelete)
 	if err != nil {
-		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to users.AddToDeletion: %w", err))
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to users.AddToDeletion: %w", err))
 		return
 	}
 
@@ -301,7 +302,7 @@ func (h *settingsHandler) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to users.Create: %w", err))
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to users.Create: %w", err))
 		return
 	}
 

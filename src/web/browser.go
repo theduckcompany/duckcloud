@@ -18,7 +18,6 @@ import (
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
 	"github.com/theduckcompany/duckcloud/src/service/users"
 	"github.com/theduckcompany/duckcloud/src/tools"
-	"github.com/theduckcompany/duckcloud/src/tools/response"
 	"github.com/theduckcompany/duckcloud/src/tools/router"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
@@ -28,16 +27,17 @@ const MaxMemoryCache = 20 * 1024 * 1024 // 20MB
 var ErrInvalidFolderID = errors.New("invalid folderID")
 
 type browserHandler struct {
-	response response.Writer
-	folders  folders.Service
-	inodes   inodes.Service
-	files    files.Service
-	uuid     uuid.Service
-	auth     *Authenticator
+	html    HTMLWriter
+	folders folders.Service
+	inodes  inodes.Service
+	files   files.Service
+	uuid    uuid.Service
+	auth    *Authenticator
 }
 
 func newBrowserHandler(
 	tools tools.Tools,
+	html HTMLWriter,
 	folders folders.Service,
 	inodes inodes.Service,
 	files files.Service,
@@ -45,12 +45,12 @@ func newBrowserHandler(
 	auth *Authenticator,
 ) *browserHandler {
 	return &browserHandler{
-		response: tools.ResWriter(),
-		folders:  folders,
-		inodes:   inodes,
-		files:    files,
-		uuid:     uuid,
-		auth:     auth,
+		html:    html,
+		folders: folders,
+		inodes:  inodes,
+		files:   files,
+		uuid:    uuid,
+		auth:    auth,
 	}
 }
 
@@ -80,7 +80,7 @@ func (h *browserHandler) getBrowserHome(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	h.response.WriteHTML(w, r, http.StatusOK, "browser/home.tmpl", map[string]interface{}{
+	h.html.WriteHTML(w, r, http.StatusOK, "browser/home.tmpl", map[string]interface{}{
 		"folders": folders,
 	})
 }
@@ -156,7 +156,7 @@ func (h *browserHandler) getBrowserContent(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	h.response.WriteHTML(w, r, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
+	h.html.WriteHTML(w, r, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
 		"fullPath":   fullPath,
 		"folder":     folder,
 		"breadcrumb": generateBreadCrumb(folder, fullPath),

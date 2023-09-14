@@ -1,6 +1,8 @@
 package web
 
 import (
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/theduckcompany/duckcloud/src/service/davsessions"
 	"github.com/theduckcompany/duckcloud/src/service/files"
@@ -12,7 +14,17 @@ import (
 	"github.com/theduckcompany/duckcloud/src/service/websessions"
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/router"
+	"github.com/theduckcompany/duckcloud/src/web/html"
 )
+
+type HTMLWriter interface {
+	WriteHTML(w http.ResponseWriter, r *http.Request, status int, template string, args any)
+	WriteHTMLErrorPage(w http.ResponseWriter, r *http.Request, err error)
+}
+
+type Config struct {
+	HTML html.Config `json:"html"`
+}
 
 type HTTPHandler struct {
 	auth     *authHandler
@@ -22,6 +34,7 @@ type HTTPHandler struct {
 }
 
 func NewHTTPHandler(
+	cfg Config,
 	tools tools.Tools,
 	users users.Service,
 	clients oauthclients.Service,
@@ -32,13 +45,14 @@ func NewHTTPHandler(
 	davSessions davsessions.Service,
 	inodes inodes.Service,
 ) *HTTPHandler {
-	auth := NewAuthenticator(webSessions, users, tools.ResWriter())
+	htmlRenderer := html.NewRenderer(cfg.HTML)
+	auth := NewAuthenticator(webSessions, users, htmlRenderer)
 
 	return &HTTPHandler{
-		auth:     newAuthHandler(tools, users, clients, oauthConsent, webSessions),
-		settings: newSettingsHandler(tools, webSessions, davSessions, folders, users, auth),
-		home:     newHomeHandler(tools, auth),
-		browser:  newBrowserHandler(tools, folders, inodes, files, tools.UUID(), auth),
+		auth:     newAuthHandler(tools, htmlRenderer, auth, users, clients, oauthConsent, webSessions),
+		settings: newSettingsHandler(tools, htmlRenderer, webSessions, davSessions, folders, users, auth),
+		home:     newHomeHandler(htmlRenderer, auth),
+		browser:  newBrowserHandler(tools, htmlRenderer, folders, inodes, files, tools.UUID(), auth),
 	}
 }
 
