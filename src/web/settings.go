@@ -45,6 +45,7 @@ type settingsHandler struct {
 	folders     folders.Service
 	users       users.Service
 	uuid        uuid.Service
+	auth        *Authenticator
 }
 
 func newSettingsHandler(
@@ -53,6 +54,7 @@ func newSettingsHandler(
 	davSessions davsessions.Service,
 	folders folders.Service,
 	users users.Service,
+	authent *Authenticator,
 ) *settingsHandler {
 	return &settingsHandler{
 		response:    tools.ResWriter(),
@@ -61,6 +63,7 @@ func newSettingsHandler(
 		folders:     folders,
 		users:       users,
 		uuid:        tools.UUID(),
+		auth:        authent,
 	}
 }
 
@@ -88,8 +91,8 @@ func (h *settingsHandler) String() string {
 }
 
 func (h *settingsHandler) getBrowsersSessions(w http.ResponseWriter, r *http.Request) {
-	user, session := h.getUserAndSession(w, r)
-	if user == nil {
+	user, session, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	if abort {
 		return
 	}
 
@@ -97,9 +100,7 @@ func (h *settingsHandler) getBrowsersSessions(w http.ResponseWriter, r *http.Req
 }
 
 func (h *settingsHandler) renderBrowsersSessions(w http.ResponseWriter, r *http.Request, cmd renderBrowsersCmd) {
-	ctx := r.Context()
-
-	webSessions, err := h.webSessions.GetAllForUser(ctx, cmd.Session.UserID(), nil)
+	webSessions, err := h.webSessions.GetAllForUser(r.Context(), cmd.Session.UserID(), nil)
 	if err != nil {
 		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetAllForUser: %w", err))
 		return
@@ -113,8 +114,8 @@ func (h *settingsHandler) renderBrowsersSessions(w http.ResponseWriter, r *http.
 }
 
 func (h *settingsHandler) getDavSessions(w http.ResponseWriter, r *http.Request) {
-	user, session := h.getUserAndSession(w, r)
-	if user == nil {
+	user, session, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	if abort {
 		return
 	}
 
@@ -152,10 +153,8 @@ func (h *settingsHandler) renderDavSessions(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	user, session := h.getUserAndSession(w, r)
-	if user == nil {
+	user, session, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	if abort {
 		return
 	}
 
@@ -170,7 +169,7 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 		folders = append(folders, id)
 	}
 
-	newSession, secret, err := h.davSessions.Create(ctx, &davsessions.CreateCmd{
+	newSession, secret, err := h.davSessions.Create(r.Context(), &davsessions.CreateCmd{
 		UserID:  user.ID(),
 		Name:    r.FormValue("name"),
 		Folders: folders,
@@ -195,14 +194,12 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *settingsHandler) deleteWebSession(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	user, session := h.getUserAndSession(w, r)
-	if user == nil {
+	user, session, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	if abort {
 		return
 	}
 
-	err := h.webSessions.Delete(ctx, &websessions.DeleteCmd{
+	err := h.webSessions.Delete(r.Context(), &websessions.DeleteCmd{
 		UserID: user.ID(),
 		Token:  chi.URLParam(r, "sessionToken"),
 	})
@@ -215,10 +212,8 @@ func (h *settingsHandler) deleteWebSession(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	user, session := h.getUserAndSession(w, r)
-	if user == nil {
+	user, session, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	if abort {
 		return
 	}
 
@@ -228,7 +223,7 @@ func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = h.davSessions.Delete(ctx, &davsessions.DeleteCmd{
+	err = h.davSessions.Delete(r.Context(), &davsessions.DeleteCmd{
 		UserID:    user.ID(),
 		SessionID: sessionID,
 	})
@@ -241,8 +236,8 @@ func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *settingsHandler) getUsers(w http.ResponseWriter, r *http.Request) {
-	user, session := h.getUserAndSession(w, r)
-	if user == nil {
+	user, session, abort := h.auth.getUserAndSession(w, r, AdminOnly)
+	if abort {
 		return
 	}
 
@@ -251,12 +246,6 @@ func (h *settingsHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 
 func (h *settingsHandler) renderUsers(w http.ResponseWriter, r *http.Request, cmd renderUsersCmd) {
 	ctx := r.Context()
-
-	if !cmd.User.IsAdmin() {
-		w.Write([]byte(`<div class="alert alert-danger role="alert">Action reserved to admins</div>`))
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
 
 	users, err := h.users.GetAll(ctx, &storage.PaginateCmd{
 		StartAfter: map[string]string{"username": ""},
@@ -276,16 +265,8 @@ func (h *settingsHandler) renderUsers(w http.ResponseWriter, r *http.Request, cm
 }
 
 func (h *settingsHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	user, session := h.getUserAndSession(w, r)
-	if user == nil {
-		return
-	}
-
-	if !user.IsAdmin() {
-		w.Write([]byte(`<div class="alert alert-danger role="alert">Action reserved to admins</div>`))
-		w.WriteHeader(http.StatusUnauthorized)
+	user, session, abort := h.auth.getUserAndSession(w, r, AdminOnly)
+	if abort {
 		return
 	}
 
@@ -295,7 +276,7 @@ func (h *settingsHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.users.AddToDeletion(ctx, userToDelete)
+	err = h.users.AddToDeletion(r.Context(), userToDelete)
 	if err != nil {
 		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to users.AddToDeletion: %w", err))
 		return
@@ -305,14 +286,12 @@ func (h *settingsHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *settingsHandler) createUser(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	user, session := h.getUserAndSession(w, r)
-	if user == nil {
+	user, session, abort := h.auth.getUserAndSession(w, r, AdminOnly)
+	if abort {
 		return
 	}
 
-	_, err := h.users.Create(ctx, &users.CreateCmd{
+	_, err := h.users.Create(r.Context(), &users.CreateCmd{
 		Username: r.FormValue("username"),
 		Password: r.FormValue("password"),
 		IsAdmin:  r.FormValue("role") == "admin",
@@ -327,28 +306,4 @@ func (h *settingsHandler) createUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.renderUsers(w, r, renderUsersCmd{User: user, Session: session, Error: nil})
-}
-
-func (h *settingsHandler) getUserAndSession(w http.ResponseWriter, r *http.Request) (*users.User, *websessions.Session) {
-	ctx := r.Context()
-
-	currentSession, err := h.webSessions.GetFromReq(r)
-	if err != nil || currentSession == nil {
-		w.Header().Set("Location", "/login")
-		w.WriteHeader(http.StatusFound)
-		return nil, nil
-	}
-
-	user, err := h.users.GetByID(ctx, currentSession.UserID())
-	if err != nil {
-		w.Write([]byte(fmt.Sprintf(`<div class="alert alert-danger role="alert">%s</div>`, err)))
-		return nil, nil
-	}
-
-	if user == nil {
-		_ = h.webSessions.Logout(r, w)
-		return nil, nil
-	}
-
-	return user, currentSession
 }
