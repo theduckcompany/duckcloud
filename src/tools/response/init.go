@@ -2,7 +2,6 @@ package response
 
 import (
 	"fmt"
-	"log/slog"
 	"net/http"
 	"os"
 	"path"
@@ -20,13 +19,13 @@ type Config struct {
 
 //go:generate mockery --name Writer
 type Writer interface {
-	WriteJSON(w http.ResponseWriter, statusCode int, res any)
-	WriteJSONError(w http.ResponseWriter, err error)
+	WriteJSON(w http.ResponseWriter, r *http.Request, statusCode int, res any)
+	WriteJSONError(w http.ResponseWriter, r *http.Request, err error)
 	WriteHTML(w http.ResponseWriter, r *http.Request, status int, template string, args any)
 	WriteHTMLErrorPage(w http.ResponseWriter, r *http.Request, err error)
 }
 
-func Init(cfg Config, log *slog.Logger) Writer {
+func Init(cfg Config) Writer {
 	dir, err := os.Getwd()
 	if err != nil {
 		panic(fmt.Sprintf("failed to fetch the current workind dir: %s", err))
@@ -71,5 +70,5 @@ func Init(cfg Config, log *slog.Logger) Writer {
 		opts.IndentXML = true
 	}
 
-	return New(log, render.New(opts))
+	return New(render.New(opts))
 }

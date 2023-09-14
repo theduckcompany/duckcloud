@@ -143,11 +143,11 @@ func (h *HTTPHandler) userAuthorizationHandler(w http.ResponseWriter, r *http.Re
 func (h *HTTPHandler) handleLogoutEndpoint(w http.ResponseWriter, r *http.Request) {
 	err := h.webSession.Logout(r, w)
 	if err != nil {
-		h.response.WriteJSONError(w, err)
+		h.response.WriteJSONError(w, r, err)
 		return
 	}
 
-	h.response.WriteJSON(w, http.StatusOK, nil)
+	h.response.WriteJSON(w, r, http.StatusOK, nil)
 }
 
 func (h *HTTPHandler) handleTokenEndpoint(w http.ResponseWriter, r *http.Request) {

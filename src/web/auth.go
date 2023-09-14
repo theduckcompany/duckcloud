@@ -110,7 +110,7 @@ func (h *authHandler) applyLogin(w http.ResponseWriter, r *http.Request) {
 		Req:    r,
 	})
 	if err != nil {
-		h.response.WriteJSONError(w, fmt.Errorf("failed to create the websession: %w", err))
+		h.response.WriteJSONError(w, r, fmt.Errorf("failed to create the websession: %w", err))
 		return
 	}
 
@@ -134,7 +134,7 @@ func (h *authHandler) chooseRedirection(w http.ResponseWriter, r *http.Request) 
 	if err == nil {
 		client, err = h.clients.GetByID(r.Context(), clientID)
 		if err != nil {
-			h.response.WriteJSONError(w, errs.BadRequest(oauth2.ErrClientNotFound, "client not found"))
+			h.response.WriteJSONError(w, r, errs.BadRequest(oauth2.ErrClientNotFound, "client not found"))
 			return
 		}
 	}
@@ -163,29 +163,29 @@ func (h *authHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err != nil {
-		h.response.WriteJSONError(w, err)
+		h.response.WriteJSONError(w, r, err)
 		return
 	}
 
 	user, err := h.users.GetByID(r.Context(), session.UserID())
 	if err != nil || user == nil {
-		h.response.WriteJSONError(w, errs.BadRequest(fmt.Errorf("failed to find the user %q: %w", session.UserID(), err), "user not found"))
+		h.response.WriteJSONError(w, r, errs.BadRequest(fmt.Errorf("failed to find the user %q: %w", session.UserID(), err), "user not found"))
 		return
 	}
 
 	clientID, err := h.uuid.Parse(r.FormValue("client_id"))
 	if err != nil {
-		h.response.WriteJSONError(w, errs.BadRequest(oauth2.ErrClientNotFound, "client not found"))
+		h.response.WriteJSONError(w, r, errs.BadRequest(oauth2.ErrClientNotFound, "client not found"))
 		return
 	}
 
 	client, err := h.clients.GetByID(r.Context(), clientID)
 	if err != nil {
-		h.response.WriteJSONError(w, errs.BadRequest(err, "invalid request"))
+		h.response.WriteJSONError(w, r, errs.BadRequest(err, "invalid request"))
 		return
 	}
 	if client == nil {
-		h.response.WriteJSONError(w, errs.BadRequest(oauth2.ErrClientNotFound, "invalid request"))
+		h.response.WriteJSONError(w, r, errs.BadRequest(oauth2.ErrClientNotFound, "invalid request"))
 		return
 	}
 
@@ -197,7 +197,7 @@ func (h *authHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) 
 			Scopes:       strings.Split(r.FormValue("scope"), ","),
 		})
 		if err != nil {
-			h.response.WriteJSONError(w, fmt.Errorf("failed to create the consent: %w", err))
+			h.response.WriteJSONError(w, r, fmt.Errorf("failed to create the consent: %w", err))
 			return
 		}
 

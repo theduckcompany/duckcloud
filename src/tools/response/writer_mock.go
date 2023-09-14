@@ -23,14 +23,14 @@ func (_m *MockWriter) WriteHTMLErrorPage(w http.ResponseWriter, r *http.Request,
 	_m.Called(w, r, err)
 }
 
-// WriteJSON provides a mock function with given fields: w, statusCode, res
-func (_m *MockWriter) WriteJSON(w http.ResponseWriter, statusCode int, res interface{}) {
-	_m.Called(w, statusCode, res)
+// WriteJSON provides a mock function with given fields: w, r, statusCode, res
+func (_m *MockWriter) WriteJSON(w http.ResponseWriter, r *http.Request, statusCode int, res interface{}) {
+	_m.Called(w, r, statusCode, res)
 }
 
-// WriteJSONError provides a mock function with given fields: w, err
-func (_m *MockWriter) WriteJSONError(w http.ResponseWriter, err error) {
-	_m.Called(w, err)
+// WriteJSONError provides a mock function with given fields: w, r, err
+func (_m *MockWriter) WriteJSONError(w http.ResponseWriter, r *http.Request, err error) {
+	_m.Called(w, r, err)
 }
 
 // NewMockWriter creates a new instance of MockWriter. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

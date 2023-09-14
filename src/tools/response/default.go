@@ -2,7 +2,6 @@ package response
 
 import (
 	"errors"
-	"log/slog"
 	"net/http"
 	"path"
 
@@ -14,39 +13,38 @@ import (
 
 // Default is used to write the response into an http.ResponseWriter and log the error.
 type Default struct {
-	log    *slog.Logger
 	render *render.Render
 }
 
 // New return a new Default.
-func New(log *slog.Logger, render *render.Render) *Default {
-	return &Default{log, render}
+func New(render *render.Render) *Default {
+	return &Default{render}
 }
 
 // Write the given res as a json body and statusCode.
-func (t *Default) WriteJSON(w http.ResponseWriter, statusCode int, res any) {
+func (t *Default) WriteJSON(w http.ResponseWriter, r *http.Request, statusCode int, res any) {
 	if err, ok := res.(error); ok {
-		t.WriteJSONError(w, err)
+		t.WriteJSONError(w, r, err)
 		return
 	}
 
 	if err := t.render.JSON(w, statusCode, res); err != nil {
-		t.log.Error("failed to render a json response", slog.String("error", err.Error()))
+		logger.LogEntrySetField(r, "render-error", err.Error())
 	}
 }
 
 // WriteJSONError write the given error into the ResponseWriter.
-func (t *Default) WriteJSONError(w http.ResponseWriter, err error) {
+func (t *Default) WriteJSONError(w http.ResponseWriter, r *http.Request, err error) {
 	var ierr *errs.Error
 
-	t.log.Error("request failed", slog.String("error", err.Error()))
+	logger.LogEntrySetField(r, "error", err.Error())
 
 	if !errors.As(err, &ierr) {
 		ierr = errs.Unhandled(err).(*errs.Error)
 	}
 
 	if rerr := t.render.JSON(w, ierr.Code(), ierr); rerr != nil {
-		t.log.Error("failed to render a json response error", slog.String("error", err.Error()))
+		logger.LogEntrySetField(r, "render-error", err.Error())
 	}
 }
 
@@ -58,7 +56,7 @@ func (t *Default) WriteHTML(w http.ResponseWriter, r *http.Request, status int, 
 	}
 
 	if err := t.render.HTML(w, status, template, args, render.HTMLOptions{Layout: layout}); err != nil {
-		t.log.Error("failed to render a json response", slog.String("error", err.Error()))
+		logger.LogEntrySetField(r, "render-error", err.Error())
 	}
 }
 
@@ -76,6 +74,6 @@ func (t *Default) WriteHTMLErrorPage(w http.ResponseWriter, r *http.Request, err
 	if err := t.render.HTML(w, http.StatusInternalServerError, "home/500.tmpl", map[string]any{
 		"requestID": reqID,
 	}, render.HTMLOptions{Layout: layout}); err != nil {
-		t.log.Error("failed to render a json response", slog.String("error", err.Error()))
+		logger.LogEntrySetField(r, "render-error", err.Error())
 	}
 }
