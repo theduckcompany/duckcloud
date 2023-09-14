@@ -20,6 +20,7 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/router"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
+	"github.com/theduckcompany/duckcloud/src/web/html"
 )
 
 const MaxMemoryCache = 20 * 1024 * 1024 // 20MB
@@ -27,7 +28,7 @@ const MaxMemoryCache = 20 * 1024 * 1024 // 20MB
 var ErrInvalidFolderID = errors.New("invalid folderID")
 
 type browserHandler struct {
-	html    HTMLWriter
+	html    html.Writer
 	folders folders.Service
 	inodes  inodes.Service
 	files   files.Service
@@ -37,7 +38,7 @@ type browserHandler struct {
 
 func newBrowserHandler(
 	tools tools.Tools,
-	html HTMLWriter,
+	html html.Writer,
 	folders folders.Service,
 	inodes inodes.Service,
 	files files.Service,

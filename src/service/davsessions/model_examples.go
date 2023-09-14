@@ -18,3 +18,13 @@ var ExampleAliceSession = DavSession{
 	folders:   Folders{folders.ExampleAlicePersonalFolder.ID()},
 	createdAt: now,
 }
+
+var ExampleAliceSession2 = DavSession{
+	id:        uuid.UUID("0c2f3980-3ee4-42dc-8c9e-17249a99203d"),
+	name:      "My Computer",
+	userID:    uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
+	username:  "Alice",
+	password:  "f0ce9d6e7315534d2f3603d11f496dafcda25f2f5bc2b4f8292a8ee34fe7735b", // sha256 of "some-password"
+	folders:   Folders{folders.ExampleAlicePersonalFolder.ID()},
+	createdAt: now,
+}

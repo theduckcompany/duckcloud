@@ -39,7 +39,7 @@ type renderBrowsersCmd struct {
 }
 
 type settingsHandler struct {
-	html        *html.Renderer
+	html        html.Writer
 	webSessions websessions.Service
 	davSessions davsessions.Service
 	folders     folders.Service
@@ -50,7 +50,7 @@ type settingsHandler struct {
 
 func newSettingsHandler(
 	tools tools.Tools,
-	html *html.Renderer,
+	html html.Writer,
 	webSessions websessions.Service,
 	davSessions davsessions.Service,
 	folders folders.Service,
@@ -142,6 +142,9 @@ func (h *settingsHandler) renderDavSessions(w http.ResponseWriter, r *http.Reque
 	if cmd.Error != nil {
 		status = http.StatusUnprocessableEntity
 	}
+	if cmd.NewSession != nil {
+		status = http.StatusCreated
+	}
 
 	h.html.WriteHTML(w, r, status, "settings/webdav.tmpl", map[string]interface{}{
 		"isAdmin":     cmd.User.IsAdmin(),
@@ -159,7 +162,7 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	folders := []uuid.UUID{}
+	foldersIDs := []uuid.UUID{}
 	for _, rawUUID := range strings.Split(r.FormValue("folders"), ",") {
 		id, err := h.uuid.Parse(rawUUID)
 		if err != nil {
@@ -167,13 +170,13 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		folders = append(folders, id)
+		foldersIDs = append(foldersIDs, id)
 	}
 
 	newSession, secret, err := h.davSessions.Create(r.Context(), &davsessions.CreateCmd{
 		UserID:  user.ID(),
 		Name:    r.FormValue("name"),
-		Folders: folders,
+		Folders: foldersIDs,
 	})
 	if errors.Is(err, errs.ErrValidation) {
 		h.renderDavSessions(w, r, renderDavCmd{User: user, Session: session, Error: err})

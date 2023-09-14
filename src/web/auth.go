@@ -16,10 +16,11 @@ import (
 	"github.com/theduckcompany/duckcloud/src/tools"
 	"github.com/theduckcompany/duckcloud/src/tools/router"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
+	"github.com/theduckcompany/duckcloud/src/web/html"
 )
 
 type authHandler struct {
-	html HTMLWriter
+	html html.Writer
 	uuid uuid.Service
 
 	auth         *Authenticator
@@ -31,7 +32,7 @@ type authHandler struct {
 
 func newAuthHandler(
 	tools tools.Tools,
-	htmlWriter HTMLWriter,
+	htmlWriter html.Writer,
 	auth *Authenticator,
 	users users.Service,
 	clients oauthclients.Service,

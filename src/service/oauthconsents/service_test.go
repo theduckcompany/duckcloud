@@ -85,7 +85,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		tools.UUIDMock.On("Parse", "84a871a1-e8f1-4041-83b3-530d013737cb").Return(uuid.UUID("84a871a1-e8f1-4041-83b3-530d013737cb"), nil).Once()
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("84a871a1-e8f1-4041-83b3-530d013737cb")).Return(&ExampleAliceConsent, nil).Once()
 
-		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.WebSessionExample)
+		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.AliceWebSessionExample)
 		assert.NoError(t, err)
 	})
 
@@ -100,7 +100,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		req.URL.RawQuery = query.Encode()
 
 		tools.UUIDMock.On("Parse", "invalid format").Return(uuid.UUID(""), errors.New("must be a valid UUID v4")).Once()
-		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.WebSessionExample)
+		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.AliceWebSessionExample)
 		assert.EqualError(t, err, "validation error: must be a valid UUID v4")
 	})
 
@@ -117,7 +117,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		tools.UUIDMock.On("Parse", "84a871a1-e8f1-4041-83b3-530d013737cb").Return(uuid.UUID("84a871a1-e8f1-4041-83b3-530d013737cb"), nil).Once()
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("84a871a1-e8f1-4041-83b3-530d013737cb")).Return(nil, errors.New("some-error")).Once()
 
-		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.WebSessionExample)
+		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.AliceWebSessionExample)
 		assert.EqualError(t, err, "fail to fetch the consent from storage: some-error")
 	})
 
@@ -134,7 +134,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		tools.UUIDMock.On("Parse", "84a871a1-e8f1-4041-83b3-530d013737cb").Return(uuid.UUID("84a871a1-e8f1-4041-83b3-530d013737cb"), nil).Once()
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("84a871a1-e8f1-4041-83b3-530d013737cb")).Return(nil, nil).Once()
 
-		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.WebSessionExample)
+		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.AliceWebSessionExample)
 		assert.EqualError(t, err, "consent not found")
 	})
 
@@ -160,7 +160,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		tools.UUIDMock.On("Parse", "84a871a1-e8f1-4041-83b3-530d013737cb").Return(uuid.UUID("84a871a1-e8f1-4041-83b3-530d013737cb"), nil).Once()
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("84a871a1-e8f1-4041-83b3-530d013737cb")).Return(&consent, nil).Once()
 
-		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.WebSessionExample)
+		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.AliceWebSessionExample)
 		assert.EqualError(t, err, "bad request: consent clientID doesn't match with the given client")
 	})
 
@@ -187,7 +187,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		tools.UUIDMock.On("Parse", "84a871a1-e8f1-4041-83b3-530d013737cb").Return(uuid.UUID("84a871a1-e8f1-4041-83b3-530d013737cb"), nil).Once()
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("84a871a1-e8f1-4041-83b3-530d013737cb")).Return(&ExampleAliceConsent, nil).Once()
 
-		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.WebSessionExample)
+		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.AliceWebSessionExample)
 		assert.EqualError(t, err, "bad request: consent session token doesn't match with the given session")
 	})
 
