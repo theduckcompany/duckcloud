@@ -14,15 +14,15 @@ import (
 	"github.com/theduckcompany/duckcloud/src/service/users"
 	"github.com/theduckcompany/duckcloud/src/service/websessions"
 	"github.com/theduckcompany/duckcloud/src/tools"
-	"github.com/theduckcompany/duckcloud/src/tools/response"
 	"github.com/theduckcompany/duckcloud/src/tools/router"
 	"github.com/theduckcompany/duckcloud/src/tools/uuid"
 )
 
 type authHandler struct {
-	response response.Writer
-	uuid     uuid.Service
+	html HTMLWriter
+	uuid uuid.Service
 
+	auth         *Authenticator
 	users        users.Service
 	clients      oauthclients.Service
 	webSession   websessions.Service
@@ -31,6 +31,8 @@ type authHandler struct {
 
 func newAuthHandler(
 	tools tools.Tools,
+	htmlWriter HTMLWriter,
+	auth *Authenticator,
 	users users.Service,
 	clients oauthclients.Service,
 	oauthConsent oauthconsents.Service,
@@ -38,7 +40,8 @@ func newAuthHandler(
 ) *authHandler {
 	return &authHandler{
 		uuid:         tools.UUID(),
-		response:     tools.ResWriter(),
+		auth:         auth,
+		html:         htmlWriter,
 		users:        users,
 		clients:      clients,
 		oauthConsent: oauthConsent,
@@ -69,7 +72,7 @@ func (h *authHandler) printLoginPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("HX-Refresh", "true")
-	h.response.WriteHTML(w, r, http.StatusOK, "auth/login.tmpl", nil)
+	h.html.WriteHTML(w, r, http.StatusOK, "auth/login.tmpl", nil)
 }
 
 func (h *authHandler) applyLogin(w http.ResponseWriter, r *http.Request) {
@@ -97,7 +100,7 @@ func (h *authHandler) applyLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(loginErrors) > 0 {
-		h.response.WriteHTML(w, r, status, "auth/login.tmpl", map[string]interface{}{
+		h.html.WriteHTML(w, r, status, "auth/login.tmpl", map[string]interface{}{
 			"inputs": inputs,
 			"errors": loginErrors,
 		})
@@ -109,7 +112,7 @@ func (h *authHandler) applyLogin(w http.ResponseWriter, r *http.Request) {
 		Req:    r,
 	})
 	if err != nil {
-		h.response.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to create the websession: %w", err))
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to create the websession: %w", err))
 		return
 	}
 
@@ -155,21 +158,8 @@ func (h *authHandler) chooseRedirection(w http.ResponseWriter, r *http.Request) 
 func (h *authHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) {
 	_ = r.ParseForm()
 
-	session, err := h.webSession.GetFromReq(r)
-	if errors.Is(err, websessions.ErrMissingSessionToken) || errors.Is(err, websessions.ErrSessionNotFound) {
-		w.Header().Set("Location", "/login?"+r.Form.Encode())
-		w.WriteHeader(http.StatusFound)
-		return
-	}
-
-	if err != nil {
-		h.response.WriteHTMLErrorPage(w, r, err)
-		return
-	}
-
-	user, err := h.users.GetByID(r.Context(), session.UserID())
-	if err != nil || user == nil {
-		h.printClientErrorPage(w, r, errors.New("user not found"))
+	user, session, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	if abort {
 		return
 	}
 
@@ -181,7 +171,7 @@ func (h *authHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) 
 
 	client, err := h.clients.GetByID(r.Context(), clientID)
 	if err != nil {
-		h.response.WriteHTMLErrorPage(w, r, err)
+		h.html.WriteHTMLErrorPage(w, r, err)
 		return
 	}
 	if client == nil {
@@ -197,7 +187,7 @@ func (h *authHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) 
 			Scopes:       strings.Split(r.FormValue("scope"), ","),
 		})
 		if err != nil {
-			h.response.WriteHTMLErrorPage(w, r, err)
+			h.html.WriteHTMLErrorPage(w, r, err)
 			return
 		}
 
@@ -207,7 +197,7 @@ func (h *authHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	h.response.WriteHTML(w, r, http.StatusOK, "auth/consent.tmpl", map[string]interface{}{
+	h.html.WriteHTML(w, r, http.StatusOK, "auth/consent.tmpl", map[string]interface{}{
 		"clientName": client.Name(),
 		"username":   user.Username,
 		"scope":      strings.Split(r.FormValue("scope"), ","),
@@ -221,7 +211,7 @@ func (h *authHandler) printClientErrorPage(w http.ResponseWriter, r *http.Reques
 		reqID = "??1?"
 	}
 
-	h.response.WriteHTML(w, r, http.StatusBadRequest, "auth/error.tmpl", map[string]interface{}{
+	h.html.WriteHTML(w, r, http.StatusBadRequest, "auth/error.tmpl", map[string]interface{}{
 		"reqID": reqID,
 		"error": err,
 	})

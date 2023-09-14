@@ -4,21 +4,20 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/theduckcompany/duckcloud/src/tools"
-	"github.com/theduckcompany/duckcloud/src/tools/response"
 	"github.com/theduckcompany/duckcloud/src/tools/router"
+	"github.com/theduckcompany/duckcloud/src/web/html"
 )
 
 type homeHandler struct {
-	response response.Writer
-	auth     *Authenticator
+	html *html.Renderer
+	auth *Authenticator
 }
 
 func newHomeHandler(
-	tools tools.Tools,
+	html *html.Renderer,
 	auth *Authenticator,
 ) *homeHandler {
-	return &homeHandler{response: tools.ResWriter(), auth: auth}
+	return &homeHandler{html, auth}
 }
 
 func (h *homeHandler) Register(r chi.Router, mids *router.Middlewares) {
@@ -39,5 +38,5 @@ func (h *homeHandler) getHome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.response.WriteHTML(w, r, http.StatusOK, "home/home.tmpl", map[string]interface{}{})
+	h.html.WriteHTML(w, r, http.StatusOK, "home/home.tmpl", map[string]interface{}{})
 }

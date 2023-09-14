@@ -30,10 +30,10 @@ func NewRunCmd(binaryName string) *cobra.Command {
 			}
 
 			if dev {
-				cfg.Tools.Response.PrettyRender = true
-				cfg.Tools.Response.HotReload = true
 				cfg.Assets.HotReload = true
 				cfg.Storage.Debug = true
+				cfg.Web.HTML.HotReload = true
+				cfg.Web.HTML.PrettyRender = true
 			}
 
 			if debug {
