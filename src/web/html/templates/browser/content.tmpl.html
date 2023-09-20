@@ -1,5 +1,7 @@
 <!--Section: Content-->
-<section id="content">
+
+{{ $url := pathJoin "/browser" $.folder.ID $.fullPath}}
+<section id="content" hx-get="{{$url}}" hx-trigger="refresh-event">
   <div class="card shadow-0">
     <div class="card-body">
       <div id="status-bar"></div>
@@ -56,6 +58,7 @@
   client.setMeta({folderID: {{$.folder.ID}}})
 
   client.use(Dashboard, {
+    autoProceed: true,
     fileManagerSelectionType: 'both',
     proudlyDisplayPoweredByUppy: false,
     trigger: "#upload-btn",
@@ -63,5 +66,10 @@
     closeModalOnClickOutside: true,
   })
   client.use(StatusBar, {target: '#status-bar'});
+
+  client.on('upload-success', (file) => {
+    htmx.trigger("#content", "refresh-event");
+  });
+
 </script>
 <!--Section: Content-->
