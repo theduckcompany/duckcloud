@@ -47,15 +47,28 @@ func (l *structuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 		slog.String("user_agent", r.UserAgent()),
 		slog.String("uri", fmt.Sprintf("%s://%s%s", scheme, r.Host, r.RequestURI))))
 
-	return &structuredLoggerEntry{logger: slog.New(handler)}
+	return &structuredLoggerEntry{logger: handler}
 }
 
 type structuredLoggerEntry struct {
-	logger *slog.Logger
+	logger slog.Handler
 }
 
 func (l *structuredLoggerEntry) Write(status, bytes int, header http.Header, elapsed time.Duration, extra interface{}) {
-	l.logger.LogAttrs(context.Background(), slog.LevelInfo, "request complete",
+	var level slog.Level
+
+	switch {
+	case status >= 200 && status <= 299:
+		level = slog.LevelDebug
+	case status >= 300 && status <= 399:
+		level = slog.LevelInfo
+	case status >= 400 && status <= 499:
+		level = slog.LevelWarn
+	default:
+		level = slog.LevelError
+	}
+
+	slog.New(l.logger).LogAttrs(context.Background(), level, "request complete",
 		slog.Int("resp_status", status),
 		slog.Int("resp_byte_length", bytes),
 		slog.Float64("resp_elapsed_ms", float64(elapsed.Nanoseconds())/1000000.0),
@@ -63,34 +76,20 @@ func (l *structuredLoggerEntry) Write(status, bytes int, header http.Header, ela
 }
 
 func (l *structuredLoggerEntry) Panic(v interface{}, stack []byte) {
-	l.logger.LogAttrs(context.Background(), slog.LevelInfo, "",
+	slog.New(l.logger).LogAttrs(context.Background(), slog.LevelError, "panic!",
 		slog.String("stack", string(stack)),
 		slog.String("panic", fmt.Sprintf("%+v", v)),
 	)
 }
 
-// Helper methods used by the application to get the request-scoped
-// logger entry and set additional fields between handlers.
-//
-// This is a useful pattern to use to set state on the entry as it
-// passes through the handler chain, which at any point can be logged
-// with a call to .Print(), .Info(), etc.
-
-func GetLogEntry(r *http.Request) *slog.Logger {
-	entry := middleware.GetLogEntry(r).(*structuredLoggerEntry)
-	return entry.logger
-}
-
-func LogEntrySetField(r *http.Request, key string, value interface{}) {
+func LogEntrySetAttrs(r *http.Request, attrs ...slog.Attr) {
 	if entry, ok := r.Context().Value(middleware.LogEntryCtxKey).(*structuredLoggerEntry); ok {
-		entry.logger = entry.logger.With(key, value)
+		entry.logger = entry.logger.WithAttrs(attrs)
 	}
 }
 
-func LogEntrySetFields(r *http.Request, fields map[string]interface{}) {
+func LogEntrySetError(r *http.Request, err error) {
 	if entry, ok := r.Context().Value(middleware.LogEntryCtxKey).(*structuredLoggerEntry); ok {
-		for k, v := range fields {
-			entry.logger = entry.logger.With(k, v)
-		}
+		entry.logger = entry.logger.WithAttrs([]slog.Attr{slog.String("error", err.Error())})
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"embed"
 	"fmt"
 	"html/template"
+	"log/slog"
 	"net/http"
 	"os"
 	"path"
@@ -103,7 +104,7 @@ func (t *Renderer) WriteHTML(w http.ResponseWriter, r *http.Request, status int,
 	}
 
 	if err := t.render.HTML(w, status, template, args, render.HTMLOptions{Layout: layout}); err != nil {
-		logger.LogEntrySetField(r, "render-error", err.Error())
+		logger.LogEntrySetAttrs(r, slog.String("render-error", err.Error()))
 	}
 }
 
@@ -116,11 +117,11 @@ func (t *Renderer) WriteHTMLErrorPage(w http.ResponseWriter, r *http.Request, er
 		layout = path.Join("home/layout.tmpl")
 	}
 
-	logger.LogEntrySetField(r, "error", err.Error())
+	logger.LogEntrySetError(r, err)
 
 	if err := t.render.HTML(w, http.StatusInternalServerError, "home/500.tmpl", map[string]any{
 		"requestID": reqID,
 	}, render.HTMLOptions{Layout: layout}); err != nil {
-		logger.LogEntrySetField(r, "render-error", err.Error())
+		logger.LogEntrySetAttrs(r, slog.String("render-error", err.Error()))
 	}
 }

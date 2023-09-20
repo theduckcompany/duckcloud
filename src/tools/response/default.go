@@ -2,6 +2,7 @@ package response
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/theduckcompany/duckcloud/src/tools/errs"
@@ -27,7 +28,7 @@ func (t *Default) WriteJSON(w http.ResponseWriter, r *http.Request, statusCode i
 	}
 
 	if err := t.render.JSON(w, statusCode, res); err != nil {
-		logger.LogEntrySetField(r, "render-error", err.Error())
+		logger.LogEntrySetAttrs(r, slog.String("render-error", err.Error()))
 	}
 }
 
@@ -35,13 +36,13 @@ func (t *Default) WriteJSON(w http.ResponseWriter, r *http.Request, statusCode i
 func (t *Default) WriteJSONError(w http.ResponseWriter, r *http.Request, err error) {
 	var ierr *errs.Error
 
-	logger.LogEntrySetField(r, "error", err.Error())
+	logger.LogEntrySetError(r, err)
 
 	if !errors.As(err, &ierr) {
 		ierr = errs.Unhandled(err).(*errs.Error)
 	}
 
 	if rerr := t.render.JSON(w, ierr.Code(), ierr); rerr != nil {
-		logger.LogEntrySetField(r, "render-error", err.Error())
+		logger.LogEntrySetAttrs(r, slog.String("render-error", err.Error()))
 	}
 }
