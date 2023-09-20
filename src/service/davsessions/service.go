@@ -64,7 +64,7 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 	}
 
 	for _, folderID := range cmd.Folders {
-		folder, err := s.folders.GetByID(ctx, folderID)
+		folder, err := s.folders.GetUserFolder(ctx, user.ID(), folderID)
 		if err != nil {
 			return nil, "", fmt.Errorf("failed to get the folder %q by id: %w", folderID, err)
 		}

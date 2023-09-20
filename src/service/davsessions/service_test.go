@@ -27,7 +27,8 @@ func TestDavSessionsService(t *testing.T) {
 		service := NewService(storageMock, usersMock, foldersMock, tools)
 
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-		foldersMock.On("GetByID", mock.Anything, folders.ExampleAlicePersonalFolder.ID()).Return(&folders.ExampleAlicePersonalFolder, nil).Once()
+		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), folders.ExampleAlicePersonalFolder.ID()).
+			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
 
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-password")).Once()
 		tools.UUIDMock.On("New").Return(ExampleAliceSession.ID()).Once()
@@ -92,7 +93,7 @@ func TestDavSessionsService(t *testing.T) {
 		service := NewService(storageMock, usersMock, foldersMock, tools)
 
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-		foldersMock.On("GetByID", mock.Anything, folders.ExampleAlicePersonalFolder.ID()).Return(nil, nil).Once()
+		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), folders.ExampleAlicePersonalFolder.ID()).Return(nil, nil).Once()
 
 		res, secret, err := service.Create(ctx, &CreateCmd{
 			Name:    ExampleAliceSession.Name(),
@@ -113,7 +114,8 @@ func TestDavSessionsService(t *testing.T) {
 		service := NewService(storageMock, usersMock, foldersMock, tools)
 
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-		foldersMock.On("GetByID", mock.Anything, folders.ExampleBobPersonalFolder.ID()).Return(&folders.ExampleBobPersonalFolder, nil).Once()
+		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), folders.ExampleBobPersonalFolder.ID()).
+			Return(&folders.ExampleBobPersonalFolder, nil).Once()
 
 		res, secret, err := service.Create(ctx, &CreateCmd{
 			Name:    ExampleAliceSession.Name(),

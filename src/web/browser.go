@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"slices"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
@@ -103,7 +102,7 @@ func (h *browserHandler) getBrowserContent(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	folder, err := h.folders.GetByID(r.Context(), folderID)
+	folder, err := h.folders.GetUserFolder(r.Context(), user.ID(), folderID)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to folders.GetByID: %w", err))
 		return
@@ -275,13 +274,9 @@ type lauchUploadCmd struct {
 }
 
 func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
-	folder, err := h.folders.GetByID(ctx, cmd.folderID)
+	folder, err := h.folders.GetUserFolder(ctx, cmd.user.ID(), cmd.folderID)
 	if err != nil {
 		return fmt.Errorf("failed to GetByID: %w", err)
-	}
-
-	if !slices.Contains[[]uuid.UUID, uuid.UUID](folder.Owners(), cmd.user.ID()) {
-		return ErrInvalidFolderID
 	}
 
 	fs := fs.NewFSService(h.inodes, h.files, folder, h.folders)

@@ -100,7 +100,8 @@ func Test_Browser_Page(t *testing.T) {
 
 		// Get the folder from the url
 		tools.UUIDMock.On("Parse", "folder-id").Return(uuid.UUID("folder-id"), nil).Once()
-		foldersMock.On("GetByID", mock.Anything, uuid.UUID("folder-id")).Return(&folders.ExampleAlicePersonalFolder, nil).Once()
+		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("folder-id")).
+			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
 
 		// Then look for the path inside this folder
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
@@ -213,7 +214,8 @@ func Test_Browser_Page(t *testing.T) {
 
 		// Get the folder from the url
 		tools.UUIDMock.On("Parse", "folder-id").Return(uuid.UUID("folder-id"), nil).Once()
-		foldersMock.On("GetByID", mock.Anything, uuid.UUID("folder-id")).Return(nil, nil).Once()
+		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("folder-id")).
+			Return(nil, nil).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/browser/folder-id/foo", nil)
@@ -246,7 +248,8 @@ func Test_Browser_Page(t *testing.T) {
 
 		// Get the folder from the url
 		tools.UUIDMock.On("Parse", "folder-id").Return(uuid.UUID("folder-id"), nil).Once()
-		foldersMock.On("GetByID", mock.Anything, uuid.UUID("folder-id")).Return(&folders.ExampleAlicePersonalFolder, nil).Once()
+		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("folder-id")).
+			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
 
 		// Then look for the path inside this folder
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
