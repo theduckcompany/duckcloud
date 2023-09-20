@@ -134,6 +134,32 @@ func (_m *MockService) GetByID(ctx context.Context, folderID uuid.UUID) (*Folder
 	return r0, r1
 }
 
+// GetUserFolder provides a mock function with given fields: ctx, userID, folderID
+func (_m *MockService) GetUserFolder(ctx context.Context, userID uuid.UUID, folderID uuid.UUID) (*Folder, error) {
+	ret := _m.Called(ctx, userID, folderID)
+
+	var r0 *Folder
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) (*Folder, error)); ok {
+		return rf(ctx, userID, folderID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) *Folder); ok {
+		r0 = rf(ctx, userID, folderID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*Folder)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
+		r1 = rf(ctx, userID, folderID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // RegisterDeletion provides a mock function with given fields: ctx, folderID, size
 func (_m *MockService) RegisterDeletion(ctx context.Context, folderID uuid.UUID, size uint64) (*Folder, error) {
 	ret := _m.Called(ctx, folderID, size)

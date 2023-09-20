@@ -14,6 +14,7 @@ import (
 type Service interface {
 	CreatePersonalFolder(ctx context.Context, cmd *CreatePersonalFolderCmd) (*Folder, error)
 	GetAllUserFolders(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error)
+	GetUserFolder(ctx context.Context, userID, folderID uuid.UUID) (*Folder, error)
 	GetByID(ctx context.Context, folderID uuid.UUID) (*Folder, error)
 	Delete(ctx context.Context, folderID uuid.UUID) error
 	RegisterWrite(ctx context.Context, folderID uuid.UUID, size uint64) (*Folder, error)

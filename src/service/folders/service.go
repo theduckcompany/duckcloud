@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"sync"
 
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
@@ -168,4 +169,17 @@ func (s *FolderService) GetByID(ctx context.Context, folderID uuid.UUID) (*Folde
 
 func (s *FolderService) GetAllUserFolders(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error) {
 	return s.storage.GetAllUserFolders(ctx, userID, cmd)
+}
+
+func (s *FolderService) GetUserFolder(ctx context.Context, userID, folderID uuid.UUID) (*Folder, error) {
+	folder, err := s.storage.GetByID(ctx, folderID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !slices.Contains[[]uuid.UUID, uuid.UUID](folder.Owners(), userID) {
+		return nil, nil
+	}
+
+	return folder, nil
 }
