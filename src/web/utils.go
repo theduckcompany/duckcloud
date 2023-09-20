@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/theduckcompany/duckcloud/src/service/users"
@@ -27,7 +28,12 @@ func NewAuthenticator(webSessions websessions.Service, users users.Service, html
 
 func (a *Authenticator) getUserAndSession(w http.ResponseWriter, r *http.Request, access AccessType) (*users.User, *websessions.Session, bool) {
 	currentSession, err := a.webSessions.GetFromReq(r)
-	if err != nil || currentSession == nil {
+	if err != nil {
+		a.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to websessions.GetFromReq: %w", err))
+		return nil, nil, true
+	}
+
+	if currentSession == nil {
 		w.Header().Set("Location", "/login")
 		w.WriteHeader(http.StatusFound)
 		return nil, nil, true
