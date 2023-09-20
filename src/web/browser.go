@@ -42,7 +42,6 @@ func newBrowserHandler(
 	folders folders.Service,
 	inodes inodes.Service,
 	files files.Service,
-	uuid uuid.Service,
 	auth *Authenticator,
 ) *browserHandler {
 	return &browserHandler{
@@ -50,7 +49,7 @@ func newBrowserHandler(
 		folders: folders,
 		inodes:  inodes,
 		files:   files,
-		uuid:    uuid,
+		uuid:    tools.UUID(),
 		auth:    auth,
 	}
 }
@@ -92,23 +91,25 @@ func (h *browserHandler) getBrowserContent(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	folders, err := h.folders.GetAllUserFolders(r.Context(), user.ID(), nil)
-	if err != nil {
-		fmt.Fprintf(w, `<div class="alert alert-danger role="alert">%s</div>`, err)
-		return
-	}
-
 	// For the path "/browser/{{folderID}}/foo/bar/baz" the elems variable will have for content:
 	// []string{"", "browser", "{{folderID}}", "/foo/bar/baz"}
 	elems := strings.SplitN(r.URL.Path, "/", 4)
 
-	if len(elems) < 3 {
-		w.Header().Set("Location", "/browser")
-		w.WriteHeader(http.StatusFound)
-	}
-
+	// no need to check elems len as the url format force a len of 3 minimum
 	folderID, err := h.uuid.Parse(elems[2])
 	if err != nil {
+		w.Header().Set("Location", "/browser")
+		w.WriteHeader(http.StatusFound)
+		return
+	}
+
+	folder, err := h.folders.GetByID(r.Context(), folderID)
+	if err != nil {
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to folders.GetByID: %w", err))
+		return
+	}
+
+	if folder == nil {
 		w.Header().Set("Location", "/browser")
 		w.WriteHeader(http.StatusFound)
 		return
@@ -119,28 +120,18 @@ func (h *browserHandler) getBrowserContent(w http.ResponseWriter, r *http.Reques
 		fullPath = path.Clean(elems[3])
 	}
 
-	folder, err := h.folders.GetByID(r.Context(), folderID)
-	if err != nil {
-		w.Header().Set("Location", "/browser")
-		w.WriteHeader(http.StatusFound)
-	}
-
-	if folder == nil {
-		fmt.Fprintf(w, `<div class="alert alert-danger role="alert">Folder not found</div>`)
-		return
-	}
-
 	inode, err := h.inodes.Get(r.Context(), &inodes.PathCmd{
 		Root:     folder.RootFS(),
 		FullName: fullPath,
 	})
 	if err != nil {
-		fmt.Fprintf(w, `<div class="alert alert-danger role="alert">%s</div>`, err)
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to inodes.Get: %w", err))
 		return
 	}
 
 	if inode == nil {
-		fmt.Fprintf(w, `<div class="alert alert-danger role="alert">File/Dir not found</div>`)
+		w.Header().Set("Location", path.Join("/browser/", string(folder.ID())))
+		w.WriteHeader(http.StatusFound)
 		return
 	}
 
@@ -151,10 +142,15 @@ func (h *browserHandler) getBrowserContent(w http.ResponseWriter, r *http.Reques
 			FullName: fullPath,
 		}, nil)
 		if err != nil {
-			fmt.Fprintf(w, `<div class="alert alert-danger role="alert">%s</div>`, err)
-			w.WriteHeader(http.StatusBadRequest)
+			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to inodes.Readdir: %w", err))
 			return
 		}
+	}
+
+	folders, err := h.folders.GetAllUserFolders(r.Context(), user.ID(), nil)
+	if err != nil {
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetallUserFolders: %w", err))
+		return
 	}
 
 	h.html.WriteHTML(w, r, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
