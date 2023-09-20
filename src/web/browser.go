@@ -169,8 +169,7 @@ func (h *browserHandler) upload(w http.ResponseWriter, r *http.Request) {
 
 	reader, err := r.MultipartReader()
 	if err != nil {
-		fmt.Fprintf(w, `<div class="alert alert-danger role="alert">%s</div>`, err)
-		w.WriteHeader(http.StatusBadRequest)
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to get mutlipart reader: %w", err))
 		return
 	}
 
@@ -185,8 +184,7 @@ func (h *browserHandler) upload(w http.ResponseWriter, r *http.Request) {
 		if p.FileName() != "" {
 			folderID, err := h.uuid.Parse(string(rawFolderID))
 			if err != nil {
-				fmt.Fprintf(w, `<div class="alert alert-danger role="alert">%s</div>`, err)
-				w.WriteHeader(http.StatusBadRequest)
+				h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("invalid folder id %q", rawFolderID))
 				return
 			}
 
@@ -221,8 +219,7 @@ func (h *browserHandler) upload(w http.ResponseWriter, r *http.Request) {
 			relPath, err = io.ReadAll(p)
 		}
 		if err != nil {
-			fmt.Fprintf(w, `<div class="alert alert-danger role="alert">%s</div>`, err)
-			w.WriteHeader(http.StatusBadRequest)
+			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to parse form: %w", err))
 			return
 		}
 	}
@@ -282,7 +279,7 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 	fs := fs.NewFSService(h.inodes, h.files, folder, h.folders)
 
 	var fullPath string
-	if cmd.relPath == "null" {
+	if cmd.relPath == "null" || cmd.relPath == "" {
 		fullPath = path.Join(cmd.rootPath, cmd.name)
 	} else {
 		fullPath = path.Join(cmd.rootPath, cmd.relPath)
