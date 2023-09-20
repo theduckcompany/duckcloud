@@ -9,12 +9,12 @@ import (
 )
 
 type homeHandler struct {
-	html *html.Renderer
+	html html.Writer
 	auth *Authenticator
 }
 
 func newHomeHandler(
-	html *html.Renderer,
+	html html.Writer,
 	auth *Authenticator,
 ) *homeHandler {
 	return &homeHandler{html, auth}
