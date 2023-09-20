@@ -27,7 +27,7 @@ func (s *davFS) Mkdir(ctx context.Context, name string, perm os.FileMode) error 
 	name = cleanPath(name)
 
 	// TODO: Handle several folders
-	folder, err := s.folders.GetByID(ctx, session.FoldersIDs()[0])
+	folder, err := s.folders.GetUserFolder(ctx, session.UserID(), session.FoldersIDs()[0])
 	if err != nil {
 		return fmt.Errorf("failed to folders.GetByID: %w", err)
 	}
@@ -41,7 +41,7 @@ func (s *davFS) OpenFile(ctx context.Context, name string, flag int, perm os.Fil
 	name = cleanPath(name)
 
 	// TODO: Handle several folders
-	folder, err := s.folders.GetByID(ctx, session.FoldersIDs()[0])
+	folder, err := s.folders.GetUserFolder(ctx, session.UserID(), session.FoldersIDs()[0])
 	if err != nil {
 		return nil, fmt.Errorf("failed to folders.GetByID: %w", err)
 	}
@@ -55,7 +55,7 @@ func (s *davFS) RemoveAll(ctx context.Context, name string) error {
 	name = cleanPath(name)
 
 	// TODO: Handle several folders
-	folder, err := s.folders.GetByID(ctx, session.FoldersIDs()[0])
+	folder, err := s.folders.GetUserFolder(ctx, session.UserID(), session.FoldersIDs()[0])
 	if err != nil {
 		return fmt.Errorf("failed to folders.GetByID: %w", err)
 	}
@@ -78,7 +78,7 @@ func (s *davFS) Stat(ctx context.Context, name string) (os.FileInfo, error) {
 	name = cleanPath(name)
 
 	// TODO: Handle several folders
-	folder, err := s.folders.GetByID(ctx, session.FoldersIDs()[0])
+	folder, err := s.folders.GetUserFolder(ctx, session.UserID(), session.FoldersIDs()[0])
 	if err != nil {
 		return nil, fmt.Errorf("failed to folders.GetByID: %w", err)
 	}
