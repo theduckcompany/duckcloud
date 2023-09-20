@@ -203,6 +203,7 @@ func (h *browserHandler) upload(w http.ResponseWriter, r *http.Request) {
 				fmt.Printf("failed to upload: %s -> %#v\n\n\n", err, cmd)
 			}
 
+			w.WriteHeader(http.StatusOK)
 			return
 		}
 
@@ -223,8 +224,6 @@ func (h *browserHandler) upload(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 type breadCrumbElement struct {
