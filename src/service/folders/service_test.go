@@ -215,4 +215,30 @@ func Test_FolderService(t *testing.T) {
 		err := svc.Delete(ctx, ExampleAlicePersonalFolder.ID())
 		assert.ErrorIs(t, err, ErrRootFSExist)
 	})
+
+	t.Run("GetUserFolder success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		inodesMock := inodes.NewMockService(t)
+		storageMock := NewMockStorage(t)
+		svc := NewService(tools, storageMock, inodesMock)
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(&ExampleAlicePersonalFolder, nil).Once()
+
+		res, err := svc.GetUserFolder(ctx, ExampleAlicePersonalFolder.Owners()[0], ExampleAlicePersonalFolder.ID())
+		assert.NoError(t, err)
+		assert.Equal(t, &ExampleAlicePersonalFolder, res)
+	})
+
+	t.Run("GetUserFolder with an existing folder but an invalid user id", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		inodesMock := inodes.NewMockService(t)
+		storageMock := NewMockStorage(t)
+		svc := NewService(tools, storageMock, inodesMock)
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(&ExampleAlicePersonalFolder, nil).Once()
+
+		res, err := svc.GetUserFolder(ctx, uuid.UUID("some-invalid-user-id"), ExampleAlicePersonalFolder.ID())
+		assert.NoError(t, err)
+		assert.Nil(t, res)
+	})
 }
