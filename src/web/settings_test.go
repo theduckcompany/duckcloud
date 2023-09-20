@@ -188,4 +188,209 @@ func Test_Settings(t *testing.T) {
 		handler.Register(srv, nil)
 		srv.ServeHTTP(w, r)
 	})
+
+	t.Run("deleteWebSession success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		davSessionsMock := davsessions.NewMockService(t)
+		foldersMock := folders.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, foldersMock, usersMock, auth)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		webSessionsMock.On("Delete", mock.Anything, &websessions.DeleteCmd{
+			UserID: users.ExampleAlice.ID(),
+			Token:  "some-token",
+		}).Return(nil).Once()
+
+		webSessionsMock.On("GetAllForUser", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]websessions.Session{websessions.AliceWebSessionExample}, nil).Once()
+
+		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/browsers.tmpl", map[string]interface{}{
+			"isAdmin":        users.ExampleAlice.IsAdmin(),
+			"currentSession": &websessions.AliceWebSessionExample,
+			"webSessions":    []websessions.Session{websessions.AliceWebSessionExample},
+		}).Once()
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodPost, "/settings/browsers/some-token/delete", nil)
+
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+	})
+
+	t.Run("deleteDavSession success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		davSessionsMock := davsessions.NewMockService(t)
+		foldersMock := folders.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, foldersMock, usersMock, auth)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		tools.UUIDMock.On("Parse", "some-session-id").Return(uuid.UUID("some-session-id"), nil).Once()
+
+		davSessionsMock.On("Delete", mock.Anything, &davsessions.DeleteCmd{
+			UserID:    users.ExampleAlice.ID(),
+			SessionID: uuid.UUID("some-session-id"),
+		}).Return(nil).Once()
+
+		davSessionsMock.On("GetAllForUser", mock.Anything, users.ExampleAlice.ID(), &storage.PaginateCmd{Limit: 10}).Return([]davsessions.DavSession{davsessions.ExampleAliceSession}, nil).Once()
+		foldersMock.On("GetAllUserFolders", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]folders.Folder{folders.ExampleAlicePersonalFolder}, nil).Once()
+
+		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/webdav.tmpl", map[string]interface{}{
+			"isAdmin":     users.ExampleAlice.IsAdmin(),
+			"newSession":  (*davsessions.DavSession)(nil),
+			"davSessions": []davsessions.DavSession{davsessions.ExampleAliceSession},
+			"folders":     []folders.Folder{folders.ExampleAlicePersonalFolder},
+			"secret":      "",
+			"error":       nil,
+		}).Once()
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodPost, "/settings/webdav/some-session-id/delete", nil)
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+	})
+
+	t.Run("getUsers success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		davSessionsMock := davsessions.NewMockService(t)
+		foldersMock := folders.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, foldersMock, usersMock, auth)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		usersMock.On("GetAll", mock.Anything, &storage.PaginateCmd{
+			StartAfter: map[string]string{"username": ""},
+			Limit:      10,
+		}).Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
+
+		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/users.tmpl", map[string]interface{}{
+			"isAdmin": users.ExampleAlice.IsAdmin(),
+			"current": &users.ExampleAlice,
+			"users":   []users.User{users.ExampleAlice, users.ExampleBob},
+			"error":   nil,
+		}).Once()
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/settings/users", nil)
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+	})
+
+	t.Run("deleteUser success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		davSessionsMock := davsessions.NewMockService(t)
+		foldersMock := folders.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, foldersMock, usersMock, auth)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		tools.UUIDMock.On("Parse", "some-user-id").Return(uuid.UUID("some-user-id"), nil).Once()
+
+		usersMock.On("AddToDeletion", mock.Anything, uuid.UUID("some-user-id")).Return(nil).Once()
+
+		usersMock.On("GetAll", mock.Anything, &storage.PaginateCmd{
+			StartAfter: map[string]string{"username": ""},
+			Limit:      10,
+		}).Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
+
+		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/users.tmpl", map[string]interface{}{
+			"isAdmin": users.ExampleAlice.IsAdmin(),
+			"current": &users.ExampleAlice,
+			"users":   []users.User{users.ExampleAlice, users.ExampleBob},
+			"error":   nil,
+		}).Once()
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodPost, "/settings/users/some-user-id/delete", nil)
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+	})
+
+	t.Run("createUser success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		davSessionsMock := davsessions.NewMockService(t)
+		foldersMock := folders.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, foldersMock, usersMock, auth)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		usersMock.On("Create", mock.Anything, &users.CreateCmd{
+			Username: "some-username",
+			Password: "my-little-secret",
+			IsAdmin:  true,
+		}).Return(&users.ExampleAlice, nil).Once()
+
+		usersMock.On("GetAll", mock.Anything, &storage.PaginateCmd{
+			StartAfter: map[string]string{"username": ""},
+			Limit:      10,
+		}).Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
+
+		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/users.tmpl", map[string]interface{}{
+			"isAdmin": users.ExampleAlice.IsAdmin(),
+			"current": &users.ExampleAlice,
+			"users":   []users.User{users.ExampleAlice, users.ExampleBob},
+			"error":   nil,
+		}).Once()
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodPost, "/settings/users", strings.NewReader(url.Values{
+			"username": []string{"some-username"},
+			"password": []string{"my-little-secret"},
+			"role":     []string{"admin"},
+		}.Encode()))
+		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+	})
 }
