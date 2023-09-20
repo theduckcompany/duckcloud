@@ -1,14 +1,19 @@
 package web
 
 import (
+	"bytes"
+	"crypto/sha256"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/src/service/files"
 	"github.com/theduckcompany/duckcloud/src/service/folders"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
@@ -268,5 +273,76 @@ func Test_Browser_Page(t *testing.T) {
 		defer res.Body.Close()
 		assert.Equal(t, http.StatusFound, res.StatusCode)
 		assert.Equal(t, "/browser/"+folderID, res.Header.Get("Location"))
+	})
+
+	t.Run("upload success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		foldersMock := folders.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		inodesMock := inodes.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		tools.UUIDMock.On("Parse", "folder-id").Return(uuid.UUID("folder-id"), nil).Once()
+
+		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("folder-id")).
+			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
+
+		// FS OpenFiles methods
+		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
+			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
+			FullName: "foo/bar/hello.txt",
+		}).Return(nil, nil).Once()
+
+		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
+			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
+			FullName: "foo/bar/",
+		}).Return(&inodes.ExampleAliceRoot, nil).Once()
+
+		afs := afero.NewMemMapFs()
+		file, err := afero.TempFile(afs, "foo", "")
+		require.NoError(t, err)
+
+		inodesMock.On("CreateFile", mock.Anything, &inodes.CreateFileCmd{
+			Parent: inodes.ExampleAliceRoot.ID(),
+			Name:   "hello.txt",
+			Mode:   0,
+		}).Return(&inodes.ExampleAliceFile, nil).Once()
+
+		filesMock.On("Open", mock.Anything, inodes.ExampleAliceFile.ID()).Return(file, nil).Once()
+
+		hash := sha256.New()
+		hash.Write([]byte("Hello, World!"))
+
+		inodesMock.On("RegisterWrite", mock.Anything, &inodes.ExampleAliceFile, 13, hash).Return(nil).Once()
+		foldersMock.On("RegisterWrite", mock.Anything, folders.ExampleAlicePersonalFolder.ID(), uint64(13)).Return(&folders.ExampleAlicePersonalFolder, nil).Once()
+
+		buf := bytes.NewBuffer(nil)
+		form := multipart.NewWriter(buf)
+		form.WriteField("name", "hello.txt")
+		form.WriteField("rootPath", "/foo/bar") // This correspond to the DuckFS path where the upload append
+		form.WriteField("folderID", "folder-id")
+		writer, err := form.CreateFormFile("file", "hello.txt")
+		require.NoError(t, err)
+		writer.Write([]byte("Hello, World!"))
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodPost, "/browser/upload", buf)
+		r.Header.Set("Content-Type", form.FormDataContentType())
+
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
 	})
 }
