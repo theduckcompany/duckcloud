@@ -2,19 +2,19 @@
 <section id="content" class="p-4" hx-get="{{$url}}" hx-trigger="refresh-event">
   <div id="status-bar"></div>
   <div class="row justify-content-between">
-    <div class="col-6">
+    <div class="col-md-10 col-8">
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb user-select-none">
           {{range .breadcrumb}}
           <li class="breadcrumb-item{{if not .Current}} active{{end}}" {{if .Current}}aria_current="page" {{end}}>
-            {{if not .Current}}<a href="{{.Href}}">{{.Name}}</a>{{else}}{{.Name}}{{end}}
+            {{if not .Current}}<a href="{{.Href}}" class="text-truncate">{{.Name}}</a>{{else}}{{.Name}}{{end}}
           </li>
           {{end}}
         </ol>
       </nav>
     </div>
 
-    <div class="col-4">
+    <div class="col-md-2 col-4">
       <button id="upload-btn" class="btn btn-primary button-lg">Upload</button>
     </div>
   </div>
@@ -36,10 +36,10 @@
   {{ $url := pathJoin "/browser" $.folder.ID $.fullPath $val.Name}}
 
   <div class="row border-bottom py-1 d-flex justify-content-between align-items-center">
-    <div class="col-9 col-md-7 position-relative">
-      <a class="link-dark user-select-none stretched-link text-truncate" href="{{$url}}">
+    <div class="col-9 col-md-7 position-relative d-inline-block text-truncate">
+      <a class="link-dark user-select-none stretched-link" href="{{$url}}">
         <i class="bi {{getInodeIconClass $val.Name $val.IsDir}} me-2" style="font-size: 2rem;"></i>
-        {{$val.Name}}
+        {{.Name}}
       </a>
     </div>
 
