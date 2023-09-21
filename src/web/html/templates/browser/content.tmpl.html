@@ -44,7 +44,8 @@
     </div>
 
     <div class="col-3 col-md-5 row text-center">
-      <div class="col-4 text-muted d-none d-md-block d-lg-block d-xxl-block d-xl-block">{{humanSize $val.USize}}
+      <div class="col-4 text-muted d-none d-md-block d-lg-block d-xxl-block d-xl-block">
+        {{if (.IsDir)}}-{{else}}{{humanSize $val.USize}}{{end}}
       </div>
       <div class="col-5 text-muted d-none d-md-block d-lg-block d-xxl-block d-xl-block">{{humanTime
         $val.LastModifiedAt}}</div>
