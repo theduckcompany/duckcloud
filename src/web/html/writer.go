@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"time"
 
 	"github.com/dustin/go-humanize"
 	"github.com/go-chi/chi/v5/middleware"
@@ -60,6 +61,7 @@ func NewRenderer(cfg Config) *Renderer {
 		Funcs: []template.FuncMap{
 			{
 				"humanTime": humanize.Time,
+				"humanDate": func(t time.Time) string { return t.Format(time.DateTime) },
 				"humanSize": humanize.Bytes,
 			},
 			{
