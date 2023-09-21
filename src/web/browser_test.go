@@ -422,4 +422,66 @@ func Test_Browser_Page(t *testing.T) {
 		defer res.Body.Close()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 	})
+
+	t.Run("deleteAll success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		foldersMock := folders.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		inodesMock := inodes.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		// Get the folder from the url
+		tools.UUIDMock.On("Parse", "folder-id").Return(uuid.UUID("folder-id"), nil).Once()
+		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("folder-id")).
+			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
+
+		inodesMock.On("RemoveAll", mock.Anything, &inodes.PathCmd{
+			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
+			FullName: "foo/bar",
+		}).Return(nil).Once()
+
+		// Then look for the path inside this folder
+		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
+			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
+			FullName: "foo",
+		}).Return(&inodes.ExampleAliceRoot, nil).Once()
+
+		inodesMock.On("Readdir", mock.Anything, &inodes.PathCmd{
+			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
+			FullName: "foo",
+		}, (*storage.PaginateCmd)(nil)).Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
+
+		foldersMock.On("GetAllUserFolders", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).
+			Return([]folders.Folder{folders.ExampleAlicePersonalFolder, folders.ExampleAliceBobSharedFolder}, nil).Once()
+
+		folderID := string(folders.ExampleAlicePersonalFolder.ID())
+		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
+			"fullPath": "foo",
+			"folder":   &folders.ExampleAlicePersonalFolder,
+			"breadcrumb": []breadCrumbElement{
+				{Name: folders.ExampleAlicePersonalFolder.Name(), Href: "/browser/" + folderID, Current: false},
+				{Name: "foo", Href: "/browser/" + folderID + "/foo", Current: true},
+			},
+			"folders": []folders.Folder{folders.ExampleAlicePersonalFolder, folders.ExampleAliceBobSharedFolder},
+			"inodes":  []inodes.INode{inodes.ExampleAliceFile},
+		}).Once()
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodDelete, "/browser/folder-id/foo/bar", nil)
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+	})
 }

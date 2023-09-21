@@ -61,6 +61,7 @@ func (h *browserHandler) Register(r chi.Router, mids *router.Middlewares) {
 	r.Get("/browser", h.getBrowserHome)
 	r.Post("/browser/upload", h.upload)
 	r.Get("/browser/*", h.getBrowserContent)
+	r.Delete("/browser/*", h.deleteAll)
 }
 
 func (h *browserHandler) String() string {
@@ -90,75 +91,12 @@ func (h *browserHandler) getBrowserContent(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// For the path "/browser/{{folderID}}/foo/bar/baz" the elems variable will have for content:
-	// []string{"", "browser", "{{folderID}}", "/foo/bar/baz"}
-	elems := strings.SplitN(r.URL.Path, "/", 4)
-
-	// no need to check elems len as the url format force a len of 3 minimum
-	folderID, err := h.uuid.Parse(elems[2])
-	if err != nil {
-		w.Header().Set("Location", "/browser")
-		w.WriteHeader(http.StatusFound)
+	folder, fullPath, abort := h.getFolderAndPathFromURL(w, r, user)
+	if abort {
 		return
 	}
 
-	folder, err := h.folders.GetUserFolder(r.Context(), user.ID(), folderID)
-	if err != nil {
-		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to folders.GetByID: %w", err))
-		return
-	}
-
-	if folder == nil {
-		w.Header().Set("Location", "/browser")
-		w.WriteHeader(http.StatusFound)
-		return
-	}
-
-	fullPath := "/"
-	if len(elems) == 4 {
-		fullPath = path.Clean(elems[3])
-	}
-
-	inode, err := h.inodes.Get(r.Context(), &inodes.PathCmd{
-		Root:     folder.RootFS(),
-		FullName: fullPath,
-	})
-	if err != nil {
-		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to inodes.Get: %w", err))
-		return
-	}
-
-	if inode == nil {
-		w.Header().Set("Location", path.Join("/browser/", string(folder.ID())))
-		w.WriteHeader(http.StatusFound)
-		return
-	}
-
-	var dirContent []inodes.INode
-	if inode.IsDir() {
-		dirContent, err = h.inodes.Readdir(r.Context(), &inodes.PathCmd{
-			Root:     folder.RootFS(),
-			FullName: fullPath,
-		}, nil)
-		if err != nil {
-			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to inodes.Readdir: %w", err))
-			return
-		}
-	}
-
-	folders, err := h.folders.GetAllUserFolders(r.Context(), user.ID(), nil)
-	if err != nil {
-		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetallUserFolders: %w", err))
-		return
-	}
-
-	h.html.WriteHTML(w, r, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
-		"fullPath":   fullPath,
-		"folder":     folder,
-		"breadcrumb": generateBreadCrumb(folder, fullPath),
-		"folders":    folders,
-		"inodes":     dirContent,
-	})
+	h.renderBrowserContent(w, r, user, folder, fullPath)
 }
 
 func (h *browserHandler) upload(w http.ResponseWriter, r *http.Request) {
@@ -224,6 +162,27 @@ func (h *browserHandler) upload(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+}
+
+func (h *browserHandler) deleteAll(w http.ResponseWriter, r *http.Request) {
+	user, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	if abort {
+		return
+	}
+
+	folder, fullPath, abort := h.getFolderAndPathFromURL(w, r, user)
+	if abort {
+		return
+	}
+
+	fs := fs.NewFSService(h.inodes, h.files, folder, h.folders)
+	err := fs.RemoveAll(r.Context(), fullPath)
+	if err != nil {
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.RemoveAll: %w", err))
+		return
+	}
+
+	h.renderBrowserContent(w, r, user, folder, path.Dir(fullPath))
 }
 
 type breadCrumbElement struct {
@@ -313,4 +272,80 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 	}
 
 	return nil
+}
+
+func (h browserHandler) getFolderAndPathFromURL(w http.ResponseWriter, r *http.Request, user *users.User) (*folders.Folder, string, bool) {
+	// For the path "/browser/{{folderID}}/foo/bar/baz" the elems variable will have for content:
+	// []string{"", "browser", "{{folderID}}", "/foo/bar/baz"}
+	elems := strings.SplitN(r.URL.Path, "/", 4)
+
+	// no need to check elems len as the url format force a len of 3 minimum
+	folderID, err := h.uuid.Parse(elems[2])
+	if err != nil {
+		w.Header().Set("Location", "/browser")
+		w.WriteHeader(http.StatusFound)
+		return nil, "", true
+	}
+
+	folder, err := h.folders.GetUserFolder(r.Context(), user.ID(), folderID)
+	if err != nil {
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to folders.GetByID: %w", err))
+		return nil, "", true
+	}
+
+	if folder == nil {
+		w.Header().Set("Location", "/browser")
+		w.WriteHeader(http.StatusFound)
+		return nil, "", true
+	}
+
+	fullPath := "/"
+	if len(elems) == 4 {
+		fullPath = path.Clean(elems[3])
+	}
+
+	return folder, fullPath, false
+}
+
+func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, folder *folders.Folder, fullPath string) {
+	inode, err := h.inodes.Get(r.Context(), &inodes.PathCmd{
+		Root:     folder.RootFS(),
+		FullName: fullPath,
+	})
+	if err != nil {
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to inodes.Get: %w", err))
+		return
+	}
+
+	if inode == nil {
+		w.Header().Set("Location", path.Join("/browser/", string(folder.ID())))
+		w.WriteHeader(http.StatusFound)
+		return
+	}
+
+	var dirContent []inodes.INode
+	if inode.IsDir() {
+		dirContent, err = h.inodes.Readdir(r.Context(), &inodes.PathCmd{
+			Root:     folder.RootFS(),
+			FullName: fullPath,
+		}, nil)
+		if err != nil {
+			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to inodes.Readdir: %w", err))
+			return
+		}
+	}
+
+	folders, err := h.folders.GetAllUserFolders(r.Context(), user.ID(), nil)
+	if err != nil {
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetallUserFolders: %w", err))
+		return
+	}
+
+	h.html.WriteHTML(w, r, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
+		"fullPath":   fullPath,
+		"folder":     folder,
+		"breadcrumb": generateBreadCrumb(folder, fullPath),
+		"folders":    folders,
+		"inodes":     dirContent,
+	})
 }
