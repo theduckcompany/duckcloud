@@ -47,8 +47,10 @@
       <div class="col-4 text-muted d-none d-md-block d-lg-block d-xxl-block d-xl-block">
         {{if (.IsDir)}}-{{else}}{{humanSize $val.USize}}{{end}}
       </div>
-      <div class="col-5 text-muted d-none d-md-block d-lg-block d-xxl-block d-xl-block">{{humanTime
-        $val.LastModifiedAt}}</div>
+      <div class="col-5 text-muted d-none d-md-block d-lg-block d-xxl-block d-xl-block"><a href="#"
+          data-mdb-toggle="tooltip" class="text-muted" title="{{humanDate .LastModifiedAt}}">
+          {{humanTime .LastModifiedAt}}</a>
+      </div>
 
       <div class="col-2 dropdown">
         <a class="btn btn-white btn-rounded" href="#" role="button" id="dropdownMenuLink{{$idx}}"
