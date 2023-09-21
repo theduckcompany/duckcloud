@@ -52,12 +52,12 @@
     <!-- Sidenav -->
 
     <!-- Navbar -->
-    <nav id="main-navbar" class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-1">
+    <nav id="main-navbar" class="navbar navbar-expand-lg navbar-light bg-white shadow-1">
       <!-- Container wrapper -->
       <div class="container-fluid">
         <!-- Toggler -->
-        <button data-mdb-toggle="sidenav" data-mdb-target="#main-sidenav"
-          class="btn shadow-0 p-0 me-3 d-block d-xxl-none" aria-controls="#main-sidenav" aria-haspopup="true">
+        <button id="toggler" data-mdb-toggle="sidenav" data-mdb-target="#main-sidenav" class="btn shadow-0 p-0 me-3"
+          aria-controls="#main-sidenav" aria-haspopup="true">
           <i class="bi bi-list bi-lg"></i>
         </button>
 
@@ -102,43 +102,38 @@
       <!-- Container wrapper -->
     </nav>
     <!-- Navbar -->
-
-    <!-- Heading -->
-    <section class="">
-      <!-- Background gradient -->
-      <div class="p-5"
-        style="height: 200px; background: linear-gradient( to right, hsl(209, 42.2%, 65%), hsl(209, 42.2%, 85%));">
-      </div>
-      <!-- Background gradient -->
-    </section>
-    <!-- Heading -->
-
   </header>
   <!--Main Navigation-->
 
 
   <!--Main layout-->
-  <main class="mb-5" style="margin-top: -100px;">
-    <div class="container px-4">
-      {{ yield }}
-    </div>
+  <main id="main" class="container-fluid">
+    {{ yield }}
   </main>
 
   <style>
-    body {
-      background-color: hsl(0, 0%, 97%);
+    #main {
+      padding-left: 240px;
     }
 
-    @media (min-width: 1400px) {
+    #toggler {
+      display: none;
+    }
 
-      main,
-      header,
-      #main-navbar {
-        padding-left: 240px;
+    @media (max-width: 1200px) {
+      #main {
+        padding-left: 0px;
+      }
+
+      #toggler {
+        display: unset;
+      }
+
+      .sidenav[data-mdb-hidden='false'] {
+        transform: translateX(-100%);
       }
     }
   </style>
-
 
   <footer></footer>
   <script src="/assets/js/mdb.min.js"
@@ -165,7 +160,7 @@
 
       innerWidth = window.innerWidth;
 
-      if (window.innerWidth < 1400) {
+      if (window.innerWidth < 1200) {
         sidenavInstance.changeMode("over");
         sidenavInstance.hide();
       } else {

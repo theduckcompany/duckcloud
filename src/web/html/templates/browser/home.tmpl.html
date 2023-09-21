@@ -1,33 +1,29 @@
 <!--Section: Content-->
-<section id="content">
-  <div class="card shadow-0">
-    <div class="card-body">
-      <h3><i data-mdb-toggle="collapse" data-mdb-target="#collapseFolders" aria-expanded="true"
-          aria-controls="collapseExample" class="bi bi-chevron-down"></i> Folders ({{len .folders}})</h3>
-      <div class="row row-cols-1" hx-boost="true">
-        {{range .folders}}
-        <div class="col collapse show mt-3" id="collapseFolders">
-          <div class="card hover-shadow col-2" style="max-width: 500px">
-            <div class="card-body">
-              <div class="d-flex align-items-center">
-                <div class="flx-shrink-0">
-                  <div class="p-3 badge-primary rounded-4">
-                    <i class="bi bi-folder"></i>
-                  </div>
-                </div>
-                <div class="flex-grow-1 ms-4">
-                  <a class="stretched-link" href="/browser/{{.ID}}" hx-target="#content" hx-swap="outerHTML">
-                    <h5 class="mb-0" hx-swap="outerHTML">{{.Name}}</h5>
-                  </a>
-                </div>
+<section id="content" class="p-4">
+  <h3><i data-mdb-toggle="collapse" data-mdb-target="#collapseFolders" aria-expanded="true"
+      aria-controls="collapseExample" class="bi bi-chevron-down"></i> Folders ({{len .folders}})</h3>
+  <div class="row row-cols-1" hx-boost="true">
+    {{range .folders}}
+    <div class="col collapse show mt-3" id="collapseFolders">
+      <div class="card hover-shadow col-2" style="max-width: 500px">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flx-shrink-0">
+              <div class="p-3 badge-primary rounded-4">
+                <i class="bi bi-folder"></i>
               </div>
-
+            </div>
+            <div class="flex-grow-1 ms-4">
+              <a class="stretched-link" href="/browser/{{.ID}}" hx-target="#content" hx-swap="outerHTML">
+                <h5 class="mb-0" hx-swap="outerHTML">{{.Name}}</h5>
+              </a>
             </div>
           </div>
+
         </div>
-        {{end}}
       </div>
     </div>
+    {{end}}
   </div>
 </section>
 <!--Section: Content-->
