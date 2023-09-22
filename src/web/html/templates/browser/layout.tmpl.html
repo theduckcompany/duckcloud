@@ -33,8 +33,10 @@
         </li>
         {{range .folders}}
         <li class="sidenav-item">
-          <a class="sidenav-link" href="/browser/{{.ID}}/" hx-target="#content" , hx-swap="outerHTML">
-            <i class="bi bi-folder-fill me-3"></i><span>{{.Name}}</span></a>
+          <a class="sidenav-link {{if (eq $.folder.ID .ID)}}text-primary bg-light{{end}}" href="/browser/{{.ID}}"
+            hx-target="#content" , hx-swap="outerHTML">
+            <i
+              class="bi bi-folder-fill me-3 {{if (eq $.folder.ID .ID)}}text-primary{{end}}"></i><span>{{.Name}}</span></a>
         </li>
         {{end}}
 
