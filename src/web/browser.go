@@ -58,7 +58,7 @@ func (h *browserHandler) Register(r chi.Router, mids *router.Middlewares) {
 		r = r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
 	}
 
-	r.Get("/browser", h.getBrowserHome)
+	r.Get("/browser", h.redirectDefaultBrowser)
 	r.Post("/browser/upload", h.upload)
 	r.Get("/browser/*", h.getBrowserContent)
 	r.Delete("/browser/*", h.deleteAll)
@@ -68,21 +68,14 @@ func (h *browserHandler) String() string {
 	return "web.browser"
 }
 
-func (h *browserHandler) getBrowserHome(w http.ResponseWriter, r *http.Request) {
+func (h *browserHandler) redirectDefaultBrowser(w http.ResponseWriter, r *http.Request) {
 	user, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
 	if abort {
 		return
 	}
 
-	folders, err := h.folders.GetAllUserFolders(r.Context(), user.ID(), nil)
-	if err != nil {
-		fmt.Fprintf(w, `<div class="alert alert-danger role="alert">%s</div>`, err)
-		return
-	}
-
-	h.html.WriteHTML(w, r, http.StatusOK, "browser/home.tmpl", map[string]interface{}{
-		"folders": folders,
-	})
+	w.Header().Set("Location", path.Join("/browser/", string(user.DefaultFolder())))
+	w.WriteHeader(http.StatusFound)
 }
 
 func (h *browserHandler) getBrowserContent(w http.ResponseWriter, r *http.Request) {

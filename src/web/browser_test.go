@@ -26,7 +26,7 @@ import (
 )
 
 func Test_Browser_Page(t *testing.T) {
-	t.Run("getBrowserHome success", func(t *testing.T) {
+	t.Run("redirectDefaultBrowser success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
@@ -41,13 +41,6 @@ func Test_Browser_Page(t *testing.T) {
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
-		foldersMock.On("GetAllUserFolders", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).
-			Return([]folders.Folder{folders.ExampleAlicePersonalFolder, folders.ExampleAliceBobSharedFolder}, nil).Once()
-
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/home.tmpl", map[string]interface{}{
-			"folders": []folders.Folder{folders.ExampleAlicePersonalFolder, folders.ExampleAliceBobSharedFolder},
-		}).Once()
-
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/browser", nil)
 		srv := chi.NewRouter()
@@ -56,7 +49,8 @@ func Test_Browser_Page(t *testing.T) {
 
 		res := w.Result()
 		defer res.Body.Close()
-		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Equal(t, http.StatusFound, res.StatusCode)
+		assert.Equal(t, "/browser/e97b60f7-add2-43e1-a9bd-e2dac9ce69ec", res.Header.Get("Location"))
 	})
 
 	t.Run("getBrowserHome with an unauthenticated user", func(t *testing.T) {

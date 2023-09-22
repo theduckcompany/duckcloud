@@ -133,7 +133,6 @@ func (h *authHandler) applyLogin(w http.ResponseWriter, r *http.Request) {
 
 func (h *authHandler) chooseRedirection(w http.ResponseWriter, r *http.Request) {
 	var client *oauthclients.Client
-	fmt.Printf("clientid: %q\n\n\n", r.FormValue("client_id"))
 	clientID, err := h.uuid.Parse(r.FormValue("client_id"))
 	if err == nil {
 		client, err = h.clients.GetByID(r.Context(), clientID)
