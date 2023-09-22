@@ -64,12 +64,17 @@ func (j *Job) Run(ctx context.Context) error {
 }
 
 func (j *Job) bootstrapUser(ctx context.Context, user *users.User) error {
-	_, err := j.folders.CreatePersonalFolder(ctx, &folders.CreatePersonalFolderCmd{
+	folder, err := j.folders.CreatePersonalFolder(ctx, &folders.CreatePersonalFolderCmd{
 		Name:  "My files",
 		Owner: user.ID(),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to CreatePersonalFolder: %w", err)
+	}
+
+	_, err = j.users.SetDefaultFolder(ctx, *user, folder)
+	if err != nil {
+		return fmt.Errorf("failed to SetDefaultFolder: %w", err)
 	}
 
 	_, err = j.users.MarkInitAsFinished(ctx, user.ID())

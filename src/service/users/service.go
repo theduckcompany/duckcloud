@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/theduckcompany/duckcloud/src/service/folders"
 	"github.com/theduckcompany/duckcloud/src/service/inodes"
@@ -16,12 +17,13 @@ import (
 )
 
 var (
-	ErrAlreadyExists   = fmt.Errorf("user already exists")
-	ErrUsernameTaken   = fmt.Errorf("username taken")
-	ErrInvalidUsername = fmt.Errorf("invalid username")
-	ErrInvalidPassword = fmt.Errorf("invalid password")
-	ErrLastAdmin       = fmt.Errorf("can't remove the last admin")
-	ErrInvalidStatus   = fmt.Errorf("invalid status")
+	ErrAlreadyExists      = fmt.Errorf("user already exists")
+	ErrUsernameTaken      = fmt.Errorf("username taken")
+	ErrInvalidUsername    = fmt.Errorf("invalid username")
+	ErrInvalidPassword    = fmt.Errorf("invalid password")
+	ErrLastAdmin          = fmt.Errorf("can't remove the last admin")
+	ErrInvalidStatus      = fmt.Errorf("invalid status")
+	ErrUnauthorizedFolder = fmt.Errorf("unauthorized folder")
 )
 
 // Storage encapsulates the logic to access user from the data source.
@@ -85,17 +87,33 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 	}
 
 	user := User{
-		id:        newUserID,
-		username:  cmd.Username,
-		isAdmin:   cmd.IsAdmin,
-		password:  hashedPassword,
-		createdAt: s.clock.Now(),
-		status:    "initializing",
+		id:              newUserID,
+		username:        cmd.Username,
+		defaultFolderID: "",
+		isAdmin:         cmd.IsAdmin,
+		password:        hashedPassword,
+		createdAt:       s.clock.Now(),
+		status:          "initializing",
 	}
 
 	err = s.storage.Save(ctx, &user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save the user: %w", err)
+	}
+
+	return &user, nil
+}
+
+func (s *UserService) SetDefaultFolder(ctx context.Context, user User, folder *folders.Folder) (*User, error) {
+	if !slices.Contains[[]uuid.UUID, uuid.UUID](folder.Owners(), user.ID()) {
+		return nil, ErrUnauthorizedFolder
+	}
+
+	user.defaultFolderID = folder.ID()
+
+	err := s.storage.Patch(ctx, user.ID(), map[string]any{"default_folder": folder.ID()})
+	if err != nil {
+		return nil, fmt.Errorf("failed to patch the user: %w", err)
 	}
 
 	return &user, nil

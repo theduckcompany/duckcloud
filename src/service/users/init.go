@@ -21,6 +21,7 @@ type Service interface {
 	HardDelete(ctx context.Context, userID uuid.UUID) error
 	GetAllWithStatus(ctx context.Context, status string, cmd *storage.PaginateCmd) ([]User, error)
 	MarkInitAsFinished(ctx context.Context, userID uuid.UUID) (*User, error)
+	SetDefaultFolder(ctx context.Context, user User, folder *folders.Folder) (*User, error)
 }
 
 func Init(tools tools.Tools,
