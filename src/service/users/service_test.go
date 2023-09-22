@@ -271,6 +271,37 @@ func Test_Users_Service(t *testing.T) {
 		assert.ErrorIs(t, err, ErrInvalidStatus)
 	})
 
+	t.Run("SetDefaultFolder success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		store := NewMockStorage(t)
+		inodesMock := inodes.NewMockService(t)
+		foldersMock := folders.NewMockService(t)
+		service := NewService(tools, store, inodesMock, foldersMock)
+
+		store.On("Patch", mock.Anything, ExampleAlice.ID(), map[string]interface{}{
+			"default_folder": folders.ExampleAliceBobSharedFolder.ID(),
+		}).Return(nil).Once()
+
+		res, err := service.SetDefaultFolder(ctx, ExampleAlice, &folders.ExampleAliceBobSharedFolder)
+		assert.NoError(t, err)
+		expected := ExampleAlice
+		expected.defaultFolderID = folders.ExampleAliceBobSharedFolder.ID()
+		assert.Equal(t, &expected, res)
+	})
+
+	t.Run("SetDefaultFolder with a folder not owned by the user", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		store := NewMockStorage(t)
+		inodesMock := inodes.NewMockService(t)
+		foldersMock := folders.NewMockService(t)
+		service := NewService(tools, store, inodesMock, foldersMock)
+
+		// BobPersonalFolder is not owned by Alice
+		res, err := service.SetDefaultFolder(ctx, ExampleAlice, &folders.ExampleBobPersonalFolder)
+		assert.ErrorIs(t, err, ErrUnauthorizedFolder)
+		assert.Nil(t, res)
+	})
+
 	t.Run("MarkInitAsFinished success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
@@ -278,7 +309,10 @@ func Test_Users_Service(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		service := NewService(tools, store, inodesMock, foldersMock)
 
-		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&ExampleInitializingAlice, nil).Once()
+		initializingAlice := ExampleInitializingAlice
+		initializingAlice.defaultFolderID = folders.ExampleAlicePersonalFolder.ID()
+
+		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&initializingAlice, nil).Once()
 		store.On("Patch", mock.Anything, ExampleAlice.ID(), map[string]any{"status": "active"}).Return(nil).Once()
 
 		res, err := service.MarkInitAsFinished(ctx, ExampleAlice.ID())

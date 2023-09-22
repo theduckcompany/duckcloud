@@ -30,6 +30,7 @@ func TestUserCreateJob(t *testing.T) {
 			Name:  "My files",
 			Owner: users.ExampleAlice.ID(),
 		}).Return(&folders.ExampleAlicePersonalFolder, nil).Once()
+		usersMock.On("SetDefaultFolder", mock.Anything, users.ExampleInitializingAlice, &folders.ExampleAlicePersonalFolder).Return(&users.ExampleAlice, nil).Once()
 
 		usersMock.On("MarkInitAsFinished", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 

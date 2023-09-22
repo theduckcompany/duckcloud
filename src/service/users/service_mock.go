@@ -6,6 +6,8 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
+	folders "github.com/theduckcompany/duckcloud/src/service/folders"
+
 	storage "github.com/theduckcompany/duckcloud/src/tools/storage"
 
 	uuid "github.com/theduckcompany/duckcloud/src/tools/uuid"
@@ -193,6 +195,32 @@ func (_m *MockService) MarkInitAsFinished(ctx context.Context, userID uuid.UUID)
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
 		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SetDefaultFolder provides a mock function with given fields: ctx, user, folder
+func (_m *MockService) SetDefaultFolder(ctx context.Context, user User, folder *folders.Folder) (*User, error) {
+	ret := _m.Called(ctx, user, folder)
+
+	var r0 *User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, User, *folders.Folder) (*User, error)); ok {
+		return rf(ctx, user, folder)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, User, *folders.Folder) *User); ok {
+		r0 = rf(ctx, user, folder)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, User, *folders.Folder) error); ok {
+		r1 = rf(ctx, user, folder)
 	} else {
 		r1 = ret.Error(1)
 	}
