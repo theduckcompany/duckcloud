@@ -79,7 +79,7 @@ func Test_Browser_Page(t *testing.T) {
 		assert.Equal(t, "/login", res.Header.Get("Location"))
 	})
 
-	t.Run("getBrowserContent success", func(t *testing.T) {
+	t.Run("getBrowserContent success with dir", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
@@ -125,6 +125,49 @@ func Test_Browser_Page(t *testing.T) {
 			"folders": []folders.Folder{folders.ExampleAlicePersonalFolder, folders.ExampleAliceBobSharedFolder},
 			"inodes":  []inodes.INode{inodes.ExampleAliceFile},
 		}).Once()
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/browser/folder-id/foo/bar", nil)
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+	})
+
+	t.Run("getBrowserContent success with file", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		foldersMock := folders.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		inodesMock := inodes.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		// Get the folder from the url
+		tools.UUIDMock.On("Parse", "folder-id").Return(uuid.UUID("folder-id"), nil).Once()
+		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("folder-id")).
+			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
+
+		// Then look for the path inside this folder
+		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
+			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
+			FullName: "foo/bar",
+		}).Return(&inodes.ExampleAliceFile, nil).Once()
+
+		afs := afero.NewMemMapFs()
+		file, err := afero.TempFile(afs, t.TempDir(), "")
+		require.NoError(t, err)
+
+		filesMock.On("Open", mock.Anything, inodes.ExampleAliceFile.ID()).Return(file, nil).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/browser/folder-id/foo/bar", nil)
