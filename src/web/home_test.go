@@ -46,7 +46,7 @@ func Test_Home_Page(t *testing.T) {
 		handler := newHomeHandler(htmlMock, auth)
 
 		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, nil).Once()
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
