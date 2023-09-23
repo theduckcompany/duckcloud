@@ -29,20 +29,18 @@ func NewAuthenticator(webSessions websessions.Service, users users.Service, html
 
 func (a *Authenticator) getUserAndSession(w http.ResponseWriter, r *http.Request, access AccessType) (*users.User, *websessions.Session, bool) {
 	currentSession, err := a.webSessions.GetFromReq(r)
-	if errors.Is(err, websessions.ErrSessionNotFound) {
-		fmt.Printf("logout\n\n")
+	switch {
+	case err == nil:
+		break
+	case errors.Is(err, websessions.ErrSessionNotFound):
 		a.webSessions.Logout(r, w)
 		return nil, nil, true
-	}
-	if err != nil {
-		a.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to websessions.GetFromReq: %w", err))
-		return nil, nil, true
-	}
-
-	if currentSession == nil {
-		fmt.Printf("redirect\n\n")
+	case errors.Is(err, websessions.ErrMissingSessionToken):
 		w.Header().Set("Location", "/login")
 		w.WriteHeader(http.StatusFound)
+		return nil, nil, true
+	default:
+		a.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to websessions.GetFromReq: %w", err))
 		return nil, nil, true
 	}
 

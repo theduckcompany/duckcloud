@@ -65,7 +65,7 @@ func Test_Browser_Page(t *testing.T) {
 		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth)
 
 		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, nil).Once()
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/browser", nil)
@@ -149,7 +149,7 @@ func Test_Browser_Page(t *testing.T) {
 		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth)
 
 		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, nil).Once()
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/browser/folder-id/foo/bar", nil)

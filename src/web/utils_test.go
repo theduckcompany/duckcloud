@@ -59,7 +59,7 @@ func Test_Utils_Authenticator(t *testing.T) {
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, nil).Once()
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/foo", nil)

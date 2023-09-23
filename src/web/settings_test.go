@@ -65,7 +65,7 @@ func Test_Settings(t *testing.T) {
 		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, foldersMock, usersMock, auth)
 
 		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, nil).Once()
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/settings/browsers", nil)
@@ -127,7 +127,7 @@ func Test_Settings(t *testing.T) {
 		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, foldersMock, usersMock, auth)
 
 		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, nil).Once()
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/settings/webdav", nil)
