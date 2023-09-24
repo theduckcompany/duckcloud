@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/theduckcompany/duckcloud/src/service/files"
@@ -326,6 +327,16 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to inodes.Readdir: %w", err))
 			return
 		}
+	} else {
+		file, err := h.files.Open(r.Context(), inode.ID())
+		if err != nil {
+			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to files.Open: %w", err))
+			return
+		}
+		defer file.Close()
+
+		h.serveContent(w, r, inode, file)
+		return
 	}
 
 	folders, err := h.folders.GetAllUserFolders(r.Context(), user.ID(), nil)
@@ -341,4 +352,11 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 		"folders":    folders,
 		"inodes":     dirContent,
 	})
+}
+
+func (h *browserHandler) serveContent(w http.ResponseWriter, r *http.Request, inode *inodes.INode, file io.ReadSeeker) {
+	w.Header().Add("Etag", inode.Checksum())
+	w.Header().Add("Expires", time.Now().Add(365*24*time.Hour).UTC().Format(http.TimeFormat))
+	w.Header().Add("Cache-Control", "max-age=31536000")
+	http.ServeContent(w, r, inode.Name(), inode.ModTime(), file)
 }
