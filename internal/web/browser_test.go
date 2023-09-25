@@ -3,10 +3,10 @@ package web
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
@@ -333,6 +333,8 @@ func Test_Browser_Page(t *testing.T) {
 		fsMock := fs.NewMockService(t)
 		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
 
+		content := "Hello, World!"
+
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
@@ -345,11 +347,14 @@ func Test_Browser_Page(t *testing.T) {
 		folderFSMock := fs.NewMockFS(t)
 		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
 
-		fileOrDir := fs.NewMockFileOrDirectory(t)
-		folderFSMock.On("OpenFile", mock.Anything, "foo/bar/hello.txt", os.O_CREATE|os.O_EXCL|os.O_WRONLY).Return(fileOrDir, nil).Once()
-
-		fileOrDir.On("Write", []byte("Hello, World!")).Return(13, nil)
-		fileOrDir.On("Close").Return(nil)
+		folderFSMock.On("CreateFile", mock.Anything, "foo/bar/hello.txt").Return(&inodes.ExampleAliceFile, nil).Once()
+		folderFSMock.On("Upload", mock.Anything, &inodes.ExampleAliceFile, mock.Anything).
+			Run(func(args mock.Arguments) {
+				uploaded, err := io.ReadAll(args[2].(io.Reader))
+				require.NoError(t, err)
+				require.Equal(t, []byte(content), uploaded)
+			}).
+			Return(nil).Once()
 
 		buf := bytes.NewBuffer(nil)
 		form := multipart.NewWriter(buf)
@@ -358,7 +363,9 @@ func Test_Browser_Page(t *testing.T) {
 		form.WriteField("folderID", "folder-id")
 		writer, err := form.CreateFormFile("file", "hello.txt")
 		require.NoError(t, err)
-		writer.Write([]byte("Hello, World!"))
+		_, err = writer.Write([]byte(content))
+		require.NoError(t, err)
+		require.NoError(t, form.Close())
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodPost, "/browser/upload", buf)
@@ -385,6 +392,8 @@ func Test_Browser_Page(t *testing.T) {
 		fsMock := fs.NewMockService(t)
 		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
 
+		content := "Hello, World!"
+
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
@@ -399,11 +408,14 @@ func Test_Browser_Page(t *testing.T) {
 
 		folderFSMock.On("CreateDir", mock.Anything, "/foo/bar/baz").Return(&inodes.ExampleAliceRoot, nil).Once()
 
-		fileOrDir := fs.NewMockFileOrDirectory(t)
-		folderFSMock.On("OpenFile", mock.Anything, "foo/bar/baz/hello.txt", os.O_CREATE|os.O_EXCL|os.O_WRONLY).Return(fileOrDir, nil).Once()
-
-		fileOrDir.On("Write", []byte("Hello, World!")).Return(13, nil)
-		fileOrDir.On("Close").Return(nil)
+		folderFSMock.On("CreateFile", mock.Anything, "foo/bar/baz/hello.txt").Return(&inodes.ExampleAliceFile, nil).Once()
+		folderFSMock.On("Upload", mock.Anything, &inodes.ExampleAliceFile, mock.Anything).
+			Run(func(args mock.Arguments) {
+				uploaded, err := io.ReadAll(args[2].(io.Reader))
+				require.NoError(t, err)
+				require.Equal(t, []byte(content), uploaded)
+			}).
+			Return(nil).Once()
 
 		buf := bytes.NewBuffer(nil)
 		form := multipart.NewWriter(buf)
@@ -412,8 +424,10 @@ func Test_Browser_Page(t *testing.T) {
 		form.WriteField("folderID", "folder-id")
 		form.WriteField("relativePath", "/baz/hello.txt")
 		writer, err := form.CreateFormFile("file", "hello.txt")
+		_, err = writer.Write([]byte(content))
 		require.NoError(t, err)
-		writer.Write([]byte("Hello, World!"))
+		require.NoError(t, form.Close())
+		writer.Write([]byte(content))
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodPost, "/browser/upload", buf)
