@@ -28,21 +28,21 @@ func newLocalFS(
 	return &LocalFS{inodes, files, folder, folders}
 }
 
-func (s *LocalFS) CreateDir(ctx context.Context, name string) error {
+func (s *LocalFS) CreateDir(ctx context.Context, name string) (*inodes.INode, error) {
 	name, err := validatePath(name)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	_, err = s.inodes.MkdirAll(ctx, &inodes.PathCmd{
+	inode, err := s.inodes.MkdirAll(ctx, &inodes.PathCmd{
 		Root:     s.folder.RootFS(),
 		FullName: name,
 	})
 	if err != nil {
-		return fmt.Errorf("inodes mkdir error: %w", err)
+		return nil, fmt.Errorf("inodes mkdir error: %w", err)
 	}
 
-	return nil
+	return inode, nil
 }
 
 func (s *LocalFS) OpenFile(ctx context.Context, name string, flag int) (FileOrDirectory, error) {

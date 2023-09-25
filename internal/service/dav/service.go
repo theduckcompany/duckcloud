@@ -29,7 +29,9 @@ func (s *davFS) Mkdir(ctx context.Context, name string, perm os.FileMode) error 
 		return fmt.Errorf("failed to folders.GetByID: %w", err)
 	}
 
-	return s.fs.GetFolderFS(folder).CreateDir(ctx, name)
+	_, err = s.fs.GetFolderFS(folder).CreateDir(ctx, name)
+
+	return err
 }
 
 func (s *davFS) OpenFile(ctx context.Context, name string, flag int, perm os.FileMode) (webdav.File, error) {

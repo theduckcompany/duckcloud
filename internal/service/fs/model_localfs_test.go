@@ -78,8 +78,9 @@ func Test_FS(t *testing.T) {
 	})
 
 	t.Run("CreateDir success", func(t *testing.T) {
-		err = folderFS.CreateDir(ctx, "foo")
+		res, err := folderFS.CreateDir(ctx, "foo")
 		require.NoError(t, err)
+		assert.Equal(t, "foo", res.Name())
 	})
 
 	t.Run("OpenFile success", func(t *testing.T) {
@@ -126,8 +127,9 @@ func Test_FS(t *testing.T) {
 
 	t.Run("CreateDir with an invalid path", func(t *testing.T) {
 		// Base path are invalid
-		err := folderFS.CreateDir(ctx, "/foo/bar")
+		res, err := folderFS.CreateDir(ctx, "/foo/bar")
 		assert.EqualError(t, err, "open /foo/bar: invalid argument")
+		assert.Nil(t, res)
 	})
 
 	t.Run("OpenFile with O_APPEND fail", func(t *testing.T) {
