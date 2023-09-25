@@ -3,7 +3,6 @@ package fs
 import (
 	"context"
 	"io"
-	"io/fs"
 	"net/http"
 	"os"
 )
@@ -11,7 +10,6 @@ import (
 //go:generate mockery --name FS
 type FS interface {
 	CreateDir(ctx context.Context, name string) error
-	Open(name string) (fs.File, error)
 	OpenFile(ctx context.Context, name string, flag int) (FileOrDirectory, error)
 	RemoveAll(ctx context.Context, name string) error
 	Rename(ctx context.Context, oldName, newName string) error
@@ -22,5 +20,4 @@ type FS interface {
 type FileOrDirectory interface {
 	http.File
 	io.Writer
-	fs.ReadDirFile
 }

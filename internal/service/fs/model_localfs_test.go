@@ -21,6 +21,14 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
+type simplefs struct {
+	fs FS
+}
+
+func (f *simplefs) Open(name string) (fs.File, error) {
+	return f.fs.OpenFile(context.Background(), name, os.O_RDONLY)
+}
+
 func Test_FS(t *testing.T) {
 	ctx := context.Background()
 	tools := tools.NewToolbox(tools.Config{Log: logger.Config{}})
@@ -91,17 +99,17 @@ func Test_FS(t *testing.T) {
 	})
 
 	t.Run("fstest", func(t *testing.T) {
-		assert.NoError(t, fstest.TestFS(folderFS, "foo/bar.txt"))
+		assert.NoError(t, fstest.TestFS(&simplefs{folderFS}, "foo/bar.txt"))
 	})
 
 	t.Run("ReadFile success", func(t *testing.T) {
-		res, err := fs.ReadFile(folderFS, "foo/bar.txt")
+		res, err := fs.ReadFile(&simplefs{folderFS}, "foo/bar.txt")
 		assert.NoError(t, err)
 		assert.Equal(t, barTxtContent, res)
 	})
 
 	t.Run("ReadFile success", func(t *testing.T) {
-		res, err := fs.ReadDir(folderFS, "foo")
+		res, err := fs.ReadDir(&simplefs{folderFS}, "foo")
 		assert.NoError(t, err)
 		assert.Len(t, res, 1)
 
@@ -146,7 +154,7 @@ func Test_FS(t *testing.T) {
 
 	t.Run("OpenFile with O_TRUNC succeed", func(t *testing.T) {
 		// Check the state first
-		startfile, err := folderFS.Open("foo/bar.txt")
+		startfile, err := folderFS.OpenFile(ctx, "foo/bar.txt", os.O_RDONLY)
 		require.NoError(t, err)
 		startRes, err := io.ReadAll(startfile)
 		require.NoError(t, err)
@@ -160,7 +168,7 @@ func Test_FS(t *testing.T) {
 		require.NoError(t, file.Close())
 
 		// Then read the new content
-		res, err := folderFS.Open("foo/bar.txt")
+		res, err := folderFS.OpenFile(ctx, "foo/bar.txt", os.O_RDONLY)
 		require.NoError(t, err)
 		rawRes, err := io.ReadAll(res)
 		require.NoError(t, err)
@@ -173,11 +181,11 @@ func Test_FS(t *testing.T) {
 		err := folderFS.RemoveAll(ctx, "foo")
 		assert.NoError(t, err)
 
-		res, err := folderFS.Open("foo/bar.txt")
+		res, err := folderFS.OpenFile(ctx, "foo/bar.txt", os.O_RDONLY)
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, fs.ErrNotExist)
 
-		res, err = folderFS.Open("foo")
+		res, err = folderFS.OpenFile(ctx, "foo", os.O_RDONLY)
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, fs.ErrNotExist)
 	})
