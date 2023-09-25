@@ -239,7 +239,7 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 	} else {
 		fullPath = path.Join(cmd.rootPath, cmd.relPath)
 
-		err = fs.CreateDir(ctx, path.Dir(fullPath))
+		_, err = fs.CreateDir(ctx, path.Dir(fullPath))
 		if err != nil {
 			return fmt.Errorf("failed to CreateDir: %w", err)
 		}

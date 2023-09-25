@@ -51,32 +51,6 @@ func (_m *MockFileOrDirectory) Read(p []byte) (int, error) {
 	return r0, r1
 }
 
-// ReadDir provides a mock function with given fields: n
-func (_m *MockFileOrDirectory) ReadDir(n int) ([]iofs.DirEntry, error) {
-	ret := _m.Called(n)
-
-	var r0 []iofs.DirEntry
-	var r1 error
-	if rf, ok := ret.Get(0).(func(int) ([]iofs.DirEntry, error)); ok {
-		return rf(n)
-	}
-	if rf, ok := ret.Get(0).(func(int) []iofs.DirEntry); ok {
-		r0 = rf(n)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]iofs.DirEntry)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(int) error); ok {
-		r1 = rf(n)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Readdir provides a mock function with given fields: count
 func (_m *MockFileOrDirectory) Readdir(count int) ([]iofs.FileInfo, error) {
 	ret := _m.Called(count)
