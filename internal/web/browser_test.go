@@ -2,11 +2,11 @@ package web
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"fmt"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/fs"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
@@ -35,7 +36,8 @@ func Test_Browser_Page(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth)
+		fsMock := fs.NewMockService(t)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -62,7 +64,8 @@ func Test_Browser_Page(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth)
+		fsMock := fs.NewMockService(t)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
@@ -88,7 +91,8 @@ func Test_Browser_Page(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth)
+		fsMock := fs.NewMockService(t)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -146,7 +150,8 @@ func Test_Browser_Page(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth)
+		fsMock := fs.NewMockService(t)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -189,7 +194,8 @@ func Test_Browser_Page(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth)
+		fsMock := fs.NewMockService(t)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
@@ -217,7 +223,8 @@ func Test_Browser_Page(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth)
+		fsMock := fs.NewMockService(t)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -248,7 +255,8 @@ func Test_Browser_Page(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth)
+		fsMock := fs.NewMockService(t)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -282,7 +290,8 @@ func Test_Browser_Page(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth)
+		fsMock := fs.NewMockService(t)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -321,7 +330,8 @@ func Test_Browser_Page(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth)
+		fsMock := fs.NewMockService(t)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -332,33 +342,14 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("folder-id")).
 			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
 
-		// FS OpenFiles methods
-		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "foo/bar/hello.txt",
-		}).Return(nil, nil).Once()
+		folderFSMock := fs.NewMockFS(t)
+		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
 
-		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "foo/bar/",
-		}).Return(&inodes.ExampleAliceRoot, nil).Once()
+		fileOrDir := fs.NewMockFileOrDirectory(t)
+		folderFSMock.On("OpenFile", mock.Anything, "foo/bar/hello.txt", os.O_CREATE|os.O_EXCL|os.O_WRONLY).Return(fileOrDir, nil).Once()
 
-		afs := afero.NewMemMapFs()
-		file, err := afero.TempFile(afs, "foo", "")
-		require.NoError(t, err)
-
-		inodesMock.On("CreateFile", mock.Anything, &inodes.CreateFileCmd{
-			Parent: inodes.ExampleAliceRoot.ID(),
-			Name:   "hello.txt",
-		}).Return(&inodes.ExampleAliceFile, nil).Once()
-
-		filesMock.On("Open", mock.Anything, inodes.ExampleAliceFile.ID()).Return(file, nil).Once()
-
-		hash := sha256.New()
-		hash.Write([]byte("Hello, World!"))
-
-		inodesMock.On("RegisterWrite", mock.Anything, &inodes.ExampleAliceFile, 13, hash).Return(nil).Once()
-		foldersMock.On("RegisterWrite", mock.Anything, folders.ExampleAlicePersonalFolder.ID(), uint64(13)).Return(&folders.ExampleAlicePersonalFolder, nil).Once()
+		fileOrDir.On("Write", []byte("Hello, World!")).Return(13, nil)
+		fileOrDir.On("Close").Return(nil)
 
 		buf := bytes.NewBuffer(nil)
 		form := multipart.NewWriter(buf)
@@ -391,7 +382,8 @@ func Test_Browser_Page(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth)
+		fsMock := fs.NewMockService(t)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -402,38 +394,16 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("folder-id")).
 			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
 
-		inodesMock.On("MkdirAll", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "/foo/bar/baz",
-		}).Return(&inodes.ExampleAliceRoot, nil).Once()
+		folderFSMock := fs.NewMockFS(t)
+		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
 
-		// FS OpenFiles methods
-		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "foo/bar/baz/hello.txt",
-		}).Return(nil, nil).Once()
+		folderFSMock.On("CreateDir", mock.Anything, "/foo/bar/baz").Return(nil).Once()
 
-		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "foo/bar/baz/",
-		}).Return(&inodes.ExampleAliceRoot, nil).Once()
+		fileOrDir := fs.NewMockFileOrDirectory(t)
+		folderFSMock.On("OpenFile", mock.Anything, "foo/bar/baz/hello.txt", os.O_CREATE|os.O_EXCL|os.O_WRONLY).Return(fileOrDir, nil).Once()
 
-		afs := afero.NewMemMapFs()
-		file, err := afero.TempFile(afs, "foo", "")
-		require.NoError(t, err)
-
-		inodesMock.On("CreateFile", mock.Anything, &inodes.CreateFileCmd{
-			Parent: inodes.ExampleAliceRoot.ID(),
-			Name:   "hello.txt",
-		}).Return(&inodes.ExampleAliceFile, nil).Once()
-
-		filesMock.On("Open", mock.Anything, inodes.ExampleAliceFile.ID()).Return(file, nil).Once()
-
-		hash := sha256.New()
-		hash.Write([]byte("Hello, World!"))
-
-		inodesMock.On("RegisterWrite", mock.Anything, &inodes.ExampleAliceFile, 13, hash).Return(nil).Once()
-		foldersMock.On("RegisterWrite", mock.Anything, folders.ExampleAlicePersonalFolder.ID(), uint64(13)).Return(&folders.ExampleAlicePersonalFolder, nil).Once()
+		fileOrDir.On("Write", []byte("Hello, World!")).Return(13, nil)
+		fileOrDir.On("Close").Return(nil)
 
 		buf := bytes.NewBuffer(nil)
 		form := multipart.NewWriter(buf)
@@ -467,7 +437,8 @@ func Test_Browser_Page(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth)
+		fsMock := fs.NewMockService(t)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -478,10 +449,10 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("folder-id")).
 			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
 
-		inodesMock.On("RemoveAll", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "foo/bar",
-		}).Return(nil).Once()
+		folderFSMock := fs.NewMockFS(t)
+		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
+
+		folderFSMock.On("RemoveAll", mock.Anything, "foo/bar").Return(nil).Once()
 
 		// Then look for the path inside this folder
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{

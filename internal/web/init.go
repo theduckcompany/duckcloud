@@ -5,6 +5,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/fs"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthclients"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
@@ -37,6 +38,7 @@ func NewHTTPHandler(
 	files files.Service,
 	davSessions davsessions.Service,
 	inodes inodes.Service,
+	fs fs.Service,
 ) *HTTPHandler {
 	htmlRenderer := html.NewRenderer(cfg.HTML)
 	auth := NewAuthenticator(webSessions, users, htmlRenderer)
@@ -45,7 +47,7 @@ func NewHTTPHandler(
 		auth:     newAuthHandler(tools, htmlRenderer, auth, users, clients, oauthConsent, webSessions),
 		settings: newSettingsHandler(tools, htmlRenderer, webSessions, davSessions, folders, users, auth),
 		home:     newHomeHandler(htmlRenderer, auth),
-		browser:  newBrowserHandler(tools, htmlRenderer, folders, inodes, files, auth),
+		browser:  newBrowserHandler(tools, htmlRenderer, folders, inodes, files, auth, fs),
 	}
 }
 
