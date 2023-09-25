@@ -42,12 +42,14 @@ func Test_FS(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	duckFS := NewFSService(inodesSvc, filesSvc, folder, foldersSvc)
+	duckFS := NewFSService(inodesSvc, filesSvc, foldersSvc)
 
 	var file FileOrDirectory
 
+	folderFS := duckFS.GetFolderFS(folder)
+
 	t.Run("Stat on root", func(t *testing.T) {
-		info, err := duckFS.Stat(ctx, "")
+		info, err := folderFS.Stat(ctx, "")
 		assert.NoError(t, err)
 		assert.True(t, info.IsDir())
 		assert.Equal(t, "", info.Name())
@@ -56,24 +58,24 @@ func Test_FS(t *testing.T) {
 	})
 
 	t.Run("Stat on an invalid path", func(t *testing.T) {
-		info, err := duckFS.Stat(ctx, "./unknown-file")
+		info, err := folderFS.Stat(ctx, "./unknown-file")
 		assert.Nil(t, info)
 		assert.ErrorIs(t, err, fs.ErrInvalid)
 	})
 
 	t.Run("Stat on an unknown file", func(t *testing.T) {
-		info, err := duckFS.Stat(ctx, "unknown-file")
+		info, err := folderFS.Stat(ctx, "unknown-file")
 		assert.Nil(t, info)
 		assert.ErrorIs(t, err, fs.ErrNotExist)
 	})
 
 	t.Run("CreateDir success", func(t *testing.T) {
-		err = duckFS.CreateDir(ctx, "foo")
+		err = folderFS.CreateDir(ctx, "foo")
 		require.NoError(t, err)
 	})
 
 	t.Run("OpenFile success", func(t *testing.T) {
-		file, err = duckFS.OpenFile(ctx, "foo/bar.txt", os.O_CREATE|os.O_RDWR)
+		file, err = folderFS.OpenFile(ctx, "foo/bar.txt", os.O_CREATE|os.O_RDWR)
 		require.NoError(t, err)
 	})
 
@@ -89,17 +91,17 @@ func Test_FS(t *testing.T) {
 	})
 
 	t.Run("fstest", func(t *testing.T) {
-		assert.NoError(t, fstest.TestFS(duckFS, "foo/bar.txt"))
+		assert.NoError(t, fstest.TestFS(folderFS, "foo/bar.txt"))
 	})
 
 	t.Run("ReadFile success", func(t *testing.T) {
-		res, err := fs.ReadFile(duckFS, "foo/bar.txt")
+		res, err := fs.ReadFile(folderFS, "foo/bar.txt")
 		assert.NoError(t, err)
 		assert.Equal(t, barTxtContent, res)
 	})
 
 	t.Run("ReadFile success", func(t *testing.T) {
-		res, err := fs.ReadDir(duckFS, "foo")
+		res, err := fs.ReadDir(folderFS, "foo")
 		assert.NoError(t, err)
 		assert.Len(t, res, 1)
 
@@ -116,25 +118,25 @@ func Test_FS(t *testing.T) {
 
 	t.Run("CreateDir with an invalid path", func(t *testing.T) {
 		// Base path are invalid
-		err := duckFS.CreateDir(ctx, "/foo/bar")
+		err := folderFS.CreateDir(ctx, "/foo/bar")
 		assert.EqualError(t, err, "open /foo/bar: invalid argument")
 	})
 
 	t.Run("OpenFile with O_APPEND fail", func(t *testing.T) {
-		res, err := duckFS.OpenFile(ctx, "foo/bar.txt", os.O_APPEND|os.O_WRONLY)
+		res, err := folderFS.OpenFile(ctx, "foo/bar.txt", os.O_APPEND|os.O_WRONLY)
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "invalid argument: O_SYNC and O_APPEND not supported")
 	})
 
 	t.Run("OpenFile with O_EXCL fail if the file exists", func(t *testing.T) {
-		res, err := duckFS.OpenFile(ctx, "foo/bar.txt", os.O_EXCL|os.O_CREATE)
+		res, err := folderFS.OpenFile(ctx, "foo/bar.txt", os.O_EXCL|os.O_CREATE)
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "open foo/bar.txt: file already exists")
 		assert.ErrorIs(t, err, fs.ErrExist)
 	})
 
 	t.Run("OpenFile with O_EXCL succeed", func(t *testing.T) {
-		res, err := duckFS.OpenFile(ctx, "foo/newbar.txt", os.O_EXCL|os.O_CREATE)
+		res, err := folderFS.OpenFile(ctx, "foo/newbar.txt", os.O_EXCL|os.O_CREATE)
 		assert.NotNil(t, res)
 		assert.NoError(t, err)
 
@@ -144,8 +146,7 @@ func Test_FS(t *testing.T) {
 
 	t.Run("OpenFile with O_TRUNC succeed", func(t *testing.T) {
 		// Check the state first
-		//nolint: contextcheck // ??!
-		startfile, err := duckFS.Open("foo/bar.txt")
+		startfile, err := folderFS.Open("foo/bar.txt")
 		require.NoError(t, err)
 		startRes, err := io.ReadAll(startfile)
 		require.NoError(t, err)
@@ -153,14 +154,13 @@ func Test_FS(t *testing.T) {
 		require.NoError(t, file.Close())
 
 		// Then truncate an put some new content
-		file, err := duckFS.OpenFile(ctx, "foo/bar.txt", os.O_TRUNC)
+		file, err := folderFS.OpenFile(ctx, "foo/bar.txt", os.O_TRUNC)
 		require.NoError(t, err)
 		file.Write([]byte("foobar"))
 		require.NoError(t, file.Close())
 
 		// Then read the new content
-		//nolint: contextcheck // ??!
-		res, err := duckFS.Open("foo/bar.txt")
+		res, err := folderFS.Open("foo/bar.txt")
 		require.NoError(t, err)
 		rawRes, err := io.ReadAll(res)
 		require.NoError(t, err)
@@ -170,23 +170,21 @@ func Test_FS(t *testing.T) {
 	})
 
 	t.Run("RemoveAll success", func(t *testing.T) {
-		err := duckFS.RemoveAll(ctx, "foo")
+		err := folderFS.RemoveAll(ctx, "foo")
 		assert.NoError(t, err)
 
-		//nolint: contextcheck // ??!
-		res, err := duckFS.Open("foo/bar.txt")
+		res, err := folderFS.Open("foo/bar.txt")
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, fs.ErrNotExist)
 
-		//nolint: contextcheck // ??!
-		res, err = duckFS.Open("foo")
+		res, err = folderFS.Open("foo")
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, fs.ErrNotExist)
 	})
 
 	t.Run("RemoveAll with an invalid path", func(t *testing.T) {
 		// Should not start with "./"
-		err := duckFS.RemoveAll(ctx, "./foo")
+		err := folderFS.RemoveAll(ctx, "./foo")
 		assert.EqualError(t, err, "open ./foo: invalid argument")
 	})
 }

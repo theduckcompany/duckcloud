@@ -9,6 +9,7 @@
 *.so
 *.dylib
 /duckcloud
+/server
 
 # Test binary, built with `go test -c`
 *.test
