@@ -26,10 +26,15 @@ func (h *homeHandler) Register(r chi.Router, mids *router.Middlewares) {
 	}
 
 	r.Get("/", h.getHome)
+	r.Get("/logout", h.logout)
 }
 
 func (h *homeHandler) String() string {
 	return "web.home"
+}
+
+func (h *homeHandler) logout(w http.ResponseWriter, r *http.Request) {
+	h.auth.webSessions.Logout(r, w)
 }
 
 func (h *homeHandler) getHome(w http.ResponseWriter, r *http.Request) {
