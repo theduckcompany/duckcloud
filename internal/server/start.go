@@ -11,6 +11,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/debug"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/fs"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/oauth2"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthclients"
@@ -38,12 +39,12 @@ func AsRoute(f any) any {
 	)
 }
 
-func start(cfg *Config, db *sql.DB, fs afero.Fs, invoke fx.Option) *fx.App {
+func start(cfg *Config, db *sql.DB, afs afero.Fs, invoke fx.Option) *fx.App {
 	app := fx.New(
 		fx.WithLogger(func(tools tools.Tools) fxevent.Logger { return logger.NewFxLogger(tools.Logger()) }),
 		fx.Provide(
 			func() Config { return *cfg },
-			func() afero.Fs { return fs },
+			func() afero.Fs { return afs },
 			func() *sql.DB { return db },
 
 			// Tools
@@ -61,6 +62,7 @@ func start(cfg *Config, db *sql.DB, fs afero.Fs, invoke fx.Option) *fx.App {
 			fx.Annotate(files.Init, fx.As(new(files.Service))),
 			fx.Annotate(davsessions.Init, fx.As(new(davsessions.Service))),
 			fx.Annotate(folders.Init, fx.As(new(folders.Service))),
+			fx.Annotate(fs.Init, fx.As(new(fs.Service))),
 
 			// HTTP handlers
 			AsRoute(dav.NewHTTPHandler),

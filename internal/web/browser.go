@@ -34,6 +34,7 @@ type browserHandler struct {
 	files   files.Service
 	uuid    uuid.Service
 	auth    *Authenticator
+	fs      fs.Service
 }
 
 func newBrowserHandler(
@@ -43,6 +44,7 @@ func newBrowserHandler(
 	inodes inodes.Service,
 	files files.Service,
 	auth *Authenticator,
+	fs fs.Service,
 ) *browserHandler {
 	return &browserHandler{
 		html:    html,
@@ -51,6 +53,7 @@ func newBrowserHandler(
 		files:   files,
 		uuid:    tools.UUID(),
 		auth:    auth,
+		fs:      fs,
 	}
 }
 
@@ -169,7 +172,7 @@ func (h *browserHandler) deleteAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fs := fs.NewFSService(h.inodes, h.files, folder, h.folders)
+	fs := h.fs.GetFolderFS(folder)
 	err := fs.RemoveAll(r.Context(), fullPath)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.RemoveAll: %w", err))
@@ -228,7 +231,7 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 		return fmt.Errorf("failed to GetByID: %w", err)
 	}
 
-	fs := fs.NewFSService(h.inodes, h.files, folder, h.folders)
+	fs := h.fs.GetFolderFS(folder)
 
 	var fullPath string
 	if cmd.relPath == "null" || cmd.relPath == "" {
@@ -236,12 +239,9 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 	} else {
 		fullPath = path.Join(cmd.rootPath, cmd.relPath)
 
-		_, err = h.inodes.MkdirAll(ctx, &inodes.PathCmd{
-			Root:     folder.RootFS(),
-			FullName: path.Dir(fullPath),
-		})
+		err = fs.CreateDir(ctx, path.Dir(fullPath))
 		if err != nil {
-			return fmt.Errorf("failed to Mkdirall: %w", err)
+			return fmt.Errorf("failed to CreateDir: %w", err)
 		}
 	}
 

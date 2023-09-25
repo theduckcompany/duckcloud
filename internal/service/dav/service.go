@@ -8,17 +8,14 @@ import (
 	"strings"
 
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
-	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/fs"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"golang.org/x/net/webdav"
 )
 
 type davFS struct {
-	inodes  inodes.Service
-	files   files.Service
 	folders folders.Service
+	fs      fs.Service
 }
 
 func (s *davFS) Mkdir(ctx context.Context, name string, perm os.FileMode) error {
@@ -32,7 +29,7 @@ func (s *davFS) Mkdir(ctx context.Context, name string, perm os.FileMode) error 
 		return fmt.Errorf("failed to folders.GetByID: %w", err)
 	}
 
-	return fs.NewFSService(s.inodes, s.files, folder, s.folders).CreateDir(ctx, name)
+	return s.fs.GetFolderFS(folder).CreateDir(ctx, name)
 }
 
 func (s *davFS) OpenFile(ctx context.Context, name string, flag int, perm os.FileMode) (webdav.File, error) {
@@ -46,7 +43,7 @@ func (s *davFS) OpenFile(ctx context.Context, name string, flag int, perm os.Fil
 		return nil, fmt.Errorf("failed to folders.GetByID: %w", err)
 	}
 
-	return fs.NewFSService(s.inodes, s.files, folder, s.folders).OpenFile(ctx, name, flag)
+	return s.fs.GetFolderFS(folder).OpenFile(ctx, name, flag)
 }
 
 func (s *davFS) RemoveAll(ctx context.Context, name string) error {
@@ -60,7 +57,7 @@ func (s *davFS) RemoveAll(ctx context.Context, name string) error {
 		return fmt.Errorf("failed to folders.GetByID: %w", err)
 	}
 
-	return fs.NewFSService(s.inodes, s.files, folder, s.folders).RemoveAll(ctx, name)
+	return s.fs.GetFolderFS(folder).RemoveAll(ctx, name)
 }
 
 func (s *davFS) Rename(ctx context.Context, oldName, newName string) error {
@@ -83,7 +80,7 @@ func (s *davFS) Stat(ctx context.Context, name string) (os.FileInfo, error) {
 		return nil, fmt.Errorf("failed to folders.GetByID: %w", err)
 	}
 
-	return fs.NewFSService(s.inodes, s.files, folder, s.folders).Stat(ctx, name)
+	return s.fs.GetFolderFS(folder).Stat(ctx, name)
 }
 
 func cleanPath(name string) string {
