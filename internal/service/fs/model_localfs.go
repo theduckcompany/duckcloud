@@ -45,10 +45,6 @@ func (s *LocalFS) CreateDir(ctx context.Context, name string) error {
 	return nil
 }
 
-func (s *LocalFS) Open(name string) (fs.File, error) {
-	return s.OpenFile(context.Background(), name, 0)
-}
-
 func (s *LocalFS) OpenFile(ctx context.Context, name string, flag int) (FileOrDirectory, error) {
 	name, err := validatePath(name)
 	if err != nil {
