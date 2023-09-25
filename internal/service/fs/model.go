@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 	"net/http"
-	"os"
 
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 )
@@ -15,7 +14,7 @@ type FS interface {
 	OpenFile(ctx context.Context, name string, flag int) (FileOrDirectory, error)
 	RemoveAll(ctx context.Context, name string) error
 	Rename(ctx context.Context, oldName, newName string) error
-	Stat(ctx context.Context, name string) (os.FileInfo, error)
+	Get(ctx context.Context, name string) (*inodes.INode, error)
 }
 
 //go:generate mockery --name FileOrDirectory

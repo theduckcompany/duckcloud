@@ -149,7 +149,7 @@ func (s *LocalFS) Rename(ctx context.Context, oldName, newName string) error {
 	return ErrNotImplemented
 }
 
-func (s *LocalFS) Stat(ctx context.Context, name string) (os.FileInfo, error) {
+func (s *LocalFS) Get(ctx context.Context, name string) (*inodes.INode, error) {
 	name, err := validatePath(name)
 	if err != nil {
 		return nil, err

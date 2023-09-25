@@ -56,8 +56,8 @@ func Test_FS(t *testing.T) {
 
 	folderFS := duckFS.GetFolderFS(folder)
 
-	t.Run("Stat on root", func(t *testing.T) {
-		info, err := folderFS.Stat(ctx, "")
+	t.Run("Get on root", func(t *testing.T) {
+		info, err := folderFS.Get(ctx, "")
 		assert.NoError(t, err)
 		assert.True(t, info.IsDir())
 		assert.Equal(t, "", info.Name())
@@ -65,14 +65,14 @@ func Test_FS(t *testing.T) {
 		assert.WithinDuration(t, time.Now(), info.ModTime(), 400*time.Millisecond)
 	})
 
-	t.Run("Stat on an invalid path", func(t *testing.T) {
-		info, err := folderFS.Stat(ctx, "./unknown-file")
+	t.Run("Get on an invalid path", func(t *testing.T) {
+		info, err := folderFS.Get(ctx, "./unknown-file")
 		assert.Nil(t, info)
 		assert.ErrorIs(t, err, fs.ErrInvalid)
 	})
 
-	t.Run("Stat on an unknown file", func(t *testing.T) {
-		info, err := folderFS.Stat(ctx, "unknown-file")
+	t.Run("Get on an unknown file", func(t *testing.T) {
+		info, err := folderFS.Get(ctx, "unknown-file")
 		assert.Nil(t, info)
 		assert.ErrorIs(t, err, fs.ErrNotExist)
 	})
