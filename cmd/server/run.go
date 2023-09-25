@@ -8,8 +8,8 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/theduckcompany/duckcloud/cmd/config"
-	"github.com/theduckcompany/duckcloud/src/server"
-	"github.com/theduckcompany/duckcloud/src/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/server"
+	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
 func NewRunCmd(binaryName string) *cobra.Command {

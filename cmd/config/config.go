@@ -7,7 +7,7 @@ import (
 	"path"
 
 	"github.com/adrg/xdg"
-	"github.com/theduckcompany/duckcloud/src/server"
+	"github.com/theduckcompany/duckcloud/internal/server"
 )
 
 func GetOrCreateConfig(binaryName string) (*server.Config, error) {
