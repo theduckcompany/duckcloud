@@ -1,4 +1,4 @@
-package server
+package commands
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"github.com/theduckcompany/duckcloud/cmd/config"
+	"github.com/theduckcompany/duckcloud/cmd/server/config"
 	"github.com/theduckcompany/duckcloud/internal/server"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
