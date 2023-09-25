@@ -10,6 +10,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
+	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
 type LocalFS struct {
@@ -45,8 +46,11 @@ func (s *LocalFS) CreateDir(ctx context.Context, name string) (*inodes.INode, er
 	return inode, nil
 }
 
-func (s *LocalFS) Open(name string) (fs.File, error) {
-	return s.OpenFile(context.Background(), name, 0)
+func (s *LocalFS) ReadDir(ctx context.Context, name string, cmd *storage.PaginateCmd) ([]inodes.INode, error) {
+	return s.inodes.Readdir(ctx, &inodes.PathCmd{
+		Root:     s.folder.RootFS(),
+		FullName: name,
+	}, cmd)
 }
 
 func (s *LocalFS) OpenFile(ctx context.Context, name string, flag int) (FileOrDirectory, error) {
