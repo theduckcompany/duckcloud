@@ -397,7 +397,7 @@ func Test_Browser_Page(t *testing.T) {
 		folderFSMock := fs.NewMockFS(t)
 		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
 
-		folderFSMock.On("CreateDir", mock.Anything, "/foo/bar/baz").Return(nil).Once()
+		folderFSMock.On("CreateDir", mock.Anything, "/foo/bar/baz").Return(&inodes.ExampleAliceRoot, nil).Once()
 
 		fileOrDir := fs.NewMockFileOrDirectory(t)
 		folderFSMock.On("OpenFile", mock.Anything, "foo/bar/baz/hello.txt", os.O_CREATE|os.O_EXCL|os.O_WRONLY).Return(fileOrDir, nil).Once()
