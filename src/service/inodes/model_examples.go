@@ -1,7 +1,6 @@
 package inodes
 
 import (
-	"io/fs"
 	"time"
 
 	"github.com/theduckcompany/duckcloud/src/tools/ptr"
@@ -18,7 +17,7 @@ var ExampleAliceRoot INode = INode{
 	name:           "",
 	parent:         nil,
 	checksum:       "",
-	mode:           0o660 | fs.ModeDir,
+	isDir:          true,
 	size:           0,
 	createdAt:      now,
 	lastModifiedAt: now2,
@@ -30,7 +29,7 @@ var ExampleAliceFile INode = INode{
 	parent:         ptr.To(uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")),
 	checksum:       "some-sha256-checksum",
 	size:           42,
-	mode:           0o660,
+	isDir:          false,
 	createdAt:      now,
 	lastModifiedAt: now2,
 }
@@ -40,7 +39,7 @@ var ExampleBobRoot INode = INode{
 	name:           "",
 	parent:         nil,
 	checksum:       "",
-	mode:           0o660 | fs.ModeDir,
+	isDir:          true,
 	size:           0,
 	createdAt:      now,
 	lastModifiedAt: now2,

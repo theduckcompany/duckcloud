@@ -27,7 +27,6 @@ func (t PathCmd) Validate() error {
 type CreateFileCmd struct {
 	Parent uuid.UUID
 	Name   string
-	Mode   fs.FileMode
 }
 
 // Validate the fields.
@@ -41,7 +40,7 @@ func (t CreateFileCmd) Validate() error {
 type INode struct {
 	id             uuid.UUID
 	parent         *uuid.UUID
-	mode           fs.FileMode
+	isDir          bool
 	name           string
 	checksum       string
 	size           uint64
@@ -54,10 +53,16 @@ func (n *INode) Parent() *uuid.UUID        { return n.parent }
 func (n *INode) Name() string              { return n.name }
 func (n *INode) Size() int64               { return int64(n.size) }
 func (n *INode) USize() uint64             { return n.size }
-func (n *INode) Mode() fs.FileMode         { return n.mode }
 func (n *INode) ModTime() time.Time        { return n.lastModifiedAt }
 func (n *INode) CreatedAt() time.Time      { return n.createdAt }
 func (n *INode) LastModifiedAt() time.Time { return n.lastModifiedAt }
-func (n *INode) IsDir() bool               { return n.mode.IsDir() }
+func (n *INode) IsDir() bool               { return n.isDir }
 func (n *INode) Checksum() string          { return n.checksum }
 func (n *INode) Sys() any                  { return nil }
+func (n *INode) Mode() fs.FileMode {
+	if n.isDir {
+		return 0o660 | fs.ModeDir
+	}
+
+	return 0o660 // Regular file
+}

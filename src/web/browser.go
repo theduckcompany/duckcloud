@@ -249,7 +249,7 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 		fullPath = fullPath[1:]
 	}
 
-	file, err := fs.OpenFile(ctx, fullPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0)
+	file, err := fs.OpenFile(ctx, fullPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY)
 	if err != nil {
 		return fmt.Errorf("failed to OpenFile: %w", err)
 	}

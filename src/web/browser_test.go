@@ -350,7 +350,6 @@ func Test_Browser_Page(t *testing.T) {
 		inodesMock.On("CreateFile", mock.Anything, &inodes.CreateFileCmd{
 			Parent: inodes.ExampleAliceRoot.ID(),
 			Name:   "hello.txt",
-			Mode:   0,
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
 		filesMock.On("Open", mock.Anything, inodes.ExampleAliceFile.ID()).Return(file, nil).Once()
@@ -426,7 +425,6 @@ func Test_Browser_Page(t *testing.T) {
 		inodesMock.On("CreateFile", mock.Anything, &inodes.CreateFileCmd{
 			Parent: inodes.ExampleAliceRoot.ID(),
 			Name:   "hello.txt",
-			Mode:   0,
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
 		filesMock.On("Open", mock.Anything, inodes.ExampleAliceFile.ID()).Return(file, nil).Once()

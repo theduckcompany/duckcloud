@@ -15,7 +15,7 @@ import (
 
 const tableName = "fs_inodes"
 
-var allFiels = []string{"id", "name", "parent", "mode", "checksum", "size", "last_modified_at", "created_at"}
+var allFiels = []string{"id", "name", "parent", "is_dir", "checksum", "size", "last_modified_at", "created_at"}
 
 type sqlStorage struct {
 	db    *sql.DB
@@ -30,7 +30,7 @@ func (s *sqlStorage) Save(ctx context.Context, inode *INode) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(allFiels...).
-		Values(inode.id, inode.name, inode.parent, inode.mode, inode.checksum, inode.size, inode.lastModifiedAt, inode.createdAt).
+		Values(inode.id, inode.name, inode.parent, inode.isDir, inode.checksum, inode.size, inode.lastModifiedAt, inode.createdAt).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -121,7 +121,7 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]INode, error) {
 	for rows.Next() {
 		var res INode
 
-		err := rows.Scan(&res.id, &res.name, &res.parent, &res.mode, &res.checksum, &res.size, &res.lastModifiedAt, &res.createdAt)
+		err := rows.Scan(&res.id, &res.name, &res.parent, &res.isDir, &res.checksum, &res.size, &res.lastModifiedAt, &res.createdAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}
@@ -144,7 +144,7 @@ func (s *sqlStorage) GetByNameAndParent(ctx context.Context, name string, parent
 		From(tableName).
 		Where(sq.Eq{"parent": string(parent), "name": name, "deleted_at": nil}).
 		RunWith(s.db).
-		ScanContext(ctx, &res.id, &res.name, &res.parent, &res.mode, &res.checksum, &res.size, &res.lastModifiedAt, &res.createdAt)
+		ScanContext(ctx, &res.id, &res.name, &res.parent, &res.isDir, &res.checksum, &res.size, &res.lastModifiedAt, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -169,7 +169,7 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*INode, erro
 
 	err := query.
 		RunWith(s.db).
-		ScanContext(ctx, &res.id, &res.name, &res.parent, &res.mode, &res.checksum, &res.size, &res.lastModifiedAt, &res.createdAt)
+		ScanContext(ctx, &res.id, &res.name, &res.parent, &res.isDir, &res.checksum, &res.size, &res.lastModifiedAt, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
