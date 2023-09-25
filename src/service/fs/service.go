@@ -31,7 +31,7 @@ func NewFSService(
 	return &FSService{inodes, files, folder, folders}
 }
 
-func (s *FSService) CreateDir(ctx context.Context, name string, perm os.FileMode) error {
+func (s *FSService) CreateDir(ctx context.Context, name string) error {
 	name, err := validatePath(name)
 	if err != nil {
 		return err
@@ -49,10 +49,10 @@ func (s *FSService) CreateDir(ctx context.Context, name string, perm os.FileMode
 }
 
 func (s *FSService) Open(name string) (fs.File, error) {
-	return s.OpenFile(context.Background(), name, os.O_RDONLY, 0)
+	return s.OpenFile(context.Background(), name, 0)
 }
 
-func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os.FileMode) (FileOrDirectory, error) {
+func (s *FSService) OpenFile(ctx context.Context, name string, flag int) (FileOrDirectory, error) {
 	name, err := validatePath(name)
 	if err != nil {
 		return nil, err
@@ -107,7 +107,7 @@ func (s *FSService) OpenFile(ctx context.Context, name string, flag int, perm os
 	}
 
 	if inode == nil {
-		inode, err = s.createFile(ctx, &pathCmd, perm)
+		inode, err = s.createFile(ctx, &pathCmd)
 		if err != nil {
 			return nil, fmt.Errorf("failed to createFile: %w", err)
 		}
@@ -173,7 +173,7 @@ func (s *FSService) Stat(ctx context.Context, name string) (os.FileInfo, error) 
 	return res, nil
 }
 
-func (s *FSService) createFile(ctx context.Context, cmd *inodes.PathCmd, perm fs.FileMode) (*inodes.INode, error) {
+func (s *FSService) createFile(ctx context.Context, cmd *inodes.PathCmd) (*inodes.INode, error) {
 	dir, fileName := path.Split(cmd.FullName)
 	if dir == "" {
 		dir = "/"
@@ -189,7 +189,6 @@ func (s *FSService) createFile(ctx context.Context, cmd *inodes.PathCmd, perm fs
 
 	file, err := s.inodes.CreateFile(ctx, &inodes.CreateFileCmd{
 		Parent: parent.ID(),
-		Mode:   perm,
 		Name:   fileName,
 	})
 	if err != nil {

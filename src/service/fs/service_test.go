@@ -68,12 +68,12 @@ func Test_FS(t *testing.T) {
 	})
 
 	t.Run("CreateDir success", func(t *testing.T) {
-		err = duckFS.CreateDir(ctx, "foo", 0o700)
+		err = duckFS.CreateDir(ctx, "foo")
 		require.NoError(t, err)
 	})
 
 	t.Run("OpenFile success", func(t *testing.T) {
-		file, err = duckFS.OpenFile(ctx, "foo/bar.txt", os.O_CREATE|os.O_RDWR, 0o700)
+		file, err = duckFS.OpenFile(ctx, "foo/bar.txt", os.O_CREATE|os.O_RDWR)
 		require.NoError(t, err)
 	})
 
@@ -116,25 +116,25 @@ func Test_FS(t *testing.T) {
 
 	t.Run("CreateDir with an invalid path", func(t *testing.T) {
 		// Base path are invalid
-		err := duckFS.CreateDir(ctx, "/foo/bar", 0o700)
+		err := duckFS.CreateDir(ctx, "/foo/bar")
 		assert.EqualError(t, err, "open /foo/bar: invalid argument")
 	})
 
 	t.Run("OpenFile with O_APPEND fail", func(t *testing.T) {
-		res, err := duckFS.OpenFile(ctx, "foo/bar.txt", os.O_APPEND|os.O_WRONLY, 0o700)
+		res, err := duckFS.OpenFile(ctx, "foo/bar.txt", os.O_APPEND|os.O_WRONLY)
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "invalid argument: O_SYNC and O_APPEND not supported")
 	})
 
 	t.Run("OpenFile with O_EXCL fail if the file exists", func(t *testing.T) {
-		res, err := duckFS.OpenFile(ctx, "foo/bar.txt", os.O_EXCL|os.O_CREATE, 0o700)
+		res, err := duckFS.OpenFile(ctx, "foo/bar.txt", os.O_EXCL|os.O_CREATE)
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "open foo/bar.txt: file already exists")
 		assert.ErrorIs(t, err, fs.ErrExist)
 	})
 
 	t.Run("OpenFile with O_EXCL succeed", func(t *testing.T) {
-		res, err := duckFS.OpenFile(ctx, "foo/newbar.txt", os.O_EXCL|os.O_CREATE, 0o700)
+		res, err := duckFS.OpenFile(ctx, "foo/newbar.txt", os.O_EXCL|os.O_CREATE)
 		assert.NotNil(t, res)
 		assert.NoError(t, err)
 
@@ -153,7 +153,7 @@ func Test_FS(t *testing.T) {
 		require.NoError(t, file.Close())
 
 		// Then truncate an put some new content
-		file, err := duckFS.OpenFile(ctx, "foo/bar.txt", os.O_TRUNC, 0o700)
+		file, err := duckFS.OpenFile(ctx, "foo/bar.txt", os.O_TRUNC)
 		require.NoError(t, err)
 		file.Write([]byte("foobar"))
 		require.NoError(t, file.Close())

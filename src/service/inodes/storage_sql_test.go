@@ -3,7 +3,6 @@ package inodes
 import (
 	"context"
 	"fmt"
-	"io/fs"
 	"testing"
 	"time"
 
@@ -43,7 +42,7 @@ func TestINodeSqlstore(t *testing.T) {
 				id:             uuid.UUID(fmt.Sprintf("some-child-id-%d", i)),
 				parent:         ptr.To(ExampleBobRoot.ID()),
 				name:           fmt.Sprintf("child-%d", i),
-				mode:           0o660 | fs.ModeDir,
+				isDir:          true,
 				lastModifiedAt: nowData,
 				createdAt:      nowData,
 			})
@@ -68,7 +67,7 @@ func TestINodeSqlstore(t *testing.T) {
 			id:             uuid.UUID("some-child-id-5"),
 			parent:         ptr.To(ExampleBobRoot.ID()),
 			name:           "child-5",
-			mode:           0o660 | fs.ModeDir,
+			isDir:          true,
 			lastModifiedAt: nowData,
 			createdAt:      nowData,
 		}, res)
@@ -88,7 +87,7 @@ func TestINodeSqlstore(t *testing.T) {
 			id:             uuid.UUID("some-child-id-5"),
 			parent:         ptr.To(ExampleBobRoot.ID()),
 			name:           "child-5",
-			mode:           0o660 | fs.ModeDir,
+			isDir:          true,
 			lastModifiedAt: nowData,
 			createdAt:      nowData,
 		}, res)
@@ -129,7 +128,7 @@ func TestINodeSqlstore(t *testing.T) {
 			id:             uuid.UUID("some-child-id-5"),
 			parent:         ptr.To(ExampleBobRoot.ID()),
 			name:           "child-5",
-			mode:           0o660 | fs.ModeDir,
+			isDir:          true,
 			lastModifiedAt: nowData,
 			createdAt:      nowData,
 		}, res[0])
