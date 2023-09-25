@@ -34,21 +34,6 @@ func (d *Directory) Seek(offset int64, whence int) (int64, error) {
 	return 0, fs.ErrInvalid
 }
 
-// ReadDir function is a [fs.ReadDirDirectory] implementation.
-func (d *Directory) ReadDir(count int) ([]fs.DirEntry, error) {
-	fileInfos, err := d.Readdir(count)
-	if err != nil {
-		return nil, err
-	}
-
-	res := make([]fs.DirEntry, len(fileInfos))
-	for i, info := range fileInfos {
-		res[i] = fs.FileInfoToDirEntry(info)
-	}
-
-	return res, err
-}
-
 func (d *Directory) Readdir(count int) ([]fs.FileInfo, error) {
 	// TODO: Check if we should use the context from `OpenDirectory`
 	res, err := d.inodes.Readdir(context.Background(), d.cmd, &storage.PaginateCmd{

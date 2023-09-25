@@ -88,11 +88,6 @@ func (f *File) Seek(offset int64, whence int) (int64, error) {
 	return f.file.Seek(offset, whence)
 }
 
-// ReadDir function is a [fs.ReadDirFile] implementation.
-func (f *File) ReadDir(count int) ([]fs.DirEntry, error) {
-	return []fs.DirEntry{}, &fs.PathError{Op: "readdirent", Path: f.cmd.FullName, Err: syscall.ENOTDIR}
-}
-
 func (f *File) Readdir(count int) ([]fs.FileInfo, error) {
 	return []fs.FileInfo{}, &fs.PathError{Op: "readdirent", Path: f.cmd.FullName, Err: syscall.ENOTDIR}
 }

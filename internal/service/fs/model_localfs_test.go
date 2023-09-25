@@ -6,7 +6,6 @@ import (
 	"io/fs"
 	"os"
 	"testing"
-	"testing/fstest"
 	"time"
 
 	"github.com/spf13/afero"
@@ -99,30 +98,10 @@ func Test_FS(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("fstest", func(t *testing.T) {
-		assert.NoError(t, fstest.TestFS(&simplefs{folderFS}, "foo/bar.txt"))
-	})
-
 	t.Run("ReadFile success", func(t *testing.T) {
 		res, err := fs.ReadFile(&simplefs{folderFS}, "foo/bar.txt")
 		assert.NoError(t, err)
 		assert.Equal(t, barTxtContent, res)
-	})
-
-	t.Run("ReadFile success", func(t *testing.T) {
-		res, err := fs.ReadDir(&simplefs{folderFS}, "foo")
-		assert.NoError(t, err)
-		assert.Len(t, res, 1)
-
-		assert.Equal(t, "bar.txt", res[0].Name())
-		assert.False(t, res[0].IsDir())
-		assert.True(t, res[0].Type().IsRegular())
-
-		infos, err := res[0].Info()
-		require.NoError(t, err)
-
-		assert.WithinDuration(t, time.Now(), infos.ModTime(), 400*time.Millisecond)
-		assert.Equal(t, int64(13), infos.Size())
 	})
 
 	t.Run("CreateDir with an invalid path", func(t *testing.T) {
