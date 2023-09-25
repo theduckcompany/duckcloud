@@ -34,6 +34,7 @@
 
   {{range $idx, $val := .inodes}}
   {{ $url := pathJoin "/browser" $.folder.ID $.fullPath $val.Name}}
+  {{ $downloadURL := pathJoin "/download" $.folder.ID $.fullPath $val.Name}}
 
   <div class="row border-bottom py-1 d-flex justify-content-between align-items-center">
     <div class="col-9 col-md-7 position-relative d-inline-block text-truncate">
@@ -58,9 +59,10 @@
             style="font-size: 1.3rem;"></i></a>
 
         <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink{{$idx}}" style="font-size: 1rem;">
-          <!-- <li><a class="dropdown-item text-black" href="#"><i class="bi bi-download me-2"></i>Download
-                {{if .IsDir}}Folder{{else}}File{{end}}</a>
-            </li> -->
+          <li><a class="dropdown-item text-black" href="{{$downloadURL}}" download><i
+                class="bi bi-download me-2"></i>Download
+              {{if .IsDir}}Folder{{else}}File{{end}}</a>
+          </li>
           <li>
             <hr class="dropdown-divider" />
           </li>

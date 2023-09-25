@@ -1,6 +1,7 @@
 package web
 
 import (
+	"archive/zip"
 	"context"
 	"errors"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"io/fs"
 	"net/http"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -63,6 +65,7 @@ func (h *browserHandler) Register(r chi.Router, mids *router.Middlewares) {
 	r.Get("/browser", h.redirectDefaultBrowser)
 	r.Post("/browser/upload", h.upload)
 	r.Get("/browser/*", h.getBrowserContent)
+	r.Get("/download/*", h.download)
 	r.Delete("/browser/*", h.deleteAll)
 }
 
@@ -349,9 +352,102 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 	})
 }
 
+func (h *browserHandler) download(w http.ResponseWriter, r *http.Request) {
+	user, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	if abort {
+		return
+	}
+
+	folder, fullPath, abort := h.getFolderAndPathFromURL(w, r, user)
+	if abort {
+		return
+	}
+
+	ffs := h.fs.GetFolderFS(folder)
+
+	inode, err := ffs.Get(r.Context(), fullPath)
+	if err != nil {
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Get: %w", err))
+		return
+	}
+
+	if inode == nil {
+		w.Header().Set("Location", path.Join("/browser/", string(folder.ID())))
+		w.WriteHeader(http.StatusFound)
+		return
+	}
+
+	if inode.IsDir() {
+		h.serveFolderContent(w, r, ffs, fullPath)
+	} else {
+		file, err := ffs.Download(r.Context(), inode)
+		if err != nil {
+			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Download: %w", err))
+			return
+		}
+		defer file.Close()
+
+		h.serveContent(w, r, inode, file)
+		return
+	}
+}
+
+func (h *browserHandler) serveFolderContent(w http.ResponseWriter, r *http.Request, ffs dfs.FS, root string) {
+	_, dir := path.Split(root)
+
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", dir))
+	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate")
+
+	writer := zip.NewWriter(w)
+
+	dfs.Walk(r.Context(), ffs, root, func(ctx context.Context, p string, i *inodes.INode) error {
+		header, err := zip.FileInfoHeader(i)
+		if err != nil {
+			return fmt.Errorf("failed to create zip fileinfo: %w", err)
+		}
+
+		header.Method = zip.Deflate
+		header.Name, err = filepath.Rel(root, p)
+		if err != nil {
+			return fmt.Errorf("failed to find the relative path: %w", err)
+		}
+
+		if i.IsDir() {
+			header.Name += "/"
+		}
+
+		headerWriter, err := writer.CreateHeader(header)
+		if err != nil {
+			return fmt.Errorf("failed to create the zip header: %w", err)
+		}
+
+		if i.IsDir() {
+			return nil
+		}
+
+		file, err := ffs.Download(ctx, i)
+		if err != nil {
+			return fmt.Errorf("failed to download for zip: %w", err)
+		}
+
+		_, err = io.Copy(headerWriter, file)
+
+		return err
+	})
+
+	err := writer.Close()
+	if err != nil {
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Close the zip file: %w", err))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func (h *browserHandler) serveContent(w http.ResponseWriter, r *http.Request, inode *inodes.INode, file io.ReadSeeker) {
-	w.Header().Add("Etag", inode.Checksum())
-	w.Header().Add("Expires", time.Now().Add(365*24*time.Hour).UTC().Format(http.TimeFormat))
-	w.Header().Add("Cache-Control", "max-age=31536000")
+	w.Header().Set("Etag", inode.Checksum())
+	w.Header().Set("Expires", time.Now().Add(365*24*time.Hour).UTC().Format(http.TimeFormat))
+	w.Header().Set("Cache-Control", "max-age=31536000")
 	http.ServeContent(w, r, inode.Name(), inode.ModTime(), file)
 }
