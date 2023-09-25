@@ -8,9 +8,9 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"github.com/theduckcompany/duckcloud/src/server"
-	"github.com/theduckcompany/duckcloud/src/service/users"
-	"github.com/theduckcompany/duckcloud/src/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/server"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
+	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
 var qs = []*survey.Question{
