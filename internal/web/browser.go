@@ -19,6 +19,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
+	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 )
@@ -30,7 +31,6 @@ var ErrInvalidFolderID = errors.New("invalid folderID")
 type browserHandler struct {
 	html    html.Writer
 	folders folders.Service
-	inodes  inodes.Service
 	files   files.Service
 	uuid    uuid.Service
 	auth    *Authenticator
@@ -41,7 +41,6 @@ func newBrowserHandler(
 	tools tools.Tools,
 	html html.Writer,
 	folders folders.Service,
-	inodes inodes.Service,
 	files files.Service,
 	auth *Authenticator,
 	fs fs.Service,
@@ -49,7 +48,6 @@ func newBrowserHandler(
 	return &browserHandler{
 		html:    html,
 		folders: folders,
-		inodes:  inodes,
 		files:   files,
 		uuid:    tools.UUID(),
 		auth:    auth,
@@ -92,8 +90,9 @@ func (h *browserHandler) getBrowserContent(w http.ResponseWriter, r *http.Reques
 	if abort {
 		return
 	}
+	fs := h.fs.GetFolderFS(folder)
 
-	h.renderBrowserContent(w, r, user, folder, fullPath)
+	h.renderBrowserContent(w, r, user, fs, fullPath)
 }
 
 func (h *browserHandler) upload(w http.ResponseWriter, r *http.Request) {
@@ -181,7 +180,7 @@ func (h *browserHandler) deleteAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.renderBrowserContent(w, r, user, folder, path.Dir(fullPath))
+	h.renderBrowserContent(w, r, user, fs, path.Dir(fullPath))
 }
 
 type breadCrumbElement struct {
@@ -297,15 +296,14 @@ func (h browserHandler) getFolderAndPathFromURL(w http.ResponseWriter, r *http.R
 	return folder, fullPath, false
 }
 
-func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, folder *folders.Folder, fullPath string) {
-	inode, err := h.inodes.Get(r.Context(), &inodes.PathCmd{
-		Root:     folder.RootFS(),
-		FullName: fullPath,
-	})
+func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, fs fs.FS, fullPath string) {
+	inode, err := fs.Get(r.Context(), fullPath)
 	if err != nil {
-		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to inodes.Get: %w", err))
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Get: %w", err))
 		return
 	}
+
+	folder := fs.Folder()
 
 	if inode == nil {
 		w.Header().Set("Location", path.Join("/browser/", string(folder.ID())))
@@ -313,12 +311,12 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	var dirContent []inodes.INode
+	dirContent := []inodes.INode{}
 	if inode.IsDir() {
-		dirContent, err = h.inodes.Readdir(r.Context(), &inodes.PathCmd{
-			Root:     folder.RootFS(),
-			FullName: fullPath,
-		}, nil)
+		dirContent, err = fs.ListDir(r.Context(), fullPath, &storage.PaginateCmd{
+			StartAfter: map[string]string{"name": ""},
+			Limit:      20,
+		})
 		if err != nil {
 			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to inodes.Readdir: %w", err))
 			return

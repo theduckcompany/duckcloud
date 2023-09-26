@@ -47,7 +47,7 @@ func NewHTTPHandler(
 		auth:     newAuthHandler(tools, htmlRenderer, auth, users, clients, oauthConsent, webSessions),
 		settings: newSettingsHandler(tools, htmlRenderer, webSessions, davSessions, folders, users, auth),
 		home:     newHomeHandler(htmlRenderer, auth),
-		browser:  newBrowserHandler(tools, htmlRenderer, folders, inodes, files, auth, fs),
+		browser:  newBrowserHandler(tools, htmlRenderer, folders, files, auth, fs),
 	}
 }
 

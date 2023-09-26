@@ -4,9 +4,11 @@ package fs
 
 import (
 	context "context"
-	io "io"
 
+	folders "github.com/theduckcompany/duckcloud/internal/service/folders"
 	inodes "github.com/theduckcompany/duckcloud/internal/service/inodes"
+
+	io "io"
 
 	mock "github.com/stretchr/testify/mock"
 
@@ -94,6 +96,22 @@ func (_m *MockFS) Download(ctx context.Context, inode *inodes.INode) (io.ReadClo
 	}
 
 	return r0, r1
+}
+
+// Folder provides a mock function with given fields:
+func (_m *MockFS) Folder() *folders.Folder {
+	ret := _m.Called()
+
+	var r0 *folders.Folder
+	if rf, ok := ret.Get(0).(func() *folders.Folder); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*folders.Folder)
+		}
+	}
+
+	return r0
 }
 
 // Get provides a mock function with given fields: ctx, name

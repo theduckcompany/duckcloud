@@ -30,6 +30,10 @@ func newLocalFS(
 	return &LocalFS{inodes, files, folder, folders}
 }
 
+func (s *LocalFS) Folder() *folders.Folder {
+	return s.folder
+}
+
 func (s *LocalFS) ListDir(ctx context.Context, name string, cmd *storage.PaginateCmd) ([]inodes.INode, error) {
 	return s.inodes.Readdir(ctx, &inodes.PathCmd{Root: s.folder.RootFS(), FullName: name}, cmd)
 }
