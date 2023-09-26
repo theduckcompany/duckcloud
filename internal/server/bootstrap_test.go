@@ -37,7 +37,7 @@ func TestBootstrap(t *testing.T) {
 
 	inodesSvc := inodes.Init(tools, db)
 	foldersSvc := folders.Init(tools, db, inodesSvc)
-	usersSvc := users.Init(tools, db, inodesSvc, foldersSvc)
+	usersSvc := users.Init(tools, db, foldersSvc)
 
 	tools.PasswordMock.On("Compare", mock.Anything, mock.AnythingOfType("string"), "qwert1234").Return(nil).Once()
 

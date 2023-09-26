@@ -38,7 +38,7 @@ func Test_DavFS_integration(t *testing.T) {
 	db := storage.NewTestStorage(t)
 	inodesSvc := inodes.Init(tools, db)
 	foldersSvc := folders.Init(tools, db, inodesSvc)
-	usersSvc := users.Init(tools, db, inodesSvc, foldersSvc)
+	usersSvc := users.Init(tools, db, foldersSvc)
 	davSessionsSvc := davsessions.Init(db, foldersSvc, usersSvc, tools)
 
 	afs := afero.NewMemMapFs()
