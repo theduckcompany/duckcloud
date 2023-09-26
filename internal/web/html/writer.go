@@ -45,7 +45,7 @@ func NewRenderer(cfg Config) *Renderer {
 			panic(fmt.Sprintf("failed to fetch the current workind dir: %s", err))
 		}
 
-		directory = path.Join(dir, "src/web/html/templates")
+		directory = path.Join(dir, "internal/web/html/templates")
 		fs = render.LocalFileSystem{}
 	} else {
 		directory = ""
