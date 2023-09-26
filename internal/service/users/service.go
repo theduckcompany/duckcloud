@@ -7,7 +7,6 @@ import (
 	"slices"
 
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -44,14 +43,12 @@ type UserService struct {
 	clock    clock.Clock
 	uuid     uuid.Service
 	password password.Password
-	inodes   inodes.Service
 	folders  folders.Service
 }
 
 // NewService create a new user service.
 func NewService(tools tools.Tools,
 	storage Storage,
-	inodes inodes.Service,
 	folders folders.Service,
 ) *UserService {
 	return &UserService{
@@ -59,7 +56,6 @@ func NewService(tools tools.Tools,
 		tools.Clock(),
 		tools.UUID(),
 		tools.Password(),
-		inodes,
 		folders,
 	}
 }

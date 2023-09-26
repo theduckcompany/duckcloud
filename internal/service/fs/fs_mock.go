@@ -148,32 +148,6 @@ func (_m *MockFS) ListDir(ctx context.Context, name string, cmd *storage.Paginat
 	return r0, r1
 }
 
-// ReadDir provides a mock function with given fields: ctx, name, cmd
-func (_m *MockFS) ReadDir(ctx context.Context, name string, cmd *storage.PaginateCmd) ([]inodes.INode, error) {
-	ret := _m.Called(ctx, name, cmd)
-
-	var r0 []inodes.INode
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *storage.PaginateCmd) ([]inodes.INode, error)); ok {
-		return rf(ctx, name, cmd)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, *storage.PaginateCmd) []inodes.INode); ok {
-		r0 = rf(ctx, name, cmd)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]inodes.INode)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, *storage.PaginateCmd) error); ok {
-		r1 = rf(ctx, name, cmd)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // RemoveAll provides a mock function with given fields: ctx, name
 func (_m *MockFS) RemoveAll(ctx context.Context, name string) error {
 	ret := _m.Called(ctx, name)
