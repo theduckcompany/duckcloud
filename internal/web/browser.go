@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	stdfs "io/fs"
 	"net/http"
-	"os"
 	"path"
 	"strings"
 	"time"
@@ -136,6 +136,8 @@ func (h *browserHandler) upload(w http.ResponseWriter, r *http.Request) {
 			err = h.lauchUpload(r.Context(), &cmd)
 			if err != nil {
 				fmt.Printf("failed to upload: %s -> %#v\n\n\n", err, cmd)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
 			}
 
 			w.WriteHeader(http.StatusOK)
@@ -240,7 +242,7 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 		fullPath = path.Join(cmd.rootPath, cmd.relPath)
 
 		_, err = fs.CreateDir(ctx, path.Dir(fullPath))
-		if err != nil {
+		if err != nil && !errors.Is(err, stdfs.ErrExist) {
 			return fmt.Errorf("failed to CreateDir: %w", err)
 		}
 	}
@@ -249,20 +251,14 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 		fullPath = fullPath[1:]
 	}
 
-	file, err := fs.OpenFile(ctx, fullPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY)
+	file, err := fs.CreateFile(ctx, fullPath)
 	if err != nil {
-		return fmt.Errorf("failed to OpenFile: %w", err)
-	}
-	defer file.Close()
-
-	_, err = io.Copy(file, cmd.fileReader)
-	if err != nil {
-		return fmt.Errorf("failed to Copy: %w", err)
+		return fmt.Errorf("failed to CreateFile: %w", err)
 	}
 
-	err = file.Close()
+	err = fs.Upload(ctx, file, cmd.fileReader)
 	if err != nil {
-		return fmt.Errorf("failed to Close file: %w", err)
+		return fmt.Errorf("failed to Upload file: %w", err)
 	}
 
 	return nil

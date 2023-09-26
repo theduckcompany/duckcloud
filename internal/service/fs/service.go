@@ -8,7 +8,10 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 )
 
-var ErrNotImplemented = errors.New("not implemented")
+var (
+	ErrNotImplemented = errors.New("not implemented")
+	ErrInvalidPath    = errors.New("invalid path")
+)
 
 type FSService struct {
 	inodes  inodes.Service

@@ -267,11 +267,11 @@ func (_m *MockService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *s
 }
 
 // RegisterWrite provides a mock function with given fields: ctx, inode, sizeWrite, h
-func (_m *MockService) RegisterWrite(ctx context.Context, inode *INode, sizeWrite int, h hash.Hash) error {
+func (_m *MockService) RegisterWrite(ctx context.Context, inode *INode, sizeWrite int64, h hash.Hash) error {
 	ret := _m.Called(ctx, inode, sizeWrite, h)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *INode, int, hash.Hash) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *INode, int64, hash.Hash) error); ok {
 		r0 = rf(ctx, inode, sizeWrite, h)
 	} else {
 		r0 = ret.Error(0)
