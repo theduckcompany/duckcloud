@@ -7,9 +7,9 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/jobs/usercreate"
 	"github.com/theduckcompany/duckcloud/internal/jobs/userdelete"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/fs"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
@@ -28,7 +28,7 @@ func StartJobs(
 	oauthSessions oauthsessions.Service,
 	oauthConsents oauthconsents.Service,
 	folders folders.Service,
-	fs fs.Service,
+	fs dfs.Service,
 	inodes inodes.Service,
 	tools tools.Tools,
 ) {

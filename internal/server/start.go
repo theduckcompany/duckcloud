@@ -9,9 +9,9 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/dav"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/debug"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/fs"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/oauth2"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthclients"
@@ -62,7 +62,7 @@ func start(cfg *Config, db *sql.DB, afs afero.Fs, invoke fx.Option) *fx.App {
 			fx.Annotate(files.Init, fx.As(new(files.Service))),
 			fx.Annotate(davsessions.Init, fx.As(new(davsessions.Service))),
 			fx.Annotate(folders.Init, fx.As(new(folders.Service))),
-			fx.Annotate(fs.Init, fx.As(new(fs.Service))),
+			fx.Annotate(dfs.Init, fx.As(new(dfs.Service))),
 
 			// HTTP handlers
 			AsRoute(dav.NewHTTPHandler),

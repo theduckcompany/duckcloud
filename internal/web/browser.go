@@ -5,16 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	stdfs "io/fs"
+	"io/fs"
 	"net/http"
 	"path"
 	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/fs"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
@@ -34,7 +34,7 @@ type browserHandler struct {
 	files   files.Service
 	uuid    uuid.Service
 	auth    *Authenticator
-	fs      fs.Service
+	fs      dfs.Service
 }
 
 func newBrowserHandler(
@@ -43,7 +43,7 @@ func newBrowserHandler(
 	folders folders.Service,
 	files files.Service,
 	auth *Authenticator,
-	fs fs.Service,
+	fs dfs.Service,
 ) *browserHandler {
 	return &browserHandler{
 		html:    html,
@@ -232,7 +232,7 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 		return fmt.Errorf("failed to GetByID: %w", err)
 	}
 
-	fs := h.fs.GetFolderFS(folder)
+	ffs := h.fs.GetFolderFS(folder)
 
 	var fullPath string
 	if cmd.relPath == "null" || cmd.relPath == "" {
@@ -240,8 +240,8 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 	} else {
 		fullPath = path.Join(cmd.rootPath, cmd.relPath)
 
-		_, err = fs.CreateDir(ctx, path.Dir(fullPath))
-		if err != nil && !errors.Is(err, stdfs.ErrExist) {
+		_, err = ffs.CreateDir(ctx, path.Dir(fullPath))
+		if err != nil && !errors.Is(err, fs.ErrExist) {
 			return fmt.Errorf("failed to CreateDir: %w", err)
 		}
 	}
@@ -250,12 +250,12 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 		fullPath = fullPath[1:]
 	}
 
-	file, err := fs.CreateFile(ctx, fullPath)
+	file, err := ffs.CreateFile(ctx, fullPath)
 	if err != nil {
 		return fmt.Errorf("failed to CreateFile: %w", err)
 	}
 
-	err = fs.Upload(ctx, file, cmd.fileReader)
+	err = ffs.Upload(ctx, file, cmd.fileReader)
 	if err != nil {
 		return fmt.Errorf("failed to Upload file: %w", err)
 	}
@@ -296,7 +296,7 @@ func (h browserHandler) getFolderAndPathFromURL(w http.ResponseWriter, r *http.R
 	return folder, fullPath, false
 }
 
-func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, fs fs.FS, fullPath string) {
+func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, fs dfs.FS, fullPath string) {
 	inode, err := fs.Get(r.Context(), fullPath)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Get: %w", err))

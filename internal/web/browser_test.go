@@ -14,9 +14,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/fs"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
@@ -35,7 +35,7 @@ func Test_Browser_Page(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := fs.NewMockService(t)
+		fsMock := dfs.NewMockService(t)
 		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		// Authentication
@@ -62,7 +62,7 @@ func Test_Browser_Page(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := fs.NewMockService(t)
+		fsMock := dfs.NewMockService(t)
 		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		// Authentication
@@ -88,7 +88,7 @@ func Test_Browser_Page(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := fs.NewMockService(t)
+		fsMock := dfs.NewMockService(t)
 		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		// Authentication
@@ -103,7 +103,7 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("folder-id")).
 			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
 
-		folderFSMock := fs.NewMockFS(t)
+		folderFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
 
 		folderFSMock.On("Folder").Return(&folders.ExampleAlicePersonalFolder)
@@ -148,7 +148,7 @@ func Test_Browser_Page(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := fs.NewMockService(t)
+		fsMock := dfs.NewMockService(t)
 		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		// Authentication
@@ -160,7 +160,7 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("folder-id")).
 			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
 
-		folderFSMock := fs.NewMockFS(t)
+		folderFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
 		folderFSMock.On("Folder").Return(&folders.ExampleAlicePersonalFolder)
 
@@ -192,7 +192,7 @@ func Test_Browser_Page(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := fs.NewMockService(t)
+		fsMock := dfs.NewMockService(t)
 		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		// Authentication
@@ -220,7 +220,7 @@ func Test_Browser_Page(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := fs.NewMockService(t)
+		fsMock := dfs.NewMockService(t)
 		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		// Authentication
@@ -251,7 +251,7 @@ func Test_Browser_Page(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := fs.NewMockService(t)
+		fsMock := dfs.NewMockService(t)
 		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		// Authentication
@@ -285,7 +285,7 @@ func Test_Browser_Page(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := fs.NewMockService(t)
+		fsMock := dfs.NewMockService(t)
 		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		// Authentication
@@ -297,7 +297,7 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("folder-id")).
 			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
 
-		folderFSMock := fs.NewMockFS(t)
+		folderFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
 		folderFSMock.On("Folder").Return(&folders.ExampleAlicePersonalFolder)
 
@@ -325,7 +325,7 @@ func Test_Browser_Page(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := fs.NewMockService(t)
+		fsMock := dfs.NewMockService(t)
 		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		content := "Hello, World!"
@@ -339,7 +339,7 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("folder-id")).
 			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
 
-		folderFSMock := fs.NewMockFS(t)
+		folderFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
 
 		folderFSMock.On("CreateFile", mock.Anything, "foo/bar/hello.txt").Return(&inodes.ExampleAliceFile, nil).Once()
@@ -383,7 +383,7 @@ func Test_Browser_Page(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := fs.NewMockService(t)
+		fsMock := dfs.NewMockService(t)
 		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		content := "Hello, World!"
@@ -397,7 +397,7 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("folder-id")).
 			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
 
-		folderFSMock := fs.NewMockFS(t)
+		folderFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
 
 		folderFSMock.On("CreateDir", mock.Anything, "/foo/bar/baz").Return(&inodes.ExampleAliceRoot, nil).Once()
@@ -444,7 +444,7 @@ func Test_Browser_Page(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := fs.NewMockService(t)
+		fsMock := dfs.NewMockService(t)
 		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		// Authentication
@@ -456,7 +456,7 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("folder-id")).
 			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
 
-		folderFSMock := fs.NewMockFS(t)
+		folderFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
 		folderFSMock.On("Folder").Return(&folders.ExampleAlicePersonalFolder)
 

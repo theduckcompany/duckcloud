@@ -6,7 +6,7 @@ import (
 	"io"
 	"io/fs"
 
-	ffs "github.com/theduckcompany/duckcloud/internal/service/fs"
+	ffs "github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
