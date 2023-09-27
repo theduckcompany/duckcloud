@@ -30,9 +30,9 @@ func TestINodes(t *testing.T) {
 			id:             uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62"),
 			name:           "some-dir-name",
 			parent:         ptr.To(uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")),
-			isDir:          true,
 			createdAt:      now,
 			lastModifiedAt: now,
+			fileID:         nil,
 		}
 
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
@@ -62,9 +62,9 @@ func TestINodes(t *testing.T) {
 			id:             uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62"),
 			name:           "bar",
 			parent:         ptr.To(uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")),
-			isDir:          true,
 			createdAt:      now,
 			lastModifiedAt: now,
+			fileID:         nil,
 		}
 
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
@@ -73,8 +73,8 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&INode{
 			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
 			parent: ptr.To(ExampleAliceRoot.ID()),
-			isDir:  true,
 			name:   "foo",
+			fileID: nil,
 			// some other unused fields
 		}, nil).Once()
 
@@ -134,8 +134,8 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&INode{
 			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
 			parent: ptr.To(ExampleAliceRoot.ID()),
-			isDir:  false, // File and not directory here <-,
 			name:   "foo",
+			fileID: ptr.To(uuid.UUID("be73b0ad-3fef-492a-baa0-39d7964f87ab")), // File and not directory here <-,
 			// some other unused fields
 		}, nil).Once()
 
@@ -208,8 +208,8 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&INode{
 			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
 			parent: ptr.To(ExampleAliceRoot.ID()),
-			isDir:  true,
 			name:   "foo",
+			fileID: nil,
 			// some other unused fields
 		}, nil).Once()
 
@@ -265,8 +265,8 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&INode{
 			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
 			parent: ptr.To(ExampleAliceRoot.ID()),
-			isDir:  true,
 			name:   "foo",
+			fileID: nil,
 			// some other unused fields
 		}, nil).Once()
 
@@ -288,8 +288,8 @@ func TestINodes(t *testing.T) {
 		inode := INode{
 			id:     uuid.UUID("eec51147-ec64-4640-b148-aceadbcb876e"),
 			parent: ptr.To(uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")),
-			isDir:  false,
 			name:   "bar",
+			fileID: ptr.To(uuid.UUID("672a0dee-f6fc-42c4-9fcc-35dc911f10dd")),
 			// some other unused fields
 		}
 
@@ -298,8 +298,8 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&INode{
 			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
 			parent: ptr.To(ExampleAliceRoot.ID()),
-			isDir:  true,
 			name:   "foo",
+			fileID: nil,
 			// some other unused fields
 		}, nil).Once()
 
@@ -379,22 +379,22 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&INode{
 			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
 			parent: ptr.To(ExampleAliceRoot.ID()),
-			isDir:  true,
 			name:   "bar",
+			fileID: nil,
 			// some other unused fields
 		}, nil).Once()
 
 		child1 := INode{
 			id:     uuid.UUID("b3411c4b-acc3-4f79-a54e-f315a18ce6c7"),
 			parent: ptr.To(uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")),
-			isDir:  true,
 			name:   "some-dir",
+			fileID: nil,
 		}
 		child2 := INode{
 			id:     uuid.UUID("0af1f541-454e-4c7d-a871-706d9c5ad2cc"),
 			parent: ptr.To(uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")),
-			isDir:  false,
 			name:   "some-file",
+			fileID: ptr.To(uuid.UUID("7680ca50-2312-42d2-99d9-022d8879b7ec")),
 		}
 
 		storageMock.On("GetAllChildrens", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"), &paginateCmd).Return(
@@ -431,19 +431,20 @@ func TestINodes(t *testing.T) {
 		service := NewService(tools, storageMock)
 
 		inode := INode{
-			id:             uuid.UUID("some-id"),
+			id:             uuid.UUID("some-inode-id"),
 			parent:         ptr.To(ExampleAliceRoot.ID()),
 			name:           "foobar",
-			isDir:          false,
 			createdAt:      now,
 			lastModifiedAt: now,
+			fileID:         ptr.To(uuid.UUID("some-file-id")),
 		}
 
 		storageMock.On("GetByID", mock.Anything, ExampleAliceRoot.ID()).Return(&ExampleAliceRoot, nil).Once()
 
 		tools.ClockMock.On("Now").Return(now).Once()
 
-		tools.UUIDMock.On("New").Return(uuid.UUID("some-id")).Once()
+		tools.UUIDMock.On("New").Return(uuid.UUID("some-inode-id")).Once()
+		tools.UUIDMock.On("New").Return(uuid.UUID("some-file-id")).Once()
 
 		storageMock.On("Save", mock.Anything, &inode).Return(nil).Once()
 
@@ -496,8 +497,8 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&INode{
 			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
 			parent: ptr.To(ExampleAliceRoot.ID()),
-			isDir:  false, // Should be a directory with a "bar" as child
 			name:   "foo",
+			fileID: ptr.To(uuid.UUID("55b12e7c-fac5-455c-a083-4e8989797d9f")), // Should be a directory with a "bar" as child
 			// some other unused fields
 		}, nil).Once()
 
@@ -519,9 +520,9 @@ func TestINodes(t *testing.T) {
 			id:             uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62"),
 			name:           "",
 			parent:         nil,
-			isDir:          true,
 			createdAt:      now,
 			lastModifiedAt: now,
+			fileID:         nil,
 		}
 
 		tools.ClockMock.On("Now").Return(now).Once()
@@ -593,17 +594,17 @@ func TestINodes(t *testing.T) {
 			id:             uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62"),
 			name:           "foo",
 			parent:         ptr.To(ExampleAliceRoot.ID()),
-			isDir:          true,
 			createdAt:      now,
 			lastModifiedAt: now,
+			fileID:         nil,
 		}
 		barDir := INode{
 			id:             uuid.UUID("1afc4ef3-d0e8-4efe-8e37-4d23acc5df9c"),
 			name:           "bar",
 			parent:         ptr.To(uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62")),
-			isDir:          true,
 			createdAt:      now,
 			lastModifiedAt: now,
+			fileID:         nil,
 		}
 
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
@@ -652,17 +653,17 @@ func TestINodes(t *testing.T) {
 			id:             uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62"),
 			name:           "foo",
 			parent:         ptr.To(ExampleAliceRoot.ID()),
-			isDir:          true,
 			createdAt:      now,
 			lastModifiedAt: now,
+			fileID:         nil,
 		}
 		barDir := INode{
 			id:             uuid.UUID("1afc4ef3-d0e8-4efe-8e37-4d23acc5df9c"),
 			name:           "bar",
 			parent:         ptr.To(uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62")),
-			isDir:          true,
 			createdAt:      now,
 			lastModifiedAt: now,
+			fileID:         nil,
 		}
 
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()

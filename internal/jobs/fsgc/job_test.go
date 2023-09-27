@@ -38,7 +38,7 @@ func TestFSGC(t *testing.T) {
 		foldersMock.On("RegisterDeletion", mock.Anything, folders.ExampleAlicePersonalFolder.ID(), uint64(inodes.ExampleAliceFile.Size())).Return(&folders.ExampleAlicePersonalFolder, nil).Once()
 
 		// We remove the file content and inode
-		filesMock.On("Delete", mock.Anything, inodes.ExampleAliceFile.ID()).Return(nil).Once()
+		filesMock.On("Delete", mock.Anything, &inodes.ExampleAliceFile).Return(nil).Once()
 		inodesMock.On("HardDelete", mock.Anything, inodes.ExampleAliceFile.ID()).Return(nil).Once()
 
 		// We remove the dir itself
