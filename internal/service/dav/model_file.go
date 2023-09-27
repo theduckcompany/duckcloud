@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	stdfs "io/fs"
+	"io/fs"
 	"os"
 
-	"github.com/theduckcompany/duckcloud/internal/service/fs"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 )
 
@@ -16,12 +16,12 @@ var ErrConcurentReadWrite = errors.New("concurent read and write unauthorized")
 
 type File struct {
 	inode  *inodes.INode
-	fs     fs.FS
+	fs     dfs.FS
 	writer *io.PipeWriter
 	reader io.ReadSeekCloser
 }
 
-func NewFile(inode *inodes.INode, fs fs.FS) *File {
+func NewFile(inode *inodes.INode, fs dfs.FS) *File {
 	return &File{inode, fs, nil, nil}
 }
 
@@ -81,15 +81,15 @@ func (f *File) Seek(offset int64, whence int) (int64, error) {
 		return f.reader.Seek(offset, whence)
 	}
 
-	return 0, stdfs.ErrInvalid
+	return 0, fs.ErrInvalid
 }
 
-func (f *File) ReadDir(count int) ([]stdfs.DirEntry, error) {
-	return nil, stdfs.ErrInvalid
+func (f *File) ReadDir(count int) ([]fs.DirEntry, error) {
+	return nil, fs.ErrInvalid
 }
 
-func (f *File) Readdir(count int) ([]stdfs.FileInfo, error) {
-	return nil, stdfs.ErrInvalid
+func (f *File) Readdir(count int) ([]fs.FileInfo, error) {
+	return nil, fs.ErrInvalid
 }
 
 func (f *File) Stat() (os.FileInfo, error) {

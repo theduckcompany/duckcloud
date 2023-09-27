@@ -3,13 +3,13 @@ package dav
 import (
 	"bytes"
 	"io"
-	stdfs "io/fs"
+	"io/fs"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"github.com/theduckcompany/duckcloud/internal/service/fs"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 )
 
@@ -23,21 +23,21 @@ func Test_File(t *testing.T) {
 	t.Run("Readdir is not implemented", func(t *testing.T) {
 		duckFile := NewFile(nil, nil)
 		res, err := duckFile.Readdir(2)
-		assert.ErrorIs(t, err, stdfs.ErrInvalid)
+		assert.ErrorIs(t, err, fs.ErrInvalid)
 		assert.Empty(t, res)
 	})
 
 	t.Run("ReadDir is not implemented", func(t *testing.T) {
 		duckFile := NewFile(nil, nil)
 		res, err := duckFile.ReadDir(2)
-		assert.ErrorIs(t, err, stdfs.ErrInvalid)
+		assert.ErrorIs(t, err, fs.ErrInvalid)
 		assert.Empty(t, res)
 	})
 
 	t.Run("Seek is not implemented", func(t *testing.T) {
 		duckFile := NewFile(nil, nil)
 		res, err := duckFile.Seek(2, 22)
-		assert.ErrorIs(t, err, stdfs.ErrInvalid)
+		assert.ErrorIs(t, err, fs.ErrInvalid)
 		assert.Empty(t, res)
 	})
 
@@ -49,7 +49,7 @@ func Test_File(t *testing.T) {
 	})
 
 	t.Run("Write success", func(t *testing.T) {
-		fsMock := fs.NewMockFS(t)
+		fsMock := dfs.NewMockFS(t)
 		duckFile := NewFile(&inodes.ExampleAliceFile, fsMock)
 
 		content := []byte("Hello, World!")
@@ -74,7 +74,7 @@ func Test_File(t *testing.T) {
 	})
 
 	t.Run("Several Write success", func(t *testing.T) {
-		fsMock := fs.NewMockFS(t)
+		fsMock := dfs.NewMockFS(t)
 		duckFile := NewFile(&inodes.ExampleAliceFile, fsMock)
 
 		waitEndTest := make(chan struct{})
@@ -102,7 +102,7 @@ func Test_File(t *testing.T) {
 	})
 
 	t.Run("Read success", func(t *testing.T) {
-		fsMock := fs.NewMockFS(t)
+		fsMock := dfs.NewMockFS(t)
 		duckFile := NewFile(&inodes.ExampleAliceFile, fsMock)
 
 		content := bytes.NewReader([]byte("Hello, World!"))
@@ -119,7 +119,7 @@ func Test_File(t *testing.T) {
 	})
 
 	t.Run("Several Read success", func(t *testing.T) {
-		fsMock := fs.NewMockFS(t)
+		fsMock := dfs.NewMockFS(t)
 		duckFile := NewFile(&inodes.ExampleAliceFile, fsMock)
 
 		content := bytes.NewReader([]byte("Hello, World!"))

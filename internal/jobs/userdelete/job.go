@@ -7,8 +7,8 @@ import (
 	"log/slog"
 
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/fs"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
@@ -30,7 +30,7 @@ type Job struct {
 	oauthSessions oauthsessions.Service
 	oauthConsents oauthconsents.Service
 	folders       folders.Service
-	fs            fs.Service
+	fs            dfs.Service
 	log           *slog.Logger
 }
 
@@ -41,7 +41,7 @@ func NewJob(
 	oauthSessions oauthsessions.Service,
 	oauthConsents oauthconsents.Service,
 	folders folders.Service,
-	fs fs.Service,
+	fs dfs.Service,
 	tools tools.Tools,
 ) *Job {
 	logger := tools.Logger().With(slog.String("job", jobName))

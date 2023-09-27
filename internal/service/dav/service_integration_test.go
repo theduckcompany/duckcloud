@@ -2,7 +2,7 @@ package dav
 
 import (
 	"context"
-	stdfs "io/fs"
+	"io/fs"
 	"os"
 	"testing"
 	"testing/fstest"
@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/fs"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
@@ -27,7 +27,7 @@ type simpleFS struct {
 	davSession *davsessions.DavSession
 }
 
-func (s *simpleFS) Open(name string) (stdfs.File, error) {
+func (s *simpleFS) Open(name string) (fs.File, error) {
 	ctx := context.WithValue(context.Background(), sessionKeyCtx, s.davSession)
 	return s.fs.OpenFile(ctx, name, os.O_RDONLY, 0o644)
 }
@@ -66,18 +66,18 @@ func Test_DavFS_integration(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fsSvc := fs.NewFSService(inodesSvc, filesSvc, foldersSvc)
-	fs := &davFS{foldersSvc, fsSvc}
+	fsSvc := dfs.NewFSService(inodesSvc, filesSvc, foldersSvc)
+	davfs := &davFS{foldersSvc, fsSvc}
 
 	ctx = context.WithValue(ctx, sessionKeyCtx, session)
 
 	t.Run("Create a directory", func(t *testing.T) {
-		err := fs.Mkdir(ctx, "foo", 0o644)
+		err := davfs.Mkdir(ctx, "foo", 0o644)
 		require.NoError(t, err)
 	})
 
 	t.Run("Create a file", func(t *testing.T) {
-		file, err := fs.OpenFile(ctx, "foo/bar.1.txt", os.O_CREATE|os.O_WRONLY, 0o644)
+		file, err := davfs.OpenFile(ctx, "foo/bar.1.txt", os.O_CREATE|os.O_WRONLY, 0o644)
 		require.NoError(t, err)
 
 		n, err := file.Write([]byte("Hello, World!"))
@@ -88,7 +88,7 @@ func Test_DavFS_integration(t *testing.T) {
 	})
 
 	t.Run("Read a file", func(t *testing.T) {
-		file, err := fs.OpenFile(ctx, "foo/bar.2.txt", os.O_CREATE|os.O_WRONLY, 0o644)
+		file, err := davfs.OpenFile(ctx, "foo/bar.2.txt", os.O_CREATE|os.O_WRONLY, 0o644)
 		require.NoError(t, err)
 
 		n, err := file.Write([]byte("Hello, World!"))
@@ -99,13 +99,13 @@ func Test_DavFS_integration(t *testing.T) {
 	})
 
 	t.Run("Readfile with fs.ReadFile", func(t *testing.T) {
-		res, err := stdfs.ReadFile(&simpleFS{fs, session}, "foo/bar.2.txt")
+		res, err := fs.ReadFile(&simpleFS{davfs, session}, "foo/bar.2.txt")
 		require.NoError(t, err)
 		assert.Equal(t, []byte("Hello, World!"), res)
 	})
 
 	t.Run("Fstest", func(t *testing.T) {
-		err = fstest.TestFS(&simpleFS{fs, session}, "foo/bar.1.txt", "foo/bar.2.txt")
+		err = fstest.TestFS(&simpleFS{davfs, session}, "foo/bar.1.txt", "foo/bar.2.txt")
 		if err != nil {
 			t.Fatal(err)
 		}
