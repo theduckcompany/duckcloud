@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
@@ -32,11 +31,10 @@ func Test_Browser_Page(t *testing.T) {
 		webSessionsMock := websessions.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
-		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := dfs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -59,11 +57,10 @@ func Test_Browser_Page(t *testing.T) {
 		webSessionsMock := websessions.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
-		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := dfs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
@@ -85,11 +82,10 @@ func Test_Browser_Page(t *testing.T) {
 		webSessionsMock := websessions.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
-		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := dfs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -145,11 +141,10 @@ func Test_Browser_Page(t *testing.T) {
 		webSessionsMock := websessions.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
-		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := dfs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -171,7 +166,7 @@ func Test_Browser_Page(t *testing.T) {
 		file, err := afero.TempFile(afs, t.TempDir(), "")
 		require.NoError(t, err)
 
-		filesMock.On("Open", mock.Anything, inodes.ExampleAliceFile.ID()).Return(file, nil).Once()
+		folderFSMock.On("Download", mock.Anything, &inodes.ExampleAliceFile).Return(file, nil).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/browser/folder-id/foo/bar", nil)
@@ -189,11 +184,10 @@ func Test_Browser_Page(t *testing.T) {
 		webSessionsMock := websessions.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
-		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := dfs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
@@ -217,11 +211,10 @@ func Test_Browser_Page(t *testing.T) {
 		webSessionsMock := websessions.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
-		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := dfs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -248,11 +241,10 @@ func Test_Browser_Page(t *testing.T) {
 		webSessionsMock := websessions.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
-		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := dfs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -282,11 +274,10 @@ func Test_Browser_Page(t *testing.T) {
 		webSessionsMock := websessions.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
-		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := dfs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -322,11 +313,10 @@ func Test_Browser_Page(t *testing.T) {
 		webSessionsMock := websessions.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
-		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := dfs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, auth, fsMock)
 
 		content := "Hello, World!"
 
@@ -380,11 +370,10 @@ func Test_Browser_Page(t *testing.T) {
 		webSessionsMock := websessions.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
-		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := dfs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, auth, fsMock)
 
 		content := "Hello, World!"
 
@@ -441,11 +430,10 @@ func Test_Browser_Page(t *testing.T) {
 		webSessionsMock := websessions.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
-		filesMock := files.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := dfs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()

@@ -15,7 +15,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
@@ -33,7 +32,6 @@ var ErrInvalidFolderID = errors.New("invalid folderID")
 type browserHandler struct {
 	html    html.Writer
 	folders folders.Service
-	files   files.Service
 	uuid    uuid.Service
 	auth    *Authenticator
 	fs      dfs.Service
@@ -43,14 +41,12 @@ func newBrowserHandler(
 	tools tools.Tools,
 	html html.Writer,
 	folders folders.Service,
-	files files.Service,
 	auth *Authenticator,
 	fs dfs.Service,
 ) *browserHandler {
 	return &browserHandler{
 		html:    html,
 		folders: folders,
-		files:   files,
 		uuid:    tools.UUID(),
 		auth:    auth,
 		fs:      fs,
@@ -300,14 +296,14 @@ func (h browserHandler) getFolderAndPathFromURL(w http.ResponseWriter, r *http.R
 	return folder, fullPath, false
 }
 
-func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, fs dfs.FS, fullPath string) {
-	inode, err := fs.Get(r.Context(), fullPath)
+func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, ffs dfs.FS, fullPath string) {
+	inode, err := ffs.Get(r.Context(), fullPath)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Get: %w", err))
 		return
 	}
 
-	folder := fs.Folder()
+	folder := ffs.Folder()
 
 	if inode == nil {
 		w.Header().Set("Location", path.Join("/browser/", string(folder.ID())))
@@ -317,7 +313,7 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 
 	dirContent := []inodes.INode{}
 	if inode.IsDir() {
-		dirContent, err = fs.ListDir(r.Context(), fullPath, &storage.PaginateCmd{
+		dirContent, err = ffs.ListDir(r.Context(), fullPath, &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
 			Limit:      20,
 		})
@@ -326,9 +322,9 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 			return
 		}
 	} else {
-		file, err := h.files.Open(r.Context(), inode.ID())
+		file, err := ffs.Download(r.Context(), inode)
 		if err != nil {
-			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to files.Open: %w", err))
+			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Download: %w", err))
 			return
 		}
 		defer file.Close()
