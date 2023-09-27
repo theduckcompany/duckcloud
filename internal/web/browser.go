@@ -198,7 +198,8 @@ func generateBreadCrumb(folder *folders.Folder, fullPath string) []breadCrumbEle
 		Current: false,
 	}}
 
-	if fullPath == "/" {
+	if fullPath == "." {
+		res[0].Current = true
 		return res
 	}
 
@@ -288,7 +289,7 @@ func (h browserHandler) getFolderAndPathFromURL(w http.ResponseWriter, r *http.R
 		return nil, "", true
 	}
 
-	fullPath := "/"
+	fullPath := "."
 	if len(elems) == 4 {
 		fullPath = path.Clean(elems[3])
 	}
