@@ -8,7 +8,7 @@ import (
 
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
+	"github.com/theduckcompany/duckcloud/internal/service/fs"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
@@ -30,7 +30,7 @@ type Job struct {
 	oauthSessions oauthsessions.Service
 	oauthConsents oauthconsents.Service
 	folders       folders.Service
-	inodes        inodes.Service
+	fs            fs.Service
 	log           *slog.Logger
 }
 
@@ -41,7 +41,7 @@ func NewJob(
 	oauthSessions oauthsessions.Service,
 	oauthConsents oauthconsents.Service,
 	folders folders.Service,
-	inodes inodes.Service,
+	fs fs.Service,
 	tools tools.Tools,
 ) *Job {
 	logger := tools.Logger().With(slog.String("job", jobName))
@@ -52,7 +52,7 @@ func NewJob(
 		oauthSessions,
 		oauthConsents,
 		folders,
-		inodes,
+		fs,
 		logger,
 	}
 }
@@ -109,10 +109,8 @@ func (j *Job) deleteUser(ctx context.Context, user *users.User) error {
 		}
 
 		// Then delete the data
-		err = j.inodes.RemoveAll(ctx, &inodes.PathCmd{
-			Root:     folder.RootFS(),
-			FullName: "/",
-		})
+		ffs := j.fs.GetFolderFS(&folder)
+		err = ffs.RemoveAll(ctx, "/")
 		if err != nil && !errors.Is(err, errs.ErrNotFound) {
 			return fmt.Errorf("failed to delete the user root fs: %w", err)
 		}

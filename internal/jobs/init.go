@@ -9,6 +9,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/fs"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
@@ -27,6 +28,7 @@ func StartJobs(
 	oauthSessions oauthsessions.Service,
 	oauthConsents oauthconsents.Service,
 	folders folders.Service,
+	fs fs.Service,
 	inodes inodes.Service,
 	tools tools.Tools,
 ) {
@@ -38,7 +40,7 @@ func StartJobs(
 	userCreateJobRunner := NewJobRunner(userCreateJob, 2*time.Second, tools)
 	userCreateJobRunner.FXRegister(lc)
 
-	userDeleteJob := userdelete.NewJob(users, webSessions, davSessions, oauthSessions, oauthConsents, folders, inodes, tools)
+	userDeleteJob := userdelete.NewJob(users, webSessions, davSessions, oauthSessions, oauthConsents, folders, fs, tools)
 	userDeleteJobRunner := NewJobRunner(userDeleteJob, 10*time.Second, tools)
 	userDeleteJobRunner.FXRegister(lc)
 }
