@@ -102,9 +102,9 @@ func (s *INodeService) CreateRootDir(ctx context.Context) (*INode, error) {
 	node := INode{
 		id:             s.uuid.New(),
 		parent:         nil,
-		isDir:          true,
 		createdAt:      now,
 		lastModifiedAt: now,
+		fileID:         nil,
 	}
 
 	err := s.storage.Save(ctx, &node)
@@ -134,11 +134,11 @@ func (s *INodeService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INo
 	inode := INode{
 		id:             s.uuid.New(),
 		parent:         ptr.To(parent.ID()),
-		isDir:          false,
 		size:           0,
 		name:           cmd.Name,
 		createdAt:      now,
 		lastModifiedAt: now,
+		fileID:         ptr.To(s.uuid.New()),
 	}
 
 	err = s.storage.Save(ctx, &inode)
@@ -222,11 +222,11 @@ func (s *INodeService) CreateDir(ctx context.Context, cmd *PathCmd) (*INode, err
 
 		inode = &INode{
 			id:             s.uuid.New(),
-			isDir:          true,
 			parent:         ptr.To(dir.ID()),
 			name:           frag,
 			lastModifiedAt: now,
 			createdAt:      now,
+			fileID:         nil,
 		}
 
 		res, err := s.storage.GetByNameAndParent(ctx, frag, dir.ID())

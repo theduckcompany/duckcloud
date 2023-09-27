@@ -42,9 +42,9 @@ func TestINodeSqlstore(t *testing.T) {
 				id:             uuid.UUID(fmt.Sprintf("some-child-id-%d", i)),
 				parent:         ptr.To(ExampleBobRoot.ID()),
 				name:           fmt.Sprintf("child-%d", i),
-				isDir:          true,
 				lastModifiedAt: nowData,
 				createdAt:      nowData,
+				fileID:         nil,
 			})
 			require.NoError(t, err)
 		}
@@ -67,9 +67,9 @@ func TestINodeSqlstore(t *testing.T) {
 			id:             uuid.UUID("some-child-id-5"),
 			parent:         ptr.To(ExampleBobRoot.ID()),
 			name:           "child-5",
-			isDir:          true,
 			lastModifiedAt: nowData,
 			createdAt:      nowData,
+			fileID:         nil,
 		}, res)
 	})
 
@@ -87,9 +87,9 @@ func TestINodeSqlstore(t *testing.T) {
 			id:             uuid.UUID("some-child-id-5"),
 			parent:         ptr.To(ExampleBobRoot.ID()),
 			name:           "child-5",
-			isDir:          true,
 			lastModifiedAt: nowData,
 			createdAt:      nowData,
+			fileID:         nil,
 		}, res)
 	})
 
@@ -128,9 +128,9 @@ func TestINodeSqlstore(t *testing.T) {
 			id:             uuid.UUID("some-child-id-5"),
 			parent:         ptr.To(ExampleBobRoot.ID()),
 			name:           "child-5",
-			isDir:          true,
 			lastModifiedAt: nowData,
 			createdAt:      nowData,
+			fileID:         nil,
 		}, res[0])
 	})
 

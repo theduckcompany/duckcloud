@@ -112,7 +112,7 @@ func (j *Job) deleteINode(ctx context.Context, inode *inodes.INode) error {
 		}
 	}
 
-	err = j.files.Delete(ctx, inode.ID())
+	err = j.files.Delete(ctx, inode)
 	if err != nil {
 		return fmt.Errorf("failed to remove the file %q: %w", inode.ID(), err)
 	}

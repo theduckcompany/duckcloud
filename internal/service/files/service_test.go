@@ -7,8 +7,8 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/tools"
-	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 func TestFileService(t *testing.T) {
@@ -21,14 +21,14 @@ func TestFileService(t *testing.T) {
 		svc, err := NewFSService(fs, "/", tools.Logger())
 		require.NoError(t, err)
 
-		file, err := svc.Open(ctx, uuid.UUID("735277a1-e94f-423a-b1b9-c69488ad72cc"))
+		file, err := svc.Open(ctx, &inodes.ExampleAliceFile)
 		assert.NoError(t, err)
 
 		file.WriteString("Hello, World!")
 		err = file.Close()
 		require.NoError(t, err)
 
-		file2, err := svc.Open(ctx, uuid.UUID("735277a1-e94f-423a-b1b9-c69488ad72cc"))
+		file2, err := svc.Open(ctx, &inodes.ExampleAliceFile)
 		assert.NoError(t, err)
 
 		buf := make([]byte, 13)
@@ -36,6 +36,18 @@ func TestFileService(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, nb, 13)
 		assert.Equal(t, "Hello, World!", string(buf))
+	})
+
+	t.Run("Open with a dir", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		fs := afero.NewMemMapFs()
+
+		svc, err := NewFSService(fs, "/", tools.Logger())
+		require.NoError(t, err)
+
+		file, err := svc.Open(ctx, &inodes.ExampleAliceRoot)
+		assert.Nil(t, file)
+		assert.ErrorIs(t, err, ErrNotAFile)
 	})
 
 	t.Run("NewFSService setup the dir fanout", func(t *testing.T) {
@@ -111,14 +123,25 @@ func TestFileService(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create a file
-		file, err := svc.Open(ctx, uuid.UUID("735277a1-e94f-423a-b1b9-c69488ad72cc"))
+		file, err := svc.Open(ctx, &inodes.ExampleAliceFile)
 		assert.NoError(t, err)
 		file.WriteString("Hello, World!")
 		err = file.Close()
 		require.NoError(t, err)
 
 		// Delete it
-		err = svc.Delete(ctx, uuid.UUID("735277a1-e94f-423a-b1b9-c69488ad72cc"))
+		err = svc.Delete(ctx, &inodes.ExampleAliceFile)
 		assert.NoError(t, err)
+	})
+
+	t.Run("Delete with a dir", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		fs := afero.NewMemMapFs()
+
+		svc, err := NewFSService(fs, "/", tools.Logger())
+		require.NoError(t, err)
+
+		err = svc.Delete(ctx, &inodes.ExampleAliceRoot)
+		assert.ErrorIs(t, err, ErrNotAFile)
 	})
 }

@@ -40,12 +40,12 @@ func (t CreateFileCmd) Validate() error {
 type INode struct {
 	id             uuid.UUID
 	parent         *uuid.UUID
-	isDir          bool
 	name           string
 	checksum       string
 	size           uint64
 	createdAt      time.Time
 	lastModifiedAt time.Time
+	fileID         *uuid.UUID
 }
 
 func (n *INode) ID() uuid.UUID             { return n.id }
@@ -56,11 +56,13 @@ func (n *INode) USize() uint64             { return n.size }
 func (n *INode) ModTime() time.Time        { return n.lastModifiedAt }
 func (n *INode) CreatedAt() time.Time      { return n.createdAt }
 func (n *INode) LastModifiedAt() time.Time { return n.lastModifiedAt }
-func (n *INode) IsDir() bool               { return n.isDir }
+func (n *INode) FileID() *uuid.UUID        { return n.fileID }
+func (n *INode) IsDir() bool               { return n.fileID == nil }
 func (n *INode) Checksum() string          { return n.checksum }
 func (n *INode) Sys() any                  { return nil }
+
 func (n *INode) Mode() fs.FileMode {
-	if n.isDir {
+	if n.IsDir() {
 		return 0o755 | fs.ModeDir
 	}
 

@@ -179,7 +179,7 @@ func Test_LocalFS(t *testing.T) {
 		file, err := afero.TempFile(afero.NewMemMapFs(), "foo", "")
 		require.NoError(t, err)
 
-		filesMock.On("Open", mock.Anything, inodes.ExampleAliceFile.ID()).
+		filesMock.On("Open", mock.Anything, &inodes.ExampleAliceFile).
 			Return(file, nil).Once()
 
 		res, err := folderFS.Download(ctx, &inodes.ExampleAliceFile)
@@ -199,7 +199,7 @@ func Test_LocalFS(t *testing.T) {
 		file, err := afero.TempFile(fs, "foo", "")
 		require.NoError(t, err)
 
-		filesMock.On("Open", mock.Anything, inodes.ExampleAliceFile.ID()).
+		filesMock.On("Open", mock.Anything, &inodes.ExampleAliceFile).
 			Return(file, nil).Once()
 
 		inodesMock.On("RegisterWrite", mock.Anything, &inodes.ExampleAliceFile, int64(len(content)), mock.Anything).Return(nil).Once()

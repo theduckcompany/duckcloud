@@ -7,8 +7,8 @@ import (
 	"os"
 
 	"github.com/spf13/afero"
+	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/tools"
-	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 type Config struct {
@@ -17,8 +17,8 @@ type Config struct {
 
 //go:generate mockery --name Service
 type Service interface {
-	Open(ctx context.Context, inodeID uuid.UUID) (afero.File, error)
-	Delete(ctx context.Context, inodeID uuid.UUID) error
+	Open(ctx context.Context, inode *inodes.INode) (afero.File, error)
+	Delete(ctx context.Context, inod *inodes.INode) error
 }
 
 func Init(cfg Config, fs afero.Fs, tools tools.Tools) (Service, error) {
