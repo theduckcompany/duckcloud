@@ -6,7 +6,6 @@ import (
 	"log/slog"
 
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
@@ -19,24 +18,13 @@ const (
 
 type Job struct {
 	users   users.Service
-	inodes  inodes.Service
 	folders folders.Service
 	log     *slog.Logger
 }
 
-func NewJob(
-	users users.Service,
-	inodes inodes.Service,
-	folders folders.Service,
-	tools tools.Tools,
-) *Job {
+func NewJob(users users.Service, folders folders.Service, tools tools.Tools) *Job {
 	logger := tools.Logger().With(slog.String("job", jobName))
-	return &Job{
-		users,
-		inodes,
-		folders,
-		logger,
-	}
+	return &Job{users, folders, logger}
 }
 
 func (j *Job) Run(ctx context.Context) error {
