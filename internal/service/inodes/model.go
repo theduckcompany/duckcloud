@@ -61,8 +61,8 @@ func (n *INode) Checksum() string          { return n.checksum }
 func (n *INode) Sys() any                  { return nil }
 func (n *INode) Mode() fs.FileMode {
 	if n.isDir {
-		return 0o660 | fs.ModeDir
+		return 0o755 | fs.ModeDir
 	}
 
-	return 0o660 // Regular file
+	return 0o644 // Regular file
 }

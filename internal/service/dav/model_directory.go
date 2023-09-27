@@ -43,7 +43,6 @@ func (d *Directory) ReadDir(count int) ([]fs.DirEntry, error) {
 		}
 	}
 
-	fmt.Printf("formated: %d\n", len(formatedRes))
 	return formatedRes, err
 }
 
@@ -66,7 +65,6 @@ func (d *Directory) Readdir(count int) ([]fs.FileInfo, error) {
 		infos = append(infos, &res[idx])
 	}
 
-	fmt.Printf("res len readdir: %d ->  %d -> %d\n", count, len(res), len(infos))
 	if len(res) < count {
 		return infos, io.EOF
 	}

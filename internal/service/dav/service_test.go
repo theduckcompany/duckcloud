@@ -92,7 +92,7 @@ func Test_DAVFS(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("OpenFile a folder success", func(t *testing.T) {
+	t.Run("OpenFile with a folder success", func(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		fsServiceMock := dfs.NewMockService(t)
 		dav := davFS{foldersMock, fsServiceMock}
@@ -109,14 +109,14 @@ func Test_DAVFS(t *testing.T) {
 		res, err := dav.OpenFile(ctx, "foo", os.O_RDONLY, 0o644)
 		assert.NoError(t, err)
 
-		// Check the file infos
+		// Check the directory infos
 		stats, err := res.Stat()
 		require.NoError(t, err)
 		assert.True(t, stats.IsDir())
 		assert.Equal(t, inodes.ExampleAliceRoot.LastModifiedAt(), stats.ModTime())
 		assert.Equal(t, int64(0), stats.Size())
 		assert.Nil(t, stats.Sys())
-		assert.Equal(t, fs.FileMode(0o660), stats.Mode().Perm())
+		assert.Equal(t, fs.FileMode(0o755), stats.Mode().Perm())
 		assert.True(t, stats.Mode().IsDir())
 	})
 
@@ -144,7 +144,7 @@ func Test_DAVFS(t *testing.T) {
 		assert.Equal(t, inodes.ExampleAliceRoot.LastModifiedAt(), stats.ModTime())
 		assert.Equal(t, inodes.ExampleAliceFile.Size(), stats.Size())
 		assert.Nil(t, stats.Sys())
-		assert.Equal(t, fs.FileMode(0o660), stats.Mode().Perm())
+		assert.Equal(t, fs.FileMode(0o644), stats.Mode().Perm())
 		assert.False(t, stats.Mode().IsDir())
 		assert.True(t, stats.Mode().IsRegular())
 	})
