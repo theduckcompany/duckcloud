@@ -13,6 +13,12 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 )
 
+type readSeekCloser struct {
+	io.ReadSeeker
+}
+
+func (r *readSeekCloser) Close() error { return nil }
+
 func Test_File(t *testing.T) {
 	t.Run("Readdir is not implemented", func(t *testing.T) {
 		duckFile := NewFile(nil, nil)
@@ -99,10 +105,10 @@ func Test_File(t *testing.T) {
 		fsMock := fs.NewMockFS(t)
 		duckFile := NewFile(&inodes.ExampleAliceFile, fsMock)
 
-		content := io.NopCloser(bytes.NewBufferString("Hello, World!"))
+		content := bytes.NewReader([]byte("Hello, World!"))
 
 		fsMock.On("Download", mock.Anything, &inodes.ExampleAliceFile).
-			Return(content, nil).Once()
+			Return(&readSeekCloser{content}, nil).Once()
 
 		res, err := io.ReadAll(duckFile)
 		assert.NoError(t, err)
@@ -116,10 +122,10 @@ func Test_File(t *testing.T) {
 		fsMock := fs.NewMockFS(t)
 		duckFile := NewFile(&inodes.ExampleAliceFile, fsMock)
 
-		content := io.NopCloser(bytes.NewBufferString("Hello, World!"))
+		content := bytes.NewReader([]byte("Hello, World!"))
 
 		fsMock.On("Download", mock.Anything, &inodes.ExampleAliceFile).
-			Return(content, nil).Once()
+			Return(&readSeekCloser{content}, nil).Once()
 
 		body1 := make([]byte, 8)
 		res, err := duckFile.Read(body1)

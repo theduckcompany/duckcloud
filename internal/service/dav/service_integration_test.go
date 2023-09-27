@@ -5,6 +5,7 @@ import (
 	stdfs "io/fs"
 	"os"
 	"testing"
+	"testing/fstest"
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
@@ -76,26 +77,37 @@ func Test_DavFS_integration(t *testing.T) {
 	})
 
 	t.Run("Create a file", func(t *testing.T) {
-		file, err := fs.OpenFile(ctx, "foo/bar", os.O_CREATE|os.O_WRONLY, 0o644)
+		file, err := fs.OpenFile(ctx, "foo/bar.1.txt", os.O_CREATE|os.O_WRONLY, 0o644)
 		require.NoError(t, err)
 
 		n, err := file.Write([]byte("Hello, World!"))
 		assert.NoError(t, err)
 		assert.Equal(t, 13, n)
+
+		assert.NoError(t, file.Close())
 	})
 
 	t.Run("Read a file", func(t *testing.T) {
-		file, err := fs.OpenFile(ctx, "foo/bar.txt", os.O_CREATE|os.O_WRONLY, 0o644)
+		file, err := fs.OpenFile(ctx, "foo/bar.2.txt", os.O_CREATE|os.O_WRONLY, 0o644)
 		require.NoError(t, err)
 
 		n, err := file.Write([]byte("Hello, World!"))
 		assert.NoError(t, err)
 		assert.Equal(t, 13, n)
+
+		assert.NoError(t, file.Close())
 	})
 
-	t.Run("Readfile with ReadFile", func(t *testing.T) {
-		res, err := stdfs.ReadFile(&simpleFS{fs, session}, "foo/bar.txt")
+	t.Run("Readfile with fs.ReadFile", func(t *testing.T) {
+		res, err := stdfs.ReadFile(&simpleFS{fs, session}, "foo/bar.2.txt")
 		require.NoError(t, err)
 		assert.Equal(t, []byte("Hello, World!"), res)
+	})
+
+	t.Run("Fstest", func(t *testing.T) {
+		err = fstest.TestFS(&simpleFS{fs, session}, "foo/bar.1.txt", "foo/bar.2.txt")
+		if err != nil {
+			t.Fatal(err)
+		}
 	})
 }

@@ -136,7 +136,7 @@ func (s *LocalFS) Get(ctx context.Context, name string) (*inodes.INode, error) {
 	return res, nil
 }
 
-func (s *LocalFS) Download(ctx context.Context, inode *inodes.INode) (io.ReadCloser, error) {
+func (s *LocalFS) Download(ctx context.Context, inode *inodes.INode) (io.ReadSeekCloser, error) {
 	file, err := s.files.Open(ctx, inode.ID())
 	if err != nil {
 		return nil, fmt.Errorf("failed to Open file %q: %w", inode.ID(), err)
