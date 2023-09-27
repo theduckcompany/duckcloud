@@ -20,7 +20,7 @@ type FS interface {
 	Rename(ctx context.Context, oldName, newName string) error
 	Get(ctx context.Context, name string) (*inodes.INode, error)
 	Upload(ctx context.Context, inode *inodes.INode, w io.Reader) error
-	Download(ctx context.Context, inode *inodes.INode) (io.ReadCloser, error)
+	Download(ctx context.Context, inode *inodes.INode) (io.ReadSeekCloser, error)
 }
 
 //go:generate mockery --name Service

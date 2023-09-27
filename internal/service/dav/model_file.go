@@ -18,7 +18,7 @@ type File struct {
 	inode  *inodes.INode
 	fs     fs.FS
 	writer *io.PipeWriter
-	reader *io.PipeReader
+	reader io.ReadSeekCloser
 }
 
 func NewFile(inode *inodes.INode, fs fs.FS) *File {
@@ -41,25 +41,17 @@ func (f *File) Close() error {
 }
 
 func (f *File) Read(p []byte) (int, error) {
+	var err error
+
 	if f.writer != nil {
 		return 0, ErrConcurentReadWrite
 	}
 
 	if f.reader == nil {
-		// Initialize the read pipeline at the first Read
-		var w *io.PipeWriter
-		f.reader, w = io.Pipe()
-
-		file, err := f.fs.Download(context.Background(), f.inode)
+		f.reader, err = f.fs.Download(context.Background(), f.inode)
 		if err != nil {
 			return 0, fmt.Errorf("failed to Download: %w", err)
 		}
-
-		go func(w *io.PipeWriter, fileReader io.ReadCloser) {
-			defer fileReader.Close()
-			_, err := io.Copy(w, fileReader)
-			w.CloseWithError(err)
-		}(w, file)
 	}
 
 	return f.reader.Read(p)
@@ -85,6 +77,10 @@ func (f *File) Write(p []byte) (int, error) {
 }
 
 func (f *File) Seek(offset int64, whence int) (int64, error) {
+	if f.reader != nil {
+		return f.reader.Seek(offset, whence)
+	}
+
 	return 0, stdfs.ErrInvalid
 }
 

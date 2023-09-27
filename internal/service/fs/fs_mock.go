@@ -73,19 +73,19 @@ func (_m *MockFS) CreateFile(ctx context.Context, name string) (*inodes.INode, e
 }
 
 // Download provides a mock function with given fields: ctx, inode
-func (_m *MockFS) Download(ctx context.Context, inode *inodes.INode) (io.ReadCloser, error) {
+func (_m *MockFS) Download(ctx context.Context, inode *inodes.INode) (io.ReadSeekCloser, error) {
 	ret := _m.Called(ctx, inode)
 
-	var r0 io.ReadCloser
+	var r0 io.ReadSeekCloser
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *inodes.INode) (io.ReadCloser, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *inodes.INode) (io.ReadSeekCloser, error)); ok {
 		return rf(ctx, inode)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *inodes.INode) io.ReadCloser); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *inodes.INode) io.ReadSeekCloser); ok {
 		r0 = rf(ctx, inode)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(io.ReadCloser)
+			r0 = ret.Get(0).(io.ReadSeekCloser)
 		}
 	}
 
