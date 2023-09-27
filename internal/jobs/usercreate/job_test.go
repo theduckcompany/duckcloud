@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
@@ -18,11 +17,10 @@ func TestUserCreateJob(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		usersMock := users.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
 		tools := tools.NewMock(t)
 
-		job := NewJob(usersMock, inodesMock, foldersMock, tools)
+		job := NewJob(usersMock, foldersMock, tools)
 
 		usersMock.On("GetAllWithStatus", mock.Anything, "initializing", &storage.PaginateCmd{Limit: batchSize}).
 			Return([]users.User{users.ExampleInitializingAlice}, nil).Once()

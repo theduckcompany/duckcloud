@@ -36,7 +36,7 @@ func StartJobs(
 	fsgcJobRunner := NewJobRunner(fsgcJob, 5*time.Second, tools)
 	fsgcJobRunner.FXRegister(lc)
 
-	userCreateJob := usercreate.NewJob(users, inodes, folders, tools)
+	userCreateJob := usercreate.NewJob(users, folders, tools)
 	userCreateJobRunner := NewJobRunner(userCreateJob, 2*time.Second, tools)
 	userCreateJobRunner.FXRegister(lc)
 
