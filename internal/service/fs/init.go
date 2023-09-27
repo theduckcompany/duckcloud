@@ -12,6 +12,7 @@ import (
 
 //go:generate mockery --name FS
 type FS interface {
+	Folder() *folders.Folder
 	CreateDir(ctx context.Context, name string) (*inodes.INode, error)
 	CreateFile(ctx context.Context, name string) (*inodes.INode, error)
 	ListDir(ctx context.Context, name string, cmd *storage.PaginateCmd) ([]inodes.INode, error)

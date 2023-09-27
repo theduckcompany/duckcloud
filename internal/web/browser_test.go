@@ -33,11 +33,10 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := fs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -61,11 +60,10 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := fs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
@@ -88,11 +86,10 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := fs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -106,16 +103,18 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("folder-id")).
 			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
 
-		// Then look for the path inside this folder
-		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "foo/bar",
-		}).Return(&inodes.ExampleAliceRoot, nil).Once()
+		folderFSMock := fs.NewMockFS(t)
+		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
 
-		inodesMock.On("Readdir", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "foo/bar",
-		}, (*storage.PaginateCmd)(nil)).Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
+		folderFSMock.On("Folder").Return(&folders.ExampleAlicePersonalFolder)
+
+		// Then look for the path inside this folder
+		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&inodes.ExampleAliceRoot, nil).Once()
+
+		folderFSMock.On("ListDir", mock.Anything, "foo/bar", &storage.PaginateCmd{
+			StartAfter: map[string]string{"name": ""},
+			Limit:      20,
+		}).Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
 
 		folderID := string(folders.ExampleAlicePersonalFolder.ID())
 		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
@@ -147,11 +146,10 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := fs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -162,11 +160,12 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("folder-id")).
 			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
 
+		folderFSMock := fs.NewMockFS(t)
+		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
+		folderFSMock.On("Folder").Return(&folders.ExampleAlicePersonalFolder)
+
 		// Then look for the path inside this folder
-		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "foo/bar",
-		}).Return(&inodes.ExampleAliceFile, nil).Once()
+		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&inodes.ExampleAliceFile, nil).Once()
 
 		afs := afero.NewMemMapFs()
 		file, err := afero.TempFile(afs, t.TempDir(), "")
@@ -191,11 +190,10 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := fs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
@@ -220,11 +218,10 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := fs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -252,11 +249,10 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := fs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -287,11 +283,10 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := fs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -302,11 +297,12 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("folder-id")).
 			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
 
+		folderFSMock := fs.NewMockFS(t)
+		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
+		folderFSMock.On("Folder").Return(&folders.ExampleAlicePersonalFolder)
+
 		// Then look for the path inside this folder
-		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "invalid",
-		}).Return(nil, nil).Once()
+		folderFSMock.On("Get", mock.Anything, "invalid").Return(nil, nil).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/browser/folder-id/invalid", nil)
@@ -327,11 +323,10 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := fs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		content := "Hello, World!"
 
@@ -386,11 +381,10 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := fs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		content := "Hello, World!"
 
@@ -448,11 +442,10 @@ func Test_Browser_Page(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		inodesMock := inodes.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		fsMock := fs.NewMockService(t)
-		handler := newBrowserHandler(tools, htmlMock, foldersMock, inodesMock, filesMock, auth, fsMock)
+		handler := newBrowserHandler(tools, htmlMock, foldersMock, filesMock, auth, fsMock)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -465,19 +458,17 @@ func Test_Browser_Page(t *testing.T) {
 
 		folderFSMock := fs.NewMockFS(t)
 		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
+		folderFSMock.On("Folder").Return(&folders.ExampleAlicePersonalFolder)
 
 		folderFSMock.On("RemoveAll", mock.Anything, "foo/bar").Return(nil).Once()
 
 		// Then look for the path inside this folder
-		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "foo",
-		}).Return(&inodes.ExampleAliceRoot, nil).Once()
+		folderFSMock.On("Get", mock.Anything, "foo").Return(&inodes.ExampleAliceRoot, nil).Once()
 
-		inodesMock.On("Readdir", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "foo",
-		}, (*storage.PaginateCmd)(nil)).Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
+		folderFSMock.On("ListDir", mock.Anything, "foo", &storage.PaginateCmd{
+			StartAfter: map[string]string{"name": ""},
+			Limit:      20,
+		}).Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
 
 		foldersMock.On("GetAllUserFolders", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).
 			Return([]folders.Folder{folders.ExampleAlicePersonalFolder, folders.ExampleAliceBobSharedFolder}, nil).Once()
