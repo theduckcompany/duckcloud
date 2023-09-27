@@ -6,7 +6,6 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/fs"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthclients"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
@@ -37,7 +36,6 @@ func NewHTTPHandler(
 	folders folders.Service,
 	files files.Service,
 	davSessions davsessions.Service,
-	inodes inodes.Service,
 	fs fs.Service,
 ) *HTTPHandler {
 	htmlRenderer := html.NewRenderer(cfg.HTML)
