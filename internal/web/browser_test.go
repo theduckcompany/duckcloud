@@ -114,6 +114,7 @@ func Test_Browser_Page(t *testing.T) {
 
 		folderID := string(folders.ExampleAlicePersonalFolder.ID())
 		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
+			"host":     "example.com",
 			"fullPath": "foo/bar",
 			"folder":   &folders.ExampleAlicePersonalFolder,
 			"breadcrumb": []breadCrumbElement{
@@ -463,6 +464,7 @@ func Test_Browser_Page(t *testing.T) {
 
 		folderID := string(folders.ExampleAlicePersonalFolder.ID())
 		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
+			"host":     "example.com",
 			"fullPath": "foo",
 			"folder":   &folders.ExampleAlicePersonalFolder,
 			"breadcrumb": []breadCrumbElement{

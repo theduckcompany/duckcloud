@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/spf13/afero"
@@ -8,9 +9,9 @@ import (
 	"go.uber.org/fx"
 )
 
-func Run(cfg *Config, db *sql.DB, fs afero.Fs) {
+func Run(ctx context.Context, db *sql.DB, fs afero.Fs) {
 	// Start server with the HTTP server.
-	app := start(cfg, db, fs, fx.Invoke(func(*router.API) {}))
+	app := start(ctx, db, fs, fx.Invoke(func(*router.API) {}))
 
 	app.Run()
 }

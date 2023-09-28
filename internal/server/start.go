@@ -1,11 +1,13 @@
 package server
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/spf13/afero"
 	"github.com/theduckcompany/duckcloud/assets"
 	"github.com/theduckcompany/duckcloud/internal/jobs"
+	"github.com/theduckcompany/duckcloud/internal/service/config"
 	"github.com/theduckcompany/duckcloud/internal/service/dav"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/debug"
@@ -39,19 +41,21 @@ func AsRoute(f any) any {
 	)
 }
 
-func start(cfg *Config, db *sql.DB, afs afero.Fs, invoke fx.Option) *fx.App {
+func start(ctx context.Context, db *sql.DB, fs afero.Fs, invoke fx.Option) *fx.App {
 	app := fx.New(
 		fx.WithLogger(func(tools tools.Tools) fxevent.Logger { return logger.NewFxLogger(tools.Logger()) }),
 		fx.Provide(
-			func() Config { return *cfg },
-			func() afero.Fs { return afs },
+			func() context.Context { return ctx },
+			func() afero.Fs { return fs },
 			func() *sql.DB { return db },
+			NewConfigFromDB,
 
 			// Tools
 			fx.Annotate(tools.NewToolbox, fx.As(new(tools.Tools))),
 
 			// Services
 			fx.Annotate(users.Init, fx.As(new(users.Service))),
+			fx.Annotate(config.Init, fx.As(new(config.Service))),
 			fx.Annotate(oauthcodes.Init, fx.As(new(oauthcodes.Service))),
 			fx.Annotate(oauthsessions.Init, fx.As(new(oauthsessions.Service))),
 			fx.Annotate(oauthclients.Init, fx.As(new(oauthclients.Service))),

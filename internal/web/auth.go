@@ -52,7 +52,7 @@ func newAuthHandler(
 
 func (h *authHandler) Register(r chi.Router, mids *router.Middlewares) {
 	if mids != nil {
-		r = r.With(mids.RealIP, mids.StripSlashed, mids.Logger, mids.CORS)
+		r = r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
 	}
 
 	r.Get("/login", h.printLoginPage)

@@ -22,7 +22,7 @@ func NewTestStorage(t *testing.T) *sql.DB {
 	err = client.Ping()
 	require.NoError(t, err)
 
-	err = RunMigrations(cfg, client, tools)
+	err = RunMigrations(client, nil)
 	require.NoError(t, err)
 
 	return client

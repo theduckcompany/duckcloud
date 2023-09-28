@@ -9,6 +9,11 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
+const (
+	SecretMinLength = 8
+	SecretMaxLength = 200
+)
+
 var UsernameRegexp = regexp.MustCompile("^[0-9a-zA-Z-]+$")
 
 // User representation
@@ -51,7 +56,7 @@ type CreateCmd struct {
 func (t CreateCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.Username, v.Required, v.Length(1, 20), v.Match(UsernameRegexp)),
-		v.Field(&t.Password, v.Required, v.Length(8, 200)),
+		v.Field(&t.Password, v.Required, v.Length(SecretMinLength, SecretMaxLength)),
 		v.Field(&t.IsAdmin),
 	)
 }

@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
-	"strconv"
 
 	chi "github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -17,10 +16,11 @@ import (
 type API struct{}
 
 type Config struct {
-	Port          int      `json:"port"`
-	TLS           bool     `json:"tls"`
-	BindAddresses []string `json:"bindAddresses"`
-	Services      []string `json:"services"`
+	Addrs    []string
+	TLS      bool
+	CertFile string
+	KeyFile  string
+	Services []string
 }
 
 type Registerer interface {
@@ -56,24 +56,27 @@ func NewServer(routes []Registerer, cfgs []Config, lc fx.Lifecycle, mids *Middle
 			return nil, fmt.Errorf("failed to create the listener n'%d: %w", idx, err)
 		}
 
-		for _, addr := range cfg.BindAddresses {
-			hostPort := net.JoinHostPort(addr, strconv.Itoa(cfg.Port))
-
+		for _, addr := range cfg.Addrs {
+			addr := addr
 			srv := &http.Server{
-				Addr:    hostPort,
+				Addr:    addr,
 				Handler: handler,
 			}
 
 			lc.Append(fx.Hook{
 				OnStart: func(_ context.Context) error {
-					ln, err := net.Listen("tcp", hostPort)
+					ln, err := net.Listen("tcp", addr)
 					if err != nil {
 						return err
 					}
 
-					go srv.Serve(ln)
-
 					tools.Logger().Info("start listening", slog.String("host", ln.Addr().String()), slog.Int("routes", len(handler.Routes())))
+					if cfg.TLS {
+						go srv.ServeTLS(ln, cfg.CertFile, cfg.KeyFile)
+					} else {
+						go srv.Serve(ln)
+					}
+
 					for _, route := range handler.Routes() {
 						tools.Logger().Debug("expose endpoint", slog.String("host", ln.Addr().String()), slog.String("route", route.Pattern))
 					}
@@ -96,6 +99,17 @@ func createHandler(cfg Config, routes []Registerer, mids *Middlewares) (chi.Rout
 		w.Header().Set("Location", "/")
 		w.WriteHeader(http.StatusFound)
 	})
+
+	if cfg.TLS {
+		r.Use(func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				next.ServeHTTP(w, r)
+				w.Header().Set("Strict-Transport-Security", "max-age=15768000; preload")
+			})
+		})
+	}
+
+	r.Use(mids.CORS)
 	r.Use(middleware.RequestID)
 
 	for _, svc := range cfg.Services {

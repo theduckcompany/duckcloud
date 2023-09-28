@@ -79,7 +79,7 @@ func NewHTTPHandler(
 // Register the http endpoints into the given mux server.
 func (h *HTTPHandler) Register(r chi.Router, mids *router.Middlewares) {
 	if mids != nil {
-		r = r.With(mids.RealIP, mids.StripSlashed, mids.Logger, mids.CORS)
+		r = r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
 	}
 
 	// Actions

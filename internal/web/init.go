@@ -15,7 +15,7 @@ import (
 )
 
 type Config struct {
-	HTML html.Config `json:"html"`
+	HTML html.Config
 }
 
 type HTTPHandler struct {

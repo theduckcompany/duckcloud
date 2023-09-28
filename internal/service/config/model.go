@@ -8,8 +8,15 @@ import (
 type ConfigKey string
 
 const (
-	HostName = "host_name"
-	Port     = "port"
+	HostName           ConfigKey = "host.name"
+	HostsTrusted                 = "hosts.trusted"
+	DevModeEnabled               = "dev_mode.enabled"
+	HTTPPort                     = "http.port"
+	HTTPAddrs                    = "http.addrs"
+	FSDataFolder                 = "fs.data_folder"
+	TLSEnabled                   = "tls.enabled"
+	SSLCertificatePath           = "tls.ssl.certificate"
+	SSLPrivateKeyPath            = "tls.ssl.private_key"
 )
 
 type BootstrapCmd struct {

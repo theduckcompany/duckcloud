@@ -18,7 +18,7 @@ import (
 //go:embed migration/*.sql
 var fs embed.FS
 
-func RunMigrations(cfg Config, db *sql.DB, tools tools.Tools) error {
+func RunMigrations(db *sql.DB, tools tools.Tools) error {
 	// Error not possible
 	d, _ := iofs.New(fs, "migration")
 
@@ -31,7 +31,10 @@ func RunMigrations(cfg Config, db *sql.DB, tools tools.Tools) error {
 		return fmt.Errorf("failed to create a migrate manager: %w", err)
 	}
 
-	m.Log = &migrateLogger{tools.Logger()}
+	if tools != nil {
+		m.Log = &migrateLogger{tools.Logger()}
+	}
+
 	err = m.Up()
 	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return fmt.Errorf("database migration error: %w", err)
