@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/theduckcompany/duckcloud/cmd/server/commands"
+	"github.com/theduckcompany/duckcloud/cmd/duckcloud/commands"
 )
 
 const binaryName = "duckcloud"
