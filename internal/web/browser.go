@@ -340,6 +340,7 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 	}
 
 	h.html.WriteHTML(w, r, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
+		"host":       r.Host,
 		"fullPath":   fullPath,
 		"folder":     folder,
 		"breadcrumb": generateBreadCrumb(folder, fullPath),

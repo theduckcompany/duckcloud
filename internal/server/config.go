@@ -1,11 +1,14 @@
 package server
 
 import (
+	"context"
+	"fmt"
 	"log/slog"
 	"path"
+	"strings"
 
-	"github.com/adrg/xdg"
 	"github.com/theduckcompany/duckcloud/assets"
+	"github.com/theduckcompany/duckcloud/internal/service/config"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
@@ -17,8 +20,6 @@ import (
 	"go.uber.org/fx"
 )
 
-const binaryName = "duckcloud"
-
 type Config struct {
 	fx.Out
 	Listeners []router.Config `json:"listeners"`
@@ -29,39 +30,60 @@ type Config struct {
 	Web       web.Config      `json:"web"`
 }
 
-func NewDefaultConfig() *Config {
-	dbPath, err := xdg.DataFile(path.Join(binaryName, "db.sqlite"))
+func NewConfigFromDB(ctx context.Context, configSvc config.Service) (Config, error) {
+	devModeEnabled, err := configSvc.IsDevModeEnabled(ctx)
 	if err != nil {
-		panic(err)
+		return Config{}, fmt.Errorf("failed to check the dev mode: %w", err)
 	}
 
-	filesPath, err := xdg.DataFile(path.Join(binaryName, "files"))
+	dataFolder, err := configSvc.Get(ctx, config.FSDataFolder)
 	if err != nil {
-		panic(err)
+		return Config{}, fmt.Errorf("failed to check the date folder: %w", err)
 	}
 
-	return &Config{
+	addrs, err := configSvc.Get(ctx, config.HTTPAddrs)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to check the http addresses: %w", err)
+	}
+
+	isTLSEnabled, err := configSvc.IsTLSEnabled(ctx)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to check if TLS is enabled: %w", err)
+	}
+
+	certifPath, err := configSvc.Get(ctx, config.SSLCertificatePath)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to retrieve the SSL certificate path: %w", err)
+	}
+
+	privateKeyPath, err := configSvc.Get(ctx, config.SSLPrivateKeyPath)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to retrieve the SSL private key path: %w", err)
+	}
+
+	// if debug {
+	// 	cfg.Tools.Log.Level = slog.LevelDebug
+	// }
+
+	return Config{
 		Listeners: []router.Config{
 			{
-				Port:          8080,
-				TLS:           false,
-				BindAddresses: []string{"::1", "127.0.0.1"},
-				Services:      []string{"dav", "auth", "assets", "web"},
+				Addrs:    strings.Split(addrs, ","),
+				TLS:      isTLSEnabled,
+				CertFile: certifPath,
+				KeyFile:  privateKeyPath,
+				Services: []string{"dav", "auth", "assets", "web"},
 			},
 		},
 		Assets: assets.Config{
-			HotReload: false,
-		},
-		Storage: storage.Config{
-			Path:  dbPath,
-			Debug: false,
+			HotReload: devModeEnabled,
 		},
 		Files: files.Config{
-			Path: filesPath,
+			Path: path.Join(dataFolder, "files"),
 		},
 		Tools: tools.Config{
 			Response: response.Config{
-				PrettyRender: false,
+				PrettyRender: devModeEnabled,
 			},
 			Log: logger.Config{
 				Level: slog.LevelInfo,
@@ -69,9 +91,9 @@ func NewDefaultConfig() *Config {
 		},
 		Web: web.Config{
 			HTML: html.Config{
-				PrettyRender: false,
-				HotReload:    false,
+				PrettyRender: devModeEnabled,
+				HotReload:    devModeEnabled,
 			},
 		},
-	}
+	}, nil
 }

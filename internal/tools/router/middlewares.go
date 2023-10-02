@@ -1,12 +1,15 @@
 package router
 
 import (
+	"log"
+	"net"
 	"net/http"
-	"path"
-	"strings"
+	"net/url"
+	"slices"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/theduckcompany/duckcloud/internal/service/config"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 )
@@ -21,7 +24,7 @@ type Middlewares struct {
 	CORS         Middleware
 }
 
-func InitMiddlewares(tools tools.Tools) *Middlewares {
+func InitMiddlewares(tools tools.Tools, configSvc config.Service) *Middlewares {
 	return &Middlewares{
 		StripSlashed: middleware.StripSlashes,
 		Logger:       logger.NewRouterLogger(tools.Logger()),
@@ -29,19 +32,32 @@ func InitMiddlewares(tools tools.Tools) *Middlewares {
 		RealIP:       middleware.RealIP,
 		CORS: cors.Handler(cors.Options{
 			AllowOriginFunc: func(r *http.Request, origin string) bool {
-				cleanPath := path.Clean(r.URL.Path)
-				// Allows all the routes excepts the auth one to be accessed by
-				// some other domain name
-				if strings.Contains(cleanPath, "/login") ||
-					strings.Contains(cleanPath, "/forgot") ||
-					strings.Contains(cleanPath, "/consent") {
+				hosts, err := configSvc.GetTrustedHosts(r.Context())
+				if err != nil {
 					return false
 				}
-				return true
+
+				url, err := url.ParseRequestURI(origin)
+				if err != nil {
+					log.Printf("failed to parse the request uri: %s", err)
+					return false
+				}
+
+				host, _, err := net.SplitHostPort(url.Host)
+				if err != nil {
+					log.Printf("failed to split the host/port pair: %s", err)
+					return false
+				}
+
+				if host == "" {
+					host = url.Host
+				}
+
+				return slices.Contains[[]string, string](hosts, host)
 			},
 			AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 			AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-			ExposedHeaders:   []string{"Link"},
+			ExposedHeaders:   []string{},
 			AllowCredentials: false,
 			MaxAge:           300, // Maximum value not ignored by any of major browsers
 		}),
