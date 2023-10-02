@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/user"
 	"path"
+	"path/filepath"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/adrg/xdg"
@@ -19,19 +20,26 @@ const (
 	filesDirName = "files"
 )
 
-func bootstrapFolder(cmd *cobra.Command) string {
+func bootstrapFolder(cmd *cobra.Command, dir string) string {
+	var err error
+	var folderPath string
+
+	if dir != "" {
+		folderPath, err = filepath.Abs(dir)
+		if err != nil {
+			cmd.PrintErrln(fmt.Sprintf(`invalid path %q: %s`, folderPath, err))
+			os.Exit(1)
+		}
+	}
+
+	if folderPath == "" {
+		folderPath = path.Join(xdg.DataHome, folderName)
+	}
+
 	user, err := user.Current()
 	if err != nil {
 		printErrAndExit(cmd, err)
 	}
-
-	folderPath, err := xdg.SearchDataFile(folderName)
-	if err == nil {
-		fmt.Printf("Folder found at %s\n", folderPath)
-		return folderPath
-	}
-
-	folderPath = path.Join(xdg.DataHome, folderName)
 
 	var confirm bool
 	err = survey.AskOne(&survey.Confirm{

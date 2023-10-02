@@ -15,6 +15,7 @@ func main() {
 		Short: "Manage your duckcloud instance in your terminal.",
 	}
 
+	cmd.PersistentFlags().StringP("dir", "d", "", "Specified you data directory location")
 	// Generic flags
 
 	// tb := toolbox.NewProd()
