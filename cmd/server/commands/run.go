@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/adrg/xdg"
 	"github.com/spf13/afero"
@@ -19,7 +20,6 @@ import (
 var configDirs = append([]string{xdg.DataHome}, xdg.DataDirs...)
 
 func NewRunCmd(binaryName string) *cobra.Command {
-	var folder string
 	var debug bool
 	var dev bool
 
@@ -30,26 +30,39 @@ func NewRunCmd(binaryName string) *cobra.Command {
 		Args:  cobra.NoArgs,
 		Use:   "run",
 		Run: func(cmd *cobra.Command, _ []string) {
-			var dataDir string
-			for _, dir := range configDirs {
-				_, err := os.Stat(path.Join(dir, "duckcloud"))
-				if err == nil {
-					dataDir = path.Join(dir, "duckcloud")
-					break
+			dataDir, err := cmd.Flags().GetString("dir")
+			if err != nil {
+				cmd.PrintErrln(err)
+				os.Exit(1)
+			}
+
+			if dataDir == "" {
+				for _, dir := range configDirs {
+					_, err := os.Stat(path.Join(dir, "duckcloud"))
+					if err == nil {
+						dataDir = path.Join(dir, "duckcloud")
+						break
+					}
+
+					if !errors.Is(err, fs.ErrNotExist) {
+						cmd.PrintErrln(err)
+						os.Exit(1)
+					}
 				}
 
-				if !errors.Is(err, fs.ErrNotExist) {
-					cmd.PrintErrln(err)
+				if dataDir == "" {
+					cmd.PrintErrln(fmt.Sprintf(`No data directory found, have you run "%s server bootstrap"?`, binaryName))
 					os.Exit(1)
 				}
 			}
 
-			if dataDir == "" {
-				cmd.PrintErrln(fmt.Sprintf(`No data directory found, have you run "%s server bootstrap"?`, binaryName))
+			dataDir, err = filepath.Abs(dataDir)
+			if err != nil {
+				cmd.PrintErrln(fmt.Sprintf(`invalid path %q: %s`, dataDir, err))
 				os.Exit(1)
 			}
 
-			cmd.Printf("start server from: %s", dataDir)
+			cmd.Printf("start server from: %s\n", dataDir)
 
 			db, err := storage.NewSQliteClient(&storage.Config{
 				Path:  path.Join(dataDir, "db.sqlite"),
@@ -64,7 +77,6 @@ func NewRunCmd(binaryName string) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&folder, "dir", "d", "", "Specified you data directory location")
 	cmd.Flags().BoolVar(&dev, "dev", false, "Run in dev mode and make json prettier")
 	cmd.Flags().BoolVar(&debug, "debug", false, "Force the debug level")
 

@@ -24,7 +24,13 @@ func NewBootstrapCmd(_ string) *cobra.Command {
 		Use:   "bootstrap",
 		Short: "Bootstrap your server",
 		Run: func(cmd *cobra.Command, _ []string) {
-			folderPath := bootstrapFolder(cmd)
+			dataDir, err := cmd.Flags().GetString("dir")
+			if err != nil {
+				cmd.PrintErrln(err)
+				os.Exit(1)
+			}
+
+			folderPath := bootstrapFolder(cmd, dataDir)
 			db := bootstrapDB(cmd, folderPath)
 
 			configSvc := config.Init(db)
