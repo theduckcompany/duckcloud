@@ -23,7 +23,7 @@ sort-direction: ascending
 branches:
   - develop
 exclude-labels:
-  - 'Skip changelog'
+  - 'skip-changelog'
 no-changes-template: 'This release contains minor changes and bugfixes.'
 template: |
   # Release Notes
