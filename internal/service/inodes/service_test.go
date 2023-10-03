@@ -556,7 +556,10 @@ func TestINodes(t *testing.T) {
 			"size":             ExampleAliceFile.size + uint64(n),
 		}).Return(nil).Once()
 
-		err = service.RegisterWrite(ctx, &ExampleAliceFile, int64(n), hash)
+		// Duplicate in order to avoid side effects on other tests
+		aliceFile := ExampleAliceFile
+
+		err = service.RegisterWrite(ctx, &aliceFile, int64(n), hash)
 		assert.NoError(t, err)
 	})
 
