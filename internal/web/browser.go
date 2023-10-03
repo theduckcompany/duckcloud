@@ -19,6 +19,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -133,7 +134,7 @@ func (h *browserHandler) upload(w http.ResponseWriter, r *http.Request) {
 			defer p.Close()
 			err = h.lauchUpload(r.Context(), &cmd)
 			if err != nil {
-				fmt.Printf("failed to upload: %s -> %#v\n\n\n", err, cmd)
+				logger.LogEntrySetError(r, fmt.Errorf("upload error: %w", err))
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}

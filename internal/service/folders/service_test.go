@@ -83,7 +83,10 @@ func Test_FolderService(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		svc := NewService(tools, storageMock, inodesMock)
 
-		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.id).Return(&ExampleAlicePersonalFolder, nil).Once()
+		// Duplicate the struct to avoid side effects on other tests
+		storageRes := ExampleAlicePersonalFolder
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.id).Return(&storageRes, nil).Once()
 		tools.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAlicePersonalFolder.id, map[string]any{
 			"last_modified_at": now,

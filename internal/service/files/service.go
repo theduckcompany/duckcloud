@@ -62,7 +62,7 @@ func (s *FSService) Open(ctx context.Context, inode *inodes.INode) (afero.File, 
 	idStr := string(*fileID)
 	filePath := path.Join(idStr[:2], idStr)
 
-	file, err := s.fs.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0o600)
+	file, err := s.fs.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_SYNC, 0o600)
 	if err != nil {
 		return nil, fmt.Errorf("failed to Open %q: %w", filePath, err)
 	}
