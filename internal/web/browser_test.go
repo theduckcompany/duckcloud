@@ -109,7 +109,7 @@ func Test_Browser_Page(t *testing.T) {
 
 		folderFSMock.On("ListDir", mock.Anything, "foo/bar", &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
-			Limit:      20,
+			Limit:      PageSize,
 		}).Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
 
 		folderID := string(folders.ExampleAlicePersonalFolder.ID())
@@ -456,7 +456,7 @@ func Test_Browser_Page(t *testing.T) {
 
 		folderFSMock.On("ListDir", mock.Anything, "foo", &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
-			Limit:      20,
+			Limit:      PageSize,
 		}).Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
 
 		foldersMock.On("GetAllUserFolders", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).
