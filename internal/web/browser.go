@@ -26,7 +26,10 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 )
 
-const MaxMemoryCache = 20 * 1024 * 1024 // 20MB
+const (
+	MaxMemoryCache = 20 * 1024 * 1024 // 20MB
+	PageSize       = 50
+)
 
 var ErrInvalidFolderID = errors.New("invalid folderID")
 
@@ -92,7 +95,13 @@ func (h *browserHandler) getBrowserContent(w http.ResponseWriter, r *http.Reques
 	}
 	fs := h.fs.GetFolderFS(folder)
 
-	h.renderBrowserContent(w, r, user, fs, fullPath)
+	lastElem := r.URL.Query().Get("last")
+	if lastElem == "" {
+		h.renderBrowserContent(w, r, user, fs, fullPath)
+		return
+	}
+
+	h.renderMoreDirContent(w, r, folder, fullPath, lastElem)
 }
 
 func (h *browserHandler) upload(w http.ResponseWriter, r *http.Request) {
@@ -316,7 +325,7 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 	if inode.IsDir() {
 		dirContent, err = ffs.ListDir(r.Context(), fullPath, &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
-			Limit:      20,
+			Limit:      PageSize,
 		})
 		if err != nil {
 			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to inodes.Readdir: %w", err))
@@ -347,6 +356,25 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 		"breadcrumb": generateBreadCrumb(folder, fullPath),
 		"folders":    folders,
 		"inodes":     dirContent,
+	})
+}
+
+func (h *browserHandler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, folder *folders.Folder, fullPath string, lastElem string) {
+	ffs := h.fs.GetFolderFS(folder)
+	dirContent, err := ffs.ListDir(r.Context(), fullPath, &storage.PaginateCmd{
+		StartAfter: map[string]string{"name": lastElem},
+		Limit:      PageSize,
+	})
+	if err != nil {
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to ListDir: %w", err))
+		return
+	}
+
+	h.html.WriteHTML(w, r, http.StatusOK, "browser/rows.tmpl", map[string]interface{}{
+		"host":     r.Host,
+		"fullPath": fullPath,
+		"folder":   folder,
+		"inodes":   dirContent,
 	})
 }
 

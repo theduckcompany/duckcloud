@@ -1,0 +1,47 @@
+{{range $idx, $val := .inodes}}
+{{ $currentURL := pathJoin "/browser" $.folder.ID $.fullPath}}
+{{ $url := pathJoin $currentURL $val.Name}}
+{{ $downloadURL := pathJoin "/download" $.folder.ID $.fullPath $val.Name}}
+{{ $lastIdx := sub (len $.inodes) 1}}
+
+<div {{if (eq $idx $lastIdx)}}hx-get="{{$currentURL}}?last={{.Name}}" hx-trigger="revealed" hx-swap="afterend" {{end}}
+  class="row border-bottom py-1 d-flex justify-content-between align-items-center">
+  <div class="col-9 col-md-7 position-relative d-inline-block text-truncate">
+    <a class="link-dark user-select-none stretched-link" href="{{$url}}">
+      <i class="bi {{getInodeIconClass $val.Name $val.IsDir}} me-2" style="font-size: 2rem;"></i>
+      {{.Name}}
+    </a>
+  </div>
+
+  <div class="col-3 col-md-5 row text-center">
+    <div class="col-4 text-muted d-none d-md-block d-lg-block d-xxl-block d-xl-block">
+      {{if (.IsDir)}}-{{else}}{{humanSize $val.USize}}{{end}}
+    </div>
+    <div class="col-5 text-muted d-none d-md-block d-lg-block d-xxl-block d-xl-block"><a href="#"
+        data-mdb-toggle="tooltip" class="text-muted" title="{{humanDate .LastModifiedAt}}">
+        {{humanTime .LastModifiedAt}}</a>
+    </div>
+
+    <div class="col-2 dropdown">
+      <a class="btn btn-white btn-rounded" href="#" role="button" id="dropdownMenuLink{{$idx}}"
+        data-mdb-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots text-muted"
+          style="font-size: 1.3rem;"></i></a>
+
+      <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink{{$idx}}" style="font-size: 1rem;">
+        <li><a class="dropdown-item text-black" href="{{$downloadURL}}" download><i
+              class="bi bi-download me-2"></i>Download
+            {{if .IsDir}}Folder{{else}}File{{end}}</a>
+        </li>
+        <li>
+          <hr class="dropdown-divider" />
+        </li>
+        <li><a class="dropdown-item text-danger" href="#" hx-target="#content" hx-swap="outerHTML"
+            hx-delete="{{$url}}"><i class="bi bi-trash-fill me-2"></i> Delete
+            {{if
+            .IsDir}}Folder{{else}}File{{end}}</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+{{end}}
