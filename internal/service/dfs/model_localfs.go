@@ -2,12 +2,12 @@ package dfs
 
 import (
 	"context"
-	"crypto/sha256"
 	"fmt"
 	"io"
 	"io/fs"
 	"path"
 
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/uploads"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
@@ -19,6 +19,7 @@ type LocalFS struct {
 	files   files.Service
 	folder  *folders.Folder
 	folders folders.Service
+	upload  uploads.Service
 }
 
 func newLocalFS(
@@ -26,8 +27,9 @@ func newLocalFS(
 	files files.Service,
 	folder *folders.Folder,
 	folders folders.Service,
+	uploads uploads.Service,
 ) *LocalFS {
-	return &LocalFS{inodes, files, folder, folders}
+	return &LocalFS{inodes, files, folder, folders, uploads}
 }
 
 func (s *LocalFS) Folder() *folders.Folder {
@@ -36,35 +38,6 @@ func (s *LocalFS) Folder() *folders.Folder {
 
 func (s *LocalFS) ListDir(ctx context.Context, name string, cmd *storage.PaginateCmd) ([]inodes.INode, error) {
 	return s.inodes.Readdir(ctx, &inodes.PathCmd{Root: s.folder.RootFS(), FullName: name}, cmd)
-}
-
-func (s *LocalFS) CreateFile(ctx context.Context, name string) (*inodes.INode, error) {
-	dir, fileName := path.Split(name)
-	if dir == "" {
-		dir = "/"
-	}
-
-	parent, err := s.inodes.Get(ctx, &inodes.PathCmd{
-		Root:     s.folder.RootFS(),
-		FullName: dir,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to Get: %w", err)
-	}
-
-	if parent == nil {
-		return nil, &fs.PathError{Op: "createFile", Path: dir, Err: ErrInvalidPath}
-	}
-
-	file, err := s.inodes.CreateFile(ctx, &inodes.CreateFileCmd{
-		Parent: parent.ID(),
-		Name:   fileName,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to CreateFile: %w", err)
-	}
-
-	return file, nil
 }
 
 func (s *LocalFS) CreateDir(ctx context.Context, name string) (*inodes.INode, error) {
@@ -136,8 +109,25 @@ func (s *LocalFS) Get(ctx context.Context, name string) (*inodes.INode, error) {
 	return res, nil
 }
 
-func (s *LocalFS) Download(ctx context.Context, inode *inodes.INode) (io.ReadSeekCloser, error) {
-	file, err := s.files.Open(ctx, inode)
+func (s *LocalFS) Download(ctx context.Context, name string) (io.ReadSeekCloser, error) {
+	inode, err := s.inodes.Get(ctx, &inodes.PathCmd{
+		Root:     s.folder.RootFS(),
+		FullName: name,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("faild go inodes.Get: %w", err)
+	}
+
+	if inode == nil {
+		return nil, ErrInvalidPath
+	}
+
+	fileID := inode.FileID()
+	if fileID == nil {
+		return nil, files.ErrNotAFile
+	}
+
+	file, err := s.files.Open(ctx, *fileID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to Open file %q: %w", inode.ID(), err)
 	}
@@ -145,34 +135,58 @@ func (s *LocalFS) Download(ctx context.Context, inode *inodes.INode) (io.ReadSee
 	return file, nil
 }
 
-func (s *LocalFS) Upload(ctx context.Context, inode *inodes.INode, w io.Reader) error {
-	file, err := s.files.Open(ctx, inode)
+func (s *LocalFS) Upload(ctx context.Context, name string, w io.Reader) error {
+	name, err := validatePath(name)
 	if err != nil {
-		return fmt.Errorf("failed to Open file %q: %w", inode.ID(), err)
+		return err
+	}
+
+	dirPath, fileName := path.Split(name)
+	if dirPath == "" {
+		dirPath = "/"
+	}
+
+	dir, err := s.inodes.Get(ctx, &inodes.PathCmd{
+		Root:     s.folder.RootFS(),
+		FullName: dirPath,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to find the directory: %w", err)
+	}
+
+	file, fileID, err := s.files.Create(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to Create file: %w", err)
 	}
 
 	defer file.Close()
 
-	hasher := sha256.New()
-
-	w = io.TeeReader(w, hasher)
-
-	sizeWrite, err := io.Copy(file, w)
+	_, err = io.Copy(file, w)
 	if err != nil {
 		return fmt.Errorf("failed to copy the file content: %w", err)
 	}
 
 	ctx = context.WithoutCancel(ctx)
 
-	err = s.inodes.RegisterWrite(ctx, inode, sizeWrite, hasher)
+	err = s.upload.Register(ctx, &uploads.RegisterUploadCmd{
+		FolderID: s.folder.ID(),
+		DirID:    dir.ID(),
+		FileName: fileName,
+		FileID:   fileID,
+	})
 	if err != nil {
-		return fmt.Errorf("failed to RegisterWrite: %w", err)
+		return fmt.Errorf("failed to register the upload: %w", err)
 	}
 
-	s.folder, err = s.folders.RegisterWrite(ctx, s.folder.ID(), uint64(sizeWrite))
-	if err != nil {
-		return fmt.Errorf("failed to RegisterWrite into folder: %w", err)
-	}
+	// err = s.inodes.RegisterWrite(ctx, inode, sizeWrite, hasher)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to RegisterWrite: %w", err)
+	// }
+
+	// s.folder, err = s.folders.RegisterWrite(ctx, s.folder.ID(), uint64(sizeWrite))
+	// if err != nil {
+	// 	return fmt.Errorf("failed to RegisterWrite into folder: %w", err)
+	// }
 
 	return nil
 }

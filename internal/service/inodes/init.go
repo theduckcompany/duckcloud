@@ -3,7 +3,7 @@ package inodes
 import (
 	"context"
 	"database/sql"
-	"hash"
+	"time"
 
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
@@ -21,8 +21,7 @@ type Service interface {
 	HardDelete(ctx context.Context, inode uuid.UUID) error
 	CreateDir(ctx context.Context, cmd *PathCmd) (*INode, error)
 	CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INode, error)
-	RegisterWrite(ctx context.Context, inode *INode, sizeWrite int64, h hash.Hash) error
-	GetINodeRoot(ctx context.Context, inode *INode) (*INode, error)
+	RegisterWrite(ctx context.Context, inode *INode, sizeWrite int64, modeTime time.Time) error
 	MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, error)
 }
 

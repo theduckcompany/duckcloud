@@ -137,6 +137,8 @@ func Test_DAVFS(t *testing.T) {
 		res, err := dav.OpenFile(ctx, "foo/bar", os.O_RDONLY, 0o644)
 		assert.NoError(t, err)
 
+		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&inodes.ExampleAliceFile, nil).Once()
+
 		// Check the file infos
 		stats, err := res.Stat()
 		require.NoError(t, err)
@@ -211,7 +213,6 @@ func Test_DAVFS(t *testing.T) {
 		fsServiceMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock).Once()
 
 		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(nil, nil).Once()
-		folderFSMock.On("CreateFile", mock.Anything, "foo/bar").Return(&inodes.ExampleAliceFile, nil).Once()
 
 		res, err := dav.OpenFile(ctx, "foo/bar", os.O_WRONLY|os.O_CREATE, 0o644)
 		assert.NoError(t, err)
@@ -292,7 +293,6 @@ func Test_DAVFS(t *testing.T) {
 
 		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&inodes.ExampleAliceFile, nil).Once()
 		folderFSMock.On("RemoveAll", mock.Anything, "foo/bar").Return(nil).Once()
-		folderFSMock.On("CreateFile", mock.Anything, "foo/bar").Return(&inodes.ExampleAliceFile, nil).Once()
 
 		res, err := dav.OpenFile(ctx, "foo/bar", os.O_WRONLY|os.O_TRUNC, 0o644)
 		assert.NoError(t, err)

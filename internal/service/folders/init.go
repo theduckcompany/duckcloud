@@ -17,8 +17,6 @@ type Service interface {
 	GetUserFolder(ctx context.Context, userID, folderID uuid.UUID) (*Folder, error)
 	GetByID(ctx context.Context, folderID uuid.UUID) (*Folder, error)
 	Delete(ctx context.Context, folderID uuid.UUID) error
-	RegisterWrite(ctx context.Context, folderID uuid.UUID, size uint64) (*Folder, error)
-	RegisterDeletion(ctx context.Context, folderID uuid.UUID, size uint64) (*Folder, error)
 	GetAllFoldersWithRoot(ctx context.Context, rootID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error)
 }
 

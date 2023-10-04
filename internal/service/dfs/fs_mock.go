@@ -46,51 +46,25 @@ func (_m *MockFS) CreateDir(ctx context.Context, name string) (*inodes.INode, er
 	return r0, r1
 }
 
-// CreateFile provides a mock function with given fields: ctx, name
-func (_m *MockFS) CreateFile(ctx context.Context, name string) (*inodes.INode, error) {
+// Download provides a mock function with given fields: ctx, name
+func (_m *MockFS) Download(ctx context.Context, name string) (io.ReadSeekCloser, error) {
 	ret := _m.Called(ctx, name)
-
-	var r0 *inodes.INode
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*inodes.INode, error)); ok {
-		return rf(ctx, name)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *inodes.INode); ok {
-		r0 = rf(ctx, name)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*inodes.INode)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, name)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// Download provides a mock function with given fields: ctx, inode
-func (_m *MockFS) Download(ctx context.Context, inode *inodes.INode) (io.ReadSeekCloser, error) {
-	ret := _m.Called(ctx, inode)
 
 	var r0 io.ReadSeekCloser
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *inodes.INode) (io.ReadSeekCloser, error)); ok {
-		return rf(ctx, inode)
+	if rf, ok := ret.Get(0).(func(context.Context, string) (io.ReadSeekCloser, error)); ok {
+		return rf(ctx, name)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *inodes.INode) io.ReadSeekCloser); ok {
-		r0 = rf(ctx, inode)
+	if rf, ok := ret.Get(0).(func(context.Context, string) io.ReadSeekCloser); ok {
+		r0 = rf(ctx, name)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(io.ReadSeekCloser)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *inodes.INode) error); ok {
-		r1 = rf(ctx, inode)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, name)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -194,13 +168,13 @@ func (_m *MockFS) Rename(ctx context.Context, oldName string, newName string) er
 	return r0
 }
 
-// Upload provides a mock function with given fields: ctx, inode, w
-func (_m *MockFS) Upload(ctx context.Context, inode *inodes.INode, w io.Reader) error {
-	ret := _m.Called(ctx, inode, w)
+// Upload provides a mock function with given fields: ctx, name, w
+func (_m *MockFS) Upload(ctx context.Context, name string, w io.Reader) error {
+	ret := _m.Called(ctx, name, w)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *inodes.INode, io.Reader) error); ok {
-		r0 = rf(ctx, inode, w)
+	if rf, ok := ret.Get(0).(func(context.Context, string, io.Reader) error); ok {
+		r0 = rf(ctx, name, w)
 	} else {
 		r0 = ret.Error(0)
 	}

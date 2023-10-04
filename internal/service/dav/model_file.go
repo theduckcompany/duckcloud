@@ -9,20 +9,19 @@ import (
 	"os"
 
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 )
 
 var ErrConcurentReadWrite = errors.New("concurent read and write unauthorized")
 
 type File struct {
-	inode  *inodes.INode
+	name   string
 	fs     dfs.FS
 	writer *io.PipeWriter
 	reader io.ReadSeekCloser
 }
 
-func NewFile(inode *inodes.INode, fs dfs.FS) *File {
-	return &File{inode, fs, nil, nil}
+func NewFile(path string, fs dfs.FS) *File {
+	return &File{path, fs, nil, nil}
 }
 
 func (f *File) Close() error {
@@ -48,7 +47,7 @@ func (f *File) Read(p []byte) (int, error) {
 	}
 
 	if f.reader == nil {
-		f.reader, err = f.fs.Download(context.Background(), f.inode)
+		f.reader, err = f.fs.Download(context.Background(), f.name)
 		if err != nil {
 			return 0, fmt.Errorf("failed to Download: %w", err)
 		}
@@ -68,7 +67,7 @@ func (f *File) Write(p []byte) (int, error) {
 		r, f.writer = io.Pipe()
 
 		go func(r *io.PipeReader) {
-			err := f.fs.Upload(context.Background(), f.inode, r)
+			err := f.fs.Upload(context.Background(), f.name, r)
 			r.CloseWithError(err)
 		}(r)
 	}
@@ -93,5 +92,5 @@ func (f *File) Readdir(count int) ([]fs.FileInfo, error) {
 }
 
 func (f *File) Stat() (os.FileInfo, error) {
-	return f.inode, nil
+	return f.fs.Get(context.Background(), f.name)
 }

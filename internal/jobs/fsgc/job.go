@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
@@ -23,12 +25,13 @@ type Job struct {
 	folders folders.Service
 	log     *slog.Logger
 	cancel  context.CancelFunc
+	clock   clock.Clock
 	quit    chan struct{}
 }
 
 func NewJob(inodes inodes.Service, files files.Service, folders folders.Service, tools tools.Tools) *Job {
 	logger := tools.Logger().With(slog.String("job", jobName))
-	return &Job{inodes, files, folders, logger, nil, make(chan struct{})}
+	return &Job{inodes, files, folders, logger, nil, tools.Clock(), make(chan struct{})}
 }
 
 func (j *Job) Run(ctx context.Context) error {
@@ -40,7 +43,9 @@ func (j *Job) Run(ctx context.Context) error {
 		}
 
 		for _, inode := range toDelete {
-			err = j.deleteINode(ctx, &inode)
+			deletionDate := inode.LastModifiedAt()
+
+			err = j.deleteINode(ctx, &inode, deletionDate)
 			if err != nil {
 				return fmt.Errorf("failed to delete inode %q: %w", inode.ID(), err)
 			}
@@ -55,7 +60,7 @@ func (j *Job) Run(ctx context.Context) error {
 	}
 }
 
-func (j *Job) deleteDirINode(ctx context.Context, inode *inodes.INode) error {
+func (j *Job) deleteDirINode(ctx context.Context, inode *inodes.INode, deletionDate time.Time) error {
 	for {
 		childs, err := j.inodes.Readdir(ctx, &inodes.PathCmd{
 			Root:     inode.ID(),
@@ -66,7 +71,7 @@ func (j *Job) deleteDirINode(ctx context.Context, inode *inodes.INode) error {
 		}
 
 		for _, child := range childs {
-			err = j.deleteINode(ctx, &child)
+			err = j.deleteINode(ctx, &child, j.clock.Now())
 			if err != nil {
 				return fmt.Errorf("failed to deleteINode %q: %w", child.ID(), err)
 			}
@@ -85,41 +90,45 @@ func (j *Job) deleteDirINode(ctx context.Context, inode *inodes.INode) error {
 	return nil
 }
 
-func (j *Job) deleteINode(ctx context.Context, inode *inodes.INode) error {
+func (j *Job) deleteINode(ctx context.Context, inode *inodes.INode, deletionDate time.Time) error {
 	if inode.Mode().IsDir() {
-		return j.deleteDirINode(ctx, inode)
+		return j.deleteDirINode(ctx, inode, deletionDate)
 	}
 
 	// For the file we have several steps:
 	//
-	// - Reduce all the concerned folder size
-	// - Remove the corresponding file
-	// - Remove the corresponding inode
-	rootInode, err := j.inodes.GetINodeRoot(ctx, inode)
+	// - Remove the inode
+	// - Reduce all the parent folders size
+	// - Remove the file
+	err := j.inodes.HardDelete(ctx, inode.ID())
 	if err != nil {
-		return fmt.Errorf("failed to GetINodeRoot: %w", err)
+		return fmt.Errorf("failed to HardDelete: %w", err)
 	}
 
-	folders, err := j.folders.GetAllFoldersWithRoot(ctx, rootInode.ID(), nil)
-	if err != nil {
-		return fmt.Errorf("failed to GetAllFoldersWithRoot: %w", err)
-	}
-
-	for _, folder := range folders {
-		_, err = j.folders.RegisterDeletion(ctx, folder.ID(), uint64(inode.Size()))
-		if err != nil {
-			return fmt.Errorf("failed to RegisterDeletion: %w", err)
+	parentID := inode.Parent()
+	for {
+		if parentID == nil {
+			break
 		}
+
+		parent, err := j.inodes.GetByID(ctx, *parentID)
+		if err != nil {
+			return fmt.Errorf("failed to GetByID the parent: %w", err)
+		}
+
+		if !parent.LastModifiedAt().Equal(deletionDate) {
+			err = j.inodes.RegisterWrite(ctx, parent, -inode.Size(), deletionDate)
+			if err != nil {
+				return fmt.Errorf("failed to RegisterWrite: %w", err)
+			}
+		}
+
+		parentID = parent.Parent()
 	}
 
 	err = j.files.Delete(ctx, inode)
 	if err != nil {
 		return fmt.Errorf("failed to remove the file %q: %w", inode.ID(), err)
-	}
-
-	err = j.inodes.HardDelete(ctx, inode.ID())
-	if err != nil {
-		return fmt.Errorf("failed to HardDelete: %w", err)
 	}
 
 	return nil

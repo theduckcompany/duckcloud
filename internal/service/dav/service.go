@@ -99,14 +99,7 @@ func (s *davFS) OpenFile(ctx context.Context, name string, flag int, perm os.Fil
 		info = nil
 	}
 
-	if info == nil {
-		info, err = ffs.CreateFile(ctx, name)
-		if err != nil {
-			return nil, fmt.Errorf("failed to CreateFile: %w", err)
-		}
-	}
-
-	return NewFile(info, ffs), nil
+	return NewFile(name, ffs), nil
 }
 
 func (s *davFS) RemoveAll(ctx context.Context, name string) error {

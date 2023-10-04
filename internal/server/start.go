@@ -12,6 +12,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/debug"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/uploads"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
@@ -67,6 +68,7 @@ func start(ctx context.Context, db *sql.DB, fs afero.Fs, invoke fx.Option) *fx.A
 			fx.Annotate(davsessions.Init, fx.As(new(davsessions.Service))),
 			fx.Annotate(folders.Init, fx.As(new(folders.Service))),
 			fx.Annotate(dfs.Init, fx.As(new(dfs.Service))),
+			fx.Annotate(uploads.Init, fx.As(new(uploads.Service))),
 
 			// HTTP handlers
 			AsRoute(dav.NewHTTPHandler),

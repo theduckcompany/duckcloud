@@ -260,12 +260,7 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 		fullPath = fullPath[1:]
 	}
 
-	file, err := ffs.CreateFile(ctx, fullPath)
-	if err != nil {
-		return fmt.Errorf("failed to CreateFile: %w", err)
-	}
-
-	err = ffs.Upload(ctx, file, cmd.fileReader)
+	err = ffs.Upload(ctx, fullPath, cmd.fileReader)
 	if err != nil {
 		return fmt.Errorf("failed to Upload file: %w", err)
 	}
@@ -332,7 +327,7 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 			return
 		}
 	} else {
-		file, err := ffs.Download(r.Context(), inode)
+		file, err := ffs.Download(r.Context(), fullPath)
 		if err != nil {
 			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Download: %w", err))
 			return
@@ -406,7 +401,7 @@ func (h *browserHandler) download(w http.ResponseWriter, r *http.Request) {
 	if inode.IsDir() {
 		h.serveFolderContent(w, r, ffs, fullPath)
 	} else {
-		file, err := ffs.Download(r.Context(), inode)
+		file, err := ffs.Download(r.Context(), fullPath)
 		if err != nil {
 			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Download: %w", err))
 			return
@@ -452,7 +447,7 @@ func (h *browserHandler) serveFolderContent(w http.ResponseWriter, r *http.Reque
 			return nil
 		}
 
-		file, err := ffs.Download(ctx, i)
+		file, err := ffs.Download(ctx, path.Join(p, i.Name()))
 		if err != nil {
 			return fmt.Errorf("failed to download for zip: %w", err)
 		}

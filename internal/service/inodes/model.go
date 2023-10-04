@@ -25,8 +25,12 @@ func (t PathCmd) Validate() error {
 }
 
 type CreateFileCmd struct {
-	Parent uuid.UUID
-	Name   string
+	Parent     uuid.UUID
+	Name       string
+	Size       uint64
+	Checksum   string
+	FileID     uuid.UUID
+	UploadedAt time.Time
 }
 
 // Validate the fields.
@@ -34,6 +38,8 @@ func (t CreateFileCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.Parent, v.Required, is.UUIDv4),
 		v.Field(&t.Name, v.Required, v.Length(1, 255)),
+		v.Field(&t.Checksum, v.Required), // TODO: Add a checksum format rule
+		v.Field(&t.FileID, v.Required, is.UUIDv4),
 	)
 }
 
