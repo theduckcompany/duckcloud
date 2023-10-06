@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/uploads"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
@@ -27,9 +29,10 @@ func Test_Walk(t *testing.T) {
 	db := storage.NewTestStorage(t)
 	inodesSvc := inodes.Init(tools, db)
 	foldersSvc := folders.Init(tools, db, inodesSvc)
+	uploadsSvc := uploads.Init(db, tools)
 
 	afs := afero.NewMemMapFs()
-	filesSvc, err := files.NewFSService(afs, "/", tools.Logger())
+	filesSvc, err := files.NewFSService(afs, "/", tools)
 	require.NoError(t, err)
 
 	folder, err := foldersSvc.CreatePersonalFolder(ctx, &folders.CreatePersonalFolderCmd{
@@ -38,7 +41,7 @@ func Test_Walk(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fsSvc := NewFSService(inodesSvc, filesSvc, foldersSvc)
+	fsSvc := NewFSService(inodesSvc, filesSvc, foldersSvc, uploadsSvc)
 
 	ffs := fsSvc.GetFolderFS(folder)
 
@@ -55,7 +58,14 @@ func Test_Walk(t *testing.T) {
 	})
 
 	t.Run("with a simple file", func(t *testing.T) {
-		_, err := ffs.CreateFile(ctx, "foo.txt")
+		_, err := inodesSvc.CreateFile(ctx, &inodes.CreateFileCmd{
+			Parent:     folder.RootFS(),
+			Name:       "foo.txt",
+			Size:       0,
+			Checksum:   "deadbeef",
+			FileID:     uuid.UUID("b30f1f80-d07a-4c17-a543-71503624fa3a"),
+			UploadedAt: time.Now(),
+		})
 		require.NoError(t, err)
 
 		res := []string{}
@@ -69,8 +79,9 @@ func Test_Walk(t *testing.T) {
 		assert.Equal(t, []string{"foo.txt"}, res)
 	})
 
+	var dirA *inodes.INode
 	t.Run("with an empty directory", func(t *testing.T) {
-		_, err := ffs.CreateDir(ctx, "dir-a")
+		dirA, err = ffs.CreateDir(ctx, "dir-a")
 		require.NoError(t, err)
 
 		res := []string{}
@@ -97,7 +108,14 @@ func Test_Walk(t *testing.T) {
 	})
 
 	t.Run("do all the sub folders", func(t *testing.T) {
-		_, err := ffs.CreateFile(ctx, "dir-a/file-a.txt")
+		_, err := inodesSvc.CreateFile(ctx, &inodes.CreateFileCmd{
+			Parent:     dirA.ID(),
+			Name:       "file-a.txt",
+			Size:       0,
+			Checksum:   "deadbeef",
+			FileID:     uuid.UUID("b30f1f80-d07a-4c17-a543-71503624fa3a"),
+			UploadedAt: time.Now(),
+		})
 		require.NoError(t, err)
 
 		res := []string{}
@@ -112,11 +130,18 @@ func Test_Walk(t *testing.T) {
 	})
 
 	t.Run("with a big folder and pagination", func(t *testing.T) {
-		_, err := ffs.CreateDir(ctx, "big-folder")
+		dir, err := ffs.CreateDir(ctx, "big-folder")
 		require.NoError(t, err)
 
 		for i := 0; i < 100; i++ {
-			_, err := ffs.CreateFile(ctx, path.Join("big-folder", fmt.Sprintf("%d.txt", i)))
+			_, err := inodesSvc.CreateFile(ctx, &inodes.CreateFileCmd{
+				Parent:     dir.ID(),
+				Name:       fmt.Sprintf("%d.txt", i),
+				Size:       0,
+				Checksum:   "deadbeef",
+				FileID:     uuid.UUID("b30f1f80-d07a-4c17-a543-71503624fa3a"),
+				UploadedAt: time.Now(),
+			})
 			require.NoError(t, err)
 		}
 

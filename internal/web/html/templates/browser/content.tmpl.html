@@ -53,8 +53,5 @@
   })
   client.use(StatusBar, {target: '#status-bar'});
 
-  client.on('upload-success', (file) => {
-    htmx.trigger("#content", "refresh-event");
-  });
 
 </script>

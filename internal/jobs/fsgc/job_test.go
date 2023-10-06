@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -23,6 +24,8 @@ func TestFSGC(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		filesMock := files.NewMockService(t)
 
+		now := time.Now()
+
 		// First loop to fetch the deleted inodes
 		inodesMock.On("GetAllDeleted", mock.Anything, 10).Return([]inodes.INode{inodes.ExampleAliceRoot}, nil).Once()
 
@@ -32,14 +35,12 @@ func TestFSGC(t *testing.T) {
 			FullName: "/",
 		}, &storage.PaginateCmd{Limit: 10}).Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
 
-		// Retrieve all the impacted folders
-		inodesMock.On("GetINodeRoot", mock.Anything, &inodes.ExampleAliceFile).Return(&inodes.ExampleAliceRoot, nil).Once()
-		foldersMock.On("GetAllFoldersWithRoot", mock.Anything, inodes.ExampleAliceRoot.ID(), (*storage.PaginateCmd)(nil)).Return([]folders.Folder{folders.ExampleAlicePersonalFolder}, nil).Once()
-		foldersMock.On("RegisterDeletion", mock.Anything, folders.ExampleAlicePersonalFolder.ID(), uint64(inodes.ExampleAliceFile.Size())).Return(&folders.ExampleAlicePersonalFolder, nil).Once()
-
 		// We remove the file content and inode
-		filesMock.On("Delete", mock.Anything, &inodes.ExampleAliceFile).Return(nil).Once()
+		tools.ClockMock.On("Now").Return(now)
 		inodesMock.On("HardDelete", mock.Anything, inodes.ExampleAliceFile.ID()).Return(nil).Once()
+		inodesMock.On("GetByID", mock.Anything, *inodes.ExampleAliceFile.Parent()).Return(&inodes.ExampleAliceRoot, nil).Once()
+		inodesMock.On("RegisterWrite", mock.Anything, &inodes.ExampleAliceRoot, -inodes.ExampleAliceFile.Size(), now).Return(nil).Once()
+		filesMock.On("Delete", mock.Anything, &inodes.ExampleAliceFile).Return(nil).Once()
 
 		// We remove the dir itself
 		inodesMock.On("HardDelete", mock.Anything, inodes.ExampleAliceRoot.ID()).Return(nil).Once()

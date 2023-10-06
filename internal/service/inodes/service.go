@@ -2,13 +2,13 @@ package inodes
 
 import (
 	"context"
-	"encoding/hex"
 	"errors"
 	"fmt"
-	"hash"
 	"io/fs"
+	"math"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
@@ -130,15 +130,15 @@ func (s *INodeService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INo
 		return nil, fmt.Errorf("%w: parent %q not found", ErrInvalidParent, cmd.Parent)
 	}
 
-	now := s.clock.Now()
 	inode := INode{
 		id:             s.uuid.New(),
 		parent:         ptr.To(parent.ID()),
-		size:           0,
+		size:           cmd.Size,
+		checksum:       cmd.Checksum,
 		name:           cmd.Name,
-		createdAt:      now,
-		lastModifiedAt: now,
-		fileID:         ptr.To(s.uuid.New()),
+		createdAt:      cmd.UploadedAt,
+		lastModifiedAt: cmd.UploadedAt,
+		fileID:         &cmd.FileID,
 	}
 
 	err = s.storage.Save(ctx, &inode)
@@ -149,15 +149,17 @@ func (s *INodeService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INo
 	return &inode, nil
 }
 
-func (s *INodeService) RegisterWrite(ctx context.Context, inode *INode, sizeWrite int64, h hash.Hash) error {
-	inode.lastModifiedAt = s.clock.Now()
-	inode.size += uint64(sizeWrite)
-	inode.checksum = hex.EncodeToString(h.Sum(nil))
+func (s *INodeService) RegisterWrite(ctx context.Context, inode *INode, sizeWrite int64, modeTime time.Time) error {
+	inode.lastModifiedAt = modeTime
+	if sizeWrite > 0 {
+		inode.size += uint64(sizeWrite)
+	} else {
+		inode.size -= uint64(math.Abs(float64(sizeWrite)))
+	}
 
 	return s.storage.Patch(ctx, inode.ID(), map[string]any{
 		"last_modified_at": inode.lastModifiedAt,
 		"size":             inode.size,
-		"checksum":         inode.checksum,
 	})
 }
 
@@ -203,7 +205,11 @@ func (s *INodeService) RemoveAll(ctx context.Context, cmd *PathCmd) error {
 		return nil
 	}
 
-	return s.storage.Patch(ctx, inode.ID(), map[string]any{"deleted_at": s.clock.Now()})
+	now := s.clock.Now()
+	return s.storage.Patch(ctx, inode.ID(), map[string]any{
+		"deleted_at":       now,
+		"last_modified_at": now,
+	})
 }
 
 func (s *INodeService) CreateDir(ctx context.Context, cmd *PathCmd) (*INode, error) {
@@ -281,26 +287,6 @@ func (s *INodeService) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	}
 
 	return inode, nil
-}
-
-// GetINodeRoot returns the Root folder for any given inode.
-func (s *INodeService) GetINodeRoot(ctx context.Context, inode *INode) (*INode, error) {
-	for {
-		if inode.parent == nil {
-			return inode, nil
-		}
-
-		parent, err := s.GetByID(ctx, *inode.Parent())
-		if err != nil {
-			return nil, fmt.Errorf("failed to GetByID: %w", err)
-		}
-
-		if parent == nil {
-			return inode, nil
-		}
-
-		inode = parent
-	}
 }
 
 // walk walks the directory tree for the fullname, calling f at each step. If f

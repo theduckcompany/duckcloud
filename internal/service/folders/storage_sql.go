@@ -15,7 +15,7 @@ import (
 
 const tableName = "fs_folders"
 
-var allFields = []string{"id", "name", "public", "size", "owners", "root_fs", "created_at", "last_modified_at"}
+var allFields = []string{"id", "name", "public", "owners", "root_fs", "created_at"}
 
 type sqlStorage struct {
 	db    *sql.DB
@@ -30,7 +30,7 @@ func (s *sqlStorage) Save(ctx context.Context, folder *Folder) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(allFields...).
-		Values(folder.id, folder.name, folder.isPublic, folder.size, folder.owners, folder.rootFS, folder.createdAt, folder.lastModifiedAt).
+		Values(folder.id, folder.name, folder.isPublic, folder.owners, folder.rootFS, folder.createdAt).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -113,7 +113,7 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*Folder, err
 
 	err := query.
 		RunWith(s.db).
-		ScanContext(ctx, &res.id, &res.name, &res.isPublic, &res.size, &res.owners, &res.rootFS, &res.createdAt, &res.lastModifiedAt)
+		ScanContext(ctx, &res.id, &res.name, &res.isPublic, &res.owners, &res.rootFS, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -131,7 +131,7 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]Folder, error) {
 	for rows.Next() {
 		var res Folder
 
-		err := rows.Scan(&res.id, &res.name, &res.isPublic, &res.size, &res.owners, &res.rootFS, &res.createdAt, &res.lastModifiedAt)
+		err := rows.Scan(&res.id, &res.name, &res.isPublic, &res.owners, &res.rootFS, &res.createdAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}

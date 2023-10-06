@@ -2,15 +2,12 @@ package inodes
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	mock "github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
@@ -213,7 +210,10 @@ func TestINodes(t *testing.T) {
 			// some other unused fields
 		}, nil).Once()
 
-		storageMock.On("Patch", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"), map[string]any{"deleted_at": now}).Return(nil).Once()
+		storageMock.On("Patch", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"), map[string]any{
+			"deleted_at":       now,
+			"last_modified_at": now,
+		}).Return(nil).Once()
 
 		err := service.RemoveAll(ctx, &PathCmd{
 			Root:     ExampleAliceRoot.ID(),
@@ -270,7 +270,10 @@ func TestINodes(t *testing.T) {
 			// some other unused fields
 		}, nil).Once()
 
-		storageMock.On("Patch", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"), map[string]any{"deleted_at": now}).Return(errors.New("some-error")).Once()
+		storageMock.On("Patch", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"), map[string]any{
+			"deleted_at":       now,
+			"last_modified_at": now,
+		}).Return(errors.New("some-error")).Once()
 
 		err := service.RemoveAll(ctx, &PathCmd{
 			Root:     ExampleAliceRoot.ID(),
@@ -434,23 +437,26 @@ func TestINodes(t *testing.T) {
 			id:             uuid.UUID("some-inode-id"),
 			parent:         ptr.To(ExampleAliceRoot.ID()),
 			name:           "foobar",
+			size:           42,
+			checksum:       "deadbeef",
 			createdAt:      now,
 			lastModifiedAt: now,
-			fileID:         ptr.To(uuid.UUID("some-file-id")),
+			fileID:         ptr.To(uuid.UUID("b30f1f80-d07a-4c17-a543-71503624fa3a")),
 		}
 
 		storageMock.On("GetByID", mock.Anything, ExampleAliceRoot.ID()).Return(&ExampleAliceRoot, nil).Once()
 
-		tools.ClockMock.On("Now").Return(now).Once()
-
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-inode-id")).Once()
-		tools.UUIDMock.On("New").Return(uuid.UUID("some-file-id")).Once()
 
 		storageMock.On("Save", mock.Anything, &inode).Return(nil).Once()
 
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
-			Parent: ExampleAliceRoot.ID(),
-			Name:   "foobar",
+			Parent:     ExampleAliceRoot.ID(),
+			Name:       "foobar",
+			Size:       42,
+			Checksum:   "deadbeef",
+			UploadedAt: now,
+			FileID:     uuid.UUID("b30f1f80-d07a-4c17-a543-71503624fa3a"),
 		})
 
 		assert.NoError(t, err)
@@ -463,8 +469,11 @@ func TestINodes(t *testing.T) {
 		service := NewService(tools, storageMock)
 
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
-			Parent: "some-invalid-id",
-			Name:   "foobar",
+			Parent:   "some-invalid-id",
+			Name:     "foobar",
+			Size:     uint64(ExampleAliceFile.Size()),
+			Checksum: ExampleAliceFile.Checksum(),
+			FileID:   *ExampleAliceFile.FileID(),
 		})
 
 		assert.Nil(t, res)
@@ -479,8 +488,11 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, ExampleAliceRoot.ID()).Return(nil, nil).Once()
 
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
-			Parent: ExampleAliceRoot.ID(),
-			Name:   "foobar",
+			Parent:   ExampleAliceRoot.ID(),
+			Name:     "foobar",
+			Size:     uint64(ExampleAliceFile.Size()),
+			Checksum: ExampleAliceFile.Checksum(),
+			FileID:   *ExampleAliceFile.FileID(),
 		})
 
 		assert.Nil(t, res)
@@ -540,51 +552,18 @@ func TestINodes(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
 
-		t.Cleanup(func() {
-			ExampleAliceFile.lastModifiedAt = now2
-		})
+		now := time.Now().UTC()
 
-		now := time.Now()
-		hash := sha256.New()
-		n, err := hash.Write([]byte("some-content"))
-		require.NoError(t, err)
-
-		tools.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAliceFile.id, map[string]any{
-			"checksum":         hex.EncodeToString(hash.Sum(nil)),
 			"last_modified_at": now,
-			"size":             ExampleAliceFile.size + uint64(n),
+			"size":             uint64(52), // 42 + 10
 		}).Return(nil).Once()
 
 		// Duplicate in order to avoid side effects on other tests
 		aliceFile := ExampleAliceFile
 
-		err = service.RegisterWrite(ctx, &aliceFile, int64(n), hash)
+		err := service.RegisterWrite(ctx, &aliceFile, 10, now)
 		assert.NoError(t, err)
-	})
-
-	t.Run("GetINodeRoot success", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
-		service := NewService(tools, storageMock)
-
-		storageMock.On("GetByID", mock.Anything, *ExampleAliceFile.parent).Return(&ExampleAliceRoot, nil).Once()
-
-		res, err := service.GetINodeRoot(ctx, &ExampleAliceFile)
-		assert.NoError(t, err)
-		assert.EqualValues(t, &ExampleAliceRoot, res)
-	})
-
-	t.Run("GetINodeRoot with a root", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
-		service := NewService(tools, storageMock)
-
-		// There is not call to GetByID because there is no parent.
-
-		res, err := service.GetINodeRoot(ctx, &ExampleAliceRoot)
-		assert.NoError(t, err)
-		assert.EqualValues(t, &ExampleAliceRoot, res)
 	})
 
 	t.Run("MkdirAll success", func(t *testing.T) {

@@ -18,17 +18,17 @@ func TestFileService(t *testing.T) {
 		tools := tools.NewMock(t)
 		fs := afero.NewMemMapFs()
 
-		svc, err := NewFSService(fs, "/", tools.Logger())
+		svc, err := NewFSService(fs, "/", tools)
 		require.NoError(t, err)
 
-		file, err := svc.Open(ctx, &inodes.ExampleAliceFile)
+		file, err := svc.Open(ctx, *inodes.ExampleAliceFile.FileID())
 		assert.NoError(t, err)
 
 		file.WriteString("Hello, World!")
 		err = file.Close()
 		require.NoError(t, err)
 
-		file2, err := svc.Open(ctx, &inodes.ExampleAliceFile)
+		file2, err := svc.Open(ctx, *inodes.ExampleAliceFile.FileID())
 		assert.NoError(t, err)
 
 		buf := make([]byte, 13)
@@ -38,23 +38,11 @@ func TestFileService(t *testing.T) {
 		assert.Equal(t, "Hello, World!", string(buf))
 	})
 
-	t.Run("Open with a dir", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		fs := afero.NewMemMapFs()
-
-		svc, err := NewFSService(fs, "/", tools.Logger())
-		require.NoError(t, err)
-
-		file, err := svc.Open(ctx, &inodes.ExampleAliceRoot)
-		assert.Nil(t, file)
-		assert.ErrorIs(t, err, ErrNotAFile)
-	})
-
 	t.Run("NewFSService setup the dir fanout", func(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		tools := tools.NewMock(t)
 
-		svc, err := NewFSService(fs, "/", tools.Logger())
+		svc, err := NewFSService(fs, "/", tools)
 		require.NoError(t, err)
 		require.NotNil(t, svc)
 
@@ -73,12 +61,12 @@ func TestFileService(t *testing.T) {
 		fs := afero.NewMemMapFs()
 
 		// First time
-		svc, err := NewFSService(fs, "/", tools.Logger())
+		svc, err := NewFSService(fs, "/", tools)
 		require.NoError(t, err)
 		require.NotNil(t, svc)
 
 		// Second time
-		svc, err = NewFSService(fs, "/", tools.Logger())
+		svc, err = NewFSService(fs, "/", tools)
 		require.NoError(t, err)
 		require.NotNil(t, svc)
 
@@ -97,7 +85,7 @@ func TestFileService(t *testing.T) {
 		fs := afero.NewMemMapFs()
 
 		// First time
-		svc, err := NewFSService(fs, "/invalid/path", tools.Logger())
+		svc, err := NewFSService(fs, "/invalid/path", tools)
 		assert.Nil(t, svc)
 		assert.EqualError(t, err, "invalid path: open /invalid/path: file does not exist")
 	})
@@ -110,7 +98,7 @@ func TestFileService(t *testing.T) {
 		require.NoError(t, err)
 
 		// First time
-		svc, err := NewFSService(fs, "/foo", tools.Logger())
+		svc, err := NewFSService(fs, "/foo", tools)
 		assert.Nil(t, svc)
 		assert.EqualError(t, err, "invalid path: open /foo: it must be a directory")
 	})
@@ -119,11 +107,11 @@ func TestFileService(t *testing.T) {
 		tools := tools.NewMock(t)
 		fs := afero.NewMemMapFs()
 
-		svc, err := NewFSService(fs, "/", tools.Logger())
+		svc, err := NewFSService(fs, "/", tools)
 		require.NoError(t, err)
 
 		// Create a file
-		file, err := svc.Open(ctx, &inodes.ExampleAliceFile)
+		file, err := svc.Open(ctx, *inodes.ExampleAliceFile.FileID())
 		assert.NoError(t, err)
 		file.WriteString("Hello, World!")
 		err = file.Close()
@@ -138,7 +126,7 @@ func TestFileService(t *testing.T) {
 		tools := tools.NewMock(t)
 		fs := afero.NewMemMapFs()
 
-		svc, err := NewFSService(fs, "/", tools.Logger())
+		svc, err := NewFSService(fs, "/", tools)
 		require.NoError(t, err)
 
 		err = svc.Delete(ctx, &inodes.ExampleAliceRoot)

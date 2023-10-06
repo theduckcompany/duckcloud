@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"os"
 	"path"
 
 	"github.com/spf13/afero"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
+	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 var (
@@ -19,10 +20,11 @@ var (
 )
 
 type FSService struct {
-	fs afero.Fs
+	fs   afero.Fs
+	uuid uuid.Service
 }
 
-func NewFSService(fs afero.Fs, rootPath string, log *slog.Logger) (*FSService, error) {
+func NewFSService(fs afero.Fs, rootPath string, tools tools.Tools) (*FSService, error) {
 	root := path.Clean(rootPath)
 
 	info, err := fs.Stat(root)
@@ -33,8 +35,6 @@ func NewFSService(fs afero.Fs, rootPath string, log *slog.Logger) (*FSService, e
 	if !info.IsDir() {
 		return nil, fmt.Errorf("%w: open %s: it must be a directory", ErrInvalidPath, root)
 	}
-
-	log.Info(fmt.Sprintf("load files from %s", root))
 
 	rootFS := afero.NewBasePathFs(fs, root)
 
@@ -50,16 +50,22 @@ func NewFSService(fs afero.Fs, rootPath string, log *slog.Logger) (*FSService, e
 		}
 	}
 
-	return &FSService{rootFS}, nil
+	return &FSService{rootFS, tools.UUID()}, nil
 }
 
-func (s *FSService) Open(ctx context.Context, inode *inodes.INode) (afero.File, error) {
-	fileID := inode.FileID()
-	if fileID == nil {
-		return nil, ErrNotAFile
+func (s *FSService) Create(ctx context.Context) (afero.File, uuid.UUID, error) {
+	fileID := s.uuid.New()
+
+	file, err := s.Open(ctx, fileID)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to open the file: %w", err)
 	}
 
-	idStr := string(*fileID)
+	return file, fileID, nil
+}
+
+func (s *FSService) Open(ctx context.Context, fileID uuid.UUID) (afero.File, error) {
+	idStr := string(fileID)
 	filePath := path.Join(idStr[:2], idStr)
 
 	file, err := s.fs.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_SYNC, 0o600)

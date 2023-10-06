@@ -10,8 +10,10 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/theduckcompany/duckcloud/internal/jobs/fileupload"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/uploads"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
@@ -41,9 +43,10 @@ func Test_DavFS_integration(t *testing.T) {
 	foldersSvc := folders.Init(tools, db, inodesSvc)
 	usersSvc := users.Init(tools, db, foldersSvc)
 	davSessionsSvc := davsessions.Init(db, foldersSvc, usersSvc, tools)
+	uploadsSvc := uploads.Init(db, tools)
 
 	afs := afero.NewMemMapFs()
-	filesSvc, err := files.NewFSService(afs, "/", tools.Logger())
+	filesSvc, err := files.NewFSService(afs, "/", tools)
 	require.NoError(t, err)
 
 	user, err := usersSvc.Create(ctx, &users.CreateCmd{
@@ -66,7 +69,7 @@ func Test_DavFS_integration(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fsSvc := dfs.NewFSService(inodesSvc, filesSvc, foldersSvc)
+	fsSvc := dfs.NewFSService(inodesSvc, filesSvc, foldersSvc, uploadsSvc)
 	davfs := &davFS{foldersSvc, fsSvc}
 
 	ctx = context.WithValue(ctx, sessionKeyCtx, session)
@@ -76,7 +79,7 @@ func Test_DavFS_integration(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("Create a file", func(t *testing.T) {
+	t.Run("Write into a file", func(t *testing.T) {
 		file, err := davfs.OpenFile(ctx, "foo/bar.1.txt", os.O_CREATE|os.O_WRONLY, 0o644)
 		require.NoError(t, err)
 
@@ -96,6 +99,12 @@ func Test_DavFS_integration(t *testing.T) {
 		assert.Equal(t, 13, n)
 
 		assert.NoError(t, file.Close())
+	})
+
+	t.Run("Running fileupload job make the files available", func(t *testing.T) {
+		job := fileupload.NewJob(foldersSvc, uploadsSvc, filesSvc, inodesSvc, tools)
+		err = job.Run(ctx)
+		assert.NoError(t, err)
 	})
 
 	t.Run("Readfile with fs.ReadFile", func(t *testing.T) {

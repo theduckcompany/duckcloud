@@ -167,7 +167,7 @@ func Test_Browser_Page(t *testing.T) {
 		file, err := afero.TempFile(afs, t.TempDir(), "")
 		require.NoError(t, err)
 
-		folderFSMock.On("Download", mock.Anything, &inodes.ExampleAliceFile).Return(file, nil).Once()
+		folderFSMock.On("Download", mock.Anything, "foo/bar").Return(file, nil).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/browser/folder-id/foo/bar", nil)
@@ -333,8 +333,7 @@ func Test_Browser_Page(t *testing.T) {
 		folderFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
 
-		folderFSMock.On("CreateFile", mock.Anything, "foo/bar/hello.txt").Return(&inodes.ExampleAliceFile, nil).Once()
-		folderFSMock.On("Upload", mock.Anything, &inodes.ExampleAliceFile, mock.Anything).
+		folderFSMock.On("Upload", mock.Anything, "foo/bar/hello.txt", mock.Anything).
 			Run(func(args mock.Arguments) {
 				uploaded, err := io.ReadAll(args[2].(io.Reader))
 				require.NoError(t, err)
@@ -392,8 +391,7 @@ func Test_Browser_Page(t *testing.T) {
 
 		folderFSMock.On("CreateDir", mock.Anything, "/foo/bar/baz").Return(&inodes.ExampleAliceRoot, nil).Once()
 
-		folderFSMock.On("CreateFile", mock.Anything, "foo/bar/baz/hello.txt").Return(&inodes.ExampleAliceFile, nil).Once()
-		folderFSMock.On("Upload", mock.Anything, &inodes.ExampleAliceFile, mock.Anything).
+		folderFSMock.On("Upload", mock.Anything, "foo/bar/baz/hello.txt", mock.Anything).
 			Run(func(args mock.Arguments) {
 				uploaded, err := io.ReadAll(args[2].(io.Reader))
 				require.NoError(t, err)

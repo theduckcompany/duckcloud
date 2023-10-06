@@ -3,7 +3,6 @@ package folders
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -59,15 +58,13 @@ func TestFolderSqlstore(t *testing.T) {
 	})
 
 	t.Run("Patch success", func(t *testing.T) {
-		now := time.Now().UTC()
-
-		err := store.Patch(ctx, ExampleAlicePersonalFolder.id, map[string]any{"last_modified_at": now})
+		err := store.Patch(ctx, ExampleAlicePersonalFolder.id, map[string]any{"name": "foo"})
 		require.NoError(t, err)
 
 		res, err := store.GetByID(ctx, ExampleAlicePersonalFolder.id)
 
 		expected := ExampleAlicePersonalFolder
-		expected.lastModifiedAt = now
+		expected.name = "foo"
 
 		assert.NoError(t, err)
 		assert.Equal(t, &expected, res)

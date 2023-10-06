@@ -4,11 +4,11 @@ package inodes
 
 import (
 	context "context"
-	hash "hash"
 
 	mock "github.com/stretchr/testify/mock"
-
 	storage "github.com/theduckcompany/duckcloud/internal/tools/storage"
+
+	time "time"
 
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -174,32 +174,6 @@ func (_m *MockService) GetByID(ctx context.Context, inodeID uuid.UUID) (*INode, 
 	return r0, r1
 }
 
-// GetINodeRoot provides a mock function with given fields: ctx, inode
-func (_m *MockService) GetINodeRoot(ctx context.Context, inode *INode) (*INode, error) {
-	ret := _m.Called(ctx, inode)
-
-	var r0 *INode
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *INode) (*INode, error)); ok {
-		return rf(ctx, inode)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, *INode) *INode); ok {
-		r0 = rf(ctx, inode)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*INode)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, *INode) error); ok {
-		r1 = rf(ctx, inode)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // HardDelete provides a mock function with given fields: ctx, inode
 func (_m *MockService) HardDelete(ctx context.Context, inode uuid.UUID) error {
 	ret := _m.Called(ctx, inode)
@@ -266,13 +240,13 @@ func (_m *MockService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *s
 	return r0, r1
 }
 
-// RegisterWrite provides a mock function with given fields: ctx, inode, sizeWrite, h
-func (_m *MockService) RegisterWrite(ctx context.Context, inode *INode, sizeWrite int64, h hash.Hash) error {
-	ret := _m.Called(ctx, inode, sizeWrite, h)
+// RegisterWrite provides a mock function with given fields: ctx, inode, sizeWrite, modeTime
+func (_m *MockService) RegisterWrite(ctx context.Context, inode *INode, sizeWrite int64, modeTime time.Time) error {
+	ret := _m.Called(ctx, inode, sizeWrite, modeTime)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *INode, int64, hash.Hash) error); ok {
-		r0 = rf(ctx, inode, sizeWrite, h)
+	if rf, ok := ret.Get(0).(func(context.Context, *INode, int64, time.Time) error); ok {
+		r0 = rf(ctx, inode, sizeWrite, modeTime)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -3,11 +3,13 @@ package jobs
 import (
 	"time"
 
+	"github.com/theduckcompany/duckcloud/internal/jobs/fileupload"
 	"github.com/theduckcompany/duckcloud/internal/jobs/fsgc"
 	"github.com/theduckcompany/duckcloud/internal/jobs/usercreate"
 	"github.com/theduckcompany/duckcloud/internal/jobs/userdelete"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/uploads"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
@@ -30,6 +32,7 @@ func StartJobs(
 	folders folders.Service,
 	fs dfs.Service,
 	inodes inodes.Service,
+	uploads uploads.Service,
 	tools tools.Tools,
 ) {
 	fsgcJob := fsgc.NewJob(inodes, files, folders, tools)
@@ -43,4 +46,8 @@ func StartJobs(
 	userDeleteJob := userdelete.NewJob(users, webSessions, davSessions, oauthSessions, oauthConsents, folders, fs, tools)
 	userDeleteJobRunner := NewJobRunner(userDeleteJob, 10*time.Second, tools)
 	userDeleteJobRunner.FXRegister(lc)
+
+	fileUploadJob := fileupload.NewJob(folders, uploads, files, inodes, tools)
+	fileUploadJobRunner := NewJobRunner(fileUploadJob, 1*time.Second, tools)
+	fileUploadJobRunner.FXRegister(lc)
 }
