@@ -33,6 +33,10 @@ func bootstrapFolder(cmd *cobra.Command, dir string) string {
 	}
 
 	if folderPath == "" {
+		folderPath, err = xdg.SearchDataFile(folderName)
+	}
+
+	if folderPath == "" {
 		folderPath = path.Join(xdg.DataHome, folderName)
 	}
 
