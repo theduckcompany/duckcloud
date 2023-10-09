@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/coreos/go-systemd/daemon"
 	chi "github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/theduckcompany/duckcloud/internal/tools"
@@ -126,6 +127,8 @@ func createHandler(cfg Config, routes []Registerer, mids *Middlewares) (chi.Rout
 
 		routes[svcIdx].Register(r, mids)
 	}
+
+	daemon.SdNotify(false, daemon.SdNotifyReady)
 
 	return r, nil
 }
