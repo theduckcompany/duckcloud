@@ -30,6 +30,6 @@ jobs:
         goversion: 1.21.1
         project_path: "./cmd/duckcloud"
         binary_name: "duckcloud"
-        ldflags: "-X github.com/theduckcompany/duckcloud/internal/tools/buildinfos.Version=${{github.ref_name}} -X github.com/theduckcompany/duckcloud/internal/tools/buildinfos.BuildTime=$(date --utc --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +"%Y-%m-%dT%H:%M:%SZ")"
+        ldflags: "-X github.com/theduckcompany/duckcloud/internal/tools/buildinfos.Version=${{github.ref_name}} -X github.com/theduckcompany/duckcloud/internal/tools/buildinfos.BuildTime=$(date --utc -Iminutes"
         extra_files: LICENSE README.md
         overwrite: TRUE
