@@ -42,10 +42,11 @@ func AsRoute(f any) any {
 	)
 }
 
-func start(ctx context.Context, db *sql.DB, fs afero.Fs, invoke fx.Option) *fx.App {
+func start(ctx context.Context, db *sql.DB, fs afero.Fs, folderPath string, invoke fx.Option) *fx.App {
 	app := fx.New(
 		fx.WithLogger(func(tools tools.Tools) fxevent.Logger { return logger.NewFxLogger(tools.Logger()) }),
 		fx.Provide(
+			func() string { return folderPath },
 			func() context.Context { return ctx },
 			func() afero.Fs { return fs },
 			func() *sql.DB { return db },

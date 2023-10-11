@@ -33,7 +33,7 @@ func disableSSL(cmd *cobra.Command, configSvc config.Service) {
 	}
 }
 
-func setupSSLCertificate(cmd *cobra.Command, configSvc config.Service) {
+func setupSSLCertificate(cmd *cobra.Command, configSvc config.Service, folderPath string) {
 	const (
 		SelfSignedCertif   = "Generate a self-signed certificate"
 		UserProvidedCertif = "I already have my certificate"
@@ -71,7 +71,7 @@ func setupSSLCertificate(cmd *cobra.Command, configSvc config.Service) {
 	}
 
 	if devMode {
-		generateSelfSignedCertificate(cmd, configSvc)
+		generateSelfSignedCertificate(cmd, configSvc, folderPath)
 		return
 	}
 
@@ -88,7 +88,7 @@ func setupSSLCertificate(cmd *cobra.Command, configSvc config.Service) {
 
 	switch res {
 	case SelfSignedCertif:
-		generateSelfSignedCertificate(cmd, configSvc)
+		generateSelfSignedCertificate(cmd, configSvc, folderPath)
 	case UserProvidedCertif:
 		certifPath := askPath(cmd, "Certificate path (.pem)", false)
 		privateKeyPath := askPath(cmd, "PrivateKey path (.pem)", false)
@@ -101,17 +101,12 @@ func setupSSLCertificate(cmd *cobra.Command, configSvc config.Service) {
 	}
 }
 
-func generateSelfSignedCertificate(cmd *cobra.Command, confiSvc config.Service) {
-	folderPath, err := confiSvc.Get(cmd.Context(), config.FSDataFolder)
-	if err != nil {
-		printErrAndExit(cmd, fmt.Errorf("failed to fetch the folder path: %w", err))
-	}
-
+func generateSelfSignedCertificate(cmd *cobra.Command, confiSvc config.Service, folderPath string) {
 	sslFolder := path.Join(folderPath, "ssl")
 	certificatePath := path.Join(sslFolder, "cert.pem")
 	privateKeyPath := path.Join(sslFolder, "key.pem")
 
-	err = os.MkdirAll(sslFolder, 0o700)
+	err := os.MkdirAll(sslFolder, 0o700)
 	if err != nil {
 		printErrAndExit(cmd, fmt.Errorf("failed to create the SSL folder: %w", err))
 	}

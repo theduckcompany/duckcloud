@@ -35,9 +35,8 @@ func NewBootstrapCmd(_ string) *cobra.Command {
 
 			configSvc := config.Init(db)
 
-			setupFolderPath(cmd, configSvc, folderPath)
 			setupAddr(cmd, configSvc)
-			setupSSLCertificate(cmd, configSvc)
+			setupSSLCertificate(cmd, configSvc, folderPath)
 
 			tools := tools.NewToolbox(tools.Config{
 				Response: response.Config{},
