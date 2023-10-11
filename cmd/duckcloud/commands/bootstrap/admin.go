@@ -32,7 +32,7 @@ func setupAdmin(cmd *cobra.Command, userSvc users.Service) {
 	}
 
 	if len(res) > 0 {
-		fmt.Printf("A user already exists\n")
+		cmd.Printf("A user already exists\n")
 		return
 	}
 
@@ -54,5 +54,5 @@ func setupAdmin(cmd *cobra.Command, userSvc users.Service) {
 		printErrAndExit(cmd, err)
 	}
 
-	fmt.Printf("User %q successfully bootstraped!\n", user.Username())
+	cmd.Printf("User %q successfully bootstraped!\n", user.Username())
 }

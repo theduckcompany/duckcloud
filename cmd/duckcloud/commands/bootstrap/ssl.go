@@ -44,7 +44,7 @@ func setupSSLCertificate(cmd *cobra.Command, configSvc config.Service, folderPat
 		printErrAndExit(cmd, err)
 	}
 
-	fmt.Printf("SSL enabled: %v\n", sslEnable)
+	cmd.Printf("SSL enabled: %v\n", sslEnable)
 	if !sslEnable {
 		return
 	}
@@ -60,8 +60,8 @@ func setupSSLCertificate(cmd *cobra.Command, configSvc config.Service, folderPat
 	}
 
 	if certifPath != "" && privateKeyPath != "" {
-		fmt.Printf("SSL certificate path: %s\n", certifPath)
-		fmt.Printf("SSL private key path: %s\n", privateKeyPath)
+		cmd.Printf("SSL certificate path: %s\n", certifPath)
+		cmd.Printf("SSL private key path: %s\n", privateKeyPath)
 		return
 	}
 
@@ -173,8 +173,8 @@ func generateSelfSignedCertificate(cmd *cobra.Command, confiSvc config.Service, 
 		printErrAndExit(cmd, fmt.Errorf("failed to save the SSL config in db: %w", err))
 	}
 
-	fmt.Printf("Certificate setup: %q\n", certificatePath)
-	fmt.Printf("Private Key setup: %q\n", privateKeyPath)
+	cmd.Printf("Certificate setup: %q\n", certificatePath)
+	cmd.Printf("Private Key setup: %q\n", privateKeyPath)
 }
 
 func askPath(cmd *cobra.Command, message string, expectDir bool) string {

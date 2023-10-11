@@ -1,8 +1,6 @@
 package bootstrap
 
 import (
-	"fmt"
-
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
 	"github.com/theduckcompany/duckcloud/internal/service/config"
@@ -21,7 +19,7 @@ This name will be used to generate you server url as follow: https://{{server-na
 	}
 
 	if hostname != "" {
-		fmt.Printf("Hostname already setup: %q\n", hostname)
+		cmd.Printf("Hostname already setup: %q\n", hostname)
 		return hostname
 	}
 
@@ -37,7 +35,7 @@ This name will be used to generate you server url as follow: https://{{server-na
 		printErrAndExit(cmd, err)
 	}
 
-	fmt.Printf("Hostname setup: %q\n", hostname)
+	cmd.Printf("Hostname setup: %q\n", hostname)
 
 	return hostname
 }

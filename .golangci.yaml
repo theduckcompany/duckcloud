@@ -1,4 +1,4 @@
-# Options for analysis running.
+#j/for Options for analysis running.
 run:
   # Timeout for analysis, e.g. 30s, 5m.
   # Default: 1m
@@ -36,7 +36,6 @@ run:
   # Define the Go version limit.
   # Mainly related to generics support since go1.18.
   # Default: use Go version from the go.mod file, fallback on the env var `GOVERSION`, fallback on 1.18
-  go: '1.18'
 linters:
   # Disable all linters.
   # Default: false
@@ -51,6 +50,7 @@ linters:
     - exportloopref 
     - errname
     - exhaustive
+    - forbidigo
     - gochecknoinits
     - gocritic
     # - goerr113
