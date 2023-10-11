@@ -30,15 +30,10 @@ type Config struct {
 	Web       web.Config      `json:"web"`
 }
 
-func NewConfigFromDB(ctx context.Context, configSvc config.Service) (Config, error) {
+func NewConfigFromDB(ctx context.Context, configSvc config.Service, folderPath string) (Config, error) {
 	devModeEnabled, err := configSvc.IsDevModeEnabled(ctx)
 	if err != nil {
 		return Config{}, fmt.Errorf("failed to check the dev mode: %w", err)
-	}
-
-	dataFolder, err := configSvc.Get(ctx, config.FSDataFolder)
-	if err != nil {
-		return Config{}, fmt.Errorf("failed to check the date folder: %w", err)
 	}
 
 	addrs, err := configSvc.Get(ctx, config.HTTPAddrs)
@@ -79,7 +74,7 @@ func NewConfigFromDB(ctx context.Context, configSvc config.Service) (Config, err
 			HotReload: devModeEnabled,
 		},
 		Files: files.Config{
-			Path: path.Join(dataFolder, "files"),
+			Path: path.Join(folderPath, "files"),
 		},
 		Tools: tools.Config{
 			Response: response.Config{

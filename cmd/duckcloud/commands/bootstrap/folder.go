@@ -11,7 +11,6 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/adrg/xdg"
 	"github.com/spf13/cobra"
-	"github.com/theduckcompany/duckcloud/internal/service/config"
 )
 
 const (
@@ -66,21 +65,4 @@ func bootstrapFolder(cmd *cobra.Command, dir string) string {
 	fmt.Printf("Folder created at %s\n", folderPath)
 
 	return folderPath
-}
-
-func setupFolderPath(cmd *cobra.Command, configSvc config.Service, folderPath string) {
-	folder, err := configSvc.Get(cmd.Context(), config.FSDataFolder)
-	if err != nil {
-		printErrAndExit(cmd, err)
-	}
-
-	if folder != "" {
-		fmt.Println("Folder localisation saved")
-		return
-	}
-
-	err = configSvc.SetDataFolder(cmd.Context(), folderPath)
-	if err != nil {
-		printErrAndExit(cmd, fmt.Errorf("failed to save the data folder path: %w", err))
-	}
 }

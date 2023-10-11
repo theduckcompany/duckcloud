@@ -9,7 +9,6 @@ import (
 type Service interface {
 	SetHostName(ctx context.Context, hostName string) error
 	SetAddrs(ctx context.Context, hosts []string, port int) error
-	SetDataFolder(ctx context.Context, path string) error
 	SetTrustedHosts(ctx context.Context, hosts []string) error
 	EnableTLS(ctx context.Context) error
 	EnableDevMode(ctx context.Context) error
