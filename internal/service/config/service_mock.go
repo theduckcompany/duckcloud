@@ -55,28 +55,85 @@ func (_m *MockService) EnableTLS(ctx context.Context) error {
 	return r0
 }
 
-// Get provides a mock function with given fields: ctx, key
-func (_m *MockService) Get(ctx context.Context, key ConfigKey) (string, error) {
-	ret := _m.Called(ctx, key)
+// GetAddrs provides a mock function with given fields: ctx
+func (_m *MockService) GetAddrs(ctx context.Context) ([]string, error) {
+	ret := _m.Called(ctx)
 
-	var r0 string
+	var r0 []string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, ConfigKey) (string, error)); ok {
-		return rf(ctx, key)
+	if rf, ok := ret.Get(0).(func(context.Context) ([]string, error)); ok {
+		return rf(ctx)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, ConfigKey) string); ok {
-		r0 = rf(ctx, key)
+	if rf, ok := ret.Get(0).(func(context.Context) []string); ok {
+		r0 = rf(ctx)
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, ConfigKey) error); ok {
-		r1 = rf(ctx, key)
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
 	} else {
 		r1 = ret.Error(1)
 	}
 
 	return r0, r1
+}
+
+// GetHostName provides a mock function with given fields: ctx
+func (_m *MockService) GetHostName(ctx context.Context) (string, error) {
+	ret := _m.Called(ctx)
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (string, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) string); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetSSLPaths provides a mock function with given fields: ctx
+func (_m *MockService) GetSSLPaths(ctx context.Context) (string, string, error) {
+	ret := _m.Called(ctx)
+
+	var r0 string
+	var r1 string
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context) (string, string, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) string); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) string); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context) error); ok {
+		r2 = rf(ctx)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // GetTrustedHosts provides a mock function with given fields: ctx
@@ -160,20 +217,6 @@ func (_m *MockService) SetAddrs(ctx context.Context, hosts []string, port int) e
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, []string, int) error); ok {
 		r0 = rf(ctx, hosts, port)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// SetDataFolder provides a mock function with given fields: ctx, path
-func (_m *MockService) SetDataFolder(ctx context.Context, path string) error {
-	ret := _m.Called(ctx, path)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, path)
 	} else {
 		r0 = ret.Error(0)
 	}

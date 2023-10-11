@@ -13,7 +13,6 @@ type Service interface {
 	EnableTLS(ctx context.Context) error
 	EnableDevMode(ctx context.Context) error
 	SetSSLPaths(ctx context.Context, certifPath, privateKeyPath string) error
-	Get(ctx context.Context, key ConfigKey) (string, error)
 	DisableTLS(ctx context.Context) error
 	IsTLSEnabled(ctx context.Context) (bool, error)
 	IsDevModeEnabled(ctx context.Context) (bool, error)
