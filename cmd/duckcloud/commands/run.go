@@ -30,17 +30,17 @@ func NewRunCmd(binaryName string) *cobra.Command {
 		Args:  cobra.NoArgs,
 		Use:   "run",
 		Run: func(cmd *cobra.Command, _ []string) {
-			dataDir, err := cmd.Flags().GetString("dir")
+			folderPath, err := cmd.Flags().GetString("dir")
 			if err != nil {
 				cmd.PrintErrln(err)
 				os.Exit(1)
 			}
 
-			if dataDir == "" {
+			if folderPath == "" {
 				for _, dir := range configDirs {
 					_, err := os.Stat(path.Join(dir, "duckcloud"))
 					if err == nil {
-						dataDir = path.Join(dir, "duckcloud")
+						folderPath = path.Join(dir, "duckcloud")
 						break
 					}
 
@@ -50,22 +50,22 @@ func NewRunCmd(binaryName string) *cobra.Command {
 					}
 				}
 
-				if dataDir == "" {
+				if folderPath == "" {
 					cmd.PrintErrln(fmt.Sprintf(`No data directory found, have you run "%s server bootstrap"?`, binaryName))
 					os.Exit(1)
 				}
 			}
 
-			dataDir, err = filepath.Abs(dataDir)
+			folderPath, err = filepath.Abs(folderPath)
 			if err != nil {
-				cmd.PrintErrln(fmt.Sprintf(`invalid path %q: %s`, dataDir, err))
+				cmd.PrintErrln(fmt.Sprintf(`invalid path %q: %s`, folderPath, err))
 				os.Exit(1)
 			}
 
-			cmd.Printf("start server from: %s\n", dataDir)
+			cmd.Printf("start server from: %s\n", folderPath)
 
 			db, err := storage.NewSQliteClient(&storage.Config{
-				Path:  path.Join(dataDir, "db.sqlite"),
+				Path:  path.Join(folderPath, "db.sqlite"),
 				Debug: debug,
 			}, logger.NewSLogger(logger.Config{Level: slog.LevelDebug}))
 			if err != nil {
@@ -73,7 +73,7 @@ func NewRunCmd(binaryName string) *cobra.Command {
 				os.Exit(1)
 			}
 
-			server.Run(cmd.Context(), db, afs)
+			server.Run(cmd.Context(), db, afs, folderPath)
 		},
 	}
 

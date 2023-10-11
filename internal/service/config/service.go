@@ -89,10 +89,6 @@ func (s *ConfigService) SetSSLPaths(ctx context.Context, certifPath, privateKeyP
 	return nil
 }
 
-func (s *ConfigService) SetDataFolder(ctx context.Context, path string) error {
-	return s.setPath(ctx, FSDataFolder, path, true)
-}
-
 func (s *ConfigService) setPEMPath(ctx context.Context, key ConfigKey, path string) error {
 	rawCertif, err := os.ReadFile(path)
 	if err != nil {
