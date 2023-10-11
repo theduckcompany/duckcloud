@@ -41,9 +41,9 @@ func Test_DAVFS(t *testing.T) {
 		dav := davFS{foldersMock, fsServiceMock}
 		ctx := context.WithValue(context.Background(), sessionKeyCtx, &davsessions.ExampleAliceSession)
 
-		res, err := dav.Stat(ctx, "/foo/bar")
+		res, err := dav.Stat(ctx, "../foo/bar")
 		assert.Nil(t, res)
-		assert.EqualError(t, err, "stat /foo/bar: invalid argument")
+		assert.EqualError(t, err, "stat ../foo/bar: invalid argument")
 	})
 
 	t.Run("RemoveAll success", func(t *testing.T) {
@@ -70,8 +70,8 @@ func Test_DAVFS(t *testing.T) {
 		dav := davFS{foldersMock, fsServiceMock}
 		ctx := context.WithValue(context.Background(), sessionKeyCtx, &davsessions.ExampleAliceSession)
 
-		err := dav.RemoveAll(ctx, "/foo/bar")
-		assert.EqualError(t, err, "removeAll /foo/bar: invalid argument")
+		err := dav.RemoveAll(ctx, "../foo/bar")
+		assert.EqualError(t, err, "removeAll ../foo/bar: invalid argument")
 	})
 
 	t.Run("Mkdir success", func(t *testing.T) {
@@ -176,9 +176,9 @@ func Test_DAVFS(t *testing.T) {
 		dav := davFS{foldersMock, fsServiceMock}
 		ctx := context.WithValue(context.Background(), sessionKeyCtx, &davsessions.ExampleAliceSession)
 
-		res, err := dav.OpenFile(ctx, "/foo/bar", os.O_RDONLY, 0o644)
+		res, err := dav.OpenFile(ctx, "../foo/bar", os.O_RDONLY, 0o644)
 		assert.Nil(t, res)
-		assert.EqualError(t, err, "open /foo/bar: invalid argument")
+		assert.EqualError(t, err, "open ../foo/bar: invalid argument")
 	})
 
 	t.Run("OpenFile with a file not found", func(t *testing.T) {
