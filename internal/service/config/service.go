@@ -17,6 +17,9 @@ var (
 	ErrAlreadyBootstraped = errors.New("server already bootstraped")
 	ErrInvalidHostname    = errors.New("invalid hostname")
 	ErrInvalidPort        = errors.New("invalid port")
+	ErrSSLMustBeEnabled   = errors.New("TLS must be enabled")
+	ErrInvalidPEMFormat   = errors.New("invalid PEM format")
+	ErrMustNotHavePort    = errors.New("must not have port")
 )
 
 //go:generate mockery --name Storage
@@ -38,23 +41,23 @@ func (s *ConfigService) Get(ctx context.Context, key ConfigKey) (string, error) 
 }
 
 func (s *ConfigService) EnableTLS(ctx context.Context) error {
-	return s.storage.Save(ctx, TLSEnabled, "true")
+	return s.storage.Save(ctx, tlsEnabled, "true")
 }
 
 func (s *ConfigService) EnableDevMode(ctx context.Context) error {
-	return s.storage.Save(ctx, DevModeEnabled, "true")
+	return s.storage.Save(ctx, devModeEnabled, "true")
 }
 
 func (s *ConfigService) IsDevModeEnabled(ctx context.Context) (bool, error) {
-	return s.checkBool(ctx, DevModeEnabled)
+	return s.checkBool(ctx, devModeEnabled)
 }
 
 func (s *ConfigService) DisableTLS(ctx context.Context) error {
-	return s.storage.Save(ctx, TLSEnabled, "false")
+	return s.storage.Save(ctx, tlsEnabled, "false")
 }
 
 func (s *ConfigService) IsTLSEnabled(ctx context.Context) (bool, error) {
-	return s.checkBool(ctx, TLSEnabled)
+	return s.checkBool(ctx, tlsEnabled)
 }
 
 func (s *ConfigService) checkBool(ctx context.Context, key ConfigKey) (bool, error) {
@@ -73,20 +76,34 @@ func (s *ConfigService) SetSSLPaths(ctx context.Context, certifPath, privateKeyP
 	}
 
 	if !enabled {
-		return errors.New("SSL must be enabled")
+		return ErrSSLMustBeEnabled
 	}
 
-	err = s.setPEMPath(ctx, SSLCertificatePath, certifPath)
+	err = s.setPEMPath(ctx, sslCertificatePath, certifPath)
 	if err != nil {
 		return fmt.Errorf("failed to save the certificate: %w", err)
 	}
 
-	err = s.setPEMPath(ctx, SSLPrivateKeyPath, privateKeyPath)
+	err = s.setPEMPath(ctx, sslPrivateKeyPath, privateKeyPath)
 	if err != nil {
 		return fmt.Errorf("failed to save the private key: %w", err)
 	}
 
 	return nil
+}
+
+func (s *ConfigService) GetSSLPaths(ctx context.Context) (string, string, error) {
+	certif, err := s.storage.Get(ctx, sslCertificatePath)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to fetch the SSL certificate: %w", err)
+	}
+
+	key, err := s.storage.Get(ctx, sslPrivateKeyPath)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to fetch the SSL private key: %w", err)
+	}
+
+	return certif, key, nil
 }
 
 func (s *ConfigService) setPEMPath(ctx context.Context, key ConfigKey, path string) error {
@@ -97,7 +114,7 @@ func (s *ConfigService) setPEMPath(ctx context.Context, key ConfigKey, path stri
 
 	block, _ := pem.Decode(rawCertif)
 	if block == nil {
-		return errors.New("invalid PEM format")
+		return ErrInvalidPEMFormat
 	}
 
 	return s.storage.Save(ctx, key, path)
@@ -119,7 +136,7 @@ func (s *ConfigService) SetTrustedHosts(ctx context.Context, hosts []string) err
 		}
 	}
 
-	err := s.storage.Save(ctx, HostsTrusted, strings.Join(hosts, ","))
+	err := s.storage.Save(ctx, hostsTrusted, strings.Join(hosts, ","))
 	if err != nil {
 		return fmt.Errorf("failed to save into the storage: %w", err)
 	}
@@ -128,7 +145,7 @@ func (s *ConfigService) SetTrustedHosts(ctx context.Context, hosts []string) err
 }
 
 func (s *ConfigService) GetTrustedHosts(ctx context.Context) ([]string, error) {
-	rawRes, err := s.storage.Get(ctx, HostsTrusted)
+	rawRes, err := s.storage.Get(ctx, hostsTrusted)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get from the storage: %w", err)
 	}
@@ -136,10 +153,10 @@ func (s *ConfigService) GetTrustedHosts(ctx context.Context) ([]string, error) {
 	return strings.Split(rawRes, ","), nil
 }
 
-func (s *ConfigService) SetHostName(ctx context.Context, hostName string) error {
-	host, port, _ := net.SplitHostPort(hostName)
+func (s *ConfigService) SetHostName(ctx context.Context, input string) error {
+	host, port, _ := net.SplitHostPort(input)
 	if host == "" {
-		host = hostName
+		host = input
 	}
 
 	// Host validates if a string is a valid IP (both v4 and v6) or a valid DNS name
@@ -152,12 +169,16 @@ func (s *ConfigService) SetHostName(ctx context.Context, hostName string) error 
 		host = net.JoinHostPort(host, port)
 	}
 
-	err = s.storage.Save(ctx, HostName, host)
+	err = s.storage.Save(ctx, hostName, host)
 	if err != nil {
 		return fmt.Errorf("failed to Save: %w", err)
 	}
 
 	return nil
+}
+
+func (s *ConfigService) GetHostName(ctx context.Context) (string, error) {
+	return s.storage.Get(ctx, hostName)
 }
 
 func (s *ConfigService) SetAddrs(ctx context.Context, hosts []string, port int) error {
@@ -167,10 +188,15 @@ func (s *ConfigService) SetAddrs(ctx context.Context, hosts []string, port int) 
 
 	err := is.Port.Validate(portStr)
 	if err != nil {
-		return fmt.Errorf("invalid port %q: %w", port, err)
+		return fmt.Errorf("%w: %w", ErrInvalidPort, err)
 	}
 
 	for idx, host := range hosts {
+		hostWithoutPort, _, _ := net.SplitHostPort(host)
+		if hostWithoutPort != "" {
+			return ErrMustNotHavePort
+		}
+
 		err := is.Host.Validate(host)
 		if err != nil {
 			return fmt.Errorf("invalid host %q: %w", host, err)
@@ -179,10 +205,19 @@ func (s *ConfigService) SetAddrs(ctx context.Context, hosts []string, port int) 
 		addrs[idx] = net.JoinHostPort(host, portStr)
 	}
 
-	err = s.storage.Save(ctx, HTTPAddrs, strings.Join(addrs, ","))
+	err = s.storage.Save(ctx, httpAddrs, strings.Join(addrs, ","))
 	if err != nil {
 		return fmt.Errorf("failed to Save: %w", err)
 	}
 
 	return nil
+}
+
+func (s *ConfigService) GetAddrs(ctx context.Context) ([]string, error) {
+	res, err := s.storage.Get(ctx, httpAddrs)
+	if err != nil {
+		return nil, err
+	}
+
+	return strings.Split(res, ","), nil
 }

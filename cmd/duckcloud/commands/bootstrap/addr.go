@@ -50,12 +50,12 @@ HTTP templates for each calls instead of using the ones embedded in the binary. 
 situation the server will start only if it's run inside git repository's root directory.
 `
 
-	res, err := configSvc.Get(cmd.Context(), config.HTTPAddrs)
+	res, err := configSvc.GetAddrs(cmd.Context())
 	if err != nil {
 		printErrAndExit(cmd, err)
 	}
 
-	if res != "" {
+	if len(res) > 0 {
 		cmd.Printf("Addrs already setup: %q\n", res)
 		return
 	}
@@ -120,7 +120,7 @@ situation the server will start only if it's run inside git repository's root di
 		printErrAndExit(cmd, fmt.Errorf("failed to setup the trusted hosts: %w", err))
 	}
 
-	addrs, err := configSvc.Get(cmd.Context(), config.HTTPAddrs)
+	addrs, err := configSvc.GetAddrs(cmd.Context())
 	if err != nil {
 		printErrAndExit(cmd, err)
 	}
