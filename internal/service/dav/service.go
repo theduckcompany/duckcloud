@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
@@ -20,7 +21,8 @@ type davFS struct {
 }
 
 func (s *davFS) Mkdir(ctx context.Context, name string, perm os.FileMode) error {
-	if !fs.ValidPath(name) {
+	name, isOk := validatePath(name)
+	if !isOk {
 		return &fs.PathError{Op: "mkdir", Path: name, Err: fs.ErrInvalid}
 	}
 
@@ -40,7 +42,8 @@ func (s *davFS) Mkdir(ctx context.Context, name string, perm os.FileMode) error 
 }
 
 func (s *davFS) OpenFile(ctx context.Context, name string, flag int, perm os.FileMode) (webdav.File, error) {
-	if !fs.ValidPath(name) {
+	name, isOk := validatePath(name)
+	if !isOk {
 		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
 	}
 
@@ -103,7 +106,8 @@ func (s *davFS) OpenFile(ctx context.Context, name string, flag int, perm os.Fil
 }
 
 func (s *davFS) RemoveAll(ctx context.Context, name string) error {
-	if !fs.ValidPath(name) {
+	name, isOk := validatePath(name)
+	if !isOk {
 		return &fs.PathError{Op: "removeAll", Path: name, Err: fs.ErrInvalid}
 	}
 
@@ -121,11 +125,13 @@ func (s *davFS) RemoveAll(ctx context.Context, name string) error {
 }
 
 func (s *davFS) Rename(ctx context.Context, oldName, newName string) error {
-	if !fs.ValidPath(oldName) {
+	_, isOk := validatePath(oldName)
+	if !isOk {
 		return &fs.PathError{Op: "rename", Path: oldName, Err: fs.ErrInvalid}
 	}
 
-	if !fs.ValidPath(newName) {
+	_, isOk = validatePath(newName)
+	if !isOk {
 		return &fs.PathError{Op: "rename", Path: newName, Err: fs.ErrInvalid}
 	}
 
@@ -138,7 +144,8 @@ func (s *davFS) Rename(ctx context.Context, oldName, newName string) error {
 }
 
 func (s *davFS) Stat(ctx context.Context, name string) (os.FileInfo, error) {
-	if !fs.ValidPath(name) {
+	name, isOk := validatePath(name)
+	if !isOk {
 		return nil, &fs.PathError{Op: "stat", Path: name, Err: fs.ErrInvalid}
 	}
 
@@ -153,4 +160,18 @@ func (s *davFS) Stat(ctx context.Context, name string) (os.FileInfo, error) {
 	}
 
 	return s.fs.GetFolderFS(folder).Get(ctx, name)
+}
+
+func validatePath(name string) (string, bool) {
+	newName := strings.Trim(name, "/")
+
+	if newName == "" {
+		newName = "."
+	}
+
+	if !fs.ValidPath(newName) {
+		return name, false
+	}
+
+	return path.Clean(newName), true
 }

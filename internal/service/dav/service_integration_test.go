@@ -30,6 +30,10 @@ type simpleFS struct {
 }
 
 func (s *simpleFS) Open(name string) (fs.File, error) {
+	if !fs.ValidPath(name) {
+		return nil, &fs.PathError{Op: "stat", Path: name, Err: fs.ErrInvalid}
+	}
+
 	ctx := context.WithValue(context.Background(), sessionKeyCtx, s.davSession)
 	return s.fs.OpenFile(ctx, name, os.O_RDONLY, 0o644)
 }
