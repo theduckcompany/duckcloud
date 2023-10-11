@@ -8,15 +8,13 @@ import (
 type ConfigKey string
 
 const (
-	HostName           ConfigKey = "host.name"
-	HostsTrusted                 = "hosts.trusted"
-	DevModeEnabled               = "dev_mode.enabled"
-	HTTPPort                     = "http.port"
-	HTTPAddrs                    = "http.addrs"
-	FSDataFolder                 = "fs.data_folder"
-	TLSEnabled                   = "tls.enabled"
-	SSLCertificatePath           = "tls.ssl.certificate"
-	SSLPrivateKeyPath            = "tls.ssl.private_key"
+	hostName           ConfigKey = "host.name"
+	hostsTrusted                 = "hosts.trusted"
+	devModeEnabled               = "dev_mode.enabled"
+	httpAddrs                    = "http.addrs"
+	tlsEnabled                   = "tls.enabled"
+	sslCertificatePath           = "tls.ssl.certificate"
+	sslPrivateKeyPath            = "tls.ssl.private_key"
 )
 
 type BootstrapCmd struct {

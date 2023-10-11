@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"path"
-	"strings"
 
 	"github.com/theduckcompany/duckcloud/assets"
 	"github.com/theduckcompany/duckcloud/internal/service/config"
@@ -36,7 +35,7 @@ func NewConfigFromDB(ctx context.Context, configSvc config.Service, folderPath s
 		return Config{}, fmt.Errorf("failed to check the dev mode: %w", err)
 	}
 
-	addrs, err := configSvc.Get(ctx, config.HTTPAddrs)
+	addrs, err := configSvc.GetAddrs(ctx)
 	if err != nil {
 		return Config{}, fmt.Errorf("failed to check the http addresses: %w", err)
 	}
@@ -46,14 +45,9 @@ func NewConfigFromDB(ctx context.Context, configSvc config.Service, folderPath s
 		return Config{}, fmt.Errorf("failed to check if TLS is enabled: %w", err)
 	}
 
-	certifPath, err := configSvc.Get(ctx, config.SSLCertificatePath)
+	certifPath, privateKeyPath, err := configSvc.GetSSLPaths(ctx)
 	if err != nil {
-		return Config{}, fmt.Errorf("failed to retrieve the SSL certificate path: %w", err)
-	}
-
-	privateKeyPath, err := configSvc.Get(ctx, config.SSLPrivateKeyPath)
-	if err != nil {
-		return Config{}, fmt.Errorf("failed to retrieve the SSL private key path: %w", err)
+		return Config{}, fmt.Errorf("failed to retrieve the SSL paths: %w", err)
 	}
 
 	// if debug {
@@ -63,7 +57,7 @@ func NewConfigFromDB(ctx context.Context, configSvc config.Service, folderPath s
 	return Config{
 		Listeners: []router.Config{
 			{
-				Addrs:    strings.Split(addrs, ","),
+				Addrs:    addrs,
 				TLS:      isTLSEnabled,
 				CertFile: certifPath,
 				KeyFile:  privateKeyPath,

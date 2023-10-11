@@ -13,7 +13,7 @@ It can be either a domain name (like "cloud.mydomain.com") or an ip adresse (lik
 
 This name will be used to generate you server url as follow: https://{{server-name}}/pictures`
 
-	hostname, err := configSvc.Get(cmd.Context(), config.HostName)
+	hostname, err := configSvc.GetHostName(cmd.Context())
 	if err != nil {
 		printErrAndExit(cmd, err)
 	}

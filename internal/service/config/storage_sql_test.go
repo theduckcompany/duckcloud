@@ -15,12 +15,12 @@ func TestSQLStorage(t *testing.T) {
 	store := newSqlStorage(db)
 
 	t.Run("Save success", func(t *testing.T) {
-		err := store.Save(ctx, HostName, "localhost")
+		err := store.Save(ctx, hostName, "localhost")
 		assert.NoError(t, err)
 	})
 
 	t.Run("Get success", func(t *testing.T) {
-		res, err := store.Get(ctx, HostName)
+		res, err := store.Get(ctx, hostName)
 		assert.NoError(t, err)
 		assert.Equal(t, "localhost", res)
 	})

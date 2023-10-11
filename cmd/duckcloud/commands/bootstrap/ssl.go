@@ -49,12 +49,7 @@ func setupSSLCertificate(cmd *cobra.Command, configSvc config.Service, folderPat
 		return
 	}
 
-	certifPath, err := configSvc.Get(cmd.Context(), config.SSLCertificatePath)
-	if err != nil {
-		printErrAndExit(cmd, err)
-	}
-
-	privateKeyPath, err := configSvc.Get(cmd.Context(), config.SSLPrivateKeyPath)
+	certifPath, privateKeyPath, err := configSvc.GetSSLPaths(cmd.Context())
 	if err != nil {
 		printErrAndExit(cmd, err)
 	}
@@ -122,7 +117,7 @@ func generateSelfSignedCertificate(cmd *cobra.Command, confiSvc config.Service, 
 		printErrAndExit(cmd, fmt.Errorf("failed to generate serial number: %w", err))
 	}
 
-	hostname, err := confiSvc.Get(cmd.Context(), config.HostName)
+	hostname, err := confiSvc.GetHostName(cmd.Context())
 	if err != nil {
 		printErrAndExit(cmd, fmt.Errorf("failed to fetch the hostname: %w", err))
 	}

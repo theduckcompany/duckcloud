@@ -18,6 +18,9 @@ type Service interface {
 	IsTLSEnabled(ctx context.Context) (bool, error)
 	IsDevModeEnabled(ctx context.Context) (bool, error)
 	GetTrustedHosts(ctx context.Context) ([]string, error)
+	GetSSLPaths(ctx context.Context) (string, string, error)
+	GetAddrs(ctx context.Context) ([]string, error)
+	GetHostName(ctx context.Context) (string, error)
 }
 
 func Init(db *sql.DB) Service {

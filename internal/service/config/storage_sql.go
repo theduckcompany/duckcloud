@@ -24,6 +24,7 @@ func (s *sqlStorage) Save(ctx context.Context, key ConfigKey, value string) erro
 		Insert(tableName).
 		Columns("key", "value").
 		Values(key, value).
+		Suffix("ON CONFLICT DO UPDATE SET value = ?", value).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
