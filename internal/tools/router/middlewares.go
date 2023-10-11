@@ -43,12 +43,7 @@ func InitMiddlewares(tools tools.Tools, configSvc config.Service) *Middlewares {
 					return false
 				}
 
-				host, _, err := net.SplitHostPort(url.Host)
-				if err != nil {
-					log.Printf("failed to split the host/port pair: %s", err)
-					return false
-				}
-
+				host, _, _ := net.SplitHostPort(url.Host)
 				if host == "" {
 					host = url.Host
 				}
