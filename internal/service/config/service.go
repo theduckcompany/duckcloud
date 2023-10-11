@@ -103,19 +103,6 @@ func (s *ConfigService) setPEMPath(ctx context.Context, key ConfigKey, path stri
 	return s.storage.Save(ctx, key, path)
 }
 
-func (s *ConfigService) setPath(ctx context.Context, key ConfigKey, path string, expectDir bool) error {
-	info, err := os.Stat(path)
-	if err != nil {
-		return err
-	}
-
-	if info.IsDir() != expectDir {
-		return fmt.Errorf("%q must be a directory", path)
-	}
-
-	return s.storage.Save(ctx, key, path)
-}
-
 func (s *ConfigService) SetTrustedHosts(ctx context.Context, hosts []string) error {
 	toSave := make([]string, len(hosts))
 

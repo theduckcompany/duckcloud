@@ -16,6 +16,6 @@ func TestServerStart(t *testing.T) {
 
 	db := storage.NewTestStorage(t)
 
-	app := start(ctx, db, afero.NewMemMapFs(), fx.Invoke(func(*router.API) {}))
+	app := start(ctx, db, afero.NewMemMapFs(), "/test-dir", fx.Invoke(func(*router.API) {}))
 	assert.NoError(t, app.Err())
 }
