@@ -28,7 +28,7 @@ func bootstrapDB(cmd *cobra.Command, folderPath string) *sql.DB {
 		printErrAndExit(cmd, fmt.Errorf("migration error: %w", err))
 	}
 
-	fmt.Printf("Database initialized\n")
+	cmd.Printf("Database initialized\n")
 
 	return db
 }

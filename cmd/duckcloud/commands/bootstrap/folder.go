@@ -62,7 +62,7 @@ func bootstrapFolder(cmd *cobra.Command, dir string) string {
 		printErrAndExit(cmd, fmt.Errorf("failed to create the folder: %w", err))
 	}
 
-	fmt.Printf("Folder created at %s\n", folderPath)
+	cmd.Printf("Folder created at %s\n", folderPath)
 
 	return folderPath
 }

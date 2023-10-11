@@ -56,7 +56,7 @@ situation the server will start only if it's run inside git repository's root di
 	}
 
 	if res != "" {
-		fmt.Printf("Addrs already setup: %q\n", res)
+		cmd.Printf("Addrs already setup: %q\n", res)
 		return
 	}
 
@@ -125,7 +125,7 @@ situation the server will start only if it's run inside git repository's root di
 		printErrAndExit(cmd, err)
 	}
 
-	fmt.Printf("Addrs setup: %q\n", addrs)
+	cmd.Printf("Addrs setup: %q\n", addrs)
 	return
 }
 
