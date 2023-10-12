@@ -178,16 +178,6 @@ func (s *LocalFS) Upload(ctx context.Context, name string, w io.Reader) error {
 		return fmt.Errorf("failed to register the upload: %w", err)
 	}
 
-	// err = s.inodes.RegisterWrite(ctx, inode, sizeWrite, hasher)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to RegisterWrite: %w", err)
-	// }
-
-	// s.folder, err = s.folders.RegisterWrite(ctx, s.folder.ID(), uint64(sizeWrite))
-	// if err != nil {
-	// 	return fmt.Errorf("failed to RegisterWrite into folder: %w", err)
-	// }
-
 	return nil
 }
 
