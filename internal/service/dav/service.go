@@ -9,10 +9,10 @@ import (
 	"path"
 	"strings"
 
+	"github.com/theduckcompany/duckcloud/internal/service/dav/webdav"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"golang.org/x/net/webdav"
 )
 
 type davFS struct {
