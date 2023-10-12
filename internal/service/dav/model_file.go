@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"sync"
 
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 )
@@ -14,20 +15,26 @@ import (
 var ErrConcurentReadWrite = errors.New("concurent read and write unauthorized")
 
 type File struct {
-	name   string
-	fs     dfs.FS
-	writer *io.PipeWriter
-	reader io.ReadSeekCloser
+	name          string
+	fs            dfs.FS
+	writer        *io.PipeWriter
+	reader        io.ReadSeekCloser
+	writeFinished sync.WaitGroup
 }
 
 func NewFile(path string, fs dfs.FS) *File {
-	return &File{path, fs, nil, nil}
+	return &File{path, fs, nil, nil, sync.WaitGroup{}}
 }
 
 func (f *File) Close() error {
 	var err error
 	if f.writer != nil {
 		err = f.writer.Close()
+
+		// Once we close the writer the upload process openned by the first write
+		// still need to save the metadatas so we need to wait untils its finished
+		// to correctly close.
+		f.writeFinished.Wait()
 		f.writer = nil
 	}
 
@@ -66,7 +73,10 @@ func (f *File) Write(p []byte) (int, error) {
 		var r *io.PipeReader
 		r, f.writer = io.Pipe()
 
+		f.writeFinished.Add(1)
 		go func(r *io.PipeReader) {
+			defer f.writeFinished.Done()
+
 			err := f.fs.Upload(context.Background(), f.name, r)
 			r.CloseWithError(err)
 		}(r)
