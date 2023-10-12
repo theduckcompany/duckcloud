@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"log/slog"
 	"os"
 	"path"
 	"path/filepath"
@@ -13,7 +12,6 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/theduckcompany/duckcloud/internal/server"
-	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
@@ -64,10 +62,7 @@ func NewRunCmd(binaryName string) *cobra.Command {
 
 			cmd.Printf("start server from: %s\n", folderPath)
 
-			db, err := storage.NewSQliteClient(&storage.Config{
-				Path:  path.Join(folderPath, "db.sqlite"),
-				Debug: debug,
-			}, logger.NewSLogger(logger.Config{Level: slog.LevelDebug}))
+			db, err := storage.NewSQliteClient(&storage.Config{Path: path.Join(folderPath, "db.sqlite")})
 			if err != nil {
 				cmd.PrintErrln(err)
 				os.Exit(1)
