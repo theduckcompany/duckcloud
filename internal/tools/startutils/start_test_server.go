@@ -42,6 +42,8 @@ type Server struct {
 }
 
 func NewServer(t *testing.T) *Server {
+	t.Helper()
+
 	tools := tools.NewToolbox(tools.Config{Log: logger.Config{}})
 	db := storage.NewTestStorage(t)
 	afs := afero.NewMemMapFs()
@@ -97,8 +99,13 @@ func (s *Server) Bootstrap(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	s.User = user
-
 	err = s.RunnerSvc.RunSingleJob(ctx)
 	require.NoError(t, err)
+
+	// Fetch again the user in order to have the values changed by
+	// the runner jobs.
+	user, err = s.UsersSvc.GetByID(ctx, user.ID())
+	require.NoError(t, err)
+
+	s.User = user
 }

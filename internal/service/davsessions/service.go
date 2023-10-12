@@ -90,6 +90,7 @@ func (s *DavSessionsService) Authenticate(ctx context.Context, username, passwor
 	if errors.Is(err, errNotFound) {
 		return nil, errs.BadRequest(ErrInvalidCredentials, "invalid credentials")
 	}
+
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to GetByUsernameandPassHash: %w", err))
 	}

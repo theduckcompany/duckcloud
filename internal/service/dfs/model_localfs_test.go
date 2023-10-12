@@ -107,7 +107,7 @@ func Test_LocalFS(t *testing.T) {
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
 			Folder: &folders.ExampleAlicePersonalFolder,
-			Path:   "foo",
+			Path:   "/foo",
 		}).Return(&inodes.ExampleAliceDir, nil).Once()
 		inodesMock.On("Readdir", mock.Anything, &inodes.ExampleAliceDir, &storage.PaginateCmd{Limit: 2}).
 			Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()

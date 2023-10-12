@@ -16,6 +16,8 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 )
 
 // Proppatch describes a property update instruction as defined in RFC 4918.
@@ -103,7 +105,7 @@ type DeadPropsHolder interface {
 var liveProps = map[xml.Name]struct {
 	// findFn implements the propfind function of this property. If nil,
 	// it indicates a hidden property.
-	findFn func(context.Context, FileSystem, LockSystem, string, os.FileInfo) (string, error)
+	findFn func(context.Context, dfs.FS, LockSystem, string, os.FileInfo) (string, error)
 	// dir is true if the property applies to directories.
 	dir bool
 }{
@@ -166,25 +168,21 @@ var liveProps = map[xml.Name]struct {
 //
 // Each Propstat has a unique status and each property name will only be part
 // of one Propstat element.
-func props(ctx context.Context, fs FileSystem, ls LockSystem, name string, pnames []xml.Name) ([]Propstat, error) {
-	f, err := fs.OpenFile(ctx, name, os.O_RDONLY, 0)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	fi, err := f.Stat()
+func props(ctx context.Context, fs dfs.FS, ls LockSystem, name string, pnames []xml.Name) ([]Propstat, error) {
+	fi, err := fs.Get(ctx, name)
 	if err != nil {
 		return nil, err
 	}
 	isDir := fi.IsDir()
 
 	var deadProps map[xml.Name]Property
-	if dph, ok := f.(DeadPropsHolder); ok {
-		deadProps, err = dph.DeadProps()
-		if err != nil {
-			return nil, err
-		}
-	}
+	// TODO: Implement dead props
+	// if dph, ok := f.(DeadPropsHolder); ok {
+	// 	deadProps, err = dph.DeadProps()
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
 	pstatOK := Propstat{Status: http.StatusOK}
 	pstatNotFound := Propstat{Status: http.StatusNotFound}
@@ -214,25 +212,22 @@ func props(ctx context.Context, fs FileSystem, ls LockSystem, name string, pname
 }
 
 // propnames returns the property names defined for resource name.
-func propnames(ctx context.Context, fs FileSystem, ls LockSystem, name string) ([]xml.Name, error) {
-	f, err := fs.OpenFile(ctx, name, os.O_RDONLY, 0)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	fi, err := f.Stat()
+func propnames(ctx context.Context, fs dfs.FS, ls LockSystem, name string) ([]xml.Name, error) {
+	fi, err := fs.Get(ctx, name)
 	if err != nil {
 		return nil, err
 	}
 	isDir := fi.IsDir()
 
 	var deadProps map[xml.Name]Property
-	if dph, ok := f.(DeadPropsHolder); ok {
-		deadProps, err = dph.DeadProps()
-		if err != nil {
-			return nil, err
-		}
-	}
+
+	// TODO: Implement deadProps
+	// if dph, ok := fi.(DeadPropsHolder); ok {
+	// 	deadProps, err = dph.DeadProps()
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
 	pnames := make([]xml.Name, 0, len(liveProps)+len(deadProps))
 	for pn, prop := range liveProps {
@@ -254,7 +249,7 @@ func propnames(ctx context.Context, fs FileSystem, ls LockSystem, name string) (
 // returned if they are named in 'include'.
 //
 // See http://www.webdav.org/specs/rfc4918.html#METHOD_PROPFIND
-func allprop(ctx context.Context, fs FileSystem, ls LockSystem, name string, include []xml.Name) ([]Propstat, error) {
+func allprop(ctx context.Context, fs dfs.FS, ls LockSystem, name string, include []xml.Name) ([]Propstat, error) {
 	pnames, err := propnames(ctx, fs, ls, name)
 	if err != nil {
 		return nil, err
@@ -274,7 +269,7 @@ func allprop(ctx context.Context, fs FileSystem, ls LockSystem, name string, inc
 
 // patch patches the properties of resource name. The return values are
 // constrained in the same manner as DeadPropsHolder.Patch.
-func patch(ctx context.Context, fs FileSystem, ls LockSystem, name string, patches []Proppatch) ([]Propstat, error) {
+func patch(ctx context.Context, fs dfs.FS, ls LockSystem, name string, patches []Proppatch) ([]Propstat, error) {
 	conflict := false
 loop:
 	for _, patch := range patches {
@@ -305,26 +300,28 @@ loop:
 		return makePropstats(pstatForbidden, pstatFailedDep), nil
 	}
 
-	f, err := fs.OpenFile(ctx, name, os.O_RDWR, 0)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	if dph, ok := f.(DeadPropsHolder); ok {
-		ret, err := dph.Patch(patches)
-		if err != nil {
-			return nil, err
-		}
-		// http://www.webdav.org/specs/rfc4918.html#ELEMENT_propstat says that
-		// "The contents of the prop XML element must only list the names of
-		// properties to which the result in the status element applies."
-		for _, pstat := range ret {
-			for i, p := range pstat.Props {
-				pstat.Props[i] = Property{XMLName: p.XMLName}
-			}
-		}
-		return ret, nil
-	}
+	// TODO: Implement dead properties
+	// f, err := fs.OpenFile(ctx, name, os.O_RDWR, 0)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer f.Close()
+	// if dph, ok := f.(DeadPropsHolder); ok {
+	// ret, err := dph.Patch(patches)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	// http://www.webdav.org/specs/rfc4918.html#ELEMENT_propstat says that
+	// 	// "The contents of the prop XML element must only list the names of
+	// 	// properties to which the result in the status element applies."
+	// 	for _, pstat := range ret {
+	// 		for i, p := range pstat.Props {
+	// 			pstat.Props[i] = Property{XMLName: p.XMLName}
+	// 		}
+	// 	}
+	// 	return ret, nil
+	// }
+
 	// The file doesn't implement the optional DeadPropsHolder interface, so
 	// all patches are forbidden.
 	pstat := Propstat{Status: http.StatusForbidden}
@@ -355,14 +352,14 @@ func escapeXML(s string) string {
 	return s
 }
 
-func findResourceType(ctx context.Context, fs FileSystem, ls LockSystem, name string, fi os.FileInfo) (string, error) {
+func findResourceType(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi os.FileInfo) (string, error) {
 	if fi.IsDir() {
 		return `<D:collection xmlns:D="DAV:"/>`, nil
 	}
 	return "", nil
 }
 
-func findDisplayName(ctx context.Context, fs FileSystem, ls LockSystem, name string, fi os.FileInfo) (string, error) {
+func findDisplayName(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi os.FileInfo) (string, error) {
 	if slashClean(name) == "/" {
 		// Hide the real name of a possibly prefixed root directory.
 		return "", nil
@@ -370,11 +367,11 @@ func findDisplayName(ctx context.Context, fs FileSystem, ls LockSystem, name str
 	return escapeXML(fi.Name()), nil
 }
 
-func findContentLength(ctx context.Context, fs FileSystem, ls LockSystem, name string, fi os.FileInfo) (string, error) {
+func findContentLength(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi os.FileInfo) (string, error) {
 	return strconv.FormatInt(fi.Size(), 10), nil
 }
 
-func findLastModified(ctx context.Context, fs FileSystem, ls LockSystem, name string, fi os.FileInfo) (string, error) {
+func findLastModified(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi os.FileInfo) (string, error) {
 	return fi.ModTime().UTC().Format(http.TimeFormat), nil
 }
 
@@ -399,23 +396,25 @@ type ContentTyper interface {
 	ContentType(ctx context.Context) (string, error)
 }
 
-func findContentType(ctx context.Context, fs FileSystem, ls LockSystem, name string, fi os.FileInfo) (string, error) {
+func findContentType(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi os.FileInfo) (string, error) {
 	if do, ok := fi.(ContentTyper); ok {
 		ctype, err := do.ContentType(ctx)
 		if err != ErrNotImplemented {
 			return ctype, err
 		}
 	}
-	f, err := fs.OpenFile(ctx, name, os.O_RDONLY, 0)
-	if err != nil {
-		return "", err
-	}
-	defer f.Close()
 	// This implementation is based on serveContent's code in the standard net/http package.
 	ctype := mime.TypeByExtension(filepath.Ext(name))
 	if ctype != "" {
 		return ctype, nil
 	}
+
+	f, err := fs.Download(ctx, name)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
 	// Read a chunk to decide between utf-8 text and binary.
 	var buf [512]byte
 	n, err := io.ReadFull(f, buf[:])
@@ -446,7 +445,7 @@ type ETager interface {
 	ETag(ctx context.Context) (string, error)
 }
 
-func findETag(ctx context.Context, fs FileSystem, ls LockSystem, name string, fi os.FileInfo) (string, error) {
+func findETag(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi os.FileInfo) (string, error) {
 	if do, ok := fi.(ETager); ok {
 		etag, err := do.ETag(ctx)
 		if err != ErrNotImplemented {
@@ -459,7 +458,7 @@ func findETag(ctx context.Context, fs FileSystem, ls LockSystem, name string, fi
 	return fmt.Sprintf(`"%x%x"`, fi.ModTime().UnixNano(), fi.Size()), nil
 }
 
-func findSupportedLock(ctx context.Context, fs FileSystem, ls LockSystem, name string, fi os.FileInfo) (string, error) {
+func findSupportedLock(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi os.FileInfo) (string, error) {
 	return `` +
 		`<D:lockentry xmlns:D="DAV:">` +
 		`<D:lockscope><D:exclusive/></D:lockscope>` +
