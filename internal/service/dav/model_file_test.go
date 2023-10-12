@@ -57,14 +57,14 @@ func Test_File(t *testing.T) {
 		duckFile := NewFile("/foo/bar.txt", fsMock)
 
 		content := []byte("Hello, World!")
-		waitEndTest := make(chan struct{})
+		// waitEndTest := make(chan struct{})
 
 		fsMock.On("Upload", mock.Anything, "/foo/bar.txt", mock.Anything).
 			Run(func(args mock.Arguments) {
 				uploaded, err := io.ReadAll(args[2].(io.Reader))
 				require.NoError(t, err)
 				require.Equal(t, content, uploaded)
-				waitEndTest <- struct{}{}
+				// waitEndTest <- struct{}{}
 			}).Return(nil).Once()
 
 		res, err := duckFile.Write(content)
@@ -74,21 +74,18 @@ func Test_File(t *testing.T) {
 		err = duckFile.Close()
 		assert.NoError(t, err)
 
-		_ = <-waitEndTest
+		// _ = <-waitEndTest
 	})
 
 	t.Run("Several Write success", func(t *testing.T) {
 		fsMock := dfs.NewMockFS(t)
 		duckFile := NewFile("/foo/bar.txt", fsMock)
 
-		waitEndTest := make(chan struct{})
-
 		fsMock.On("Upload", mock.Anything, "/foo/bar.txt", mock.Anything).
 			Run(func(args mock.Arguments) {
 				uploaded, err := io.ReadAll(args[2].(io.Reader))
 				require.NoError(t, err)
 				require.Equal(t, []byte("Hello, World!"), uploaded)
-				waitEndTest <- struct{}{}
 			}).Return(nil).Once()
 
 		res, err := duckFile.Write([]byte("Hello, "))
@@ -101,8 +98,6 @@ func Test_File(t *testing.T) {
 
 		err = duckFile.Close()
 		assert.NoError(t, err)
-
-		_ = <-waitEndTest
 	})
 
 	t.Run("Read success", func(t *testing.T) {
