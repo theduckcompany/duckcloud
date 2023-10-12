@@ -6,11 +6,11 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/theduckcompany/duckcloud/internal/service/dav/internal"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
 	"golang.org/x/net/webdav"
 )
@@ -33,7 +33,11 @@ func NewHTTPHandler(tools tools.Tools, fs dfs.Service, folders folders.Service, 
 			Prefix:     "/dav",
 			FileSystem: &davFS{folders, fs},
 			LockSystem: webdav.NewMemLS(),
-			Logger:     internal.NewLogger(tools.Logger()),
+			Logger: func(r *http.Request, err error) {
+				if err != nil {
+					logger.LogEntrySetError(r, err)
+				}
+			},
 		},
 	}
 }
