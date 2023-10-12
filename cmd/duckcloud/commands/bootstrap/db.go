@@ -18,7 +18,7 @@ func bootstrapDB(cmd *cobra.Command, folderPath string) *sql.DB {
 		printErrAndExit(cmd, fmt.Errorf("failed to create %q: %w", dbPath, err))
 	}
 
-	db, err := storage.NewSQliteClient(&storage.Config{Path: dbPath, Debug: false}, nil)
+	db, err := storage.NewSQliteClient(&storage.Config{Path: dbPath})
 	if err != nil {
 		printErrAndExit(cmd, err)
 	}
