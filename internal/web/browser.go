@@ -354,7 +354,7 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 	})
 }
 
-func (h *browserHandler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, folder *folders.Folder, fullPath string, lastElem string) {
+func (h *browserHandler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, folder *folders.Folder, fullPath, lastElem string) {
 	ffs := h.fs.GetFolderFS(folder)
 	dirContent, err := ffs.ListDir(r.Context(), fullPath, &storage.PaginateCmd{
 		StartAfter: map[string]string{"name": lastElem},

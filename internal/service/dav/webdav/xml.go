@@ -146,6 +146,7 @@ func (pn *propfindProps) UnmarshalXML(d *ixml.Decoder, start ixml.StartElement) 
 		if err != nil {
 			return err
 		}
+		//nolint:gocritic // Keep as is.
 		switch t.(type) {
 		case ixml.EndElement:
 			if len(*pn) == 0 {

@@ -341,11 +341,10 @@ func escapeXML(s string) string {
 		// As an optimization, if s contains only ASCII letters, digits or a
 		// few special characters, the escaped value is s itself and we don't
 		// need to allocate a buffer and convert between string and []byte.
-		switch c := s[i]; {
-		case c == ' ' || c == '_' ||
+		if c := s[i]; c == ' ' || c == '_' ||
 			('+' <= c && c <= '9') || // Digits as well as + , - . and /
 			('A' <= c && c <= 'Z') ||
-			('a' <= c && c <= 'z'):
+			('a' <= c && c <= 'z') {
 			continue
 		}
 		// Otherwise, go through the full escaping process.
