@@ -94,24 +94,21 @@ func Test_DavFS_integration(t *testing.T) {
 		assert.NoError(t, file.Close())
 	})
 
-	t.Run("Read a file", func(t *testing.T) {
+	t.Run("Running fileupload job make the files available", func(t *testing.T) {
 		file, err := davfs.OpenFile(ctx, "foo/bar.2.txt", os.O_CREATE|os.O_WRONLY, 0o644)
 		require.NoError(t, err)
 
 		n, err := file.Write([]byte("Hello, World!"))
-		assert.NoError(t, err)
-		assert.Equal(t, 13, n)
+		require.NoError(t, err)
+		require.Equal(t, 13, n)
 
-		assert.NoError(t, file.Close())
-	})
+		require.NoError(t, file.Close())
 
-	t.Run("Running fileupload job make the files available", func(t *testing.T) {
+		//  Run the fileupload job
 		job := fileupload.NewJob(foldersSvc, uploadsSvc, filesSvc, inodesSvc, tools)
 		err = job.Run(ctx)
-		assert.NoError(t, err)
-	})
+		require.NoError(t, err)
 
-	t.Run("Readfile with fs.ReadFile", func(t *testing.T) {
 		res, err := fs.ReadFile(&simpleFS{davfs, session}, "foo/bar.2.txt")
 		require.NoError(t, err)
 		assert.Equal(t, []byte("Hello, World!"), res)
