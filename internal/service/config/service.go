@@ -36,10 +36,6 @@ func NewService(storage Storage) *ConfigService {
 	return &ConfigService{storage}
 }
 
-func (s *ConfigService) Get(ctx context.Context, key ConfigKey) (string, error) {
-	return s.storage.Get(ctx, key)
-}
-
 func (s *ConfigService) EnableTLS(ctx context.Context) error {
 	return s.storage.Save(ctx, tlsEnabled, "true")
 }
