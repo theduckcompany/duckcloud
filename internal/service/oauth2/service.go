@@ -1,22 +1,17 @@
 package oauth2
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
+	oautherrors "github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/manage"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthclients"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthcodes"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
-)
-
-var (
-	ErrInvalidAccessToken = errors.New("invalid access token")
-	ErrMissingAccessToken = errors.New("missing access token")
 )
 
 type Oauth2Service struct {
@@ -44,7 +39,7 @@ func (s *Oauth2Service) manager() *manage.Manager {
 func (s *Oauth2Service) GetFromReq(r *http.Request) (*Token, error) {
 	accessToken, ok := s.bearerAuth(r)
 	if !ok {
-		return nil, ErrMissingAccessToken
+		return nil, oautherrors.ErrInvalidAccessToken
 	}
 
 	token, err := s.manager().LoadAccessToken(r.Context(), accessToken)
@@ -53,7 +48,7 @@ func (s *Oauth2Service) GetFromReq(r *http.Request) (*Token, error) {
 	}
 
 	if token == nil {
-		return nil, ErrInvalidAccessToken
+		return nil, oautherrors.ErrInvalidAccessToken
 	}
 
 	return &Token{
