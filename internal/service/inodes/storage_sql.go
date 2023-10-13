@@ -15,6 +15,8 @@ import (
 
 const tableName = "fs_inodes"
 
+var errNotFound = errors.New("not found")
+
 var allFiels = []string{"id", "name", "parent", "checksum", "size", "last_modified_at", "created_at", "file_id"}
 
 type sqlStorage struct {
@@ -77,10 +79,6 @@ func (s *sqlStorage) GetAllChildrens(ctx context.Context, parent uuid.UUID, cmd 
 		From(tableName), cmd).
 		RunWith(s.db).
 		QueryContext(ctx)
-	if errors.Is(err, sql.ErrNoRows) {
-		return []INode{}, nil
-	}
-
 	if err != nil {
 		return nil, fmt.Errorf("sql error: %w", err)
 	}
@@ -102,10 +100,6 @@ func (s *sqlStorage) GetAllDeleted(ctx context.Context, limit int) ([]INode, err
 		Limit(uint64(limit)).
 		RunWith(s.db).
 		QueryContext(ctx)
-	if errors.Is(err, sql.ErrNoRows) {
-		return []INode{}, nil
-	}
-
 	if err != nil {
 		return nil, fmt.Errorf("sql error: %w", err)
 	}
@@ -146,7 +140,7 @@ func (s *sqlStorage) GetByNameAndParent(ctx context.Context, name string, parent
 		RunWith(s.db).
 		ScanContext(ctx, &res.id, &res.name, &res.parent, &res.checksum, &res.size, &res.lastModifiedAt, &res.createdAt, &res.fileID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return nil, errNotFound
 	}
 
 	if err != nil {
@@ -171,7 +165,7 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*INode, erro
 		RunWith(s.db).
 		ScanContext(ctx, &res.id, &res.name, &res.parent, &res.checksum, &res.size, &res.lastModifiedAt, &res.createdAt, &res.fileID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return nil, errNotFound
 	}
 
 	if err != nil {

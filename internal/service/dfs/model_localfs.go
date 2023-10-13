@@ -2,6 +2,7 @@ package dfs
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -11,6 +12,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
+	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
@@ -98,12 +100,12 @@ func (s *LocalFS) Get(ctx context.Context, name string) (*inodes.INode, error) {
 		Root:     s.folder.RootFS(),
 		FullName: name,
 	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to open inodes: %w", err)
+	if errors.Is(err, errs.ErrNotFound) {
+		return nil, &fs.PathError{Op: "stat", Path: name, Err: fs.ErrNotExist}
 	}
 
-	if res == nil {
-		return nil, &fs.PathError{Op: "stat", Path: name, Err: fs.ErrNotExist}
+	if err != nil {
+		return nil, fmt.Errorf("failed to open inodes: %w", err)
 	}
 
 	return res, nil
@@ -114,12 +116,12 @@ func (s *LocalFS) Download(ctx context.Context, name string) (io.ReadSeekCloser,
 		Root:     s.folder.RootFS(),
 		FullName: name,
 	})
-	if err != nil {
-		return nil, fmt.Errorf("faild go inodes.Get: %w", err)
+	if errors.Is(err, inodes.ErrNotFound) {
+		return nil, ErrInvalidPath
 	}
 
-	if inode == nil {
-		return nil, ErrInvalidPath
+	if err != nil {
+		return nil, fmt.Errorf("faild go inodes.Get: %w", err)
 	}
 
 	fileID := inode.FileID()
@@ -150,6 +152,10 @@ func (s *LocalFS) Upload(ctx context.Context, name string, w io.Reader) error {
 		Root:     s.folder.RootFS(),
 		FullName: dirPath,
 	})
+	if errors.Is(err, inodes.ErrNotFound) {
+		return errs.BadRequest(fmt.Errorf("failed to find the directory: %w", err))
+	}
+
 	if err != nil {
 		return fmt.Errorf("failed to find the directory: %w", err)
 	}

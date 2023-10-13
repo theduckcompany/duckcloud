@@ -76,8 +76,8 @@ func TestINodeSqlstore(t *testing.T) {
 	t.Run("GetByID not found", func(t *testing.T) {
 		res, err := store.GetByID(ctx, "some-invalid-id")
 
-		assert.NoError(t, err)
 		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("GetByNameAndParent success", func(t *testing.T) {
@@ -95,8 +95,9 @@ func TestINodeSqlstore(t *testing.T) {
 
 	t.Run("GetByNameAndParent not matching", func(t *testing.T) {
 		res, err := store.GetByNameAndParent(ctx, "invalid-name", ExampleBobRoot.ID())
-		assert.NoError(t, err)
+
 		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("Patch success", func(t *testing.T) {
