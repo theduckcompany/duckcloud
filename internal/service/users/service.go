@@ -43,20 +43,15 @@ type UserService struct {
 	clock    clock.Clock
 	uuid     uuid.Service
 	password password.Password
-	folders  folders.Service
 }
 
 // NewService create a new user service.
-func NewService(tools tools.Tools,
-	storage Storage,
-	folders folders.Service,
-) *UserService {
+func NewService(tools tools.Tools, storage Storage) *UserService {
 	return &UserService{
 		storage,
 		tools.Clock(),
 		tools.UUID(),
 		tools.Password(),
-		folders,
 	}
 }
 
