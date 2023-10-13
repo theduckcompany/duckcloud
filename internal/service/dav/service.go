@@ -13,6 +13,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 )
 
 type davFS struct {
@@ -60,7 +61,7 @@ func (s *davFS) OpenFile(ctx context.Context, name string, flag int, perm os.Fil
 	ffs := s.fs.GetFolderFS(folder)
 
 	info, err := ffs.Get(ctx, name)
-	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		return nil, fmt.Errorf("failed to fs.Get: %w", err)
 	}
 
