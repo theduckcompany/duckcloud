@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 )
 
 func TestOauthCodeService(t *testing.T) {
@@ -49,7 +50,7 @@ func TestOauthCodeService(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("Create with a storae error", func(t *testing.T) {
+	t.Run("Create with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storage := NewMockStorage(t)
 		svc := NewService(tools, storage)
@@ -71,10 +72,12 @@ func TestOauthCodeService(t *testing.T) {
 			Challenge:       "some-secret",
 			ChallengeMethod: "S256",
 		})
-		assert.EqualError(t, err, "failed to save the code: some-error")
+
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 
-	t.Run("RemoveByCode", func(t *testing.T) {
+	t.Run("RemoveByCode success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storage := NewMockStorage(t)
 		svc := NewService(tools, storage)
@@ -93,7 +96,9 @@ func TestOauthCodeService(t *testing.T) {
 		storage.On("RemoveByCode", mock.Anything, "some-code").Return(fmt.Errorf("some-error")).Once()
 
 		err := svc.RemoveByCode(ctx, "some-code")
-		assert.EqualError(t, err, "some-error")
+
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("GetByCode", func(t *testing.T) {
@@ -127,7 +132,9 @@ func TestOauthCodeService(t *testing.T) {
 		storage.On("GetByCode", mock.Anything, "some-code").Return(nil, fmt.Errorf("some-error")).Once()
 
 		code, err := svc.GetByCode(ctx, "some-code")
+
 		assert.Nil(t, code)
-		assert.EqualError(t, err, "some-error")
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 }

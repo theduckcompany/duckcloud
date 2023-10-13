@@ -11,6 +11,8 @@ import (
 
 const tableName = "oauth_codes"
 
+var errNotFound = errors.New("not found")
+
 var allFields = []string{"code", "created_at", "expires_at", "client_id", "user_id", "redirect_uri", "scope", "challenge", "challenge_method"}
 
 type sqlStorage struct {
@@ -78,7 +80,7 @@ func (t *sqlStorage) GetByCode(ctx context.Context, code string) (*Code, error) 
 			&res.challengeMethod,
 		)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return nil, errNotFound
 	}
 
 	if err != nil {

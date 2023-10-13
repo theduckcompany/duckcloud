@@ -2,6 +2,7 @@ package oauthcodes
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/theduckcompany/duckcloud/internal/tools"
@@ -54,7 +55,7 @@ func (t *OauthCodeService) Create(ctx context.Context, input *CreateCmd) error {
 		challengeMethod: input.ChallengeMethod,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to save the code: %w", err)
+		return errs.Internal(fmt.Errorf("failed to Save: %w", err))
 	}
 
 	return nil
@@ -62,10 +63,24 @@ func (t *OauthCodeService) Create(ctx context.Context, input *CreateCmd) error {
 
 // delete the authorization code
 func (t *OauthCodeService) RemoveByCode(ctx context.Context, code string) error {
-	return t.storage.RemoveByCode(ctx, code)
+	err := t.storage.RemoveByCode(ctx, code)
+	if err != nil {
+		return errs.Internal(err)
+	}
+
+	return nil
 }
 
 // use the authorization code for code information data
 func (t *OauthCodeService) GetByCode(ctx context.Context, code string) (*Code, error) {
-	return t.storage.GetByCode(ctx, code)
+	res, err := t.storage.GetByCode(ctx, code)
+	if errors.Is(err, errNotFound) {
+		return nil, errs.NotFound(errNotFound)
+	}
+
+	if err != nil {
+		return nil, errs.Internal(err)
+	}
+
+	return res, nil
 }
