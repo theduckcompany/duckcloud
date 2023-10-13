@@ -65,13 +65,19 @@ func TestErrorMsgFormat(t *testing.T) {
 			Name:          "Unhandled with the default message",
 			Err:           Unhandled(fmt.Errorf("some-error")),
 			UserJSON:      `{"message": "internal error"}`,
-			InternalError: "unhandled error: some-error",
+			InternalError: "unhandled: some-error",
 		},
 		{
-			Name:          "ValidationError with the default message",
+			Name:          "Validation with the default message",
 			Err:           Validation(fmt.Errorf("some-error")),
 			UserJSON:      `{"message": "some-error"}`,
-			InternalError: "validation error: some-error",
+			InternalError: "validation: some-error",
+		},
+		{
+			Name:          "Internal with the default message",
+			Err:           Internal(fmt.Errorf("some-error")),
+			UserJSON:      `{"message": "internal error"}`,
+			InternalError: "internal: some-error",
 		},
 	}
 

@@ -50,7 +50,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 			Scopes:       []string{"scopeA", "scopeB"},
 		})
 		assert.Nil(t, res)
-		assert.EqualError(t, err, "validation error: SessionToken: must be a valid UUID v4.")
+		assert.EqualError(t, err, "validation: SessionToken: must be a valid UUID v4.")
 	})
 
 	t.Run("Create with a storageMockerror", func(t *testing.T) {
@@ -101,7 +101,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 
 		tools.UUIDMock.On("Parse", "invalid format").Return(uuid.UUID(""), errors.New("must be a valid UUID v4")).Once()
 		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.AliceWebSessionExample)
-		assert.EqualError(t, err, "validation error: must be a valid UUID v4")
+		assert.EqualError(t, err, "validation: must be a valid UUID v4")
 	})
 
 	t.Run("Check with a storageMockerror", func(t *testing.T) {

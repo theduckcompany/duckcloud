@@ -8,11 +8,12 @@ import (
 )
 
 var (
-	ErrBadRequest   = fmt.Errorf("bad request")      // 400
-	ErrUnauthorized = fmt.Errorf("unauthorized")     // 401
-	ErrNotFound     = fmt.Errorf("not found")        // 404
-	ErrValidation   = fmt.Errorf("validation error") // 422
-	ErrUnhandled    = fmt.Errorf("unhandled error")  // 500
+	ErrBadRequest   = fmt.Errorf("bad request")  // HTTP code: 400
+	ErrUnauthorized = fmt.Errorf("unauthorized") // HTTP code: 401
+	ErrNotFound     = fmt.Errorf("not found")    // HTTP code: 404
+	ErrValidation   = fmt.Errorf("validation")   // HTTP code: 422
+	ErrUnhandled    = fmt.Errorf("unhandled")    // HTTP code: 500
+	ErrInternal     = fmt.Errorf("internal")     // HTTP code: 500
 )
 
 type errResponse struct {
@@ -71,6 +72,10 @@ func NotFound(err error, msgAndArgs ...any) error {
 
 func Unauthorized(err error, msgAndArgs ...any) error {
 	return &Error{code: ErrUnauthorized, err: err, msg: messageFromMsgAndArgs("unauthorized", msgAndArgs...)}
+}
+
+func Internal(err error) error {
+	return &Error{code: ErrInternal, err: err, msg: "internal error"}
 }
 
 func Unhandled(err error) error {

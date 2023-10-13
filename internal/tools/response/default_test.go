@@ -91,7 +91,7 @@ func TestWriteJSONError_validation(t *testing.T) {
 	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
 
-	assert.EqualError(t, err, "validation error: Email: must be a valid email address.")
+	assert.EqualError(t, err, "validation: Email: must be a valid email address.")
 	assert.Equal(t, http.StatusUnprocessableEntity, res.StatusCode)
 	assert.JSONEq(t, `{"message": "Email: must be a valid email address."}`, string(body))
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -56,7 +57,8 @@ func TestOauthClientsService(t *testing.T) {
 			SkipValidation: ExampleAliceClient.skipValidation,
 		})
 
-		assert.EqualError(t, err, "validation error: RedirectURI: must be a valid URL.")
+		assert.ErrorIs(t, err, errs.ErrValidation)
+		assert.ErrorContains(t, err, "RedirectURI: must be a valid URL.")
 		assert.Nil(t, res)
 	})
 
