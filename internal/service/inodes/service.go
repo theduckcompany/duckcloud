@@ -183,7 +183,7 @@ func (s *INodeService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *s
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to open %q: %w", cmd.FullName, err)
+		return nil, errs.Internal(fmt.Errorf("failed to open %q: %w", cmd.FullName, err))
 	}
 
 	res, err := s.storage.GetAllChildrens(ctx, dir.ID(), paginateCmd)

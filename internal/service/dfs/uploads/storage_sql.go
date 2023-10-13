@@ -3,7 +3,6 @@ package uploads
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
@@ -43,10 +42,6 @@ func (s *sqlStorage) GetAll(ctx context.Context, cmd *storage.PaginateCmd) ([]Up
 		From(tableName), cmd).
 		RunWith(s.db).
 		QueryContext(ctx)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
-	}
-
 	if err != nil {
 		return nil, fmt.Errorf("sql error: %w", err)
 	}

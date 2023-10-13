@@ -11,7 +11,7 @@ import (
 
 var (
 	ErrNotImplemented = errors.New("not implemented")
-	ErrInvalidPath    = errors.New("invalid path")
+	ErrInvalidPath    = inodes.ErrInvalidPath
 )
 
 type FSService struct {

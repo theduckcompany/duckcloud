@@ -65,7 +65,7 @@ func Test_LocalFS(t *testing.T) {
 
 		info, err := folderFS.Get(ctx, "unknown-file")
 		assert.Nil(t, info)
-		assert.ErrorIs(t, err, fs.ErrNotExist)
+		assert.ErrorIs(t, err, errs.ErrNotFound)
 	})
 
 	t.Run("CreateDir success", func(t *testing.T) {

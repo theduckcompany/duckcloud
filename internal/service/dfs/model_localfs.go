@@ -2,7 +2,6 @@ package dfs
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -53,7 +52,7 @@ func (s *LocalFS) CreateDir(ctx context.Context, name string) (*inodes.INode, er
 		FullName: name,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("inodes mkdir error: %w", err)
+		return nil, fmt.Errorf("failed to MkdirAll: %w", err)
 	}
 
 	return inode, nil
@@ -100,12 +99,8 @@ func (s *LocalFS) Get(ctx context.Context, name string) (*inodes.INode, error) {
 		Root:     s.folder.RootFS(),
 		FullName: name,
 	})
-	if errors.Is(err, errs.ErrNotFound) {
-		return nil, &fs.PathError{Op: "stat", Path: name, Err: fs.ErrNotExist}
-	}
-
 	if err != nil {
-		return nil, fmt.Errorf("failed to open inodes: %w", err)
+		return nil, fmt.Errorf("failed to Get: %w", err)
 	}
 
 	return res, nil
@@ -116,12 +111,8 @@ func (s *LocalFS) Download(ctx context.Context, name string) (io.ReadSeekCloser,
 		Root:     s.folder.RootFS(),
 		FullName: name,
 	})
-	if errors.Is(err, inodes.ErrNotFound) {
-		return nil, ErrInvalidPath
-	}
-
 	if err != nil {
-		return nil, fmt.Errorf("faild go inodes.Get: %w", err)
+		return nil, fmt.Errorf("failed to Get: %w", err)
 	}
 
 	fileID := inode.FileID()
@@ -152,12 +143,8 @@ func (s *LocalFS) Upload(ctx context.Context, name string, w io.Reader) error {
 		Root:     s.folder.RootFS(),
 		FullName: dirPath,
 	})
-	if errors.Is(err, inodes.ErrNotFound) {
-		return errs.BadRequest(fmt.Errorf("failed to find the directory: %w", err))
-	}
-
 	if err != nil {
-		return fmt.Errorf("failed to find the directory: %w", err)
+		return fmt.Errorf("failed to Get the dir: %w", err)
 	}
 
 	file, fileID, err := s.files.Create(ctx)
@@ -169,7 +156,7 @@ func (s *LocalFS) Upload(ctx context.Context, name string, w io.Reader) error {
 
 	_, err = io.Copy(file, w)
 	if err != nil {
-		return fmt.Errorf("failed to copy the file content: %w", err)
+		return errs.Internal(fmt.Errorf("failed to copy the file content: %w", err))
 	}
 
 	ctx = context.WithoutCancel(ctx)
@@ -181,7 +168,7 @@ func (s *LocalFS) Upload(ctx context.Context, name string, w io.Reader) error {
 		FileID:   fileID,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to register the upload: %w", err)
+		return fmt.Errorf("failed to Register the upload: %w", err)
 	}
 
 	return nil
