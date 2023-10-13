@@ -444,7 +444,7 @@ func (d *Decoder) pushElement(name Name) {
 
 // Record that we are changing the value of ns[local].
 // The old value is url, ok.
-func (d *Decoder) pushNs(local string, url string, ok bool) {
+func (d *Decoder) pushNs(local, url string, ok bool) {
 	s := d.push(stkNs)
 	s.name.Local = local
 	s.name.Space = url

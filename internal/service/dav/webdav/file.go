@@ -67,7 +67,7 @@ type Dir string
 
 func (d Dir) resolve(name string) string {
 	// This implementation is based on Dir.Open's code in the standard net/http package.
-	if filepath.Separator != '/' && strings.IndexRune(name, filepath.Separator) >= 0 ||
+	if filepath.Separator != '/' && strings.ContainsRune(name, filepath.Separator) ||
 		strings.Contains(name, "\x00") {
 		return ""
 	}
@@ -133,7 +133,7 @@ func NewMemFS() FileSystem {
 	return &memFS{
 		root: memFSNode{
 			children: make(map[string]*memFSNode),
-			mode:     0660 | os.ModeDir,
+			mode:     0o660 | os.ModeDir,
 			modTime:  time.Now(),
 		},
 	}
@@ -284,7 +284,6 @@ func (fs *memFS) OpenFile(ctx context.Context, name string, flag int, perm os.Fi
 			}
 		}
 		n, frag = &fs.root, "/"
-
 	} else {
 		n = dir.children[frag]
 		if flag&(os.O_SYNC|os.O_APPEND) != 0 {
@@ -659,7 +658,7 @@ func copyProps(dst, src File) error {
 // copyFiles copies files and/or directories from src to dst.
 //
 // See section 9.8.5 for when various HTTP status codes apply.
-func copyFiles(ctx context.Context, fs FileSystem, src, dst string, overwrite bool, depth int, recursion int) (status int, err error) {
+func copyFiles(ctx context.Context, fs FileSystem, src, dst string, overwrite bool, depth, recursion int) (status int, err error) {
 	if recursion == 1000 {
 		return http.StatusInternalServerError, errRecursionTooDeep
 	}
@@ -721,7 +720,6 @@ func copyFiles(ctx context.Context, fs FileSystem, src, dst string, overwrite bo
 				}
 			}
 		}
-
 	} else {
 		dstFile, err := fs.OpenFile(ctx, dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, srcPerm)
 		if err != nil {
@@ -729,7 +727,6 @@ func copyFiles(ctx context.Context, fs FileSystem, src, dst string, overwrite bo
 				return http.StatusConflict, err
 			}
 			return http.StatusForbidden, err
-
 		}
 		_, copyErr := io.Copy(dstFile, srcFile)
 		propsErr := copyProps(dstFile, srcFile)

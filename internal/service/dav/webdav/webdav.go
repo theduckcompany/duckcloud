@@ -42,11 +42,12 @@ func (h *Handler) stripPrefix(p string) (string, int, error) {
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	status, err := http.StatusBadRequest, errUnsupportedMethod
-	if h.FileSystem == nil {
+	switch {
+	case h.FileSystem == nil:
 		status, err = http.StatusInternalServerError, errNoFileSystem
-	} else if h.LockSystem == nil {
+	case h.LockSystem == nil:
 		status, err = http.StatusInternalServerError, errNoLockSystem
-	} else {
+	default:
 		switch r.Method {
 		case "OPTIONS":
 			status, err = h.handleOptions(w, r)
@@ -421,7 +422,6 @@ func (h *Handler) handleLock(w http.ResponseWriter, r *http.Request) (retStatus 
 			}
 			return http.StatusInternalServerError, err
 		}
-
 	} else {
 		// Section 9.10.3 says that "If no Depth header is submitted on a LOCK request,
 		// then the request MUST act as if a "Depth:infinity" had been submitted."
@@ -540,7 +540,8 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request) (status
 		}
 
 		var pstats []Propstat
-		if pf.Propname != nil {
+		switch {
+		case pf.Propname != nil:
 			pnames, err := propnames(ctx, h.FileSystem, h.LockSystem, reqPath)
 			if err != nil {
 				return handlePropfindError(err, info)
@@ -550,9 +551,9 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request) (status
 				pstat.Props = append(pstat.Props, Property{XMLName: xmlname})
 			}
 			pstats = append(pstats, pstat)
-		} else if pf.Allprop != nil {
+		case pf.Allprop != nil:
 			pstats, err = allprop(ctx, h.FileSystem, h.LockSystem, reqPath, pf.Prop)
-		} else {
+		default:
 			pstats, err = props(ctx, h.FileSystem, h.LockSystem, reqPath, pf.Prop)
 		}
 		if err != nil {

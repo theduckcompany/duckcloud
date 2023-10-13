@@ -130,7 +130,7 @@ const (
 	squareTokenType = rune(-6)
 )
 
-func lex(s string) (tokenType rune, tokenStr string, remaining string) {
+func lex(s string) (tokenType rune, tokenStr, remaining string) {
 	// The net/textproto Reader that parses the HTTP header will collapse
 	// Linear White Space that spans multiple "\r\n" lines to a single " ",
 	// so we don't need to look for '\r' or '\n'.
