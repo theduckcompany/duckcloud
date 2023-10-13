@@ -30,17 +30,20 @@ func TestOauthClientsSQLStorage(t *testing.T) {
 
 	t.Run("GetByID not found", func(t *testing.T) {
 		res, err := storage.GetByID(ctx, "some-invalid-id")
-		assert.NoError(t, err)
+
 		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("Create", func(t *testing.T) {
 		err := storage.Save(context.Background(), &clientExample)
+
 		assert.NoError(t, err)
 	})
 
 	t.Run("GetByID success", func(t *testing.T) {
 		res, err := storage.GetByID(ctx, "some-client-id")
+
 		assert.NoError(t, err)
 		assert.EqualValues(t, &clientExample, res)
 	})
