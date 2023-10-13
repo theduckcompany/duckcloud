@@ -45,7 +45,7 @@ func Test_DavFS_integration(t *testing.T) {
 	db := storage.NewTestStorage(t)
 	inodesSvc := inodes.Init(tools, db)
 	foldersSvc := folders.Init(tools, db, inodesSvc)
-	usersSvc := users.Init(tools, db, foldersSvc)
+	usersSvc := users.Init(tools, db)
 	davSessionsSvc := davsessions.Init(db, foldersSvc, usersSvc, tools)
 	uploadsSvc := uploads.Init(db, tools)
 

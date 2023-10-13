@@ -23,8 +23,8 @@ type Service interface {
 	SetDefaultFolder(ctx context.Context, user User, folder *folders.Folder) (*User, error)
 }
 
-func Init(tools tools.Tools, db *sql.DB, folders folders.Service) Service {
+func Init(tools tools.Tools, db *sql.DB) Service {
 	storage := newSqlStorage(db, tools)
 
-	return NewService(tools, storage, folders)
+	return NewService(tools, storage)
 }

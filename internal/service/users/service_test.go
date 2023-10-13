@@ -20,8 +20,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("Create success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(nil, errNotFound).Once()
 
@@ -45,8 +44,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("Create with a taken username", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(&User{}, nil).Once()
 
@@ -63,8 +61,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("Create with a database error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(nil, fmt.Errorf("some-error")).Once()
 
@@ -81,8 +78,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("Authenticate success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(&ExampleAlice, nil).Once()
 
@@ -96,8 +92,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("Authenticate with an invalid username", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(nil, errNotFound).Once()
 
@@ -110,8 +105,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("Authenticate with an invalid password", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(&ExampleAlice, nil).Once()
 		tools.PasswordMock.On("Compare", ctx, ExampleAlice.password, "some-invalid-password").Return(password.ErrMissmatchedPassword).Once()
@@ -125,8 +119,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("Authenticate an unhandled password error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(&ExampleAlice, nil).Once()
 		tools.PasswordMock.On("Compare", ctx, ExampleAlice.password, "some-password").Return(fmt.Errorf("some-error")).Once()
@@ -140,8 +133,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("GetByID success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		store.On("GetByID", ctx, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
 
@@ -153,8 +145,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("GetAll success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		store.On("GetAll", ctx, &storage.PaginateCmd{Limit: 10}).Return([]User{ExampleAlice}, nil).Once()
 
@@ -166,8 +157,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("GetAllWithStatus success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		store.On("GetAll", ctx, &storage.PaginateCmd{Limit: 10}).Return([]User{ExampleAlice}, nil).Once()
 
@@ -179,8 +169,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("AddToDeletion success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		anAnotherAdmin := ExampleBob
 		anAnotherAdmin.isAdmin = true
@@ -196,8 +185,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("AddToDeletion with a user not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		store.On("GetByID", ctx, ExampleAlice.ID()).Return(nil, errNotFound).Once()
 
@@ -209,8 +197,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("AddToDeletion the last admin failed", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		store.On("GetByID", ctx, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
 		store.On("GetAll", ctx, (*storage.PaginateCmd)(nil)).Return([]User{ExampleAlice}, nil).Once() // This is the last admin
@@ -222,8 +209,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("HardDelete success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&ExampleDeletingAlice, nil).Once()
 		store.On("HardDelete", mock.Anything, ExampleAlice.ID()).Return(nil).Once()
@@ -235,8 +221,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("HardDelete an non existing user", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		// It doesn't return ExampleDeletingAlice so the status is "active"
 		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(nil, errNotFound).Once()
@@ -248,8 +233,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("HardDelete an invalid status", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		// It doesn't return ExampleDeletingAlice so the status is "active"
 		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
@@ -261,8 +245,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("SetDefaultFolder success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		store.On("Patch", mock.Anything, ExampleAlice.ID(), map[string]interface{}{
 			"default_folder": folders.ExampleAliceBobSharedFolder.ID(),
@@ -278,8 +261,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("SetDefaultFolder with a folder not owned by the user", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		// BobPersonalFolder is not owned by Alice
 		res, err := service.SetDefaultFolder(ctx, ExampleAlice, &folders.ExampleBobPersonalFolder)
@@ -291,8 +273,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("MarkInitAsFinished success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		initializingAlice := ExampleInitializingAlice
 		initializingAlice.defaultFolderID = folders.ExampleAlicePersonalFolder.ID()
@@ -308,8 +289,7 @@ func Test_Users_Service(t *testing.T) {
 	t.Run("MarkInitAsFinished with a user with an invalid status", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
-		foldersMock := folders.NewMockService(t)
-		service := NewService(tools, store, foldersMock)
+		service := NewService(tools, store)
 
 		// ExampleAlice is already initialized.
 		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()

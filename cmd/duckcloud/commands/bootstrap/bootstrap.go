@@ -6,8 +6,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/theduckcompany/duckcloud/internal/service/config"
-	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
@@ -42,9 +40,7 @@ func NewBootstrapCmd(_ string) *cobra.Command {
 				Response: response.Config{},
 				Log:      logger.Config{Level: slog.LevelInfo},
 			})
-			inodeSvc := inodes.Init(tools, db)
-			folderSvc := folders.Init(tools, db, inodeSvc)
-			userSvc := users.Init(tools, db, folderSvc)
+			userSvc := users.Init(tools, db)
 
 			setupAdmin(cmd, userSvc)
 		},
