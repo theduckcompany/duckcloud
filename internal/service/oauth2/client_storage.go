@@ -2,9 +2,12 @@ package oauth2
 
 import (
 	"context"
+	"errors"
 
 	"github.com/go-oauth2/oauth2/v4"
+	oautherrors "github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthclients"
+	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -18,5 +21,10 @@ func (t *clientStorage) GetByID(ctx context.Context, id string) (oauth2.ClientIn
 	if err != nil {
 		return nil, nil
 	}
-	return t.client.GetByID(ctx, uuid)
+	res, err := t.client.GetByID(ctx, uuid)
+	if errors.Is(err, errs.ErrNotFound) {
+		return nil, oautherrors.ErrInvalidClient
+	}
+
+	return res, nil
 }

@@ -2,12 +2,12 @@ package oauth2
 
 import (
 	"context"
-	stderrors "errors"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/go-oauth2/oauth2/v4"
-	"github.com/go-oauth2/oauth2/v4/errors"
+	oautherrors "github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/models"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthcodes"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
@@ -33,8 +33,8 @@ func (t *tokenStorage) Create(ctx context.Context, info oauth2.TokenInfo) error 
 			Challenge:       info.GetCodeChallenge(),
 			ChallengeMethod: info.GetCodeChallengeMethod().String(),
 		})
-		if stderrors.Is(err, errs.ErrValidation) {
-			return errors.ErrInvalidRequest
+		if errors.Is(err, errs.ErrValidation) {
+			return oautherrors.ErrInvalidRequest
 		}
 		if err != nil {
 			return fmt.Errorf("failed to create a code token: %w", err)
@@ -81,6 +81,9 @@ func (t *tokenStorage) RemoveByRefresh(ctx context.Context, refresh string) erro
 // use the authorization code for token information data
 func (t *tokenStorage) GetByCode(ctx context.Context, input string) (oauth2.TokenInfo, error) {
 	code, err := t.code.GetByCode(ctx, input)
+	if errors.Is(err, errs.ErrNotFound) {
+		return nil, oautherrors.ErrInvalidAuthorizeCode
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch the token by code: %w", err)
 	}
@@ -104,12 +107,11 @@ func (t *tokenStorage) GetByCode(ctx context.Context, input string) (oauth2.Toke
 
 func (t *tokenStorage) GetByAccess(ctx context.Context, input string) (oauth2.TokenInfo, error) {
 	session, err := t.session.GetByAccessToken(ctx, input)
+	if errors.Is(err, errs.ErrNotFound) {
+		return nil, oautherrors.ErrInvalidAccessToken
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve the session by access: %w", err)
-	}
-
-	if session == nil {
-		return nil, nil
 	}
 
 	return t.sessionToToken(session), nil
@@ -118,12 +120,11 @@ func (t *tokenStorage) GetByAccess(ctx context.Context, input string) (oauth2.To
 // use the refresh token for token information data
 func (t *tokenStorage) GetByRefresh(ctx context.Context, input string) (oauth2.TokenInfo, error) {
 	session, err := t.session.GetByRefreshToken(ctx, input)
+	if errors.Is(err, errs.ErrNotFound) {
+		return nil, oautherrors.ErrInvalidRefreshToken
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve the session by refresh: %w", err)
-	}
-
-	if session == nil {
-		return nil, nil
 	}
 
 	return t.sessionToToken(session), nil
