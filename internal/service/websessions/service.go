@@ -57,7 +57,7 @@ func (s *WebSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*Sessi
 
 	err = s.storage.Save(ctx, session)
 	if err != nil {
-		return nil, fmt.Errorf("failed to save the session: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to save the session: %w", err))
 	}
 
 	return session, nil
@@ -70,12 +70,12 @@ func (s *WebSessionsService) Delete(ctx context.Context, cmd *DeleteCmd) error {
 	}
 
 	session, err := s.storage.GetByToken(ctx, cmd.Token)
-	if err != nil {
-		return fmt.Errorf("failed to GetByToken: %w", err)
+	if errors.Is(err, errNotFound) {
+		return nil
 	}
 
-	if session == nil {
-		return nil
+	if err != nil {
+		return errs.Internal(fmt.Errorf("failed to GetByToken: %w", err))
 	}
 
 	if session.UserID() != cmd.UserID {
@@ -84,7 +84,7 @@ func (s *WebSessionsService) Delete(ctx context.Context, cmd *DeleteCmd) error {
 
 	err = s.storage.RemoveByToken(ctx, session.Token())
 	if err != nil {
-		return fmt.Errorf("failed to RemoveByToken: %w", err)
+		return errs.Internal(fmt.Errorf("failed to RemoveByToken: %w", err))
 	}
 
 	return nil
@@ -92,10 +92,17 @@ func (s *WebSessionsService) Delete(ctx context.Context, cmd *DeleteCmd) error {
 
 func (s *WebSessionsService) GetByToken(ctx context.Context, token string) (*Session, error) {
 	session, err := s.storage.GetByToken(ctx, token)
+	if errors.Is(err, errNotFound) {
+		return nil, errs.NotFound(err)
+	}
+
+	if err != nil {
+		return nil, errs.Internal(err)
+	}
 
 	// TODO: Handle session expiration
 
-	return session, err
+	return session, nil
 }
 
 func (s *WebSessionsService) GetFromReq(r *http.Request) (*Session, error) {
@@ -105,12 +112,12 @@ func (s *WebSessionsService) GetFromReq(r *http.Request) (*Session, error) {
 	}
 
 	session, err := s.GetByToken(r.Context(), c.Value)
-	if err != nil {
-		return nil, errs.Unhandled(err)
+	if errors.Is(err, errNotFound) {
+		return nil, errs.BadRequest(ErrSessionNotFound, "session not found")
 	}
 
-	if session == nil {
-		return nil, errs.BadRequest(ErrSessionNotFound, "session not found")
+	if err != nil {
+		return nil, errs.Internal(fmt.Errorf("failed to GetByToken: %w", err))
 	}
 
 	return session, nil
@@ -125,7 +132,7 @@ func (s *WebSessionsService) Logout(r *http.Request, w http.ResponseWriter) erro
 
 	err = s.storage.RemoveByToken(r.Context(), c.Value)
 	if err != nil {
-		return fmt.Errorf("failed to remove the token: %w", err)
+		return errs.Internal(fmt.Errorf("failed to remove the token: %w", err))
 	}
 
 	// Remove to cookie
@@ -142,13 +149,18 @@ func (s *WebSessionsService) Logout(r *http.Request, w http.ResponseWriter) erro
 }
 
 func (s *WebSessionsService) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
-	return s.storage.GetAllForUser(ctx, userID, cmd)
+	res, err := s.storage.GetAllForUser(ctx, userID, cmd)
+	if err != nil {
+		return nil, errs.Internal(fmt.Errorf("failed to GetAllForUser: %w", err))
+	}
+
+	return res, nil
 }
 
 func (s *WebSessionsService) DeleteAll(ctx context.Context, userID uuid.UUID) error {
 	sessions, err := s.GetAllForUser(ctx, userID, nil)
 	if err != nil {
-		return fmt.Errorf("failed to GetAllForUser: %w", err)
+		return errs.Internal(err)
 	}
 
 	for _, session := range sessions {
@@ -157,7 +169,7 @@ func (s *WebSessionsService) DeleteAll(ctx context.Context, userID uuid.UUID) er
 			Token:  session.Token(),
 		})
 		if err != nil {
-			return fmt.Errorf("failed to Delete web session %q: %w", session.Token(), err)
+			return errs.Internal(fmt.Errorf("failed to Delete web session %q: %w", session.Token(), err))
 		}
 	}
 

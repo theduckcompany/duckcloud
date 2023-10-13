@@ -13,6 +13,8 @@ import (
 
 const tableName = "web_sessions"
 
+var errNotFound = errors.New("not found")
+
 var allFields = []string{"token", "user_id", "ip", "device", "created_at"}
 
 type sqlStorage struct {
@@ -47,7 +49,7 @@ func (s *sqlStorage) GetByToken(ctx context.Context, token string) (*Session, er
 		RunWith(s.db).
 		ScanContext(ctx, &res.token, &res.userID, &res.ip, &res.device, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return nil, errNotFound
 	}
 
 	if err != nil {
