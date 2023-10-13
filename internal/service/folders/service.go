@@ -47,7 +47,7 @@ func NewService(tools tools.Tools, storage Storage, inodes inodes.Service) *Fold
 func (s *FolderService) CreatePersonalFolder(ctx context.Context, cmd *CreatePersonalFolderCmd) (*Folder, error) {
 	err := cmd.Validate()
 	if err != nil {
-		return nil, errs.ValidationError(err)
+		return nil, errs.Validation(err)
 	}
 
 	// TODO: This action is not idempotent and could lead to orphan root dirs.

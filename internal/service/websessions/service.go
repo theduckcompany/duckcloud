@@ -42,7 +42,7 @@ func NewService(storage Storage, tools tools.Tools) *WebSessionsService {
 func (s *WebSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*Session, error) {
 	err := cmd.Validate()
 	if err != nil {
-		return nil, errs.ValidationError(err)
+		return nil, errs.Validation(err)
 	}
 
 	uaRes := ua.Parse(cmd.Req.Header.Get("User-Agent"))
@@ -66,7 +66,7 @@ func (s *WebSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*Sessi
 func (s *WebSessionsService) Delete(ctx context.Context, cmd *DeleteCmd) error {
 	err := cmd.Validate()
 	if err != nil {
-		return errs.ValidationError(err)
+		return errs.Validation(err)
 	}
 
 	session, err := s.storage.GetByToken(ctx, cmd.Token)

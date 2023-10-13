@@ -84,7 +84,7 @@ func TestWriteJSONError_validation(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	cmd := someCmd{Username: "valid", Email: "invalid-input"}
-	err := errs.ValidationError(cmd.Validate())
+	err := errs.Validation(cmd.Validate())
 	resWriter.WriteJSONError(w, r, err)
 
 	res := w.Result()

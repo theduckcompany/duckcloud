@@ -39,7 +39,7 @@ func NewService(storage Storage, tools tools.Tools) *OauthConsentsService {
 func (s *OauthConsentsService) Create(ctx context.Context, cmd *CreateCmd) (*Consent, error) {
 	err := cmd.Validate()
 	if err != nil {
-		return nil, errs.ValidationError(err)
+		return nil, errs.Validation(err)
 	}
 
 	consent := Consent{
@@ -64,7 +64,7 @@ func (s *OauthConsentsService) Check(r *http.Request, client *oauthclients.Clien
 
 	consentID, err := s.uuid.Parse(rawConsentID)
 	if err != nil {
-		return errs.ValidationError(is.ErrUUIDv4)
+		return errs.Validation(is.ErrUUIDv4)
 	}
 
 	consent, err := s.storage.GetByID(r.Context(), consentID)

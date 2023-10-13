@@ -36,7 +36,7 @@ func NewService(tools tools.Tools, storage Storage) *OauthClientService {
 func (s *OauthClientService) Create(ctx context.Context, cmd *CreateCmd) (*Client, error) {
 	err := cmd.Validate()
 	if err != nil {
-		return nil, errs.ValidationError(err)
+		return nil, errs.Validation(err)
 	}
 
 	existingClient, err := s.storage.GetByID(ctx, cmd.ID)

@@ -61,7 +61,7 @@ func (s *INodeService) GetByID(ctx context.Context, inodeID uuid.UUID) (*INode, 
 func (s *INodeService) MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	err := cmd.Validate()
 	if err != nil {
-		return nil, errs.ValidationError(err)
+		return nil, errs.Validation(err)
 	}
 
 	var inode *INode
@@ -118,7 +118,7 @@ func (s *INodeService) CreateRootDir(ctx context.Context) (*INode, error) {
 func (s *INodeService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INode, error) {
 	err := cmd.Validate()
 	if err != nil {
-		return nil, errs.ValidationError(err)
+		return nil, errs.Validation(err)
 	}
 
 	parent, err := s.storage.GetByID(ctx, cmd.Parent)
@@ -166,7 +166,7 @@ func (s *INodeService) RegisterWrite(ctx context.Context, inode *INode, sizeWrit
 func (s *INodeService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
 	err := cmd.Validate()
 	if err != nil {
-		return nil, errs.ValidationError(err)
+		return nil, errs.Validation(err)
 	}
 
 	dir, err := s.Get(ctx, cmd)
@@ -193,7 +193,7 @@ func (s *INodeService) HardDelete(ctx context.Context, inode uuid.UUID) error {
 func (s *INodeService) RemoveAll(ctx context.Context, cmd *PathCmd) error {
 	err := cmd.Validate()
 	if err != nil {
-		return errs.ValidationError(err)
+		return errs.Validation(err)
 	}
 
 	inode, err := s.Get(ctx, cmd)
@@ -215,7 +215,7 @@ func (s *INodeService) RemoveAll(ctx context.Context, cmd *PathCmd) error {
 func (s *INodeService) CreateDir(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	err := cmd.Validate()
 	if err != nil {
-		return nil, errs.ValidationError(err)
+		return nil, errs.Validation(err)
 	}
 
 	var inode *INode
@@ -261,7 +261,7 @@ func (s *INodeService) CreateDir(ctx context.Context, cmd *PathCmd) (*INode, err
 func (s *INodeService) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	err := cmd.Validate()
 	if err != nil {
-		return nil, errs.ValidationError(err)
+		return nil, errs.Validation(err)
 	}
 
 	var inode *INode
