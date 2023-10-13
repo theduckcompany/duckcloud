@@ -14,6 +14,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
+	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -60,7 +61,7 @@ func Test_LocalFS(t *testing.T) {
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
 			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
 			FullName: "unknown-file",
-		}).Return(nil, nil).Once()
+		}).Return(nil, errs.ErrNotFound).Once()
 
 		info, err := folderFS.Get(ctx, "unknown-file")
 		assert.Nil(t, info)
