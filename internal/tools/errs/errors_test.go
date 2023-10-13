@@ -69,7 +69,7 @@ func TestErrorMsgFormat(t *testing.T) {
 		},
 		{
 			Name:          "ValidationError with the default message",
-			Err:           ValidationError(fmt.Errorf("some-error")),
+			Err:           Validation(fmt.Errorf("some-error")),
 			UserJSON:      `{"message": "some-error"}`,
 			InternalError: "validation error: some-error",
 		},

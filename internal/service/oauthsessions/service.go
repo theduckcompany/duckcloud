@@ -37,7 +37,7 @@ func NewService(tools tools.Tools, storage Storage) *OauthSessionsService {
 func (s *OauthSessionsService) Create(ctx context.Context, input *CreateCmd) (*Session, error) {
 	err := input.Validate()
 	if err != nil {
-		return nil, errs.ValidationError(err)
+		return nil, errs.Validation(err)
 	}
 
 	now := s.clock.Now()

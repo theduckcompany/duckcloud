@@ -33,7 +33,7 @@ func NewService(tools tools.Tools, storage Storage) *OauthCodeService {
 func (t *OauthCodeService) Create(ctx context.Context, input *CreateCmd) error {
 	err := input.Validate()
 	if err != nil {
-		return errs.ValidationError(err)
+		return errs.Validation(err)
 	}
 
 	now := t.clock.Now()

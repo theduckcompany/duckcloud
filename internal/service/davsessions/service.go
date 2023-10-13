@@ -51,7 +51,7 @@ func NewService(storage Storage,
 func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSession, string, error) {
 	err := cmd.Validate()
 	if err != nil {
-		return nil, "", errs.ValidationError(err)
+		return nil, "", errs.Validation(err)
 	}
 
 	user, err := s.users.GetByID(ctx, cmd.UserID)
@@ -60,7 +60,7 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 	}
 
 	if user == nil {
-		return nil, "", errs.ValidationError(errors.New("userID: not found"))
+		return nil, "", errs.Validation(errors.New("userID: not found"))
 	}
 
 	for _, folderID := range cmd.Folders {
@@ -117,7 +117,7 @@ func (s *DavSessionsService) GetAllForUser(ctx context.Context, userID uuid.UUID
 func (s *DavSessionsService) Delete(ctx context.Context, cmd *DeleteCmd) error {
 	err := cmd.Validate()
 	if err != nil {
-		return errs.ValidationError(err)
+		return errs.Validation(err)
 	}
 
 	session, err := s.storage.GetByID(ctx, cmd.SessionID)

@@ -64,7 +64,7 @@ func NewService(tools tools.Tools,
 func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error) {
 	err := cmd.Validate()
 	if err != nil {
-		return nil, errs.ValidationError(err)
+		return nil, errs.Validation(err)
 	}
 
 	userWithSameUsername, err := s.storage.GetByUsername(ctx, cmd.Username)

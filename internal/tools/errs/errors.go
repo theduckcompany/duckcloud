@@ -61,7 +61,7 @@ func BadRequest(err error, msgAndArgs ...any) error {
 	return &Error{code: ErrBadRequest, err: err, msg: messageFromMsgAndArgs("bad request", msgAndArgs...)}
 }
 
-func ValidationError(err error) error {
+func Validation(err error) error {
 	return &Error{code: ErrValidation, err: err, msg: err.Error()}
 }
 
