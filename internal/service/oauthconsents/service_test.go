@@ -12,6 +12,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/oauthclients"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -53,7 +54,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		assert.EqualError(t, err, "validation: SessionToken: must be a valid UUID v4.")
 	})
 
-	t.Run("Create with a storageMockerror", func(t *testing.T) {
+	t.Run("Create with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
@@ -69,7 +70,8 @@ func Test_OauthConsents_Service(t *testing.T) {
 			Scopes:       []string{"scopeA", "scopeB"},
 		})
 		assert.Nil(t, res)
-		assert.EqualError(t, err, "failed to save the consent: some-error")
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("Check success", func(t *testing.T) {
@@ -104,7 +106,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		assert.EqualError(t, err, "validation: must be a valid UUID v4")
 	})
 
-	t.Run("Check with a storageMockerror", func(t *testing.T) {
+	t.Run("Check with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
@@ -118,7 +120,8 @@ func Test_OauthConsents_Service(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("84a871a1-e8f1-4041-83b3-530d013737cb")).Return(nil, errors.New("some-error")).Once()
 
 		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.AliceWebSessionExample)
-		assert.EqualError(t, err, "fail to fetch the consent from storage: some-error")
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("Check with the consent not found", func(t *testing.T) {
@@ -132,10 +135,11 @@ func Test_OauthConsents_Service(t *testing.T) {
 		req.URL.RawQuery = query.Encode()
 
 		tools.UUIDMock.On("Parse", "84a871a1-e8f1-4041-83b3-530d013737cb").Return(uuid.UUID("84a871a1-e8f1-4041-83b3-530d013737cb"), nil).Once()
-		storageMock.On("GetByID", mock.Anything, uuid.UUID("84a871a1-e8f1-4041-83b3-530d013737cb")).Return(nil, nil).Once()
+		storageMock.On("GetByID", mock.Anything, uuid.UUID("84a871a1-e8f1-4041-83b3-530d013737cb")).Return(nil, errNotFound).Once()
 
 		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.AliceWebSessionExample)
-		assert.EqualError(t, err, "consent not found")
+		assert.ErrorIs(t, err, errs.ErrNotFound)
+		assert.ErrorIs(t, err, ErrConsentNotFound)
 	})
 
 	t.Run("Check with an invalid client_id", func(t *testing.T) {
@@ -233,7 +237,8 @@ func Test_OauthConsents_Service(t *testing.T) {
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceConsent.UserID(), (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
 
 		err := service.DeleteAll(ctx, ExampleAliceConsent.UserID())
-		assert.EqualError(t, err, "failed to GetAllForUser: some-error")
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("DeleteAll with a revoke error stop directly", func(t *testing.T) {
@@ -246,6 +251,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		// Do not call GetByID and DeleteByID a second time
 
 		err := service.DeleteAll(ctx, ExampleAliceConsent.UserID())
-		assert.EqualError(t, err, fmt.Sprintf("failed to Delete an oauth consent %q: some-error", ExampleAliceConsent.ID()))
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 }

@@ -35,8 +35,8 @@ func TestConsentSqlStorage(t *testing.T) {
 	t.Run("GetByID not found", func(t *testing.T) {
 		res, err := storage.GetByID(ctx, "some-invalid-token")
 
-		assert.NoError(t, err)
 		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("GetAllForUser success", func(t *testing.T) {
@@ -51,8 +51,8 @@ func TestConsentSqlStorage(t *testing.T) {
 		assert.NoError(t, err)
 
 		res, err := storage.GetByID(ctx, ExampleAliceConsent.ID())
-		assert.NoError(t, err)
 		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("Delete with an invalid id", func(t *testing.T) {

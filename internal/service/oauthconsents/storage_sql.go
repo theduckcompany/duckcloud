@@ -14,6 +14,8 @@ import (
 
 const tableName = "oauth_consents"
 
+var errNotFound = errors.New("not found")
+
 var allFields = []string{"id", "user_id", "client_id", "scopes", "session_token", "created_at"}
 
 type sqlStorage struct {
@@ -52,7 +54,7 @@ func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*Consent, error
 		RunWith(s.db).
 		ScanContext(ctx, &res.id, &res.userID, &res.clientID, &rawScopes, &res.sessionToken, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return nil, errNotFound
 	}
 
 	if err != nil {
