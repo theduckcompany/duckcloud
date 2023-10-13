@@ -13,6 +13,8 @@ import (
 
 const tableName = "oauth_sessions"
 
+var errNotFound = errors.New("not found")
+
 var allFields = []string{"access_token", "access_created_at", "access_expires_at", "refresh_token", "refresh_created_at", "refresh_expires_at", "client_id", "user_id", "scope"}
 
 type sqlStorage struct {
@@ -74,11 +76,11 @@ func (s *sqlStorage) remove(ctx context.Context, conditions ...any) error {
 }
 
 func (s *sqlStorage) GetByAccessToken(ctx context.Context, access string) (*Session, error) {
-	return s.get(ctx, sq.Eq{"access_token": access})
+	return s.getWithKeys(ctx, sq.Eq{"access_token": access})
 }
 
 func (s *sqlStorage) GetByRefreshToken(ctx context.Context, refresh string) (*Session, error) {
-	return s.get(ctx, sq.Eq{"refresh_token": refresh})
+	return s.getWithKeys(ctx, sq.Eq{"refresh_token": refresh})
 }
 
 func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
@@ -96,7 +98,7 @@ func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *s
 	return s.scanRows(rows)
 }
 
-func (s *sqlStorage) get(ctx context.Context, conditions ...any) (*Session, error) {
+func (s *sqlStorage) getWithKeys(ctx context.Context, conditions ...any) (*Session, error) {
 	res := Session{}
 
 	query := sq.
@@ -121,7 +123,7 @@ func (s *sqlStorage) get(ctx context.Context, conditions ...any) (*Session, erro
 			&res.scope,
 		)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return nil, errNotFound
 	}
 
 	if err != nil {
