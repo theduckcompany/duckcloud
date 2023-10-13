@@ -2,6 +2,7 @@ package oauthsessions
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/theduckcompany/duckcloud/internal/tools"
@@ -56,42 +57,75 @@ func (s *OauthSessionsService) Create(ctx context.Context, input *CreateCmd) (*S
 
 	err = s.storage.Save(ctx, &session)
 	if err != nil {
-		return nil, fmt.Errorf("failed to save the refresh session: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to Save: %w", err))
 	}
 
 	return &session, nil
 }
 
 func (s *OauthSessionsService) RemoveByAccessToken(ctx context.Context, access string) error {
-	return s.storage.RemoveByAccessToken(ctx, access)
+	err := s.storage.RemoveByAccessToken(ctx, access)
+	if err != nil {
+		return errs.Internal(err)
+	}
+
+	return nil
 }
 
 func (s *OauthSessionsService) RemoveByRefreshToken(ctx context.Context, refresh string) error {
-	return s.storage.RemoveByRefreshToken(ctx, refresh)
+	err := s.storage.RemoveByRefreshToken(ctx, refresh)
+	if err != nil {
+		return errs.Internal(err)
+	}
+
+	return nil
 }
 
 func (s *OauthSessionsService) GetByAccessToken(ctx context.Context, access string) (*Session, error) {
-	return s.storage.GetByAccessToken(ctx, access)
+	res, err := s.storage.GetByAccessToken(ctx, access)
+	if errors.Is(err, errNotFound) {
+		return nil, errs.NotFound(err)
+	}
+
+	if err != nil {
+		return nil, errs.Internal(err)
+	}
+
+	return res, nil
 }
 
 func (s *OauthSessionsService) GetByRefreshToken(ctx context.Context, refresh string) (*Session, error) {
-	return s.storage.GetByRefreshToken(ctx, refresh)
+	res, err := s.storage.GetByRefreshToken(ctx, refresh)
+	if errors.Is(err, errNotFound) {
+		return nil, errs.NotFound(err)
+	}
+
+	if err != nil {
+		return nil, errs.Internal(err)
+	}
+
+	return res, nil
 }
 
 func (s *OauthSessionsService) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
-	return s.storage.GetAllForUser(ctx, userID, cmd)
+	res, err := s.storage.GetAllForUser(ctx, userID, cmd)
+	if err != nil {
+		return nil, errs.Internal(err)
+	}
+
+	return res, nil
 }
 
 func (s *OauthSessionsService) DeleteAllForUser(ctx context.Context, userID uuid.UUID) error {
 	sessions, err := s.GetAllForUser(ctx, userID, nil)
 	if err != nil {
-		return fmt.Errorf("failed to GetAllForUser: %w", err)
+		return errs.Internal(fmt.Errorf("failed to GetAllForUser: %w", err))
 	}
 
 	for _, session := range sessions {
 		err = s.RemoveByAccessToken(ctx, session.AccessToken())
 		if err != nil {
-			return fmt.Errorf("faile to RemoveByAccessToken: %w", err)
+			return errs.Internal(fmt.Errorf("failed to RemoveByAccessToken: %w", err))
 		}
 	}
 

@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
@@ -53,7 +54,8 @@ func Test_OauthSessions(t *testing.T) {
 			Scope:            ExampleAliceSession.Scope(),
 		})
 		assert.Nil(t, res)
-		assert.EqualError(t, err, "failed to save the refresh session: some-error")
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("GetByAccessToken success", func(t *testing.T) {
@@ -124,6 +126,7 @@ func Test_OauthSessions(t *testing.T) {
 		// Do not call "RemoveByAccessToken" a second time for the second error
 
 		err := service.DeleteAllForUser(ctx, ExampleAliceSession.userID)
-		assert.EqualError(t, err, "faile to RemoveByAccessToken: some-error")
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 }
