@@ -23,7 +23,7 @@ func Test_Users_Service(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		service := NewService(tools, store, foldersMock)
 
-		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(nil, nil).Once()
+		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(nil, errNotFound).Once()
 
 		tools.UUIDMock.On("New").Return(ExampleAlice.ID()).Once()
 
@@ -73,6 +73,7 @@ func Test_Users_Service(t *testing.T) {
 			Password: ExampleAlice.password,
 			IsAdmin:  false,
 		})
+		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 		assert.Nil(t, res)
 	})
@@ -98,9 +99,10 @@ func Test_Users_Service(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		service := NewService(tools, store, foldersMock)
 
-		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(nil, nil).Once()
+		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(nil, errNotFound).Once()
 
 		res, err := service.Authenticate(ctx, ExampleAlice.Username(), ExampleAlice.password)
+		assert.ErrorIs(t, err, errs.ErrBadRequest)
 		assert.ErrorIs(t, err, ErrInvalidUsername)
 		assert.Nil(t, res)
 	})
@@ -130,7 +132,8 @@ func Test_Users_Service(t *testing.T) {
 		tools.PasswordMock.On("Compare", ctx, ExampleAlice.password, "some-password").Return(fmt.Errorf("some-error")).Once()
 
 		res, err := service.Authenticate(ctx, ExampleAlice.Username(), "some-password")
-		assert.EqualError(t, err, "failed to compare the hash and the password: some-error")
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 		assert.Nil(t, res)
 	})
 
@@ -196,10 +199,11 @@ func Test_Users_Service(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		service := NewService(tools, store, foldersMock)
 
-		store.On("GetByID", ctx, ExampleAlice.ID()).Return(nil, nil).Once()
+		store.On("GetByID", ctx, ExampleAlice.ID()).Return(nil, errNotFound).Once()
 
 		err := service.AddToDeletion(ctx, ExampleAlice.ID())
-		assert.NoError(t, err)
+		assert.ErrorIs(t, err, errs.ErrNotFound)
+		assert.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("AddToDeletion the last admin failed", func(t *testing.T) {
@@ -235,7 +239,7 @@ func Test_Users_Service(t *testing.T) {
 		service := NewService(tools, store, foldersMock)
 
 		// It doesn't return ExampleDeletingAlice so the status is "active"
-		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(nil, nil).Once()
+		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(nil, errNotFound).Once()
 
 		err := service.HardDelete(ctx, ExampleAlice.ID())
 		assert.NoError(t, err)
@@ -279,6 +283,7 @@ func Test_Users_Service(t *testing.T) {
 
 		// BobPersonalFolder is not owned by Alice
 		res, err := service.SetDefaultFolder(ctx, ExampleAlice, &folders.ExampleBobPersonalFolder)
+		assert.ErrorIs(t, err, errs.ErrUnauthorized)
 		assert.ErrorIs(t, err, ErrUnauthorizedFolder)
 		assert.Nil(t, res)
 	})
