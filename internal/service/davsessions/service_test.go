@@ -73,7 +73,7 @@ func TestDavSessionsService(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		service := NewService(storageMock, usersMock, foldersMock, tools)
 
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(nil, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(nil, errNotFound).Once()
 
 		res, secret, err := service.Create(ctx, &CreateCmd{
 			Name:    ExampleAliceSession.Name(),
@@ -95,7 +95,7 @@ func TestDavSessionsService(t *testing.T) {
 		service := NewService(storageMock, usersMock, foldersMock, tools)
 
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), folders.ExampleAlicePersonalFolder.ID()).Return(nil, nil).Once()
+		foldersMock.On("GetUserFolder", mock.Anything, users.ExampleAlice.ID(), folders.ExampleAlicePersonalFolder.ID()).Return(nil, errNotFound).Once()
 
 		res, secret, err := service.Create(ctx, &CreateCmd{
 			Name:    ExampleAliceSession.Name(),
@@ -105,7 +105,9 @@ func TestDavSessionsService(t *testing.T) {
 
 		assert.Nil(t, res)
 		assert.Empty(t, secret)
-		assert.EqualError(t, err, "bad request: invalid folderID")
+
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("Create with a folder not owned by the given user", func(t *testing.T) {
@@ -199,7 +201,7 @@ func TestDavSessionsService(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		service := NewService(storageMock, usersMock, foldersMock, tools)
 
-		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(nil, nil).Once()
+		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(nil, errNotFound).Once()
 
 		err := service.Delete(ctx, &DeleteCmd{
 			UserID:    ExampleAliceSession.UserID(),
@@ -240,7 +242,7 @@ func TestDavSessionsService(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("DeleteAll witha GetAll error", func(t *testing.T) {
+	t.Run("DeleteAll with a GetAll error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		usersMock := users.NewMockService(t)
@@ -250,7 +252,8 @@ func TestDavSessionsService(t *testing.T) {
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.UserID(), (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
 
 		err := service.DeleteAll(ctx, ExampleAliceSession.UserID())
-		assert.EqualError(t, err, "failed to GetAllForUser: some-error")
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("DeleteAll with a revoke error stop directly", func(t *testing.T) {
@@ -266,6 +269,7 @@ func TestDavSessionsService(t *testing.T) {
 		// Do not call GetByID and RemoveByID a second time
 
 		err := service.DeleteAll(ctx, ExampleAliceSession.UserID())
-		assert.EqualError(t, err, fmt.Sprintf("failed to Delete dav session %q: failed to RemoveByID: some-error", ExampleAliceSession.id))
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 }

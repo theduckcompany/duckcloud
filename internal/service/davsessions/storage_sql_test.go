@@ -29,8 +29,8 @@ func TestDavSessionSqlStorage(t *testing.T) {
 	t.Run("GetByUsernameAndPassHash not found", func(t *testing.T) {
 		res, err := store.GetByUsernameAndPassHash(context.Background(), "some-invalid-username", "some-hashed-password")
 
-		assert.NoError(t, err)
 		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("GetByID success", func(t *testing.T) {
@@ -43,8 +43,8 @@ func TestDavSessionSqlStorage(t *testing.T) {
 	t.Run("GetByID not found", func(t *testing.T) {
 		res, err := store.GetByID(context.Background(), "some-invalid-id")
 
-		assert.NoError(t, err)
 		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("GetAllForUser success", func(t *testing.T) {
@@ -67,6 +67,6 @@ func TestDavSessionSqlStorage(t *testing.T) {
 
 		res, err := store.GetByID(context.Background(), ExampleAliceSession.id)
 		assert.Nil(t, res)
-		assert.NoError(t, err)
+		assert.ErrorIs(t, err, errNotFound)
 	})
 }

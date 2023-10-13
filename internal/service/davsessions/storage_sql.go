@@ -13,6 +13,8 @@ import (
 
 const tableName = "dav_sessions"
 
+var errNotFound = errors.New("not found")
+
 var allFields = []string{"id", "username", "name", "password", "user_id", "folders", "created_at"}
 
 type sqlStorage struct {
@@ -47,7 +49,7 @@ func (t *sqlStorage) GetByID(ctx context.Context, sessionID uuid.UUID) (*DavSess
 		RunWith(t.db).
 		ScanContext(ctx, &res.id, &res.username, &res.name, &res.password, &res.userID, &res.folders, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return nil, errNotFound
 	}
 
 	if err != nil {
@@ -63,7 +65,7 @@ func (t *sqlStorage) RemoveByID(ctx context.Context, sessionID uuid.UUID) error 
 		Where(sq.Eq{"id": sessionID}).
 		RunWith(t.db).
 		ExecContext(ctx)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+	if err != nil {
 		return fmt.Errorf("sql error: %w", err)
 	}
 
@@ -80,7 +82,7 @@ func (t *sqlStorage) GetByUsernameAndPassHash(ctx context.Context, username, pas
 		RunWith(t.db).
 		ScanContext(ctx, &res.id, &res.username, &res.name, &res.password, &res.userID, &res.folders, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return nil, errNotFound
 	}
 
 	if err != nil {
@@ -97,10 +99,6 @@ func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *s
 		From(tableName), cmd).
 		RunWith(s.db).
 		QueryContext(ctx)
-	if errors.Is(err, sql.ErrNoRows) {
-		return []DavSession{}, nil
-	}
-
 	if err != nil {
 		return nil, fmt.Errorf("sql error: %w", err)
 	}
