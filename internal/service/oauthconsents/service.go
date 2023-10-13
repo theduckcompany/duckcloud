@@ -53,7 +53,7 @@ func (s *OauthConsentsService) Create(ctx context.Context, cmd *CreateCmd) (*Con
 
 	err = s.storage.Save(ctx, &consent)
 	if err != nil {
-		return nil, fmt.Errorf("failed to save the consent: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to Save: %w", err))
 	}
 
 	return &consent, nil
@@ -68,12 +68,11 @@ func (s *OauthConsentsService) Check(r *http.Request, client *oauthclients.Clien
 	}
 
 	consent, err := s.storage.GetByID(r.Context(), consentID)
-	if err != nil {
-		return fmt.Errorf("fail to fetch the consent from storage: %w", err)
+	if errors.Is(err, errNotFound) {
+		return errs.NotFound(ErrConsentNotFound)
 	}
-
-	if consent == nil {
-		return ErrConsentNotFound
+	if err != nil {
+		return errs.Internal(fmt.Errorf("fail to GetByID: %w", err))
 	}
 
 	if consent.ClientID() != client.GetID() {
@@ -88,23 +87,33 @@ func (s *OauthConsentsService) Check(r *http.Request, client *oauthclients.Clien
 }
 
 func (s *OauthConsentsService) GetAll(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Consent, error) {
-	return s.storage.GetAllForUser(ctx, userID, cmd)
+	res, err := s.storage.GetAllForUser(ctx, userID, cmd)
+	if err != nil {
+		return nil, errs.Internal(err)
+	}
+
+	return res, nil
 }
 
 func (s *OauthConsentsService) Delete(ctx context.Context, consentID uuid.UUID) error {
-	return s.storage.Delete(ctx, consentID)
+	err := s.storage.Delete(ctx, consentID)
+	if err != nil {
+		return errs.Internal(err)
+	}
+
+	return nil
 }
 
 func (s *OauthConsentsService) DeleteAll(ctx context.Context, userID uuid.UUID) error {
 	consents, err := s.GetAll(ctx, userID, nil)
 	if err != nil {
-		return fmt.Errorf("failed to GetAllForUser: %w", err)
+		return errs.Internal(fmt.Errorf("failed to GetAllForUser: %w", err))
 	}
 
 	for _, consent := range consents {
 		err = s.Delete(ctx, consent.ID())
 		if err != nil {
-			return fmt.Errorf("failed to Delete an oauth consent %q: %w", consent.ID(), err)
+			return errs.Internal(fmt.Errorf("failed to Delete an oauth consent %q: %w", consent.ID(), err))
 		}
 	}
 
