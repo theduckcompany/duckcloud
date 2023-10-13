@@ -57,22 +57,39 @@ func (t *Error) Is(err error) bool {
 	return err == t.code || err == t.err
 }
 
-func BadRequest(err error, msg string) error {
-	return &Error{code: ErrBadRequest, err: err, msg: msg}
+func BadRequest(err error, msgAndArgs ...any) error {
+	return &Error{code: ErrBadRequest, err: err, msg: messageFromMsgAndArgs("bad request", msgAndArgs...)}
 }
 
 func ValidationError(err error) error {
 	return &Error{code: ErrValidation, err: err, msg: err.Error()}
 }
 
-func NotFound(err error, msg string) error {
-	return &Error{code: ErrNotFound, err: err, msg: msg}
+func NotFound(err error, msgAndArgs ...any) error {
+	return &Error{code: ErrNotFound, err: err, msg: messageFromMsgAndArgs("not found", msgAndArgs...)}
 }
 
-func Unauthorized(err error, msg string) error {
-	return &Error{code: ErrUnauthorized, err: err, msg: msg}
+func Unauthorized(err error, msgAndArgs ...any) error {
+	return &Error{code: ErrUnauthorized, err: err, msg: messageFromMsgAndArgs("unauthorized", msgAndArgs...)}
 }
 
 func Unhandled(err error) error {
 	return &Error{code: ErrUnhandled, err: err, msg: "internal error"}
+}
+
+func messageFromMsgAndArgs(defaultMsg string, msgAndArgs ...any) string {
+	if len(msgAndArgs) == 0 || msgAndArgs == nil {
+		return defaultMsg
+	}
+	if len(msgAndArgs) == 1 {
+		msg := msgAndArgs[0]
+		if msgAsStr, ok := msg.(string); ok {
+			return msgAsStr
+		}
+		return fmt.Sprintf("%+v", msg)
+	}
+	if len(msgAndArgs) > 1 {
+		return fmt.Sprintf(msgAndArgs[0].(string), msgAndArgs[1:]...)
+	}
+	return ""
 }
