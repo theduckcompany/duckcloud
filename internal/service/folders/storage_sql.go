@@ -15,6 +15,8 @@ import (
 
 const tableName = "fs_folders"
 
+var errNotFound = errors.New("not found")
+
 var allFields = []string{"id", "name", "public", "owners", "root_fs", "created_at"}
 
 type sqlStorage struct {
@@ -115,7 +117,7 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*Folder, err
 		RunWith(s.db).
 		ScanContext(ctx, &res.id, &res.name, &res.isPublic, &res.owners, &res.rootFS, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return nil, errNotFound
 	}
 
 	if err != nil {

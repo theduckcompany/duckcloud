@@ -99,7 +99,7 @@ func Test_FolderService(t *testing.T) {
 		svc := NewService(tools, storageMock, inodesMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(&ExampleAlicePersonalFolder, nil).Once()
-		inodesMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.RootFS()).Return(nil, nil).Once()
+		inodesMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.RootFS()).Return(nil, errs.ErrNotFound).Once()
 		storageMock.On("Delete", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(nil).Once()
 
 		err := svc.Delete(ctx, ExampleAlicePersonalFolder.ID())
@@ -112,7 +112,7 @@ func Test_FolderService(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		svc := NewService(tools, storageMock, inodesMock)
 
-		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(nil, nil).Once()
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(nil, errNotFound).Once()
 
 		err := svc.Delete(ctx, ExampleAlicePersonalFolder.ID())
 		assert.NoError(t, err)
@@ -153,7 +153,8 @@ func Test_FolderService(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(&ExampleAlicePersonalFolder, nil).Once()
 
 		res, err := svc.GetUserFolder(ctx, uuid.UUID("some-invalid-user-id"), ExampleAlicePersonalFolder.ID())
-		assert.NoError(t, err)
 		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrUnauthorized)
+		assert.ErrorIs(t, err, ErrInvalidFolderAccess)
 	})
 }

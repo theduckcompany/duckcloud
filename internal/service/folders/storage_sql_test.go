@@ -35,8 +35,9 @@ func TestFolderSqlstore(t *testing.T) {
 
 	t.Run("GetByID not found", func(t *testing.T) {
 		res, err := store.GetByID(ctx, "some-invalid-uuid")
-		assert.NoError(t, err)
+
 		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("GetAllUserFolders with only personal success", func(t *testing.T) {
