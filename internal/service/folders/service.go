@@ -16,10 +16,11 @@ import (
 )
 
 var (
-	ErrRootFSNotFound = errors.New("rootFS not found")
-	ErrRootFSExist    = errors.New("rootFS exists")
-	ErrInvalidRootFS  = errors.New("invalid rootFS")
-	ErrNotFound       = errors.New("folder not found")
+	ErrRootFSNotFound      = errors.New("rootFS not found")
+	ErrRootFSExist         = errors.New("rootFS exists")
+	ErrInvalidRootFS       = errors.New("invalid rootFS")
+	ErrNotFound            = errors.New("folder not found")
+	ErrInvalidFolderAccess = errors.New("no access to folder")
 )
 
 //go:generate mockery --name Storage
@@ -53,7 +54,7 @@ func (s *FolderService) CreatePersonalFolder(ctx context.Context, cmd *CreatePer
 	// TODO: This action is not idempotent and could lead to orphan root dirs.
 	inode, err := s.inodes.CreateRootDir(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to CreateRootDir: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to CreateRootDir: %w", err))
 	}
 
 	if !inode.IsDir() || inode.Parent() != nil {
@@ -72,7 +73,7 @@ func (s *FolderService) CreatePersonalFolder(ctx context.Context, cmd *CreatePer
 
 	err = s.storage.Save(ctx, &folder)
 	if err != nil {
-		return nil, fmt.Errorf("failed to Save the folder: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to Save the folder: %w", err))
 	}
 
 	return &folder, nil
@@ -86,16 +87,16 @@ func (s *FolderService) Delete(ctx context.Context, folderID uuid.UUID) error {
 	defer lock.Unlock()
 
 	folder, err := s.storage.GetByID(ctx, folderID)
+	if errors.Is(err, errNotFound) {
+		return nil
+	}
+
 	if err != nil {
 		return fmt.Errorf("failed to GetByID: %w", err)
 	}
 
-	if folder == nil {
-		return nil
-	}
-
 	res, err := s.inodes.GetByID(ctx, folder.RootFS())
-	if err != nil {
+	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		return fmt.Errorf("failed to GetByID: %w", err)
 	}
 
@@ -105,32 +106,58 @@ func (s *FolderService) Delete(ctx context.Context, folderID uuid.UUID) error {
 
 	err = s.storage.Delete(ctx, folderID)
 	if err != nil {
-		return fmt.Errorf("failed to Delete: %w", err)
+		return errs.Internal(fmt.Errorf("failed to Delete: %w", err))
 	}
 
 	return nil
 }
 
 func (s *FolderService) GetAllFoldersWithRoot(ctx context.Context, rootID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error) {
-	return s.storage.GetAllFoldersWithRoot(ctx, rootID, cmd)
+	res, err := s.storage.GetAllFoldersWithRoot(ctx, rootID, cmd)
+	if err != nil {
+		return nil, errs.Internal(err)
+	}
+
+	return res, nil
 }
 
 func (s *FolderService) GetByID(ctx context.Context, folderID uuid.UUID) (*Folder, error) {
-	return s.storage.GetByID(ctx, folderID)
+	res, err := s.storage.GetByID(ctx, folderID)
+	if errors.Is(err, errNotFound) {
+		return nil, errs.NotFound(err)
+	}
+	if err != nil {
+		return nil, errs.Internal(err)
+	}
+
+	return res, nil
 }
 
 func (s *FolderService) GetAllUserFolders(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error) {
-	return s.storage.GetAllUserFolders(ctx, userID, cmd)
+	res, err := s.storage.GetAllUserFolders(ctx, userID, cmd)
+	if errors.Is(err, errNotFound) {
+		return nil, errs.NotFound(err)
+	}
+
+	if err != nil {
+		return nil, errs.Internal(err)
+	}
+
+	return res, nil
 }
 
 func (s *FolderService) GetUserFolder(ctx context.Context, userID, folderID uuid.UUID) (*Folder, error) {
 	folder, err := s.storage.GetByID(ctx, folderID)
+	if errors.Is(err, errNotFound) {
+		return nil, errs.NotFound(err)
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
 	if !slices.Contains[[]uuid.UUID, uuid.UUID](folder.Owners(), userID) {
-		return nil, nil
+		return nil, errs.Unauthorized(ErrInvalidFolderAccess)
 	}
 
 	return folder, nil
