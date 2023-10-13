@@ -64,7 +64,8 @@ func Test_WebSessions_Service(t *testing.T) {
 			Req:    req,
 		})
 		assert.Nil(t, res)
-		assert.EqualError(t, err, "validation error: UserID: must be a valid UUID v4.")
+		assert.ErrorIs(t, err, errs.ErrValidation)
+		assert.ErrorContains(t, err, "UserID: must be a valid UUID v4.")
 	})
 
 	t.Run("Create with a storageMockerror", func(t *testing.T) {
@@ -176,7 +177,7 @@ func Test_WebSessions_Service(t *testing.T) {
 
 		res, err := service.GetFromReq(req)
 		assert.Nil(t, res)
-		assert.EqualError(t, err, "unhandled error: some-error")
+		assert.EqualError(t, err, "unhandled: some-error")
 	})
 
 	t.Run("Logout success", func(t *testing.T) {
@@ -264,7 +265,8 @@ func Test_WebSessions_Service(t *testing.T) {
 			UserID: "some-invalid-id",
 			Token:  AliceWebSessionExample.Token(),
 		})
-		assert.EqualError(t, err, "validation error: UserID: must be a valid UUID v4.")
+		assert.ErrorIs(t, err, errs.ErrValidation)
+		assert.ErrorContains(t, err, "UserID: must be a valid UUID v4.")
 	})
 
 	t.Run("Delete with a token not found", func(t *testing.T) {

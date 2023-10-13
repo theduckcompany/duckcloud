@@ -62,7 +62,8 @@ func TestDavSessionsService(t *testing.T) {
 
 		assert.Nil(t, res)
 		assert.Empty(t, secret)
-		assert.EqualError(t, err, "validation error: UserID: must be a valid UUID v4.")
+		assert.ErrorIs(t, err, errs.ErrValidation)
+		assert.ErrorContains(t, err, "UserID: must be a valid UUID v4.")
 	})
 
 	t.Run("Create with an user not found", func(t *testing.T) {
@@ -82,7 +83,8 @@ func TestDavSessionsService(t *testing.T) {
 
 		assert.Nil(t, res)
 		assert.Empty(t, secret)
-		assert.EqualError(t, err, "validation error: userID: not found")
+		assert.ErrorIs(t, err, errs.ErrValidation)
+		assert.ErrorContains(t, err, "userID: not found")
 	})
 
 	t.Run("Create with a folder not found", func(t *testing.T) {
@@ -186,7 +188,8 @@ func TestDavSessionsService(t *testing.T) {
 			UserID:    ExampleAliceSession.UserID(),
 			SessionID: "some invalid id",
 		})
-		assert.EqualError(t, err, "validation error: SessionID: must be a valid UUID v4.")
+		assert.ErrorIs(t, err, errs.ErrValidation)
+		assert.ErrorContains(t, err, "SessionID: must be a valid UUID v4.")
 	})
 
 	t.Run("Delete with a session not found", func(t *testing.T) {

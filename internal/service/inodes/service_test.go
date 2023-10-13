@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	mock "github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -100,7 +101,8 @@ func TestINodes(t *testing.T) {
 		})
 
 		assert.Nil(t, res)
-		assert.EqualError(t, err, "validation error: Root: must be a valid UUID v4.")
+		assert.ErrorIs(t, err, errs.ErrValidation)
+		assert.ErrorContains(t, err, "Root: must be a valid UUID v4.")
 	})
 
 	t.Run("CreateDir with a parent not found", func(t *testing.T) {
@@ -233,7 +235,8 @@ func TestINodes(t *testing.T) {
 			FullName: "/foo",
 		})
 
-		assert.EqualError(t, err, "validation error: Root: must be a valid UUID v4.")
+		assert.ErrorIs(t, err, errs.ErrValidation)
+		assert.ErrorContains(t, err, "Root: must be a valid UUID v4.")
 	})
 
 	t.Run("RemoveAll with a file not found", func(t *testing.T) {
@@ -328,7 +331,8 @@ func TestINodes(t *testing.T) {
 		})
 
 		assert.Nil(t, res)
-		assert.EqualError(t, err, "validation error: Root: must be a valid UUID v4.")
+		assert.ErrorIs(t, err, errs.ErrValidation)
+		assert.ErrorContains(t, err, "Root: must be a valid UUID v4.")
 	})
 
 	t.Run("Get with an invalid root", func(t *testing.T) {
@@ -425,7 +429,8 @@ func TestINodes(t *testing.T) {
 		}, &storage.PaginateCmd{Limit: 10})
 
 		assert.Nil(t, res)
-		assert.EqualError(t, err, "validation error: Root: must be a valid UUID v4.")
+		assert.ErrorIs(t, err, errs.ErrValidation)
+		assert.ErrorContains(t, err, "Root: must be a valid UUID v4.")
 	})
 
 	t.Run("CreateFile success", func(t *testing.T) {
@@ -477,7 +482,8 @@ func TestINodes(t *testing.T) {
 		})
 
 		assert.Nil(t, res)
-		assert.EqualError(t, err, "validation error: Parent: must be a valid UUID v4.")
+		assert.ErrorIs(t, err, errs.ErrValidation)
+		assert.ErrorContains(t, err, "Parent: must be a valid UUID v4.")
 	})
 
 	t.Run("CreateFile with a non existing parent", func(t *testing.T) {

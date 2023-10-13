@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -48,7 +49,8 @@ func Test_FolderService(t *testing.T) {
 			Owner: AliceID,
 		})
 		assert.Nil(t, res)
-		assert.EqualError(t, err, "validation error: Name: cannot be blank.")
+		assert.ErrorIs(t, err, errs.ErrValidation)
+		assert.ErrorContains(t, err, "Name: cannot be blank.")
 	})
 
 	t.Run("GetAlluserFolders success", func(t *testing.T) {
