@@ -30,29 +30,32 @@ func TestOauthCodeSQLStorage(t *testing.T) {
 
 	t.Run("save", func(t *testing.T) {
 		err := storage.Save(context.Background(), &codeExample)
+
 		assert.NoError(t, err)
 	})
 
 	t.Run("GetByID ok", func(t *testing.T) {
 		code, err := storage.GetByCode(context.Background(), "some-code")
+
 		assert.NoError(t, err)
 		assert.EqualValues(t, &codeExample, code)
 	})
 
 	t.Run("GetByID not found", func(t *testing.T) {
 		code, err := storage.GetByCode(ctx, "some-invalid-code")
-		assert.NoError(t, err)
+
 		assert.Nil(t, code)
+		assert.ErrorIs(t, err, errNotFound)
 	})
 
-	t.Run("RemoveByCode", func(t *testing.T) {
+	t.Run("RemoveByCode success", func(t *testing.T) {
 		err := storage.RemoveByCode(ctx, "some-code")
 		assert.NoError(t, err)
 
 		// Check that the code is no more available
 		code, err := storage.GetByCode(ctx, "some-code")
-		assert.NoError(t, err)
 		assert.Nil(t, code)
+		assert.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("RemoveByCode invalid code", func(t *testing.T) {
