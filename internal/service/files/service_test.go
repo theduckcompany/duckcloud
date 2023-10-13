@@ -130,6 +130,6 @@ func TestFileService(t *testing.T) {
 		require.NoError(t, err)
 
 		err = svc.Delete(ctx, &inodes.ExampleAliceRoot)
-		assert.ErrorIs(t, err, ErrNotAFile)
+		assert.ErrorIs(t, err, ErrInodeNotAFile)
 	})
 }

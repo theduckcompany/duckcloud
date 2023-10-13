@@ -126,7 +126,7 @@ func (s *LocalFS) Download(ctx context.Context, name string) (io.ReadSeekCloser,
 
 	fileID := inode.FileID()
 	if fileID == nil {
-		return nil, files.ErrNotAFile
+		return nil, files.ErrInodeNotAFile
 	}
 
 	file, err := s.files.Open(ctx, *fileID)
