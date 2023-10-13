@@ -55,18 +55,18 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 	}
 
 	user, err := s.users.GetByID(ctx, cmd.UserID)
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to usersGetByID: %w", err)
+	if errors.Is(err, errNotFound) {
+		return nil, "", errs.Validation(errors.New("userID: not found"))
 	}
 
-	if user == nil {
-		return nil, "", errs.Validation(errors.New("userID: not found"))
+	if err != nil {
+		return nil, "", errs.Internal(fmt.Errorf("failed to usersGetByID: %w", err))
 	}
 
 	for _, folderID := range cmd.Folders {
 		folder, err := s.folders.GetUserFolder(ctx, user.ID(), folderID)
-		if err != nil {
-			return nil, "", fmt.Errorf("failed to get the folder %q by id: %w", folderID, err)
+		if err != nil && !errors.Is(err, errs.ErrNotFound) {
+			return nil, "", errs.Internal(fmt.Errorf("failed to get the folder %q by id: %w", folderID, err))
 		}
 
 		if folder == nil || !slices.Contains(folder.Owners(), cmd.UserID) {
@@ -89,7 +89,7 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 
 	err = s.storage.Save(ctx, &session)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to save the session: %w", err)
+		return nil, "", errs.Internal(fmt.Errorf("failed to save the session: %w", err))
 	}
 
 	return &session, password, nil
@@ -99,19 +99,23 @@ func (s *DavSessionsService) Authenticate(ctx context.Context, username, passwor
 	rawSha := sha256.Sum256([]byte(password))
 
 	res, err := s.storage.GetByUsernameAndPassHash(ctx, username, hex.EncodeToString(rawSha[:]))
-	if err != nil {
-		return nil, fmt.Errorf("failed to GetByUsernameandPassHash: %w", err)
-	}
-
-	if res == nil {
+	if errors.Is(err, errNotFound) {
 		return nil, errs.BadRequest(ErrInvalidCredentials, "invalid credentials")
+	}
+	if err != nil {
+		return nil, errs.Internal(fmt.Errorf("failed to GetByUsernameandPassHash: %w", err))
 	}
 
 	return res, nil
 }
 
 func (s *DavSessionsService) GetAllForUser(ctx context.Context, userID uuid.UUID, paginateCmd *storage.PaginateCmd) ([]DavSession, error) {
-	return s.storage.GetAllForUser(ctx, userID, paginateCmd)
+	res, err := s.storage.GetAllForUser(ctx, userID, paginateCmd)
+	if err != nil {
+		return nil, errs.Internal(err)
+	}
+
+	return res, nil
 }
 
 func (s *DavSessionsService) Delete(ctx context.Context, cmd *DeleteCmd) error {
@@ -121,12 +125,12 @@ func (s *DavSessionsService) Delete(ctx context.Context, cmd *DeleteCmd) error {
 	}
 
 	session, err := s.storage.GetByID(ctx, cmd.SessionID)
-	if err != nil {
-		return fmt.Errorf("failed to GetByToken: %w", err)
+	if errors.Is(err, errNotFound) {
+		return nil
 	}
 
-	if session == nil {
-		return nil
+	if err != nil {
+		return fmt.Errorf("failed to GetByToken: %w", err)
 	}
 
 	if session.UserID() != cmd.UserID {
@@ -135,7 +139,7 @@ func (s *DavSessionsService) Delete(ctx context.Context, cmd *DeleteCmd) error {
 
 	err = s.storage.RemoveByID(ctx, session.ID())
 	if err != nil {
-		return fmt.Errorf("failed to RemoveByID: %w", err)
+		return errs.Internal(fmt.Errorf("failed to RemoveByID: %w", err))
 	}
 
 	return nil
@@ -144,7 +148,7 @@ func (s *DavSessionsService) Delete(ctx context.Context, cmd *DeleteCmd) error {
 func (s *DavSessionsService) DeleteAll(ctx context.Context, userID uuid.UUID) error {
 	davSessions, err := s.GetAllForUser(ctx, userID, nil)
 	if err != nil {
-		return fmt.Errorf("failed to GetAllForUser: %w", err)
+		return errs.Internal(fmt.Errorf("failed to GetAllForUser: %w", err))
 	}
 
 	for _, session := range davSessions {
@@ -153,7 +157,7 @@ func (s *DavSessionsService) DeleteAll(ctx context.Context, userID uuid.UUID) er
 			SessionID: session.ID(),
 		})
 		if err != nil {
-			return fmt.Errorf("failed to Delete dav session %q: %w", session.ID(), err)
+			return errs.Internal(fmt.Errorf("failed to Delete dav session %q: %w", session.ID(), err))
 		}
 	}
 
