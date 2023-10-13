@@ -55,8 +55,8 @@ func TestSessionSqlStorage(t *testing.T) {
 	t.Run("GetByToken not found", func(t *testing.T) {
 		res, err := storage.GetByToken(context.Background(), "some-invalid-token")
 
-		assert.NoError(t, err)
 		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("RemoveByToken ", func(t *testing.T) {
@@ -64,7 +64,7 @@ func TestSessionSqlStorage(t *testing.T) {
 		assert.NoError(t, err)
 
 		res, err := storage.GetByToken(context.Background(), "some-token")
-		assert.NoError(t, err)
 		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errNotFound)
 	})
 }

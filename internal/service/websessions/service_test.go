@@ -68,7 +68,7 @@ func Test_WebSessions_Service(t *testing.T) {
 		assert.ErrorContains(t, err, "UserID: must be a valid UUID v4.")
 	})
 
-	t.Run("Create with a storageMockerror", func(t *testing.T) {
+	t.Run("Create with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
@@ -86,7 +86,8 @@ func Test_WebSessions_Service(t *testing.T) {
 			Req:    req,
 		})
 		assert.Nil(t, res)
-		assert.EqualError(t, err, "failed to save the session: some-error")
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "failed to save the session: some-error")
 	})
 
 	t.Run("GetAllForUser success", func(t *testing.T) {
@@ -155,14 +156,15 @@ func Test_WebSessions_Service(t *testing.T) {
 			Value: "some-token",
 		})
 
-		storageMock.On("GetByToken", mock.Anything, "some-token").Return(nil, nil).Once()
+		storageMock.On("GetByToken", mock.Anything, "some-token").Return(nil, errNotFound).Once()
 
 		res, err := service.GetFromReq(req)
 		assert.Nil(t, res)
-		assert.EqualError(t, err, "bad request: session not found")
+		assert.ErrorIs(t, err, errs.ErrBadRequest)
+		assert.ErrorIs(t, err, ErrSessionNotFound)
 	})
 
-	t.Run("GetFromReq with a storageMockerror", func(t *testing.T) {
+	t.Run("GetFromReq with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
@@ -177,7 +179,8 @@ func Test_WebSessions_Service(t *testing.T) {
 
 		res, err := service.GetFromReq(req)
 		assert.Nil(t, res)
-		assert.EqualError(t, err, "unhandled: some-error")
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("Logout success", func(t *testing.T) {
@@ -222,7 +225,7 @@ func Test_WebSessions_Service(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("Logout with a storageMockerror", func(t *testing.T) {
+	t.Run("Logout with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
@@ -238,7 +241,8 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock.On("RemoveByToken", mock.Anything, "some-token").Return(errors.New("some-error")).Once()
 
 		err := service.Logout(req, w)
-		assert.EqualError(t, err, "failed to remove the token: some-error")
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "failed to remove the token: some-error")
 	})
 
 	t.Run("Delete success", func(t *testing.T) {
@@ -274,7 +278,7 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
-		storageMock.On("GetByToken", mock.Anything, AliceWebSessionExample.Token()).Return(nil, nil).Once()
+		storageMock.On("GetByToken", mock.Anything, AliceWebSessionExample.Token()).Return(nil, errNotFound).Once()
 
 		err := service.Delete(ctx, &DeleteCmd{
 			UserID: AliceWebSessionExample.UserID(),
@@ -311,7 +315,7 @@ func Test_WebSessions_Service(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("DeleteAll witha GetAll error", func(t *testing.T) {
+	t.Run("DeleteAll with a GetAll error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
@@ -319,7 +323,8 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock.On("GetAllForUser", mock.Anything, AliceWebSessionExample.UserID(), (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
 
 		err := service.DeleteAll(ctx, AliceWebSessionExample.UserID())
-		assert.EqualError(t, err, "failed to GetAllForUser: some-error")
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "failed to GetAllForUser: some-error")
 	})
 
 	t.Run("DeleteAll with a revoke error stop directly", func(t *testing.T) {
@@ -333,6 +338,7 @@ func Test_WebSessions_Service(t *testing.T) {
 		// Do not call GetByToken and RemoveByToken a second time
 
 		err := service.DeleteAll(ctx, AliceWebSessionExample.UserID())
-		assert.EqualError(t, err, fmt.Sprintf("failed to Delete web session %q: failed to RemoveByToken: some-error", AliceWebSessionExample.token))
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 }
