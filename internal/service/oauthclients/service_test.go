@@ -106,7 +106,8 @@ func TestOauthClientsService(t *testing.T) {
 			SkipValidation: ExampleAliceClient.skipValidation,
 		})
 
-		assert.EqualError(t, err, "failed to save the client: some-error")
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 		assert.Nil(t, res)
 	})
 
@@ -143,6 +144,7 @@ func TestOauthClientsService(t *testing.T) {
 
 		res, err := svc.GetByID(ctx, ExampleAliceClient.id)
 		assert.Nil(t, nil, res)
-		assert.EqualError(t, err, "failed to get by ID: some-error")
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 }

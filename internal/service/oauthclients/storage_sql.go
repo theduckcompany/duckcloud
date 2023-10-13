@@ -12,6 +12,8 @@ import (
 
 const tableName = "oauth_clients"
 
+var errNotFound = errors.New("not found")
+
 var allFields = []string{"id", "name", "secret", "redirect_uri", "user_id", "scopes", "is_public", "skip_validation", "created_at"}
 
 type sqlStorage struct {
@@ -62,7 +64,7 @@ func (t *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*Client, error)
 			&res.skipValidation,
 			&res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return nil, errNotFound
 	}
 
 	if err != nil {

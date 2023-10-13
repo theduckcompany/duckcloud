@@ -41,11 +41,11 @@ func (s *OauthClientService) Create(ctx context.Context, cmd *CreateCmd) (*Clien
 
 	existingClient, err := s.storage.GetByID(ctx, cmd.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get by id: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to GetByID: %w", err))
 	}
 
 	if existingClient != nil {
-		return nil, ErrClientIDTaken
+		return nil, errs.BadRequest(ErrClientIDTaken)
 	}
 
 	client := Client{
@@ -62,7 +62,7 @@ func (s *OauthClientService) Create(ctx context.Context, cmd *CreateCmd) (*Clien
 
 	err = s.storage.Save(ctx, &client)
 	if err != nil {
-		return nil, fmt.Errorf("failed to save the client: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to save the client: %w", err))
 	}
 
 	return &client, nil
@@ -71,7 +71,7 @@ func (s *OauthClientService) Create(ctx context.Context, cmd *CreateCmd) (*Clien
 func (s *OauthClientService) GetByID(ctx context.Context, clientID uuid.UUID) (*Client, error) {
 	client, err := s.storage.GetByID(ctx, clientID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get by ID: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to get by ID: %w", err))
 	}
 
 	return client, nil
