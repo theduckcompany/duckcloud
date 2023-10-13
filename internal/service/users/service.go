@@ -68,9 +68,10 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 	}
 
 	userWithSameUsername, err := s.storage.GetByUsername(ctx, cmd.Username)
-	if err != nil {
-		return nil, fmt.Errorf("failed to check if the username is already used: %w", err)
+	if err != nil && !errors.Is(err, errNotFound) {
+		return nil, errs.Internal(fmt.Errorf("failed to GetByUsername: %w", err))
 	}
+
 	if userWithSameUsername != nil {
 		return nil, errs.BadRequest(ErrUsernameTaken, "username already taken")
 	}
@@ -79,7 +80,7 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 
 	hashedPassword, err := s.password.Encrypt(ctx, cmd.Password)
 	if err != nil {
-		return nil, fmt.Errorf("failed to hash the password: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to hash the password: %w", err))
 	}
 
 	user := User{
@@ -94,7 +95,7 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 
 	err = s.storage.Save(ctx, &user)
 	if err != nil {
-		return nil, fmt.Errorf("failed to save the user: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to save the user: %w", err))
 	}
 
 	return &user, nil
@@ -102,14 +103,14 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 
 func (s *UserService) SetDefaultFolder(ctx context.Context, user User, folder *folders.Folder) (*User, error) {
 	if !slices.Contains[[]uuid.UUID, uuid.UUID](folder.Owners(), user.ID()) {
-		return nil, ErrUnauthorizedFolder
+		return nil, errs.Unauthorized(ErrUnauthorizedFolder)
 	}
 
 	user.defaultFolderID = folder.ID()
 
 	err := s.storage.Patch(ctx, user.ID(), map[string]any{"default_folder": folder.ID()})
 	if err != nil {
-		return nil, fmt.Errorf("failed to patch the user: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to patch the user: %w", err))
 	}
 
 	return &user, nil
@@ -118,18 +119,18 @@ func (s *UserService) SetDefaultFolder(ctx context.Context, user User, folder *f
 func (s *UserService) MarkInitAsFinished(ctx context.Context, userID uuid.UUID) (*User, error) {
 	user, err := s.GetByID(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to GetByID: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to GetByID: %w", err))
 	}
 
 	if user.status != "initializing" {
-		return nil, ErrInvalidStatus
+		return nil, errs.Internal(ErrInvalidStatus)
 	}
 
 	user.status = "active"
 
 	err = s.storage.Patch(ctx, userID, map[string]any{"status": "active"})
 	if err != nil {
-		return nil, fmt.Errorf("failed to patch the user: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to patch the user: %w", err))
 	}
 
 	return user, nil
@@ -138,7 +139,7 @@ func (s *UserService) MarkInitAsFinished(ctx context.Context, userID uuid.UUID) 
 func (s *UserService) GetAllWithStatus(ctx context.Context, status string, cmd *storage.PaginateCmd) ([]User, error) {
 	allUsers, err := s.GetAll(ctx, cmd)
 	if err != nil {
-		return nil, fmt.Errorf("failed to GetAll users: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to GetAll users: %w", err))
 	}
 
 	res := []User{}
@@ -154,47 +155,60 @@ func (s *UserService) GetAllWithStatus(ctx context.Context, status string, cmd *
 // Authenticate return the user corresponding to the given username only if the password is correct.
 func (s *UserService) Authenticate(ctx context.Context, username, userPassword string) (*User, error) {
 	user, err := s.storage.GetByUsername(ctx, username)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve the user by its username: %w", err)
+	if errors.Is(err, errNotFound) {
+		return nil, errs.BadRequest(ErrInvalidUsername)
 	}
-
-	if user == nil {
-		return nil, ErrInvalidUsername
+	if err != nil {
+		return nil, errs.Internal(fmt.Errorf("failed to GetbyUsername: %w", err))
 	}
 
 	err = s.password.Compare(ctx, user.password, userPassword)
 	switch {
 	case errors.Is(err, password.ErrMissmatchedPassword):
-		return nil, ErrInvalidPassword
+		return nil, errs.BadRequest(ErrInvalidPassword)
 	case err != nil:
-		return nil, fmt.Errorf("failed to compare the hash and the password: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed password compare: %w", err))
 	default:
 		return user, nil
 	}
 }
 
 func (s *UserService) GetByID(ctx context.Context, userID uuid.UUID) (*User, error) {
-	return s.storage.GetByID(ctx, userID)
+	res, err := s.storage.GetByID(ctx, userID)
+	if errors.Is(err, errNotFound) {
+		return nil, errs.NotFound(err)
+	}
+
+	if err != nil {
+		return nil, errs.Internal(err)
+	}
+
+	return res, nil
 }
 
 func (s *UserService) GetAll(ctx context.Context, paginateCmd *storage.PaginateCmd) ([]User, error) {
-	return s.storage.GetAll(ctx, paginateCmd)
+	res, err := s.storage.GetAll(ctx, paginateCmd)
+	if err != nil {
+		return nil, errs.Internal(err)
+	}
+
+	return res, nil
 }
 
 func (s *UserService) AddToDeletion(ctx context.Context, userID uuid.UUID) error {
 	user, err := s.GetByID(ctx, userID)
-	if err != nil {
-		return fmt.Errorf("failed to GetByID: %w", err)
+	if errors.Is(err, errNotFound) {
+		return errs.NotFound(err)
 	}
 
-	if user == nil {
-		return nil
+	if err != nil {
+		return errs.Internal(fmt.Errorf("failed to GetByID: %w", err))
 	}
 
 	if user.IsAdmin() {
 		users, err := s.GetAll(ctx, nil)
 		if err != nil {
-			return fmt.Errorf("failed to GetAll: %w", err)
+			return errs.Internal(fmt.Errorf("failed to GetAll: %w", err))
 		}
 
 		if isTheLastAdmin(users) {
@@ -204,7 +218,7 @@ func (s *UserService) AddToDeletion(ctx context.Context, userID uuid.UUID) error
 
 	err = s.storage.Patch(ctx, userID, map[string]any{"status": "deleting"})
 	if err != nil {
-		return fmt.Errorf("failed to patch the user: %w", err)
+		return errs.Internal(fmt.Errorf("failed to Patch the user: %w", err))
 	}
 
 	return nil
@@ -212,19 +226,23 @@ func (s *UserService) AddToDeletion(ctx context.Context, userID uuid.UUID) error
 
 func (s *UserService) HardDelete(ctx context.Context, userID uuid.UUID) error {
 	res, err := s.storage.GetByID(ctx, userID)
-	if err != nil {
-		return fmt.Errorf("failed to GetDeleted: %w", err)
-	}
-
-	if res == nil {
+	if errors.Is(err, errNotFound) {
 		return nil
+	}
+	if err != nil {
+		return errs.Internal(fmt.Errorf("failed to GetDeleted: %w", err))
 	}
 
 	if res.status != "deleting" {
-		return ErrInvalidStatus
+		return errs.Internal(ErrInvalidStatus)
 	}
 
-	return s.storage.HardDelete(ctx, userID)
+	err = s.storage.HardDelete(ctx, userID)
+	if err != nil {
+		return errs.Internal(fmt.Errorf("failed to HardDelete: %w", err))
+	}
+
+	return nil
 }
 
 func isTheLastAdmin(users []User) bool {

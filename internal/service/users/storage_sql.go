@@ -15,6 +15,8 @@ import (
 
 const tableName = "users"
 
+var errNotFound = errors.New("not found")
+
 var allFields = []string{"id", "username", "admin", "status", "default_folder", "password", "created_at"}
 
 // sqlStorage use to save/retrieve Users
@@ -105,7 +107,7 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*User, error
 		RunWith(s.db).
 		ScanContext(ctx, &res.id, &res.username, &res.isAdmin, &res.status, &res.defaultFolderID, &res.password, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return nil, errNotFound
 	}
 
 	if err != nil {

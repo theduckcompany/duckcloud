@@ -42,8 +42,8 @@ func TestUserSqlStorage(t *testing.T) {
 	t.Run("GetByID not found", func(t *testing.T) {
 		res, err := store.GetByID(ctx, "some-invalid-id")
 
-		assert.NoError(t, err)
 		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("Patch success", func(t *testing.T) {
@@ -77,8 +77,8 @@ func TestUserSqlStorage(t *testing.T) {
 	t.Run("GetByUsername not found", func(t *testing.T) {
 		res, err := store.GetByUsername(ctx, "some-invalid-username")
 
-		assert.NoError(t, err)
 		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("GetAll success", func(t *testing.T) {
