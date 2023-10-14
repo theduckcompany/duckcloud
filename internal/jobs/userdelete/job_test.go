@@ -35,7 +35,7 @@ func TestUserDeleteJob(t *testing.T) {
 		job := NewJob(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, fsMock, tools)
 
 		// Fetch all the users to delete
-		usersMock.On("GetAllWithStatus", mock.Anything, "deleting", &storage.PaginateCmd{Limit: gcBatchSize}).Return([]users.User{users.ExampleDeletingAlice}, nil).Once()
+		usersMock.On("GetAllWithStatus", mock.Anything, users.Deleting, &storage.PaginateCmd{Limit: gcBatchSize}).Return([]users.User{users.ExampleDeletingAlice}, nil).Once()
 
 		// For each users remove all the data
 		webSessionsMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()
@@ -69,7 +69,7 @@ func TestUserDeleteJob(t *testing.T) {
 		job := NewJob(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, fsMock, tools)
 
 		// Fetch all the users to delete
-		usersMock.On("GetAllWithStatus", mock.Anything, "deleting", &storage.PaginateCmd{Limit: gcBatchSize}).Return(nil, fmt.Errorf("some-error")).Once()
+		usersMock.On("GetAllWithStatus", mock.Anything, users.Deleting, &storage.PaginateCmd{Limit: gcBatchSize}).Return(nil, fmt.Errorf("some-error")).Once()
 
 		err := job.Run(ctx)
 		assert.EqualError(t, err, "failed to GetAllWithStatus: some-error")
@@ -88,7 +88,7 @@ func TestUserDeleteJob(t *testing.T) {
 		job := NewJob(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, fsMock, tools)
 
 		// Fetch all the users to delete
-		usersMock.On("GetAllWithStatus", mock.Anything, "deleting", &storage.PaginateCmd{Limit: gcBatchSize}).Return([]users.User{users.ExampleDeletingAlice}, nil).Once()
+		usersMock.On("GetAllWithStatus", mock.Anything, users.Deleting, &storage.PaginateCmd{Limit: gcBatchSize}).Return([]users.User{users.ExampleDeletingAlice}, nil).Once()
 
 		// For each users remove all the data
 		webSessionsMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(fmt.Errorf("some-error")).Once()
@@ -110,7 +110,7 @@ func TestUserDeleteJob(t *testing.T) {
 		job := NewJob(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, fsMock, tools)
 
 		// Fetch all the users to delete
-		usersMock.On("GetAllWithStatus", mock.Anything, "deleting", &storage.PaginateCmd{Limit: gcBatchSize}).Return([]users.User{users.ExampleDeletingAlice}, nil).Once()
+		usersMock.On("GetAllWithStatus", mock.Anything, users.Deleting, &storage.PaginateCmd{Limit: gcBatchSize}).Return([]users.User{users.ExampleDeletingAlice}, nil).Once()
 
 		// For each users remove all the data
 		webSessionsMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()
@@ -133,7 +133,7 @@ func TestUserDeleteJob(t *testing.T) {
 		job := NewJob(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, fsMock, tools)
 
 		// Fetch all the users to delete
-		usersMock.On("GetAllWithStatus", mock.Anything, "deleting", &storage.PaginateCmd{Limit: gcBatchSize}).Return([]users.User{users.ExampleDeletingAlice}, nil).Once()
+		usersMock.On("GetAllWithStatus", mock.Anything, users.Deleting, &storage.PaginateCmd{Limit: gcBatchSize}).Return([]users.User{users.ExampleDeletingAlice}, nil).Once()
 
 		// For each users remove all the data
 		webSessionsMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()
@@ -157,7 +157,7 @@ func TestUserDeleteJob(t *testing.T) {
 		job := NewJob(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, fsMock, tools)
 
 		// Fetch all the users to delete
-		usersMock.On("GetAllWithStatus", mock.Anything, "deleting", &storage.PaginateCmd{Limit: gcBatchSize}).Return([]users.User{users.ExampleDeletingAlice}, nil).Once()
+		usersMock.On("GetAllWithStatus", mock.Anything, users.Deleting, &storage.PaginateCmd{Limit: gcBatchSize}).Return([]users.User{users.ExampleDeletingAlice}, nil).Once()
 
 		// For each users remove all the data
 		webSessionsMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()
@@ -186,7 +186,7 @@ func TestUserDeleteJob(t *testing.T) {
 		job := NewJob(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, fsMock, tools)
 
 		// Fetch all the users to delete
-		usersMock.On("GetAllWithStatus", mock.Anything, "deleting", &storage.PaginateCmd{Limit: gcBatchSize}).Return([]users.User{users.ExampleDeletingAlice}, nil).Once()
+		usersMock.On("GetAllWithStatus", mock.Anything, users.Deleting, &storage.PaginateCmd{Limit: gcBatchSize}).Return([]users.User{users.ExampleDeletingAlice}, nil).Once()
 
 		// For each users remove all the data
 		webSessionsMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()
@@ -218,7 +218,7 @@ func TestUserDeleteJob(t *testing.T) {
 		job := NewJob(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, fsMock, tools)
 
 		// Fetch all the users to delete
-		usersMock.On("GetAllWithStatus", mock.Anything, "deleting", &storage.PaginateCmd{Limit: gcBatchSize}).Return([]users.User{users.ExampleDeletingAlice}, nil).Once()
+		usersMock.On("GetAllWithStatus", mock.Anything, users.Deleting, &storage.PaginateCmd{Limit: gcBatchSize}).Return([]users.User{users.ExampleDeletingAlice}, nil).Once()
 
 		// For each users remove all the data
 		webSessionsMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()

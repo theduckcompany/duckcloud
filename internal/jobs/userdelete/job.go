@@ -60,7 +60,7 @@ func NewJob(
 func (j *Job) Run(ctx context.Context) error {
 	j.log.DebugContext(ctx, "start job")
 	for {
-		users, err := j.users.GetAllWithStatus(ctx, "deleting", &storage.PaginateCmd{Limit: gcBatchSize})
+		users, err := j.users.GetAllWithStatus(ctx, users.Deleting, &storage.PaginateCmd{Limit: gcBatchSize})
 		if err != nil {
 			return fmt.Errorf("failed to GetAllWithStatus: %w", err)
 		}

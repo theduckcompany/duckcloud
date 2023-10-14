@@ -22,7 +22,7 @@ func TestUserCreateJob(t *testing.T) {
 
 		job := NewJob(usersMock, foldersMock, tools)
 
-		usersMock.On("GetAllWithStatus", mock.Anything, "initializing", &storage.PaginateCmd{Limit: batchSize}).
+		usersMock.On("GetAllWithStatus", mock.Anything, users.Initializing, &storage.PaginateCmd{Limit: batchSize}).
 			Return([]users.User{users.ExampleInitializingAlice}, nil).Once()
 		foldersMock.On("CreatePersonalFolder", mock.Anything, &folders.CreatePersonalFolderCmd{
 			Name:  "My files",

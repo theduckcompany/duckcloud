@@ -111,15 +111,15 @@ func (_m *MockService) GetAll(ctx context.Context, paginateCmd *storage.Paginate
 }
 
 // GetAllWithStatus provides a mock function with given fields: ctx, status, cmd
-func (_m *MockService) GetAllWithStatus(ctx context.Context, status string, cmd *storage.PaginateCmd) ([]User, error) {
+func (_m *MockService) GetAllWithStatus(ctx context.Context, status Status, cmd *storage.PaginateCmd) ([]User, error) {
 	ret := _m.Called(ctx, status, cmd)
 
 	var r0 []User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *storage.PaginateCmd) ([]User, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, Status, *storage.PaginateCmd) ([]User, error)); ok {
 		return rf(ctx, status, cmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, *storage.PaginateCmd) []User); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, Status, *storage.PaginateCmd) []User); ok {
 		r0 = rf(ctx, status, cmd)
 	} else {
 		if ret.Get(0) != nil {
@@ -127,7 +127,7 @@ func (_m *MockService) GetAllWithStatus(ctx context.Context, status string, cmd 
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, *storage.PaginateCmd) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, Status, *storage.PaginateCmd) error); ok {
 		r1 = rf(ctx, status, cmd)
 	} else {
 		r1 = ret.Error(1)
