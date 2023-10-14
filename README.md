@@ -27,6 +27,10 @@ Keep your family data safe at home with a one click fully encrypted backup.<br/>
 
 </div>
 
+
+> [!WARNING]  
+> This project is in its alpha stage. Things are moving fast and some occasional breaking changes could appears.
+
 ## Who's it for?
 
 This project aims to propose an easy solution for the families who want to keep their data safe at home away form TheBigCorps. It want to be as simple
