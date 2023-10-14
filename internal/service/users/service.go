@@ -85,7 +85,7 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 		isAdmin:         cmd.IsAdmin,
 		password:        hashedPassword,
 		createdAt:       s.clock.Now(),
-		status:          "initializing",
+		status:          Initializing,
 	}
 
 	err = s.storage.Save(ctx, &user)
@@ -117,13 +117,13 @@ func (s *UserService) MarkInitAsFinished(ctx context.Context, userID uuid.UUID) 
 		return nil, errs.Internal(fmt.Errorf("failed to GetByID: %w", err))
 	}
 
-	if user.status != "initializing" {
+	if user.status != Initializing {
 		return nil, errs.Internal(ErrInvalidStatus)
 	}
 
-	user.status = "active"
+	user.status = Active
 
-	err = s.storage.Patch(ctx, userID, map[string]any{"status": "active"})
+	err = s.storage.Patch(ctx, userID, map[string]any{"status": Active})
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to patch the user: %w", err))
 	}
@@ -131,7 +131,7 @@ func (s *UserService) MarkInitAsFinished(ctx context.Context, userID uuid.UUID) 
 	return user, nil
 }
 
-func (s *UserService) GetAllWithStatus(ctx context.Context, status string, cmd *storage.PaginateCmd) ([]User, error) {
+func (s *UserService) GetAllWithStatus(ctx context.Context, status Status, cmd *storage.PaginateCmd) ([]User, error) {
 	allUsers, err := s.GetAll(ctx, cmd)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to GetAll users: %w", err))
@@ -211,7 +211,7 @@ func (s *UserService) AddToDeletion(ctx context.Context, userID uuid.UUID) error
 		}
 	}
 
-	err = s.storage.Patch(ctx, userID, map[string]any{"status": "deleting"})
+	err = s.storage.Patch(ctx, userID, map[string]any{"status": Deleting})
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to Patch the user: %w", err))
 	}
@@ -228,7 +228,7 @@ func (s *UserService) HardDelete(ctx context.Context, userID uuid.UUID) error {
 		return errs.Internal(fmt.Errorf("failed to GetDeleted: %w", err))
 	}
 
-	if res.status != "deleting" {
+	if res.status != Deleting {
 		return errs.Internal(ErrInvalidStatus)
 	}
 

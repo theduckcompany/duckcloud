@@ -30,7 +30,7 @@ func NewJob(users users.Service, folders folders.Service, tools tools.Tools) *Jo
 func (j *Job) Run(ctx context.Context) error {
 	j.log.DebugContext(ctx, "start job")
 	for {
-		users, err := j.users.GetAllWithStatus(ctx, "initializing", &storage.PaginateCmd{Limit: batchSize})
+		users, err := j.users.GetAllWithStatus(ctx, users.Initializing, &storage.PaginateCmd{Limit: batchSize})
 		if err != nil {
 			return fmt.Errorf("failed to GetAllWithStatus: %w", err)
 		}

@@ -18,7 +18,7 @@ type Service interface {
 	GetAll(ctx context.Context, paginateCmd *storage.PaginateCmd) ([]User, error)
 	AddToDeletion(ctx context.Context, userID uuid.UUID) error
 	HardDelete(ctx context.Context, userID uuid.UUID) error
-	GetAllWithStatus(ctx context.Context, status string, cmd *storage.PaginateCmd) ([]User, error)
+	GetAllWithStatus(ctx context.Context, status Status, cmd *storage.PaginateCmd) ([]User, error)
 	MarkInitAsFinished(ctx context.Context, userID uuid.UUID) (*User, error)
 	SetDefaultFolder(ctx context.Context, user User, folder *folders.Folder) (*User, error)
 }

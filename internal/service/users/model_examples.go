@@ -13,7 +13,7 @@ var ExampleAlice = User{
 	username:        "Alice",
 	defaultFolderID: uuid.UUID("e97b60f7-add2-43e1-a9bd-e2dac9ce69ec"),
 	isAdmin:         true,
-	status:          "active",
+	status:          Active,
 	password:        "alice-encrypted-password",
 	createdAt:       now,
 }
@@ -23,7 +23,7 @@ var ExampleBob = User{
 	username:        "Bob",
 	defaultFolderID: uuid.UUID("e97b60f7-add2-43e1-a9bd-e2dac9ce69ec"),
 	isAdmin:         false,
-	status:          "active",
+	status:          Active,
 	password:        "bob-encrypted-password",
 	createdAt:       now,
 }
@@ -33,7 +33,7 @@ var ExampleInitializingAlice = User{
 	username:        "Alice",
 	defaultFolderID: "",
 	isAdmin:         true,
-	status:          "initializing",
+	status:          Initializing,
 	password:        "alice-encrypted-password",
 	createdAt:       now,
 }
@@ -43,7 +43,7 @@ var ExampleDeletingAlice = User{
 	username:        "Alice",
 	defaultFolderID: uuid.UUID("e97b60f7-add2-43e1-a9bd-e2dac9ce69ec"),
 	isAdmin:         true,
-	status:          "deleting",
+	status:          Deleting,
 	password:        "alice-encrypted-password",
 	createdAt:       now,
 }

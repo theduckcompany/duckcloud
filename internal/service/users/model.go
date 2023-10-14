@@ -16,6 +16,14 @@ const (
 
 var UsernameRegexp = regexp.MustCompile("^[0-9a-zA-Z-]+$")
 
+type Status string
+
+const (
+	Initializing Status = "initializing"
+	Active       Status = "active"
+	Deleting     Status = "deleting"
+)
+
 // User representation
 type User struct {
 	id              uuid.UUID
@@ -24,7 +32,7 @@ type User struct {
 	isAdmin         bool
 	createdAt       time.Time
 	password        string
-	status          string
+	status          Status
 }
 
 func (u *User) MarshalJSON() ([]byte, error) {
@@ -43,7 +51,7 @@ func (u *User) Username() string         { return u.username }
 func (u *User) IsAdmin() bool            { return u.isAdmin }
 func (u *User) DefaultFolder() uuid.UUID { return u.defaultFolderID }
 func (u *User) CreatedAt() time.Time     { return u.createdAt }
-func (u *User) Status() string           { return u.status }
+func (u *User) Status() Status           { return u.status }
 
 // CreateCmd represents an user creation request.
 type CreateCmd struct {

@@ -161,7 +161,7 @@ func Test_Users_Service(t *testing.T) {
 
 		store.On("GetAll", ctx, &storage.PaginateCmd{Limit: 10}).Return([]User{ExampleAlice}, nil).Once()
 
-		res, err := service.GetAllWithStatus(ctx, "active", &storage.PaginateCmd{Limit: 10})
+		res, err := service.GetAllWithStatus(ctx, Active, &storage.PaginateCmd{Limit: 10})
 		assert.NoError(t, err)
 		assert.Equal(t, []User{ExampleAlice}, res)
 	})
@@ -176,7 +176,7 @@ func Test_Users_Service(t *testing.T) {
 
 		store.On("GetByID", ctx, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
 		store.On("GetAll", ctx, (*storage.PaginateCmd)(nil)).Return([]User{ExampleAlice, anAnotherAdmin}, nil).Once()
-		store.On("Patch", ctx, ExampleAlice.ID(), map[string]any{"status": "deleting"}).Return(nil).Once()
+		store.On("Patch", ctx, ExampleAlice.ID(), map[string]any{"status": Deleting}).Return(nil).Once()
 
 		err := service.AddToDeletion(ctx, ExampleAlice.ID())
 		assert.NoError(t, err)
@@ -223,7 +223,7 @@ func Test_Users_Service(t *testing.T) {
 		store := NewMockStorage(t)
 		service := NewService(tools, store)
 
-		// It doesn't return ExampleDeletingAlice so the status is "active"
+		// It doesn't return ExampleDeletingAlice so the status is Active
 		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(nil, errNotFound).Once()
 
 		err := service.HardDelete(ctx, ExampleAlice.ID())
@@ -235,7 +235,7 @@ func Test_Users_Service(t *testing.T) {
 		store := NewMockStorage(t)
 		service := NewService(tools, store)
 
-		// It doesn't return ExampleDeletingAlice so the status is "active"
+		// It doesn't return ExampleDeletingAlice so the status is Active
 		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
 
 		err := service.HardDelete(ctx, ExampleAlice.ID())
@@ -279,7 +279,7 @@ func Test_Users_Service(t *testing.T) {
 		initializingAlice.defaultFolderID = folders.ExampleAlicePersonalFolder.ID()
 
 		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&initializingAlice, nil).Once()
-		store.On("Patch", mock.Anything, ExampleAlice.ID(), map[string]any{"status": "active"}).Return(nil).Once()
+		store.On("Patch", mock.Anything, ExampleAlice.ID(), map[string]any{"status": Active}).Return(nil).Once()
 
 		res, err := service.MarkInitAsFinished(ctx, ExampleAlice.ID())
 		assert.NoError(t, err)
