@@ -10,13 +10,14 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/theduckcompany/duckcloud/internal/jobs/fileupload"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/uploads"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner/fileupload"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
@@ -42,16 +43,17 @@ func Test_DavFS_integration(t *testing.T) {
 	ctx := context.Background()
 
 	tools := tools.NewToolbox(tools.Config{Log: logger.Config{}})
-	db := storage.NewTestStorage(t)
-	inodesSvc := inodes.Init(tools, db)
-	foldersSvc := folders.Init(tools, db, inodesSvc)
-	usersSvc := users.Init(tools, db)
-	davSessionsSvc := davsessions.Init(db, foldersSvc, usersSvc, tools)
-	uploadsSvc := uploads.Init(db, tools)
-
 	afs := afero.NewMemMapFs()
+	db := storage.NewTestStorage(t)
+
 	filesSvc, err := files.NewFSService(afs, "/", tools)
 	require.NoError(t, err)
+	schedulerSvc := scheduler.Init(db, tools)
+	inodesSvc := inodes.Init(tools, db)
+	foldersSvc := folders.Init(tools, db, inodesSvc)
+	usersSvc := users.Init(tools, db, schedulerSvc)
+	davSessionsSvc := davsessions.Init(db, foldersSvc, usersSvc, tools)
+	runnerSvc := runner.Init([]runner.TaskRunner{fileupload.NewTaskRunner(foldersSvc, filesSvc, inodesSvc)}, tools, db)
 
 	user, err := usersSvc.Create(ctx, &users.CreateCmd{
 		Username: "foo-user",
@@ -73,7 +75,7 @@ func Test_DavFS_integration(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fsSvc := dfs.NewFSService(inodesSvc, filesSvc, foldersSvc, uploadsSvc)
+	fsSvc := dfs.NewFSService(inodesSvc, filesSvc, foldersSvc, schedulerSvc, tools)
 	davfs := &davFS{foldersSvc, fsSvc}
 
 	ctx = context.WithValue(ctx, sessionKeyCtx, session)
@@ -104,9 +106,8 @@ func Test_DavFS_integration(t *testing.T) {
 
 		require.NoError(t, file.Close())
 
-		//  Run the fileupload job
-		job := fileupload.NewJob(foldersSvc, uploadsSvc, filesSvc, inodesSvc, tools)
-		err = job.Run(ctx)
+		//  Run all the pending tasks
+		err = runnerSvc.RunJob(ctx)
 		require.NoError(t, err)
 
 		res, err := fs.ReadFile(&simpleFS{davfs, session}, "foo/bar.2.txt")

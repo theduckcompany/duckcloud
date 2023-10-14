@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"path"
@@ -46,13 +47,9 @@ func NewConfigFromDB(ctx context.Context, configSvc config.Service, folderPath s
 	}
 
 	certifPath, privateKeyPath, err := configSvc.GetSSLPaths(ctx)
-	if err != nil {
+	if err != nil && !errors.Is(err, config.ErrNotInitialized) {
 		return Config{}, fmt.Errorf("failed to retrieve the SSL paths: %w", err)
 	}
-
-	// if debug {
-	// 	cfg.Tools.Log.Level = slog.LevelDebug
-	// }
 
 	return Config{
 		Listeners: []router.Config{

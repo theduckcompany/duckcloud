@@ -10,10 +10,10 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/uploads"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
@@ -29,7 +29,7 @@ func Test_Walk(t *testing.T) {
 	db := storage.NewTestStorage(t)
 	inodesSvc := inodes.Init(tools, db)
 	foldersSvc := folders.Init(tools, db, inodesSvc)
-	uploadsSvc := uploads.Init(db, tools)
+	schedulerSvc := scheduler.Init(db, tools)
 
 	afs := afero.NewMemMapFs()
 	filesSvc, err := files.NewFSService(afs, "/", tools)
@@ -41,7 +41,7 @@ func Test_Walk(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fsSvc := NewFSService(inodesSvc, filesSvc, foldersSvc, uploadsSvc)
+	fsSvc := NewFSService(inodesSvc, filesSvc, foldersSvc, schedulerSvc, tools)
 
 	ffs := fsSvc.GetFolderFS(folder)
 

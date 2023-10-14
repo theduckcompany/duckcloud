@@ -6,10 +6,12 @@ import (
 	"io"
 	"path"
 
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/uploads"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
+	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
@@ -19,7 +21,8 @@ type LocalFS struct {
 	files   files.Service
 	folder  *folders.Folder
 	folders folders.Service
-	upload  uploads.Service
+	tasks   scheduler.Service
+	clock   clock.Clock
 }
 
 func newLocalFS(
@@ -27,9 +30,10 @@ func newLocalFS(
 	files files.Service,
 	folder *folders.Folder,
 	folders folders.Service,
-	uploads uploads.Service,
+	tasks scheduler.Service,
+	tools tools.Tools,
 ) *LocalFS {
-	return &LocalFS{inodes, files, folder, folders, uploads}
+	return &LocalFS{inodes, files, folder, folders, tasks, tools.Clock()}
 }
 
 func (s *LocalFS) Folder() *folders.Folder {
@@ -141,11 +145,12 @@ func (s *LocalFS) Upload(ctx context.Context, name string, w io.Reader) error {
 
 	ctx = context.WithoutCancel(ctx)
 
-	err = s.upload.Register(ctx, &uploads.RegisterUploadCmd{
-		FolderID: s.folder.ID(),
-		DirID:    dir.ID(),
-		FileName: fileName,
-		FileID:   fileID,
+	err = s.tasks.RegisterFileUploadTask(ctx, &scheduler.FileUploadArgs{
+		FolderID:   s.folder.ID(),
+		Directory:  dir.ID(),
+		FileName:   fileName,
+		FileID:     fileID,
+		UploadedAt: s.clock.Now(),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to Register the upload: %w", err)

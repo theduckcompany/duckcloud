@@ -2,28 +2,23 @@ package userdelete
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"log/slog"
 
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/model"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
-	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
-const (
-	gcBatchSize = 10
-	jobName     = "userdelete"
-)
-
-type Job struct {
+type TaskRunner struct {
 	users         users.Service
 	webSessions   websessions.Service
 	davSessions   davsessions.Service
@@ -31,10 +26,9 @@ type Job struct {
 	oauthConsents oauthconsents.Service
 	folders       folders.Service
 	fs            dfs.Service
-	log           *slog.Logger
 }
 
-func NewJob(
+func NewTaskRunner(
 	users users.Service,
 	webSessions websessions.Service,
 	davSessions davsessions.Service,
@@ -42,10 +36,8 @@ func NewJob(
 	oauthConsents oauthconsents.Service,
 	folders folders.Service,
 	fs dfs.Service,
-	tools tools.Tools,
-) *Job {
-	logger := tools.Logger().With(slog.String("job", jobName))
-	return &Job{
+) *TaskRunner {
+	return &TaskRunner{
 		users,
 		webSessions,
 		davSessions,
@@ -53,52 +45,39 @@ func NewJob(
 		oauthConsents,
 		folders,
 		fs,
-		logger,
 	}
 }
 
-func (j *Job) Run(ctx context.Context) error {
-	j.log.DebugContext(ctx, "start job")
-	for {
-		users, err := j.users.GetAllWithStatus(ctx, users.Deleting, &storage.PaginateCmd{Limit: gcBatchSize})
-		if err != nil {
-			return fmt.Errorf("failed to GetAllWithStatus: %w", err)
-		}
+func (r *TaskRunner) Name() string { return model.UserDelete }
 
-		for _, user := range users {
-			err = j.deleteUser(ctx, &user)
-			if err != nil {
-				return fmt.Errorf("failed to delete user %q: %w", user.ID(), err)
-			}
-
-			j.log.DebugContext(ctx, "user successfully deleted", slog.String("user", string(user.ID())))
-		}
-
-		if len(users) < gcBatchSize {
-			j.log.DebugContext(ctx, "end job")
-			return nil
-		}
+func (j *TaskRunner) Run(ctx context.Context, rawArgs json.RawMessage) error {
+	var args scheduler.UserDeleteArgs
+	err := json.Unmarshal(rawArgs, &args)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal the args: %w", err)
 	}
+
+	return j.RunArgs(ctx, &args)
 }
 
-func (j *Job) deleteUser(ctx context.Context, user *users.User) error {
+func (j *TaskRunner) RunArgs(ctx context.Context, args *scheduler.UserDeleteArgs) error {
 	// First delete the accesses
-	err := j.webSessions.DeleteAll(ctx, user.ID())
+	err := j.webSessions.DeleteAll(ctx, args.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to delete all web sessions: %w", err)
 	}
 
-	err = j.davSessions.DeleteAll(ctx, user.ID())
+	err = j.davSessions.DeleteAll(ctx, args.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to delete all dav sessions: %w", err)
 	}
 
-	err = j.oauthSessions.DeleteAllForUser(ctx, user.ID())
+	err = j.oauthSessions.DeleteAllForUser(ctx, args.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to delete all oauth sessions: %w", err)
 	}
 
-	folders, err := j.folders.GetAllUserFolders(ctx, user.ID(), nil)
+	folders, err := j.folders.GetAllUserFolders(ctx, args.UserID, nil)
 	if err != nil {
 		return fmt.Errorf("failed to GetAllUserFolders: %w", err)
 	}
@@ -121,12 +100,12 @@ func (j *Job) deleteUser(ctx context.Context, user *users.User) error {
 		}
 	}
 
-	err = j.oauthConsents.DeleteAll(ctx, user.ID())
+	err = j.oauthConsents.DeleteAll(ctx, args.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to delete all oauth consents: %w", err)
 	}
 
-	err = j.users.HardDelete(ctx, user.ID())
+	err = j.users.HardDelete(ctx, args.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to hard delete the user: %w", err)
 	}

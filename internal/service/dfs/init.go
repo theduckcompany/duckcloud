@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"io"
 
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/uploads"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
@@ -30,8 +30,6 @@ type Service interface {
 	GetFolderFS(folder *folders.Folder) FS
 }
 
-func Init(db *sql.DB, inodes inodes.Service, files files.Service, folders folders.Service, tools tools.Tools) Service {
-	uploads := uploads.Init(db, tools)
-
-	return NewFSService(inodes, files, folders, uploads)
+func Init(db *sql.DB, inodes inodes.Service, files files.Service, folders folders.Service, tasks scheduler.Service, tools tools.Tools) Service {
+	return NewFSService(inodes, files, folders, tasks, tools)
 }

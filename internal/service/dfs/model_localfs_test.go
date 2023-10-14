@@ -4,15 +4,17 @@ import (
 	"bytes"
 	"context"
 	"testing"
+	"time"
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/uploads"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
+	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -20,13 +22,15 @@ import (
 
 func Test_LocalFS(t *testing.T) {
 	ctx := context.Background()
+	now := time.Now().UTC()
 
 	t.Run("Get success", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
-		uploadsMock := uploads.NewMockService(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, uploadsMock)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
 			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
@@ -42,8 +46,9 @@ func Test_LocalFS(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
-		uploadsMock := uploads.NewMockService(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, uploadsMock)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
 			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
@@ -59,8 +64,9 @@ func Test_LocalFS(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
-		uploadsMock := uploads.NewMockService(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, uploadsMock)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
 
 		inodesMock.On("MkdirAll", mock.Anything, &inodes.PathCmd{
 			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
@@ -76,8 +82,9 @@ func Test_LocalFS(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
-		uploadsMock := uploads.NewMockService(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, uploadsMock)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
 
 		inodesMock.On("RemoveAll", mock.Anything, &inodes.PathCmd{
 			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
@@ -92,8 +99,9 @@ func Test_LocalFS(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
-		uploadsMock := uploads.NewMockService(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, uploadsMock)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
 
 		inodesMock.On("Readdir", mock.Anything, &inodes.PathCmd{
 			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
@@ -109,8 +117,9 @@ func Test_LocalFS(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
-		uploadsMock := uploads.NewMockService(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, uploadsMock)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
 
 		file, err := afero.TempFile(afero.NewMemMapFs(), "foo", "")
 		require.NoError(t, err)
@@ -132,8 +141,9 @@ func Test_LocalFS(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
-		uploadsMock := uploads.NewMockService(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, uploadsMock)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
 
 		content := "Hello, World!"
 
@@ -147,12 +157,14 @@ func Test_LocalFS(t *testing.T) {
 		}).Return(&inodes.ExampleAliceRoot, nil).Once()
 
 		filesMock.On("Create", mock.Anything).Return(file, uuid.UUID("some-file-id"), nil).Once()
+		toolsMock.ClockMock.On("Now").Return(now).Once()
 
-		uploadsMock.On("Register", mock.Anything, &uploads.RegisterUploadCmd{
-			FolderID: folders.ExampleAlicePersonalFolder.ID(),
-			DirID:    inodes.ExampleAliceRoot.ID(),
-			FileName: "bar.txt",
-			FileID:   uuid.UUID("some-file-id"),
+		schedulerMock.On("RegisterFileUploadTask", mock.Anything, &scheduler.FileUploadArgs{
+			FolderID:   folders.ExampleAlicePersonalFolder.ID(),
+			Directory:  inodes.ExampleAliceRoot.ID(),
+			FileName:   "bar.txt",
+			FileID:     uuid.UUID("some-file-id"),
+			UploadedAt: now,
 		}).Return(nil).Once()
 
 		err = folderFS.Upload(ctx, "foo/bar.txt", bytes.NewBufferString(content))

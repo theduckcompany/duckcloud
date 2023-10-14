@@ -7,6 +7,7 @@ import (
 	"slices"
 
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -39,19 +40,21 @@ type Storage interface {
 
 // service handling all the logic.
 type UserService struct {
-	storage  Storage
-	clock    clock.Clock
-	uuid     uuid.Service
-	password password.Password
+	storage   Storage
+	clock     clock.Clock
+	uuid      uuid.Service
+	password  password.Password
+	scheduler scheduler.Service
 }
 
 // NewService create a new user service.
-func NewService(tools tools.Tools, storage Storage) *UserService {
+func NewService(tools tools.Tools, storage Storage, scheduler scheduler.Service) *UserService {
 	return &UserService{
 		storage,
 		tools.Clock(),
 		tools.UUID(),
 		tools.Password(),
+		scheduler,
 	}
 }
 
@@ -91,6 +94,13 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 	err = s.storage.Save(ctx, &user)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to save the user: %w", err))
+	}
+
+	// TODO: Find a solution to avoid the double write and the possible
+	// data corruption.
+	err = s.scheduler.RegisterUserCreateTask(ctx, &scheduler.UserCreateArgs{UserID: user.ID()})
+	if err != nil {
+		return nil, fmt.Errorf("failed to RegisterUserCreateTask: %w", err)
 	}
 
 	return &user, nil
@@ -211,9 +221,17 @@ func (s *UserService) AddToDeletion(ctx context.Context, userID uuid.UUID) error
 		}
 	}
 
+	// TODO: Avoid the double write.
 	err = s.storage.Patch(ctx, userID, map[string]any{"status": Deleting})
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to Patch the user: %w", err))
+	}
+
+	err = s.scheduler.RegisterUserDeleteTask(ctx, &scheduler.UserDeleteArgs{
+		UserID: userID,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to RegisterUserDeleteTask: %w", err)
 	}
 
 	return nil

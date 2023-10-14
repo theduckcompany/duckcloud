@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/theduckcompany/duckcloud/internal/service/config"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
@@ -40,7 +41,8 @@ func NewBootstrapCmd(_ string) *cobra.Command {
 				Response: response.Config{},
 				Log:      logger.Config{Level: slog.LevelInfo},
 			})
-			userSvc := users.Init(tools, db)
+			scheduler := scheduler.Init(db, tools)
+			userSvc := users.Init(tools, db, scheduler)
 
 			setupAdmin(cmd, userSvc)
 		},
