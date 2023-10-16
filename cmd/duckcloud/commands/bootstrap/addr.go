@@ -77,6 +77,7 @@ situation the server will start only if it's run inside git repository's root di
 
 	var port int
 	var hosts []string
+	var devMode bool
 	switch template {
 	case ServerWithProxy:
 		hosts = []string{"::1", "127.0.0.1"} // Accept the requests from localhost only
@@ -84,6 +85,7 @@ situation the server will start only if it's run inside git repository's root di
 		hostname := setupHostName(cmd, configSvc)
 		disableSSL(cmd, configSvc)
 		trustedHosts = []string{"::1", "127.0.0.1", "localhost", hostname}
+		devMode = false
 
 	case ServerExposed:
 		hosts = []string{"::"}        // Accept the requests from everywhere
@@ -91,24 +93,30 @@ situation the server will start only if it's run inside git repository's root di
 		hostname := setupHostName(cmd, configSvc)
 		trustedHosts = []string{"::1", "127.0.0.1", "localhost", hostname}
 		enableSSL(cmd, configSvc)
+		devMode = false
 	case ServerDev:
 		hosts = []string{"::"}         // Accept the requests from everywhere
 		port = askForPort(cmd, "8080") // Some classic dev port
 		trustedHosts = []string{"::1", "127.0.0.1", "localhost"}
-
-		err = configSvc.EnableDevMode(cmd.Context())
-		if err != nil {
-			printErrAndExit(cmd, fmt.Errorf("failed to enable dev_mode: %w", err))
-		}
+		enableSSL(cmd, configSvc)
+		devMode = true
 
 		err = configSvc.SetHostName(cmd.Context(), fmt.Sprintf("localhost:%d", port))
 		if err != nil {
 			printErrAndExit(cmd, fmt.Errorf("failed to set the hostname for dev: %w", err))
 		}
 
-		enableSSL(cmd, configSvc)
 	default:
 		printErrAndExit(cmd, errors.New("invalid selection"))
+	}
+
+	if devMode {
+		err = configSvc.EnableDevMode(cmd.Context())
+	} else {
+		err = configSvc.DisableDevMode(cmd.Context())
+	}
+	if err != nil {
+		printErrAndExit(cmd, fmt.Errorf("failed to enable dev_mode: %w", err))
 	}
 
 	err = configSvc.SetAddrs(cmd.Context(), hosts, port)
