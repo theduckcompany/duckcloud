@@ -3,7 +3,6 @@ package dfs
 import (
 	"bytes"
 	"context"
-	"io/fs"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -31,24 +30,12 @@ func Test_LocalFS(t *testing.T) {
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
 			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "foobar",
+			FullName: "/foobar",
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
 		res, err := folderFS.Get(ctx, "foobar")
 		assert.NoError(t, err)
 		assert.Equal(t, &inodes.ExampleAliceFile, res)
-	})
-
-	t.Run("Get on an invalid path", func(t *testing.T) {
-		inodesMock := inodes.NewMockService(t)
-		filesMock := files.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
-		uploadsMock := uploads.NewMockService(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, uploadsMock)
-
-		info, err := folderFS.Get(ctx, "./unknown-file")
-		assert.Nil(t, info)
-		assert.ErrorIs(t, err, fs.ErrInvalid)
 	})
 
 	t.Run("Get on an unknown file", func(t *testing.T) {
@@ -60,7 +47,7 @@ func Test_LocalFS(t *testing.T) {
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
 			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "unknown-file",
+			FullName: "/unknown-file",
 		}).Return(nil, errs.ErrNotFound).Once()
 
 		info, err := folderFS.Get(ctx, "unknown-file")
@@ -77,25 +64,12 @@ func Test_LocalFS(t *testing.T) {
 
 		inodesMock.On("MkdirAll", mock.Anything, &inodes.PathCmd{
 			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "foo",
+			FullName: "/foo",
 		}).Return(&inodes.ExampleAliceRoot, nil).Once()
 
 		res, err := folderFS.CreateDir(ctx, "foo")
 		require.NoError(t, err)
 		assert.Equal(t, &inodes.ExampleAliceRoot, res)
-	})
-
-	t.Run("CreateDir with an invalid path", func(t *testing.T) {
-		inodesMock := inodes.NewMockService(t)
-		filesMock := files.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
-		uploadsMock := uploads.NewMockService(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, uploadsMock)
-
-		// Base path are invalid
-		res, err := folderFS.CreateDir(ctx, "/foo/bar")
-		assert.EqualError(t, err, "open /foo/bar: invalid argument")
-		assert.Nil(t, res)
 	})
 
 	t.Run("RemoveAll success", func(t *testing.T) {
@@ -107,23 +81,11 @@ func Test_LocalFS(t *testing.T) {
 
 		inodesMock.On("RemoveAll", mock.Anything, &inodes.PathCmd{
 			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "foo",
+			FullName: "/foo",
 		}).Return(nil).Once()
 
 		err := folderFS.RemoveAll(ctx, "foo")
 		assert.NoError(t, err)
-	})
-
-	t.Run("RemoveAll with an invalid path", func(t *testing.T) {
-		inodesMock := inodes.NewMockService(t)
-		filesMock := files.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
-		uploadsMock := uploads.NewMockService(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, uploadsMock)
-
-		// Should not start with "./"
-		err := folderFS.RemoveAll(ctx, "./foo")
-		assert.EqualError(t, err, "open ./foo: invalid argument")
 	})
 
 	t.Run("ListDir success", func(t *testing.T) {
@@ -181,7 +143,7 @@ func Test_LocalFS(t *testing.T) {
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
 			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "foo/",
+			FullName: "/foo/",
 		}).Return(&inodes.ExampleAliceRoot, nil).Once()
 
 		filesMock.On("Create", mock.Anything).Return(file, uuid.UUID("some-file-id"), nil).Once()

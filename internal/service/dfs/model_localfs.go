@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/fs"
 	"path"
 
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/uploads"
@@ -42,10 +41,7 @@ func (s *LocalFS) ListDir(ctx context.Context, name string, cmd *storage.Paginat
 }
 
 func (s *LocalFS) CreateDir(ctx context.Context, name string) (*inodes.INode, error) {
-	name, err := validatePath(name)
-	if err != nil {
-		return nil, err
-	}
+	name = cleanPath(name)
 
 	inode, err := s.inodes.MkdirAll(ctx, &inodes.PathCmd{
 		Root:     s.folder.RootFS(),
@@ -59,12 +55,9 @@ func (s *LocalFS) CreateDir(ctx context.Context, name string) (*inodes.INode, er
 }
 
 func (s *LocalFS) RemoveAll(ctx context.Context, name string) error {
-	name, err := validatePath(name)
-	if err != nil {
-		return err
-	}
+	name = cleanPath(name)
 
-	err = s.inodes.RemoveAll(ctx, &inodes.PathCmd{
+	err := s.inodes.RemoveAll(ctx, &inodes.PathCmd{
 		Root:     s.folder.RootFS(),
 		FullName: name,
 	})
@@ -76,24 +69,14 @@ func (s *LocalFS) RemoveAll(ctx context.Context, name string) error {
 }
 
 func (s *LocalFS) Rename(ctx context.Context, oldName, newName string) error {
-	_, err := validatePath(oldName)
-	if err != nil {
-		return err
-	}
-
-	_, err = validatePath(newName)
-	if err != nil {
-		return err
-	}
+	oldName = cleanPath(oldName)
+	newName = cleanPath(newName)
 
 	return ErrNotImplemented
 }
 
 func (s *LocalFS) Get(ctx context.Context, name string) (*inodes.INode, error) {
-	name, err := validatePath(name)
-	if err != nil {
-		return nil, err
-	}
+	name = cleanPath(name)
 
 	res, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Root:     s.folder.RootFS(),
@@ -129,10 +112,7 @@ func (s *LocalFS) Download(ctx context.Context, name string) (io.ReadSeekCloser,
 }
 
 func (s *LocalFS) Upload(ctx context.Context, name string, w io.Reader) error {
-	name, err := validatePath(name)
-	if err != nil {
-		return err
-	}
+	name = cleanPath(name)
 
 	dirPath, fileName := path.Split(name)
 	if dirPath == "" {
@@ -172,16 +152,4 @@ func (s *LocalFS) Upload(ctx context.Context, name string, w io.Reader) error {
 	}
 
 	return nil
-}
-
-func validatePath(name string) (string, error) {
-	if name == "" {
-		return ".", nil
-	}
-
-	if !fs.ValidPath(name) {
-		return "", &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
-	}
-
-	return path.Clean(name), nil
 }
