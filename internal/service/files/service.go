@@ -70,9 +70,6 @@ func (s *FSService) Open(ctx context.Context, fileID uuid.UUID) (afero.File, err
 	filePath := path.Join(idStr[:2], idStr)
 
 	file, err := s.fs.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0o600)
-	if os.IsNotExist(err) {
-		return nil, errs.BadRequest(ErrNotExist)
-	}
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to Open %q: %w", filePath, err))
 	}
