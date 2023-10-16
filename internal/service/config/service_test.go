@@ -37,8 +37,8 @@ func TestConfig(t *testing.T) {
 	t.Run("EnableDevMode", func(t *testing.T) {
 		// Off by default
 		res, err := svc.IsDevModeEnabled(ctx)
-		assert.NoError(t, err)
 		assert.False(t, res)
+		assert.ErrorIs(t, err, ErrNotInitialized)
 
 		// Enable it
 		require.NoError(t, svc.EnableDevMode(ctx))

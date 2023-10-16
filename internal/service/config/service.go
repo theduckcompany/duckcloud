@@ -20,6 +20,7 @@ var (
 	ErrSSLMustBeEnabled   = errors.New("TLS must be enabled")
 	ErrInvalidPEMFormat   = errors.New("invalid PEM format")
 	ErrMustNotHavePort    = errors.New("must not have port")
+	ErrNotInitialized     = errors.New("not initialized")
 )
 
 //go:generate mockery --name Storage
@@ -58,6 +59,10 @@ func (s *ConfigService) IsTLSEnabled(ctx context.Context) (bool, error) {
 
 func (s *ConfigService) checkBool(ctx context.Context, key ConfigKey) (bool, error) {
 	enabled, err := s.storage.Get(ctx, key)
+	if errors.Is(err, errNotfound) {
+		return false, ErrNotInitialized
+	}
+
 	if err != nil {
 		return false, fmt.Errorf("storage error: %w", err)
 	}
@@ -90,6 +95,10 @@ func (s *ConfigService) SetSSLPaths(ctx context.Context, certifPath, privateKeyP
 
 func (s *ConfigService) GetSSLPaths(ctx context.Context) (string, string, error) {
 	certif, err := s.storage.Get(ctx, sslCertificatePath)
+	if errors.Is(err, errNotfound) {
+		return "", "", ErrNotInitialized
+	}
+
 	if err != nil {
 		return "", "", fmt.Errorf("failed to fetch the SSL certificate: %w", err)
 	}
@@ -142,6 +151,10 @@ func (s *ConfigService) SetTrustedHosts(ctx context.Context, hosts []string) err
 
 func (s *ConfigService) GetTrustedHosts(ctx context.Context) ([]string, error) {
 	rawRes, err := s.storage.Get(ctx, hostsTrusted)
+	if errors.Is(err, errNotfound) {
+		return nil, ErrNotInitialized
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to get from the storage: %w", err)
 	}
@@ -174,7 +187,16 @@ func (s *ConfigService) SetHostName(ctx context.Context, input string) error {
 }
 
 func (s *ConfigService) GetHostName(ctx context.Context) (string, error) {
-	return s.storage.Get(ctx, hostName)
+	res, err := s.storage.Get(ctx, hostName)
+	if errors.Is(err, errNotfound) {
+		return "", ErrNotInitialized
+	}
+
+	if err != nil {
+		return "", fmt.Errorf("failed to get from the storage: %w", err)
+	}
+
+	return res, nil
 }
 
 func (s *ConfigService) SetAddrs(ctx context.Context, hosts []string, port int) error {
@@ -211,8 +233,12 @@ func (s *ConfigService) SetAddrs(ctx context.Context, hosts []string, port int) 
 
 func (s *ConfigService) GetAddrs(ctx context.Context) ([]string, error) {
 	res, err := s.storage.Get(ctx, httpAddrs)
+	if errors.Is(err, errNotfound) {
+		return nil, ErrNotInitialized
+	}
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get from the storage: %w", err)
 	}
 
 	return strings.Split(res, ","), nil

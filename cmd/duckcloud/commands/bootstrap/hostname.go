@@ -1,6 +1,8 @@
 package bootstrap
 
 import (
+	"errors"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
 	"github.com/theduckcompany/duckcloud/internal/service/config"
@@ -14,13 +16,14 @@ It can be either a domain name (like "cloud.mydomain.com") or an ip adresse (lik
 This name will be used to generate you server url as follow: https://{{server-name}}/pictures`
 
 	hostname, err := configSvc.GetHostName(cmd.Context())
-	if err != nil {
-		printErrAndExit(cmd, err)
-	}
-
-	if hostname != "" {
+	switch {
+	case err == nil:
 		cmd.Printf("Hostname already setup: %q\n", hostname)
 		return hostname
+	case errors.Is(err, config.ErrNotInitialized):
+		// continue
+	default:
+		printErrAndExit(cmd, err)
 	}
 
 	prompt := &survey.Input{

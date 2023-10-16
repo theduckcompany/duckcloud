@@ -11,6 +11,8 @@ import (
 
 const tableName = "config"
 
+var errNotfound = errors.New("not found")
+
 type sqlStorage struct {
 	db *sql.DB
 }
@@ -44,7 +46,7 @@ func (s *sqlStorage) Get(ctx context.Context, key ConfigKey) (string, error) {
 		RunWith(s.db).
 		ScanContext(ctx, &res)
 	if errors.Is(err, sql.ErrNoRows) {
-		return "", nil
+		return "", errNotfound
 	}
 
 	if err != nil {

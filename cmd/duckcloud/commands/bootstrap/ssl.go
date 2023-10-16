@@ -40,13 +40,14 @@ func setupSSLCertificate(cmd *cobra.Command, configSvc config.Service, folderPat
 	)
 
 	sslEnable, err := configSvc.IsTLSEnabled(cmd.Context())
-	if err != nil {
-		printErrAndExit(cmd, err)
-	}
-
-	cmd.Printf("SSL enabled: %v\n", sslEnable)
-	if !sslEnable {
+	switch {
+	case err == nil:
+		cmd.Printf("SSL enabled: %v\n", sslEnable)
 		return
+	case errors.Is(err, config.ErrNotInitialized):
+		// continue
+	default:
+		printErrAndExit(cmd, err)
 	}
 
 	certifPath, privateKeyPath, err := configSvc.GetSSLPaths(cmd.Context())
