@@ -2,42 +2,44 @@ package fsgc
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"log/slog"
 	"time"
 
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/model"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
-const (
-	gcBatchSize = 10
-	jobName     = "fsgc"
-)
+const gcBatchSize = 10
 
-type Job struct {
+type TaskRunner struct {
 	inodes  inodes.Service
 	files   files.Service
 	folders folders.Service
-	log     *slog.Logger
 	cancel  context.CancelFunc
 	clock   clock.Clock
 	quit    chan struct{}
 }
 
-func NewJob(inodes inodes.Service, files files.Service, folders folders.Service, tools tools.Tools) *Job {
-	logger := tools.Logger().With(slog.String("job", jobName))
-	return &Job{inodes, files, folders, logger, nil, tools.Clock(), make(chan struct{})}
+func NewTaskRunner(inodes inodes.Service, files files.Service, folders folders.Service, tools tools.Tools) *TaskRunner {
+	return &TaskRunner{inodes, files, folders, nil, tools.Clock(), make(chan struct{})}
 }
 
-func (j *Job) Run(ctx context.Context) error {
-	j.log.DebugContext(ctx, "start job")
+func (r *TaskRunner) Name() string { return model.FSGC }
+
+func (r *TaskRunner) Run(ctx context.Context, rawArgs json.RawMessage) error {
+	return r.RunArgs(ctx, &scheduler.FSGCArgs{})
+}
+
+func (r *TaskRunner) RunArgs(ctx context.Context, args *scheduler.FSGCArgs) error {
 	for {
-		toDelete, err := j.inodes.GetAllDeleted(ctx, gcBatchSize)
+		toDelete, err := r.inodes.GetAllDeleted(ctx, gcBatchSize)
 		if err != nil {
 			return fmt.Errorf("failed to GetAllDeleted: %w", err)
 		}
@@ -45,24 +47,21 @@ func (j *Job) Run(ctx context.Context) error {
 		for _, inode := range toDelete {
 			deletionDate := inode.LastModifiedAt()
 
-			err = j.deleteINode(ctx, &inode, deletionDate)
+			err = r.deleteINode(ctx, &inode, deletionDate)
 			if err != nil {
 				return fmt.Errorf("failed to delete inode %q: %w", inode.ID(), err)
 			}
-
-			j.log.DebugContext(ctx, "inode successfully removed", slog.String("inode", string(inode.ID())))
 		}
 
 		if len(toDelete) < gcBatchSize {
-			j.log.DebugContext(ctx, "end job")
 			return nil
 		}
 	}
 }
 
-func (j *Job) deleteDirINode(ctx context.Context, inode *inodes.INode, deletionDate time.Time) error {
+func (r *TaskRunner) deleteDirINode(ctx context.Context, inode *inodes.INode, deletionDate time.Time) error {
 	for {
-		childs, err := j.inodes.Readdir(ctx, &inodes.PathCmd{
+		childs, err := r.inodes.Readdir(ctx, &inodes.PathCmd{
 			Root:     inode.ID(),
 			FullName: "/",
 		}, &storage.PaginateCmd{Limit: gcBatchSize})
@@ -71,7 +70,7 @@ func (j *Job) deleteDirINode(ctx context.Context, inode *inodes.INode, deletionD
 		}
 
 		for _, child := range childs {
-			err = j.deleteINode(ctx, &child, j.clock.Now())
+			err = r.deleteINode(ctx, &child, r.clock.Now())
 			if err != nil {
 				return fmt.Errorf("failed to deleteINode %q: %w", child.ID(), err)
 			}
@@ -82,7 +81,7 @@ func (j *Job) deleteDirINode(ctx context.Context, inode *inodes.INode, deletionD
 		}
 	}
 
-	err := j.inodes.HardDelete(ctx, inode.ID())
+	err := r.inodes.HardDelete(ctx, inode.ID())
 	if err != nil {
 		return fmt.Errorf("failed to HardDelete: %w", err)
 	}
@@ -90,7 +89,7 @@ func (j *Job) deleteDirINode(ctx context.Context, inode *inodes.INode, deletionD
 	return nil
 }
 
-func (j *Job) deleteINode(ctx context.Context, inode *inodes.INode, deletionDate time.Time) error {
+func (j *TaskRunner) deleteINode(ctx context.Context, inode *inodes.INode, deletionDate time.Time) error {
 	if inode.Mode().IsDir() {
 		return j.deleteDirINode(ctx, inode, deletionDate)
 	}

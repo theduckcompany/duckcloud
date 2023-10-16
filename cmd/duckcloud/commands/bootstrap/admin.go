@@ -49,6 +49,7 @@ func setupAdmin(cmd *cobra.Command, userSvc users.Service) {
 	user, err := userSvc.Create(cmd.Context(), &users.CreateCmd{
 		Username: answers.Username,
 		Password: answers.Password,
+		IsAdmin:  true,
 	})
 	if err != nil {
 		printErrAndExit(cmd, err)

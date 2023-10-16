@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -23,8 +24,8 @@ type Service interface {
 	SetDefaultFolder(ctx context.Context, user User, folder *folders.Folder) (*User, error)
 }
 
-func Init(tools tools.Tools, db *sql.DB) Service {
+func Init(tools tools.Tools, db *sql.DB, scheduler scheduler.Service) Service {
 	storage := newSqlStorage(db, tools)
 
-	return NewService(tools, storage)
+	return NewService(tools, storage, scheduler)
 }

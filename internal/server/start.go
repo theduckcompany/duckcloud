@@ -6,13 +6,11 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/theduckcompany/duckcloud/assets"
-	"github.com/theduckcompany/duckcloud/internal/jobs"
 	"github.com/theduckcompany/duckcloud/internal/service/config"
 	"github.com/theduckcompany/duckcloud/internal/service/dav"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/debug"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/uploads"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
@@ -21,6 +19,12 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/oauthcodes"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner/fileupload"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner/fsgc"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner/usercreate"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner/userdelete"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
@@ -39,6 +43,16 @@ func AsRoute(f any) any {
 		f,
 		fx.As(new(router.Registerer)),
 		fx.ResultTags(`group:"routes"`),
+	)
+}
+
+// AsTask annotates the given constructor to state that
+// it provides a task to the "tasks" group.
+func AsTask(f any) any {
+	return fx.Annotate(
+		f,
+		fx.As(new(runner.TaskRunner)),
+		fx.ResultTags(`group:"tasks"`),
 	)
 }
 
@@ -69,7 +83,7 @@ func start(ctx context.Context, db *sql.DB, fs afero.Fs, folderPath string, invo
 			fx.Annotate(davsessions.Init, fx.As(new(davsessions.Service))),
 			fx.Annotate(folders.Init, fx.As(new(folders.Service))),
 			fx.Annotate(dfs.Init, fx.As(new(dfs.Service))),
-			fx.Annotate(uploads.Init, fx.As(new(uploads.Service))),
+			fx.Annotate(scheduler.Init, fx.As(new(scheduler.Service))),
 
 			// HTTP handlers
 			AsRoute(dav.NewHTTPHandler),
@@ -81,11 +95,20 @@ func start(ctx context.Context, db *sql.DB, fs afero.Fs, folderPath string, invo
 			// HTTP Router / HTTP Server
 			router.InitMiddlewares,
 			fx.Annotate(router.NewServer, fx.ParamTags(`group:"routes"`)),
+
+			// Background Tasks
+			AsTask(fileupload.NewTaskRunner),
+			AsTask(fsgc.NewTaskRunner),
+			AsTask(usercreate.NewTaskRunner),
+			AsTask(userdelete.NewTaskRunner),
+
+			// Task Runner
+			fx.Annotate(runner.Init, fx.ParamTags(`group:"tasks"`), fx.As(new(runner.Service))),
 		),
 
 		// Start the command
-		fx.Invoke(jobs.StartJobs),
 		fx.Invoke(storage.RunMigrations),
+		fx.Invoke(func(taskRunner runner.Service) { go taskRunner.Start() }),
 		invoke,
 	)
 
