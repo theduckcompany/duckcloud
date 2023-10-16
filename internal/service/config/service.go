@@ -45,6 +45,10 @@ func (s *ConfigService) EnableDevMode(ctx context.Context) error {
 	return s.storage.Save(ctx, devModeEnabled, "true")
 }
 
+func (s *ConfigService) DisableDevMode(ctx context.Context) error {
+	return s.storage.Save(ctx, devModeEnabled, "false")
+}
+
 func (s *ConfigService) IsDevModeEnabled(ctx context.Context) (bool, error) {
 	return s.checkBool(ctx, devModeEnabled)
 }

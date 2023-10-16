@@ -12,6 +12,7 @@ type Service interface {
 	SetTrustedHosts(ctx context.Context, hosts []string) error
 	EnableTLS(ctx context.Context) error
 	EnableDevMode(ctx context.Context) error
+	DisableDevMode(ctx context.Context) error
 	SetSSLPaths(ctx context.Context, certifPath, privateKeyPath string) error
 	DisableTLS(ctx context.Context) error
 	IsTLSEnabled(ctx context.Context) (bool, error)
