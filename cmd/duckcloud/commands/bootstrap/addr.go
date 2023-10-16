@@ -51,13 +51,14 @@ situation the server will start only if it's run inside git repository's root di
 `
 
 	res, err := configSvc.GetAddrs(cmd.Context())
-	if err != nil {
-		printErrAndExit(cmd, err)
-	}
-
-	if len(res) > 0 {
+	switch {
+	case err == nil:
 		cmd.Printf("Addrs already setup: %q\n", res)
 		return
+	case errors.Is(err, config.ErrNotInitialized):
+		// continue
+	default:
+		printErrAndExit(cmd, err)
 	}
 
 	prompt := &survey.Select{
