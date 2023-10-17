@@ -13,8 +13,13 @@ type MockService struct {
 	mock.Mock
 }
 
-// RunJob provides a mock function with given fields: ctx
-func (_m *MockService) RunJob(ctx context.Context) error {
+// RunLoop provides a mock function with given fields:
+func (_m *MockService) RunLoop() {
+	_m.Called()
+}
+
+// RunSingleJob provides a mock function with given fields: ctx
+func (_m *MockService) RunSingleJob(ctx context.Context) error {
 	ret := _m.Called(ctx)
 
 	var r0 error
@@ -25,11 +30,6 @@ func (_m *MockService) RunJob(ctx context.Context) error {
 	}
 
 	return r0
-}
-
-// Start provides a mock function with given fields:
-func (_m *MockService) Start() {
-	_m.Called()
 }
 
 // NewMockService creates a new instance of MockService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

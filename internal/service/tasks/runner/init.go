@@ -11,8 +11,8 @@ import (
 
 //go:generate mockery --name Service
 type Service interface {
-	Start()
-	RunJob(ctx context.Context) error
+	RunLoop()
+	RunSingleJob(ctx context.Context) error
 }
 
 //go:generate mockery --name TaskRunner
