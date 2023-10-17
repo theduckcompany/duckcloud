@@ -107,7 +107,7 @@ func Test_DavFS_integration(t *testing.T) {
 		require.NoError(t, file.Close())
 
 		//  Run all the pending tasks
-		err = runnerSvc.RunJob(ctx)
+		err = runnerSvc.RunSingleJob(ctx)
 		require.NoError(t, err)
 
 		res, err := fs.ReadFile(&simpleFS{davfs, session}, "foo/bar.2.txt")

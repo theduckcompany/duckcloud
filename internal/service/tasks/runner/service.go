@@ -47,25 +47,23 @@ func NewService(tools tools.Tools, storage storage.Storage, runners []TaskRunner
 	}
 }
 
-func (t *TasksRunner) Start() {
+func (t *TasksRunner) RunLoop() {
 	ticker := time.NewTicker(t.pauseDuration)
 	ctx, cancel := context.WithCancel(context.Background())
 	t.cancel = cancel
 
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				err := t.RunJob(ctx)
-				if err != nil {
-					t.log.Error("fs gc error", slog.String("error", err.Error()))
-				}
-			case <-t.quit:
-				ticker.Stop()
-				cancel()
+	for {
+		select {
+		case <-ticker.C:
+			err := t.RunSingleJob(ctx)
+			if err != nil {
+				t.log.Error("fs gc error", slog.String("error", err.Error()))
 			}
+		case <-t.quit:
+			ticker.Stop()
+			cancel()
 		}
-	}()
+	}
 }
 
 func (t *TasksRunner) Stop() {
@@ -76,7 +74,7 @@ func (t *TasksRunner) Stop() {
 	}
 }
 
-func (t *TasksRunner) RunJob(ctx context.Context) error {
+func (t *TasksRunner) RunSingleJob(ctx context.Context) error {
 	for {
 		task, err := t.storage.GetNext(ctx)
 		if errors.Is(err, storage.ErrNotFound) {
