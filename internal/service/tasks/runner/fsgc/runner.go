@@ -90,39 +90,22 @@ func (r *TaskRunner) deleteDirINode(ctx context.Context, inode *inodes.INode, de
 }
 
 func (j *TaskRunner) deleteINode(ctx context.Context, inode *inodes.INode, deletionDate time.Time) error {
+	// XXX:MULTI-WRITE
+	//
+	// This file have severa consecutive writes but they are all idempotent and the
+	// task is retried in case of error.
 	if inode.Mode().IsDir() {
 		return j.deleteDirINode(ctx, inode, deletionDate)
 	}
 
-	// For the file we have several steps:
-	//
-	// - Remove the inode
-	// - Reduce all the parent folders size
-	// - Remove the file
 	err := j.inodes.HardDelete(ctx, inode.ID())
 	if err != nil {
 		return fmt.Errorf("failed to HardDelete: %w", err)
 	}
 
-	parentID := inode.Parent()
-	for {
-		if parentID == nil {
-			break
-		}
-
-		parent, err := j.inodes.GetByID(ctx, *parentID)
-		if err != nil {
-			return fmt.Errorf("failed to GetByID the parent: %w", err)
-		}
-
-		if !parent.LastModifiedAt().Equal(deletionDate) {
-			err = j.inodes.RegisterWrite(ctx, parent, -inode.Size(), deletionDate)
-			if err != nil {
-				return fmt.Errorf("failed to RegisterWrite: %w", err)
-			}
-		}
-
-		parentID = parent.Parent()
+	err = j.inodes.RegisterWrite(ctx, inode, -inode.Size(), deletionDate)
+	if err != nil {
+		return fmt.Errorf("failed to RegisterWrite: %w", err)
 	}
 
 	err = j.files.Delete(ctx, *inode.FileID())

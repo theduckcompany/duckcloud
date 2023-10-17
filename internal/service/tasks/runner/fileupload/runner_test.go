@@ -64,7 +64,8 @@ func TestFileUploadTask(t *testing.T) {
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
 		// Start to update the size for all the parent folders
-		inodesMock.On("GetByID", mock.Anything, *inodes.ExampleAliceFile.Parent()).Return(&inodes.ExampleAliceRoot, nil).Once()
+		inodesMock.On("RegisterWrite", mock.Anything, &inodes.ExampleAliceFile, int64(len(content)), inodes.ExampleAliceFile.LastModifiedAt()).
+			Return(nil).Once()
 
 		err = job.Run(ctx, json.RawMessage(`{
 			"folder-id": "959a8808-273e-4079-90ed-a8394b356379",
@@ -109,9 +110,8 @@ func TestFileUploadTask(t *testing.T) {
 			FileID:     ExampleAliceUpload.FileID,
 			UploadedAt: ExampleAliceUpload.UploadedAt,
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
-
-		// Start to update the size for all the parent folders
-		inodesMock.On("GetByID", mock.Anything, *inodes.ExampleAliceFile.Parent()).Return(&inodes.ExampleAliceRoot, nil).Once()
+		inodesMock.On("RegisterWrite", mock.Anything, &inodes.ExampleAliceFile, int64(len(content)), inodes.ExampleAliceFile.LastModifiedAt()).
+			Return(nil).Once()
 
 		job.RunArgs(ctx, &ExampleAliceUpload)
 	})
