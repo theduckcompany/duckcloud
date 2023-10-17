@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/spf13/afero"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -20,7 +19,7 @@ type Config struct {
 type Service interface {
 	Create(ctx context.Context) (afero.File, uuid.UUID, error)
 	Open(ctx context.Context, fileID uuid.UUID) (afero.File, error)
-	Delete(ctx context.Context, inod *inodes.INode) error
+	Delete(ctx context.Context, fileID uuid.UUID) error
 }
 
 func Init(cfg Config, fs afero.Fs, tools tools.Tools) (Service, error) {

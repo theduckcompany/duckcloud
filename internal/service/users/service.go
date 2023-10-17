@@ -96,9 +96,17 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 		return nil, errs.Internal(fmt.Errorf("failed to save the user: %w", err))
 	}
 
+	ctx = context.WithoutCancel(ctx)
 	// XXX:MULTI-WRITE
-	err = s.scheduler.RegisterUserCreateTask(context.WithoutCancel(ctx), &scheduler.UserCreateArgs{UserID: user.ID()})
+	//
+	// This multi write can lead to a user blocked into the "pending" state. In order to reduce
+	// those risks an rollback is done in case of error.
+	//
+	// A commit system would be great here.
+	err = s.scheduler.RegisterUserCreateTask(ctx, &scheduler.UserCreateArgs{UserID: user.ID()})
 	if err != nil {
+		// Rollback the newly created user in order to avoid any invalid state.
+		_ = s.storage.HardDelete(ctx, newUserID)
 		return nil, fmt.Errorf("failed to RegisterUserCreateTask: %w", err)
 	}
 
@@ -220,17 +228,23 @@ func (s *UserService) AddToDeletion(ctx context.Context, userID uuid.UUID) error
 		}
 	}
 
-	err = s.storage.Patch(ctx, userID, map[string]any{"status": Deleting})
-	if err != nil {
-		return errs.Internal(fmt.Errorf("failed to Patch the user: %w", err))
-	}
-
-	// XXX:MULTI-WRITE
-	err = s.scheduler.RegisterUserDeleteTask(context.WithoutCancel(ctx), &scheduler.UserDeleteArgs{
+	err = s.scheduler.RegisterUserDeleteTask(ctx, &scheduler.UserDeleteArgs{
 		UserID: userID,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to RegisterUserDeleteTask: %w", err)
+	}
+
+	ctx = context.WithoutCancel(ctx)
+
+	// XXX:MULTI-WRITE
+	//
+	// This multi-write is not really dangerous. The "Deleting" stats patch allows to remove the
+	// access user access immediately but as soon the task is executed every data related to this
+	// user will be removed so there is no data corruptions.
+	err = s.storage.Patch(ctx, userID, map[string]any{"status": Deleting})
+	if err != nil {
+		return errs.Internal(fmt.Errorf("failed to Patch the user: %w", err))
 	}
 
 	return nil

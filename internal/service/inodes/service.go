@@ -82,6 +82,10 @@ func (s *INodeService) MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, erro
 			return errs.BadRequest(ErrIsNotDir)
 		}
 
+		// XXX:MULTI-WRITE
+		//
+		// This function is idempotent so there isn't a real issue here. Worst case
+		// senario only some folders are recreated but a new call would create them.
 		inode, err = s.CreateDir(ctx, &PathCmd{
 			Root:     dir.ID(),
 			FullName: frag,

@@ -125,7 +125,7 @@ func (j *TaskRunner) deleteINode(ctx context.Context, inode *inodes.INode, delet
 		parentID = parent.Parent()
 	}
 
-	err = j.files.Delete(ctx, inode)
+	err = j.files.Delete(ctx, *inode.FileID())
 	if err != nil {
 		return fmt.Errorf("failed to remove the file %q: %w", inode.ID(), err)
 	}

@@ -134,19 +134,8 @@ func TestFileService(t *testing.T) {
 		require.NoError(t, err)
 
 		// Delete it
-		err = svc.Delete(ctx, &inodes.ExampleAliceFile)
+		err = svc.Delete(ctx, *inodes.ExampleAliceFile.FileID())
 		assert.NoError(t, err)
-	})
-
-	t.Run("Delete with a dir", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		fs := afero.NewMemMapFs()
-
-		svc, err := NewFSService(fs, "/", tools)
-		require.NoError(t, err)
-
-		err = svc.Delete(ctx, &inodes.ExampleAliceRoot)
-		assert.ErrorIs(t, err, ErrInodeNotAFile)
 	})
 
 	t.Run("Create success", func(t *testing.T) {
