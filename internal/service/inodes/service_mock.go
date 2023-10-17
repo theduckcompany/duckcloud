@@ -214,6 +214,20 @@ func (_m *MockService) MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, erro
 	return r0, r1
 }
 
+// Move provides a mock function with given fields: ctx, source, into
+func (_m *MockService) Move(ctx context.Context, source *INode, into *PathCmd) error {
+	ret := _m.Called(ctx, source, into)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *INode, *PathCmd) error); ok {
+		r0 = rf(ctx, source, into)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Readdir provides a mock function with given fields: ctx, cmd, paginateCmd
 func (_m *MockService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
 	ret := _m.Called(ctx, cmd, paginateCmd)

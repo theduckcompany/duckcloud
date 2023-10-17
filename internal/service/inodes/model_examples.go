@@ -23,6 +23,28 @@ var ExampleAliceRoot INode = INode{
 	fileID:         nil,
 }
 
+var ExampleAliceDir INode = INode{
+	id:             uuid.UUID("5592dac5-55f4-4206-87ca-8f31fc05e506"),
+	name:           "dir-a",
+	parent:         ptr.To(uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")),
+	checksum:       "",
+	size:           42,
+	createdAt:      now,
+	lastModifiedAt: now2,
+	fileID:         nil,
+}
+
+var ExampleAliceFile2 INode = INode{
+	id:             uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+	name:           "file.txt",
+	parent:         ptr.To(uuid.UUID("5592dac5-55f4-4206-87ca-8f31fc05e506")),
+	checksum:       "some-sha256-checksum",
+	size:           42,
+	createdAt:      now,
+	lastModifiedAt: now2,
+	fileID:         ptr.To(uuid.UUID("abf05a02-8af9-4184-a46d-847f7d951c6b")),
+}
+
 var ExampleAliceFile INode = INode{
 	id:             uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
 	name:           "foo",

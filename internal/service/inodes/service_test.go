@@ -3,6 +3,7 @@ package inodes
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -650,5 +651,103 @@ func TestINodes(t *testing.T) {
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrBadRequest)
 		assert.ErrorIs(t, err, ErrIsNotDir)
+	})
+
+	t.Run("Move success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		// MkdirAll internals
+		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "dir-a", ExampleAliceRoot.id).Return(&ExampleAliceDir, nil).Once()
+
+		// Check if a file with the same name already exists
+		storageMock.On("GetByNameAndParent", mock.Anything, "file.txt", ExampleAliceDir.id).Return(nil, errs.ErrNotFound).Once()
+
+		// Update the source parent an name
+		storageMock.On("Patch", mock.Anything, ExampleAliceFile.id, map[string]interface{}{
+			"name":   "file.txt",
+			"parent": ExampleAliceDir.id,
+		}).Return(nil).Once()
+
+		err := service.Move(ctx, &ExampleAliceFile, &PathCmd{
+			Root:     ExampleAliceRoot.ID(),
+			FullName: "/dir-a/file.txt",
+		})
+		assert.NoError(t, err)
+	})
+
+	t.Run("Move to a file with the same name", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		// MkdirAll internals
+		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "dir-a", ExampleAliceRoot.id).Return(&ExampleAliceDir, nil).Once()
+
+		// Check if a file with the same name already exists
+		storageMock.On("GetByNameAndParent", mock.Anything, "file.txt", ExampleAliceDir.id).Return(&ExampleAliceFile2, nil).Once()
+
+		// Update the source parent an name
+		storageMock.On("Patch", mock.Anything, ExampleAliceFile.id, map[string]interface{}{
+			"name":   "file.txt",
+			"parent": ExampleAliceDir.id,
+		}).Return(nil).Once()
+
+		tools.ClockMock.On("Now").Return(now).Once()
+		storageMock.On("Patch", mock.Anything, ExampleAliceFile2.id, map[string]interface{}{
+			"deleted_at":       now,
+			"last_modified_at": now,
+		}).Return(nil).Once()
+
+		err := service.Move(ctx, &ExampleAliceFile, &PathCmd{
+			Root:     ExampleAliceRoot.ID(),
+			FullName: "/dir-a/file.txt",
+		})
+		assert.NoError(t, err)
+	})
+
+	t.Run("Move with a MkdirAll error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		// MkdirAll internals
+		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(nil, fmt.Errorf("some-error")).Once()
+
+		err := service.Move(ctx, &ExampleAliceFile, &PathCmd{
+			Root:     ExampleAliceRoot.ID(),
+			FullName: "/dir-a/file.txt",
+		})
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
+	})
+
+	t.Run("Move with a Patch error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		// MkdirAll internals
+		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "dir-a", ExampleAliceRoot.id).Return(&ExampleAliceDir, nil).Once()
+
+		// Check if a file with the same name already exists
+		storageMock.On("GetByNameAndParent", mock.Anything, "file.txt", ExampleAliceDir.id).Return(&ExampleAliceFile2, nil).Once()
+
+		// Update the source parent an name
+		storageMock.On("Patch", mock.Anything, ExampleAliceFile.id, map[string]interface{}{
+			"name":   "file.txt",
+			"parent": ExampleAliceDir.id,
+		}).Return(fmt.Errorf("some-error")).Once()
+
+		err := service.Move(ctx, &ExampleAliceFile, &PathCmd{
+			Root:     ExampleAliceRoot.ID(),
+			FullName: "/dir-a/file.txt",
+		})
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 }

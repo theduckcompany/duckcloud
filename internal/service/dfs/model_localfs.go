@@ -83,10 +83,23 @@ func (s *LocalFS) Remove(ctx context.Context, name string) error {
 }
 
 func (s *LocalFS) Rename(ctx context.Context, oldName, newName string) error {
-	oldName = cleanPath(oldName)
-	newName = cleanPath(newName)
+	source, err := s.inodes.Get(ctx, &inodes.PathCmd{
+		Root:     s.folder.RootFS(),
+		FullName: cleanPath(oldName),
+	})
+	if err != nil {
+		return fmt.Errorf("invalid source: %w", err)
+	}
 
-	return ErrNotImplemented
+	err = s.inodes.Move(ctx, source, &inodes.PathCmd{
+		Root:     s.folder.RootFS(),
+		FullName: cleanPath(newName),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to Move file: %w", err)
+	}
+
+	return nil
 }
 
 func (s *LocalFS) Get(ctx context.Context, name string) (*inodes.INode, error) {

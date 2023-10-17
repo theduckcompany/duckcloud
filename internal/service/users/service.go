@@ -102,7 +102,7 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 	// This multi write can lead to a user blocked into the "pending" state. In order to reduce
 	// those risks an rollback is done in case of error.
 	//
-	// A commit system would be great here.
+	// TODO: Fix this with a commit systeme
 	err = s.scheduler.RegisterUserCreateTask(ctx, &scheduler.UserCreateArgs{UserID: user.ID()})
 	if err != nil {
 		// Rollback the newly created user in order to avoid any invalid state.
@@ -228,6 +228,7 @@ func (s *UserService) AddToDeletion(ctx context.Context, userID uuid.UUID) error
 		}
 	}
 
+	// XXX:MULTI-WRITE
 	err = s.scheduler.RegisterUserDeleteTask(ctx, &scheduler.UserDeleteArgs{
 		UserID: userID,
 	})
