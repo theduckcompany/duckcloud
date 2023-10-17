@@ -157,20 +157,54 @@ func (s *INodeService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INo
 	return &inode, nil
 }
 
+// RegisterWrite will add/deduce the `sizeWrite` to all the given inode parents. The ModeTime will also
+// be change for all the parents.
+//
+// This fonction contains several consecutive writes and is idempotent. In case of error you should call this
+// function again. This keep the data coherent.
 func (s *INodeService) RegisterWrite(ctx context.Context, inode *INode, sizeWrite int64, modeTime time.Time) error {
-	inode.lastModifiedAt = modeTime
-	if sizeWrite > 0 {
-		inode.size += uint64(sizeWrite)
-	} else {
-		inode.size -= uint64(math.Abs(float64(sizeWrite)))
+	var gerr error
+
+	parentID := inode.Parent()
+	for {
+		if parentID == nil {
+			break
+		}
+
+		parent, err := s.GetByID(ctx, *parentID)
+		if err != nil {
+			return fmt.Errorf("failed to GetByID the parent: %w", err)
+		}
+
+		if !parent.LastModifiedAt().Equal(modeTime) {
+			parent.lastModifiedAt = modeTime
+			if sizeWrite > 0 {
+				parent.size += uint64(sizeWrite)
+			} else {
+				parent.size -= uint64(math.Abs(float64(sizeWrite)))
+			}
+
+			// XXX:MULTI-WRITE
+			//
+			// Those writes are done inside tasks and are indempotent so they should
+			// be retried. In the worst case scenario we do not register a write size
+			// and this is not dramatic.
+			//
+			// TODO: Create a job that will recalculate the correct size from time to time.
+			err := s.storage.Patch(ctx, parent.ID(), map[string]any{
+				"last_modified_at": parent.lastModifiedAt,
+				"size":             parent.size,
+			})
+			if err != nil {
+				gerr = fmt.Errorf("failed to Patch: %w", err)
+			}
+		}
+
+		parentID = parent.Parent()
 	}
 
-	err := s.storage.Patch(ctx, inode.ID(), map[string]any{
-		"last_modified_at": inode.lastModifiedAt,
-		"size":             inode.size,
-	})
-	if err != nil {
-		return errs.Internal(fmt.Errorf("failed to Patch: %w", err))
+	if gerr != nil {
+		return errs.Internal(gerr)
 	}
 
 	return nil

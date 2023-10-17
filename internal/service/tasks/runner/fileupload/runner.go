@@ -63,25 +63,13 @@ func (r *TaskRunner) RunArgs(ctx context.Context, args *scheduler.FileUploadArgs
 		return fmt.Errorf("failed to inodes.CreateFile: %w", err)
 	}
 
-	parentID := inode.Parent()
-	for {
-		if parentID == nil {
-			break
-		}
-
-		parent, err := r.inodes.GetByID(ctx, *parentID)
-		if err != nil {
-			return fmt.Errorf("failed to GetByID the parent: %w", err)
-		}
-
-		if !parent.LastModifiedAt().Equal(inode.LastModifiedAt()) {
-			err = r.inodes.RegisterWrite(ctx, parent, written, inode.LastModifiedAt())
-			if err != nil {
-				return fmt.Errorf("failed to RegisterWrite: %w", err)
-			}
-		}
-
-		parentID = parent.Parent()
+	// XXX:MULTI-WRITE
+	//
+	// This file have severa consecutive writes but they are all idempotent and the
+	// task is retried in case of error.
+	err = r.inodes.RegisterWrite(ctx, inode, written, inode.LastModifiedAt())
+	if err != nil {
+		return fmt.Errorf("failed to RegisterWrite: %w", err)
 	}
 
 	return nil
