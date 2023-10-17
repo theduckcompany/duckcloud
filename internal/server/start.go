@@ -108,7 +108,6 @@ func start(ctx context.Context, db *sql.DB, fs afero.Fs, folderPath string, invo
 
 		// Start the command
 		fx.Invoke(storage.RunMigrations),
-		fx.Invoke(func(taskRunner runner.Service) { go taskRunner.RunLoop() }),
 		invoke,
 	)
 

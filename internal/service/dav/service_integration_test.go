@@ -53,7 +53,7 @@ func Test_DavFS_integration(t *testing.T) {
 	foldersSvc := folders.Init(tools, db, inodesSvc)
 	usersSvc := users.Init(tools, db, schedulerSvc)
 	davSessionsSvc := davsessions.Init(db, foldersSvc, usersSvc, tools)
-	runnerSvc := runner.Init([]runner.TaskRunner{fileupload.NewTaskRunner(foldersSvc, filesSvc, inodesSvc)}, tools, db)
+	runnerSvc := runner.Init([]runner.TaskRunner{fileupload.NewTaskRunner(foldersSvc, filesSvc, inodesSvc)}, nil, tools, db)
 
 	user, err := usersSvc.Create(ctx, &users.CreateCmd{
 		Username: "foo-user",

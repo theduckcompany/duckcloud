@@ -7,12 +7,14 @@ import (
 
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"go.uber.org/fx"
 )
 
 //go:generate mockery --name Service
 type Service interface {
 	RunLoop()
 	RunSingleJob(ctx context.Context) error
+	Stop()
 }
 
 //go:generate mockery --name TaskRunner
@@ -21,8 +23,24 @@ type TaskRunner interface {
 	Name() string
 }
 
-func Init(runners []TaskRunner, tools tools.Tools, db *sql.DB) Service {
+func Init(runners []TaskRunner, lc fx.Lifecycle, tools tools.Tools, db *sql.DB) Service {
 	storage := storage.NewSqlStorage(db)
 
-	return NewService(tools, storage, runners)
+	svc := NewService(tools, storage, runners)
+
+	if lc != nil {
+		lc.Append(fx.Hook{
+			OnStart: func(context.Context) error {
+				//nolint:contextcheck // there is no context
+				go svc.RunLoop()
+				return nil
+			},
+			OnStop: func(context.Context) error {
+				svc.Stop()
+				return nil
+			},
+		})
+	}
+
+	return svc
 }
