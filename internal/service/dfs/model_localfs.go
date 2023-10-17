@@ -2,6 +2,7 @@ package dfs
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"path"
@@ -58,15 +59,24 @@ func (s *LocalFS) CreateDir(ctx context.Context, name string) (*inodes.INode, er
 	return inode, nil
 }
 
-func (s *LocalFS) RemoveAll(ctx context.Context, name string) error {
+func (s *LocalFS) Remove(ctx context.Context, name string) error {
 	name = cleanPath(name)
 
-	err := s.inodes.RemoveAll(ctx, &inodes.PathCmd{
+	res, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Root:     s.folder.RootFS(),
 		FullName: name,
 	})
+	if errors.Is(err, errs.ErrNotFound) {
+		return nil
+	}
+
 	if err != nil {
-		return fmt.Errorf("failed to RemoveAll: %w", err)
+		return fmt.Errorf("failed to Get inodes: %w", err)
+	}
+
+	err = s.inodes.Remove(ctx, res)
+	if err != nil {
+		return fmt.Errorf("failed to Remove: %w", err)
 	}
 
 	return nil

@@ -78,7 +78,7 @@ func Test_LocalFS(t *testing.T) {
 		assert.Equal(t, &inodes.ExampleAliceRoot, res)
 	})
 
-	t.Run("RemoveAll success", func(t *testing.T) {
+	t.Run("Remove success", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
@@ -86,12 +86,13 @@ func Test_LocalFS(t *testing.T) {
 		toolsMock := tools.NewMock(t)
 		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
 
-		inodesMock.On("RemoveAll", mock.Anything, &inodes.PathCmd{
+		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
 			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
 			FullName: "/foo",
-		}).Return(nil).Once()
+		}).Return(&inodes.ExampleAliceFile, nil).Once()
+		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceFile).Return(nil).Once()
 
-		err := folderFS.RemoveAll(ctx, "foo")
+		err := folderFS.Remove(ctx, "foo")
 		assert.NoError(t, err)
 	})
 

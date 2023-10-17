@@ -447,7 +447,7 @@ func Test_Browser_Page(t *testing.T) {
 		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
 		folderFSMock.On("Folder").Return(&folders.ExampleAlicePersonalFolder)
 
-		folderFSMock.On("RemoveAll", mock.Anything, "foo/bar").Return(nil).Once()
+		folderFSMock.On("Remove", mock.Anything, "foo/bar").Return(nil).Once()
 
 		// Then look for the path inside this folder
 		folderFSMock.On("Get", mock.Anything, "foo").Return(&inodes.ExampleAliceRoot, nil).Once()

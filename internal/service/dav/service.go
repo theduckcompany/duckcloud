@@ -95,9 +95,9 @@ func (s *davFS) OpenFile(ctx context.Context, name string, flag int, perm os.Fil
 	}
 
 	if flag&os.O_TRUNC != 0 {
-		err = ffs.RemoveAll(ctx, name)
+		err = ffs.Remove(ctx, name)
 		if err != nil {
-			return nil, fmt.Errorf("failed to RemoveAll for TRUNC: %w", err)
+			return nil, fmt.Errorf("failed to Remove for TRUNC: %w", err)
 		}
 
 		info = nil
@@ -122,7 +122,7 @@ func (s *davFS) RemoveAll(ctx context.Context, name string) error {
 		return fmt.Errorf("failed to folders.GetByID: %w", err)
 	}
 
-	return s.fs.GetFolderFS(folder).RemoveAll(ctx, name)
+	return s.fs.GetFolderFS(folder).Remove(ctx, name)
 }
 
 func (s *davFS) Rename(ctx context.Context, oldName, newName string) error {

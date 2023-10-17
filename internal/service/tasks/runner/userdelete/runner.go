@@ -89,7 +89,7 @@ func (j *TaskRunner) RunArgs(ctx context.Context, args *scheduler.UserDeleteArgs
 
 		// Then delete the data
 		ffs := j.fs.GetFolderFS(&folder)
-		err = ffs.RemoveAll(ctx, "/")
+		err = ffs.Remove(ctx, "/")
 		if err != nil && !errors.Is(err, errs.ErrNotFound) {
 			return fmt.Errorf("failed to delete the user root fs: %w", err)
 		}
