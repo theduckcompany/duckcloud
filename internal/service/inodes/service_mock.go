@@ -254,13 +254,13 @@ func (_m *MockService) RegisterWrite(ctx context.Context, inode *INode, sizeWrit
 	return r0
 }
 
-// RemoveAll provides a mock function with given fields: ctx, cmd
-func (_m *MockService) RemoveAll(ctx context.Context, cmd *PathCmd) error {
-	ret := _m.Called(ctx, cmd)
+// Remove provides a mock function with given fields: ctx, inode
+func (_m *MockService) Remove(ctx context.Context, inode *INode) error {
+	ret := _m.Called(ctx, inode)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) error); ok {
-		r0 = rf(ctx, cmd)
+	if rf, ok := ret.Get(0).(func(context.Context, *INode) error); ok {
+		r0 = rf(ctx, inode)
 	} else {
 		r0 = ret.Error(0)
 	}

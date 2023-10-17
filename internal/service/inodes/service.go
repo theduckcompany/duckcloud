@@ -212,28 +212,14 @@ func (s *INodeService) HardDelete(ctx context.Context, inode uuid.UUID) error {
 	return nil
 }
 
-func (s *INodeService) RemoveAll(ctx context.Context, cmd *PathCmd) error {
-	err := cmd.Validate()
-	if err != nil {
-		return errs.Validation(err)
-	}
-
-	inode, err := s.Get(ctx, cmd)
-	if errors.Is(err, errs.ErrNotFound) {
-		return nil
-	}
-
-	if err != nil {
-		return fmt.Errorf("failed to open the inode: %w", err)
-	}
-
+func (s *INodeService) Remove(ctx context.Context, inode *INode) error {
 	now := s.clock.Now()
-	err = s.storage.Patch(ctx, inode.ID(), map[string]any{
+	err := s.storage.Patch(ctx, inode.ID(), map[string]any{
 		"deleted_at":       now,
 		"last_modified_at": now,
 	})
 	if err != nil {
-		return errs.Internal(fmt.Errorf("failed to Path: %w", err))
+		return errs.Internal(fmt.Errorf("failed to Patch: %w", err))
 	}
 
 	return nil

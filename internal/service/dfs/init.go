@@ -18,7 +18,7 @@ type FS interface {
 	Folder() *folders.Folder
 	CreateDir(ctx context.Context, name string) (*inodes.INode, error)
 	ListDir(ctx context.Context, name string, cmd *storage.PaginateCmd) ([]inodes.INode, error)
-	RemoveAll(ctx context.Context, name string) error
+	Remove(ctx context.Context, name string) error
 	Rename(ctx context.Context, oldName, newName string) error
 	Get(ctx context.Context, name string) (*inodes.INode, error)
 	Upload(ctx context.Context, name string, w io.Reader) error

@@ -140,8 +140,8 @@ func (_m *MockFS) ListDir(ctx context.Context, name string, cmd *storage.Paginat
 	return r0, r1
 }
 
-// RemoveAll provides a mock function with given fields: ctx, name
-func (_m *MockFS) RemoveAll(ctx context.Context, name string) error {
+// Remove provides a mock function with given fields: ctx, name
+func (_m *MockFS) Remove(ctx context.Context, name string) error {
 	ret := _m.Called(ctx, name)
 
 	var r0 error

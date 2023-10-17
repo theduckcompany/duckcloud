@@ -199,93 +199,36 @@ func TestINodes(t *testing.T) {
 		assert.ErrorIs(t, err, ErrNotFound)
 	})
 
-	t.Run("RemoveAll success", func(t *testing.T) {
+	t.Run("Remove success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
 
 		now := time.Now().UTC()
 		tools.ClockMock.On("Now").Return(now).Once()
-		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
-
-		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&INode{
-			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			parent: ptr.To(ExampleAliceRoot.ID()),
-			name:   "foo",
-			fileID: nil,
-			// some other unused fields
-		}, nil).Once()
-
-		storageMock.On("Patch", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"), map[string]any{
+		storageMock.On("Patch", mock.Anything, ExampleAliceFile.ID(), map[string]any{
 			"deleted_at":       now,
 			"last_modified_at": now,
 		}).Return(nil).Once()
 
-		err := service.RemoveAll(ctx, &PathCmd{
-			Root:     ExampleAliceRoot.ID(),
-			FullName: "/foo",
-		})
+		err := service.Remove(ctx, &ExampleAliceFile)
 
 		assert.NoError(t, err)
 	})
 
-	t.Run("RemoveAll with a validation error", func(t *testing.T) {
+	t.Run("Remove with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
-
-		err := service.RemoveAll(ctx, &PathCmd{
-			Root:     "some-invalid-id",
-			FullName: "/foo",
-		})
-
-		assert.ErrorIs(t, err, errs.ErrValidation)
-		assert.ErrorContains(t, err, "Root: must be a valid UUID v4.")
-	})
-
-	t.Run("RemoveAll with a file not found", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
-		service := NewService(tools, storageMock)
-
-		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
-
-		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errNotFound).Once()
-
-		err := service.RemoveAll(ctx, &PathCmd{
-			Root:     ExampleAliceRoot.ID(),
-			FullName: "/foo",
-		})
-
-		assert.NoError(t, err)
-	})
-
-	t.Run("RemoveAll with a storage error", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
-		service := NewService(tools, storageMock)
-
-		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
 
 		now := time.Now().UTC()
 		tools.ClockMock.On("Now").Return(now).Once()
-		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&INode{
-			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			parent: ptr.To(ExampleAliceRoot.ID()),
-			name:   "foo",
-			fileID: nil,
-			// some other unused fields
-		}, nil).Once()
-
-		storageMock.On("Patch", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"), map[string]any{
+		storageMock.On("Patch", mock.Anything, ExampleAliceFile.ID(), map[string]any{
 			"deleted_at":       now,
 			"last_modified_at": now,
 		}).Return(errors.New("some-error")).Once()
 
-		err := service.RemoveAll(ctx, &PathCmd{
-			Root:     ExampleAliceRoot.ID(),
-			FullName: "/foo",
-		})
+		err := service.Remove(ctx, &ExampleAliceFile)
 
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")

@@ -183,9 +183,9 @@ func (h *browserHandler) deleteAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fs := h.fs.GetFolderFS(folder)
-	err := fs.RemoveAll(r.Context(), fullPath)
+	err := fs.Remove(r.Context(), fullPath)
 	if err != nil {
-		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.RemoveAll: %w", err))
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Remove: %w", err))
 		return
 	}
 
