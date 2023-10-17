@@ -30,7 +30,6 @@ type Storage interface {
 	GetAllUserFolders(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error)
 	Delete(ctx context.Context, folderID uuid.UUID) error
 	Patch(ctx context.Context, folderID uuid.UUID, fields map[string]any) error
-	GetAllFoldersWithRoot(ctx context.Context, rootID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error)
 }
 
 type FolderService struct {
@@ -112,15 +111,6 @@ func (s *FolderService) Delete(ctx context.Context, folderID uuid.UUID) error {
 	return nil
 }
 
-func (s *FolderService) GetAllFoldersWithRoot(ctx context.Context, rootID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error) {
-	res, err := s.storage.GetAllFoldersWithRoot(ctx, rootID, cmd)
-	if err != nil {
-		return nil, errs.Internal(err)
-	}
-
-	return res, nil
-}
-
 func (s *FolderService) GetByID(ctx context.Context, folderID uuid.UUID) (*Folder, error) {
 	res, err := s.storage.GetByID(ctx, folderID)
 	if errors.Is(err, errNotFound) {
@@ -135,10 +125,6 @@ func (s *FolderService) GetByID(ctx context.Context, folderID uuid.UUID) (*Folde
 
 func (s *FolderService) GetAllUserFolders(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error) {
 	res, err := s.storage.GetAllUserFolders(ctx, userID, cmd)
-	if errors.Is(err, errNotFound) {
-		return nil, errs.NotFound(err)
-	}
-
 	if err != nil {
 		return nil, errs.Internal(err)
 	}
@@ -153,7 +139,7 @@ func (s *FolderService) GetUserFolder(ctx context.Context, userID, folderID uuid
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, errs.Internal(fmt.Errorf("failed to GetByID: %w", err))
 	}
 
 	if !slices.Contains[[]uuid.UUID, uuid.UUID](folder.Owners(), userID) {

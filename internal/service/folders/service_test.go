@@ -2,6 +2,7 @@ package folders
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -66,6 +67,20 @@ func Test_FolderService(t *testing.T) {
 		assert.EqualValues(t, []Folder{ExampleAlicePersonalFolder}, res)
 	})
 
+	t.Run("GetAlluserFolders with a storage error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		inodesMock := inodes.NewMockService(t)
+		storageMock := NewMockStorage(t)
+		svc := NewService(tools, storageMock, inodesMock)
+
+		storageMock.On("GetAllUserFolders", mock.Anything, AliceID, (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
+
+		res, err := svc.GetAllUserFolders(ctx, AliceID, nil)
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
+	})
+
 	t.Run("GetByID success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		inodesMock := inodes.NewMockService(t)
@@ -79,17 +94,31 @@ func Test_FolderService(t *testing.T) {
 		assert.EqualValues(t, &ExampleAlicePersonalFolder, res)
 	})
 
-	t.Run("GetAllFoldersWithRoot success", func(t *testing.T) {
+	t.Run("GetByID not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		inodesMock := inodes.NewMockService(t)
 		storageMock := NewMockStorage(t)
 		svc := NewService(tools, storageMock, inodesMock)
 
-		storageMock.On("GetAllFoldersWithRoot", mock.Anything, ExampleAlicePersonalFolder.rootFS, (*storage.PaginateCmd)(nil)).Return([]Folder{ExampleAlicePersonalFolder}, nil).Once()
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(nil, errNotFound).Once()
 
-		res, err := svc.GetAllFoldersWithRoot(ctx, ExampleAlicePersonalFolder.rootFS, nil)
-		assert.NoError(t, err)
-		assert.Equal(t, []Folder{ExampleAlicePersonalFolder}, res)
+		res, err := svc.GetByID(ctx, ExampleAlicePersonalFolder.ID())
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrNotFound)
+	})
+
+	t.Run("GetByID with an error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		inodesMock := inodes.NewMockService(t)
+		storageMock := NewMockStorage(t)
+		svc := NewService(tools, storageMock, inodesMock)
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(nil, fmt.Errorf("some-error")).Once()
+
+		res, err := svc.GetByID(ctx, ExampleAlicePersonalFolder.ID())
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("Delete success", func(t *testing.T) {
@@ -142,6 +171,33 @@ func Test_FolderService(t *testing.T) {
 		res, err := svc.GetUserFolder(ctx, ExampleAlicePersonalFolder.Owners()[0], ExampleAlicePersonalFolder.ID())
 		assert.NoError(t, err)
 		assert.Equal(t, &ExampleAlicePersonalFolder, res)
+	})
+
+	t.Run("GetUserFolder not found", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		inodesMock := inodes.NewMockService(t)
+		storageMock := NewMockStorage(t)
+		svc := NewService(tools, storageMock, inodesMock)
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(nil, errNotFound).Once()
+
+		res, err := svc.GetUserFolder(ctx, ExampleAlicePersonalFolder.Owners()[0], ExampleAlicePersonalFolder.ID())
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrNotFound)
+	})
+
+	t.Run("GetUserFolder with an error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		inodesMock := inodes.NewMockService(t)
+		storageMock := NewMockStorage(t)
+		svc := NewService(tools, storageMock, inodesMock)
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(nil, fmt.Errorf("some-error")).Once()
+
+		res, err := svc.GetUserFolder(ctx, ExampleAlicePersonalFolder.Owners()[0], ExampleAlicePersonalFolder.ID())
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("GetUserFolder with an existing folder but an invalid user id", func(t *testing.T) {
