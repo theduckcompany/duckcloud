@@ -29,13 +29,12 @@ Keep your family data safe at home with a one click fully encrypted backup.<br/>
 
 
 > [!WARNING]  
-> This project is in its alpha stage. Things are moving fast and some occasional breaking changes could appears.
+> This project is in alpha stage. Things are moving fast and some occasional breaking changes could appears.
 
 ## Who's it for?
 
-This project aims to propose an easy solution for the families who want to keep their data safe at home away form TheBigCorps. It want to be as simple
-as possible for the users and the administrator. Grandma doesn't care about the cross-instances federations feature and you don't need complexes permissions
-systemes to manage access between you. 
+This project aims to propose an easy solution for the families who want to keep their data safe at home away from the GAFAM. This service aims to be a 
+Nextcloud alternative with more simplicity for both the user and the administrator.
 
 
 
