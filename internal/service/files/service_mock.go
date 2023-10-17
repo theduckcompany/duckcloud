@@ -7,8 +7,6 @@ import (
 
 	afero "github.com/spf13/afero"
 
-	inodes "github.com/theduckcompany/duckcloud/internal/service/inodes"
-
 	mock "github.com/stretchr/testify/mock"
 
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -52,13 +50,13 @@ func (_m *MockService) Create(ctx context.Context) (afero.File, uuid.UUID, error
 	return r0, r1, r2
 }
 
-// Delete provides a mock function with given fields: ctx, inod
-func (_m *MockService) Delete(ctx context.Context, inod *inodes.INode) error {
-	ret := _m.Called(ctx, inod)
+// Delete provides a mock function with given fields: ctx, fileID
+func (_m *MockService) Delete(ctx context.Context, fileID uuid.UUID) error {
+	ret := _m.Called(ctx, fileID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *inodes.INode) error); ok {
-		r0 = rf(ctx, inod)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, fileID)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -8,7 +8,6 @@ import (
 	"path"
 
 	"github.com/spf13/afero"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -41,6 +40,10 @@ func NewFSService(fs afero.Fs, rootPath string, tools tools.Tools) (*FSService, 
 
 	for i := 0; i < 256; i++ {
 		dir := fmt.Sprintf("%02x", i)
+		// XXX:MULTI-WRITE
+		//
+		// This function is idempotent so no worries. If it fails the server doesn't start
+		// so we are sur that it will be run again until it's completely successful.
 		err = rootFS.Mkdir(dir, 0o755)
 		if errors.Is(err, os.ErrExist) {
 			continue
@@ -77,13 +80,8 @@ func (s *FSService) Open(ctx context.Context, fileID uuid.UUID) (afero.File, err
 	return file, nil
 }
 
-func (s *FSService) Delete(ctx context.Context, inode *inodes.INode) error {
-	fileID := inode.FileID()
-	if fileID == nil {
-		return errs.BadRequest(ErrInodeNotAFile)
-	}
-
-	idStr := string(*fileID)
+func (s *FSService) Delete(ctx context.Context, fileID uuid.UUID) error {
+	idStr := string(fileID)
 	filePath := path.Join(idStr[:2], idStr)
 
 	err := s.fs.Remove(filePath)

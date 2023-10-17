@@ -146,15 +146,32 @@ func (s *LocalFS) Upload(ctx context.Context, name string, w io.Reader) error {
 		return fmt.Errorf("failed to Create file: %w", err)
 	}
 
-	defer file.Close()
+	success := false
+	defer func() {
+		// In case of error rollback the file creation. Use a panic to
+		// ensure it is executed, even in case of a panic.
+		if !success {
+			_ = s.files.Delete(ctx, fileID)
+		}
+	}()
 
 	_, err = io.Copy(file, w)
 	if err != nil {
+		// In case of error rollback the file creation.
+		_ = s.files.Delete(ctx, fileID)
 		return errs.Internal(fmt.Errorf("failed to copy the file content: %w", err))
 	}
 
-	ctx = context.WithoutCancel(ctx)
+	err = file.Close()
+	if err != nil {
+		return errs.Internal(fmt.Errorf("failed to close the file: %w", err))
+	}
 
+	ctx = context.WithoutCancel(ctx)
+	// XXX:MULTI-WRITE
+	//
+	// Once a file is uploaded and closed we need to process it in order to make
+	// it available.
 	err = s.tasks.RegisterFileUploadTask(ctx, &scheduler.FileUploadArgs{
 		FolderID:   s.folder.ID(),
 		Directory:  dir.ID(),
@@ -165,6 +182,8 @@ func (s *LocalFS) Upload(ctx context.Context, name string, w io.Reader) error {
 	if err != nil {
 		return fmt.Errorf("failed to Register the upload: %w", err)
 	}
+
+	success = true
 
 	return nil
 }

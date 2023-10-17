@@ -190,9 +190,9 @@ func Test_Users_Service(t *testing.T) {
 
 		store.On("GetByID", ctx, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
 		store.On("GetAll", ctx, (*storage.PaginateCmd)(nil)).Return([]User{ExampleAlice, anAnotherAdmin}, nil).Once()
-		store.On("Patch", ctx, ExampleAlice.ID(), map[string]any{"status": Deleting}).Return(nil).Once()
 		schedulerMock.On("RegisterUserDeleteTask", mock.Anything, &scheduler.UserDeleteArgs{UserID: ExampleAlice.ID()}).
 			Return(nil).Once()
+		store.On("Patch", mock.Anything, ExampleAlice.ID(), map[string]any{"status": Deleting}).Return(nil).Once()
 
 		err := service.AddToDeletion(ctx, ExampleAlice.ID())
 		assert.NoError(t, err)

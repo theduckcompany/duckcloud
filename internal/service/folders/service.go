@@ -66,6 +66,11 @@ func (s *FolderService) CreatePersonalFolder(ctx context.Context, cmd *CreatePer
 	}
 
 	// XXX:MULTI-WRITE
+	// This method is used inside the task "usercreate". It means it should be
+	// idempotent because in case of failure the job should be retriggered.
+	//
+	// This function is not idempotent and could lead to the creation of orphan
+	// inodes. That's not great but that's not terrible.
 	err = s.storage.Save(context.WithoutCancel(ctx), &folder)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to Save the folder: %w", err))
