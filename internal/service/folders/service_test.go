@@ -54,6 +54,43 @@ func Test_FolderService(t *testing.T) {
 		assert.ErrorContains(t, err, "Name: cannot be blank.")
 	})
 
+	t.Run("CreatePersonalFolder with a CreateRootDir error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		inodesMock := inodes.NewMockService(t)
+		storageMock := NewMockStorage(t)
+		svc := NewService(tools, storageMock, inodesMock)
+
+		inodesMock.On("CreateRootDir", mock.Anything).Return(nil, fmt.Errorf("some-error")).Once()
+
+		res, err := svc.CreatePersonalFolder(ctx, &CreatePersonalFolderCmd{
+			Name:  "Alice's Folder",
+			Owner: AliceID,
+		})
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
+	})
+
+	t.Run("CreatePersonalFolder with a Save error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		inodesMock := inodes.NewMockService(t)
+		storageMock := NewMockStorage(t)
+		svc := NewService(tools, storageMock, inodesMock)
+
+		inodesMock.On("CreateRootDir", mock.Anything).Return(&inodes.ExampleAliceRoot, nil).Once()
+		tools.UUIDMock.On("New").Return(ExampleAlicePersonalFolder.ID()).Once()
+		tools.ClockMock.On("Now").Return(now).Once()
+		storageMock.On("Save", mock.Anything, &ExampleAlicePersonalFolder).Return(fmt.Errorf("some-error")).Once()
+
+		res, err := svc.CreatePersonalFolder(ctx, &CreatePersonalFolderCmd{
+			Name:  "Alice's Folder",
+			Owner: AliceID,
+		})
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
+	})
+
 	t.Run("GetAlluserFolders success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		inodesMock := inodes.NewMockService(t)
@@ -145,6 +182,35 @@ func Test_FolderService(t *testing.T) {
 
 		err := svc.Delete(ctx, ExampleAlicePersonalFolder.ID())
 		assert.NoError(t, err)
+	})
+
+	t.Run("Delete with an error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		inodesMock := inodes.NewMockService(t)
+		storageMock := NewMockStorage(t)
+		svc := NewService(tools, storageMock, inodesMock)
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(&ExampleAlicePersonalFolder, nil).Once()
+		inodesMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.RootFS()).Return(nil, fmt.Errorf("some-error")).Once()
+
+		err := svc.Delete(ctx, ExampleAlicePersonalFolder.ID())
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
+	})
+
+	t.Run("Delete with a Delete error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		inodesMock := inodes.NewMockService(t)
+		storageMock := NewMockStorage(t)
+		svc := NewService(tools, storageMock, inodesMock)
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(&ExampleAlicePersonalFolder, nil).Once()
+		inodesMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.RootFS()).Return(nil, errs.ErrNotFound).Once()
+		storageMock.On("Delete", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(fmt.Errorf("some-error"))
+
+		err := svc.Delete(ctx, ExampleAlicePersonalFolder.ID())
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("Delete with a root inode still present", func(t *testing.T) {

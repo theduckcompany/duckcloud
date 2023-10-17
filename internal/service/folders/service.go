@@ -56,10 +56,6 @@ func (s *FolderService) CreatePersonalFolder(ctx context.Context, cmd *CreatePer
 		return nil, errs.Internal(fmt.Errorf("failed to CreateRootDir: %w", err))
 	}
 
-	if !inode.IsDir() || inode.Parent() != nil {
-		return nil, errs.BadRequest(ErrInvalidRootFS, "invalid rootFS")
-	}
-
 	now := s.clock.Now()
 	folder := Folder{
 		id:        s.uuid.New(),
@@ -91,12 +87,12 @@ func (s *FolderService) Delete(ctx context.Context, folderID uuid.UUID) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("failed to GetByID: %w", err)
+		return errs.Internal(fmt.Errorf("failed to GetByID: %w", err))
 	}
 
 	res, err := s.inodes.GetByID(ctx, folder.RootFS())
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
-		return fmt.Errorf("failed to GetByID: %w", err)
+		return errs.Internal(fmt.Errorf("failed to GetByID: %w", err))
 	}
 
 	if res != nil {
