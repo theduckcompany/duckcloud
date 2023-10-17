@@ -49,6 +49,10 @@ func setupSSLCertificate(cmd *cobra.Command, configSvc config.Service, folderPat
 		printErrAndExit(cmd, fmt.Errorf("failed to check if TLS is enabled: %w", err))
 	}
 
+	if !sslEnable {
+		return
+	}
+
 	certifPath, privateKeyPath, err := configSvc.GetSSLPaths(cmd.Context())
 	if err != nil && !errors.Is(err, config.ErrNotInitialized) {
 		printErrAndExit(cmd, fmt.Errorf("failed to retrieve the SSL files paths: %w", err))
