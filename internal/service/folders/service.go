@@ -50,7 +50,6 @@ func (s *FolderService) CreatePersonalFolder(ctx context.Context, cmd *CreatePer
 		return nil, errs.Validation(err)
 	}
 
-	// TODO: This action is not idempotent and could lead to orphan root dirs.
 	inode, err := s.inodes.CreateRootDir(ctx)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to CreateRootDir: %w", err))
@@ -70,7 +69,8 @@ func (s *FolderService) CreatePersonalFolder(ctx context.Context, cmd *CreatePer
 		createdAt: now,
 	}
 
-	err = s.storage.Save(ctx, &folder)
+	// XXX:MULTI-WRITE
+	err = s.storage.Save(context.WithoutCancel(ctx), &folder)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to Save the folder: %w", err))
 	}
