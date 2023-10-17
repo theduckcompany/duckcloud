@@ -75,6 +75,7 @@ func (s *INodeService) MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, erro
 		}
 
 		if nextDir != nil && nextDir.IsDir() {
+			inode = nextDir
 			return nil
 		}
 
@@ -229,36 +230,42 @@ func (s *INodeService) Remove(ctx context.Context, inode *INode) error {
 	return nil
 }
 
-func (s *INodeService) Move(ctx context.Context, source *INode, into *PathCmd, name string) error {
-	targetDir, err := s.Get(ctx, into)
+func (s *INodeService) Move(ctx context.Context, source *INode, into *PathCmd) error {
+	dir, fileName := path.Split(into.FullName)
+
+	targetDir, err := s.MkdirAll(ctx, &PathCmd{
+		Root:     into.Root,
+		FullName: dir,
+	})
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to fetch the target inode: %w", err))
 	}
 
-	if !targetDir.IsDir() {
-		return errs.BadRequest(ErrIsNotDir)
-	}
-
-	existingFile, err := s.storage.GetByNameAndParent(ctx, name, targetDir.ID())
+	existingFile, err := s.storage.GetByNameAndParent(ctx, fileName, targetDir.ID())
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		return errs.Internal(fmt.Errorf("failed to GetByNameAndParent: %w", err))
 	}
 
 	err = s.storage.Patch(ctx, source.ID(), map[string]any{
 		"parent": targetDir.ID(),
-		"name":   name,
+		"name":   fileName,
 	})
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to Patch the inode: %w", err))
 	}
 
-	// Reduce the risks of double write by removing the context cancel.
 	ctx = context.WithoutCancel(ctx)
 
 	if existingFile != nil {
 		// XXX:MULTI-WRITE
 		//
+		// During a move the old file should be removed. In case of error we can end's
+		// with the old and the new file. This is not really dangerous as we don't loose
+		// any data but both files will have the exact same name and this can be
+		// problematic for the deletion for the manual example. We can't know which one
+		// will be selected if we delete base on a path.
 		//
+		// TODO: Fix this with a commit system
 		err = s.Remove(ctx, existingFile)
 		if err != nil {
 			return errs.Internal(fmt.Errorf("failed to remove the old file: %w", err))

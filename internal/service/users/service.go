@@ -96,17 +96,13 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 		return nil, errs.Internal(fmt.Errorf("failed to save the user: %w", err))
 	}
 
-<<<<<<< HEAD
 	ctx = context.WithoutCancel(ctx)
 	// XXX:MULTI-WRITE
 	//
 	// This multi write can lead to a user blocked into the "pending" state. In order to reduce
 	// those risks an rollback is done in case of error.
 	//
-	// A commit system would be great here.
-=======
-	// XXX:MULTI-WRITE
->>>>>>> 40c80a7 (wip1)
+	// TODO: Fix this with a commit systeme
 	err = s.scheduler.RegisterUserCreateTask(ctx, &scheduler.UserCreateArgs{UserID: user.ID()})
 	if err != nil {
 		// Rollback the newly created user in order to avoid any invalid state.

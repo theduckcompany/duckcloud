@@ -3,6 +3,7 @@ package dfs
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -170,5 +171,67 @@ func Test_LocalFS(t *testing.T) {
 
 		err = folderFS.Upload(ctx, "foo/bar.txt", bytes.NewBufferString(content))
 		assert.NoError(t, err)
+	})
+
+	t.Run("Rename success", func(t *testing.T) {
+		inodesMock := inodes.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		foldersMock := folders.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
+
+		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
+			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
+			FullName: "/foo.txt",
+		}).Return(&inodes.ExampleAliceFile, nil).Once()
+
+		inodesMock.On("Move", mock.Anything, &inodes.ExampleAliceFile, &inodes.PathCmd{
+			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
+			FullName: "/bar.txt",
+		}).Return(nil).Once()
+
+		err := folderFS.Rename(ctx, "/foo.txt", "/bar.txt")
+		assert.NoError(t, err)
+	})
+
+	t.Run("Rename with a source not found", func(t *testing.T) {
+		inodesMock := inodes.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		foldersMock := folders.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
+
+		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
+			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
+			FullName: "/foo.txt",
+		}).Return(nil, errs.ErrNotFound).Once()
+
+		err := folderFS.Rename(ctx, "/foo.txt", "/bar.txt")
+		assert.ErrorIs(t, err, errs.ErrNotFound)
+	})
+
+	t.Run("Rename with a move error", func(t *testing.T) {
+		inodesMock := inodes.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		foldersMock := folders.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
+
+		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
+			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
+			FullName: "/foo.txt",
+		}).Return(&inodes.ExampleAliceFile, nil).Once()
+
+		inodesMock.On("Move", mock.Anything, &inodes.ExampleAliceFile, &inodes.PathCmd{
+			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
+			FullName: "/bar.txt",
+		}).Return(errs.Internal(fmt.Errorf("some-error"))).Once()
+
+		err := folderFS.Rename(ctx, "/foo.txt", "/bar.txt")
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 }
