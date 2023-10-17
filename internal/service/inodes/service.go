@@ -229,6 +229,45 @@ func (s *INodeService) Remove(ctx context.Context, inode *INode) error {
 	return nil
 }
 
+func (s *INodeService) Move(ctx context.Context, source *INode, into *PathCmd, name string) error {
+	targetDir, err := s.Get(ctx, into)
+	if err != nil {
+		return errs.Internal(fmt.Errorf("failed to fetch the target inode: %w", err))
+	}
+
+	if !targetDir.IsDir() {
+		return errs.BadRequest(ErrIsNotDir)
+	}
+
+	existingFile, err := s.storage.GetByNameAndParent(ctx, name, targetDir.ID())
+	if err != nil && !errors.Is(err, errs.ErrNotFound) {
+		return errs.Internal(fmt.Errorf("failed to GetByNameAndParent: %w", err))
+	}
+
+	err = s.storage.Patch(ctx, source.ID(), map[string]any{
+		"parent": targetDir.ID(),
+		"name":   name,
+	})
+	if err != nil {
+		return errs.Internal(fmt.Errorf("failed to Patch the inode: %w", err))
+	}
+
+	// Reduce the risks of double write by removing the context cancel.
+	ctx = context.WithoutCancel(ctx)
+
+	if existingFile != nil {
+		// XXX:MULTI-WRITE
+		//
+		//
+		err = s.Remove(ctx, existingFile)
+		if err != nil {
+			return errs.Internal(fmt.Errorf("failed to remove the old file: %w", err))
+		}
+	}
+
+	return nil
+}
+
 func (s *INodeService) CreateDir(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	err := cmd.Validate()
 	if err != nil {

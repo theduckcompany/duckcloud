@@ -96,6 +96,7 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 		return nil, errs.Internal(fmt.Errorf("failed to save the user: %w", err))
 	}
 
+<<<<<<< HEAD
 	ctx = context.WithoutCancel(ctx)
 	// XXX:MULTI-WRITE
 	//
@@ -103,6 +104,9 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 	// those risks an rollback is done in case of error.
 	//
 	// A commit system would be great here.
+=======
+	// XXX:MULTI-WRITE
+>>>>>>> 40c80a7 (wip1)
 	err = s.scheduler.RegisterUserCreateTask(ctx, &scheduler.UserCreateArgs{UserID: user.ID()})
 	if err != nil {
 		// Rollback the newly created user in order to avoid any invalid state.
@@ -228,6 +232,7 @@ func (s *UserService) AddToDeletion(ctx context.Context, userID uuid.UUID) error
 		}
 	}
 
+	// XXX:MULTI-WRITE
 	err = s.scheduler.RegisterUserDeleteTask(ctx, &scheduler.UserDeleteArgs{
 		UserID: userID,
 	})

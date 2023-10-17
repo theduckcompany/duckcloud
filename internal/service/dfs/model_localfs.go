@@ -86,6 +86,33 @@ func (s *LocalFS) Rename(ctx context.Context, oldName, newName string) error {
 	oldName = cleanPath(oldName)
 	newName = cleanPath(newName)
 
+	current, err := s.inodes.Get(ctx, &inodes.PathCmd{
+		Root:     s.folder.RootFS(),
+		FullName: oldName,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to Get: %w", err)
+	}
+
+	targetDir, targetName := path.Split(newName)
+
+	targetFolder, err := s.inodes.Get(ctx, &inodes.PathCmd{
+		Root:     s.folder.RootFS(),
+		FullName: targetDir,
+	})
+
+	existingFile, err := s.inodes.Get(ctx, &inodes.PathCmd{
+		Root:     targetFolder.ID(),
+		FullName: targetName,
+	})
+	if err != nil && !errors.Is(err, inodes.ErrNotFound) {
+		return fmt.Errorf("failed to Get inodes: %w", err)
+	}
+
+	if existingFile != nil {
+		err := s.inodes.Remove(ctx, existingFile)
+	}
+
 	return ErrNotImplemented
 }
 
