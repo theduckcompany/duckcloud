@@ -96,9 +96,8 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 		return nil, errs.Internal(fmt.Errorf("failed to save the user: %w", err))
 	}
 
-	// TODO: Find a solution to avoid the double write and the possible
-	// data corruption.
-	err = s.scheduler.RegisterUserCreateTask(ctx, &scheduler.UserCreateArgs{UserID: user.ID()})
+	// XXX:MULTI-WRITE
+	err = s.scheduler.RegisterUserCreateTask(context.WithoutCancel(ctx), &scheduler.UserCreateArgs{UserID: user.ID()})
 	if err != nil {
 		return nil, fmt.Errorf("failed to RegisterUserCreateTask: %w", err)
 	}
@@ -221,13 +220,13 @@ func (s *UserService) AddToDeletion(ctx context.Context, userID uuid.UUID) error
 		}
 	}
 
-	// TODO: Avoid the double write.
 	err = s.storage.Patch(ctx, userID, map[string]any{"status": Deleting})
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to Patch the user: %w", err))
 	}
 
-	err = s.scheduler.RegisterUserDeleteTask(ctx, &scheduler.UserDeleteArgs{
+	// XXX:MULTI-WRITE
+	err = s.scheduler.RegisterUserDeleteTask(context.WithoutCancel(ctx), &scheduler.UserDeleteArgs{
 		UserID: userID,
 	})
 	if err != nil {
