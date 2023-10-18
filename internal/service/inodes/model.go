@@ -6,21 +6,22 @@ import (
 
 	v "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
+	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 const NoParent = uuid.UUID("00000000-0000-0000-0000-00000000000")
 
 type PathCmd struct {
-	Root     uuid.UUID
-	FullName string
+	Folder *folders.Folder
+	Path   string
 }
 
 // Validate the fields.
 func (t PathCmd) Validate() error {
 	return v.ValidateStruct(&t,
-		v.Field(&t.Root, v.Required, is.UUIDv4),
-		v.Field(&t.FullName, v.Required, v.Length(1, 1024)),
+		v.Field(&t.Folder, v.Required),
+		v.Field(&t.Path, v.Required, v.Length(1, 1024)),
 	)
 }
 

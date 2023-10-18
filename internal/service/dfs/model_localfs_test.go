@@ -34,8 +34,8 @@ func Test_LocalFS(t *testing.T) {
 		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "/foobar",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/foobar",
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
 		res, err := folderFS.Get(ctx, "foobar")
@@ -52,8 +52,8 @@ func Test_LocalFS(t *testing.T) {
 		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "/unknown-file",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/unknown-file",
 		}).Return(nil, errs.ErrNotFound).Once()
 
 		info, err := folderFS.Get(ctx, "unknown-file")
@@ -70,8 +70,8 @@ func Test_LocalFS(t *testing.T) {
 		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
 
 		inodesMock.On("MkdirAll", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "/foo",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/foo",
 		}).Return(&inodes.ExampleAliceRoot, nil).Once()
 
 		res, err := folderFS.CreateDir(ctx, "foo")
@@ -88,8 +88,8 @@ func Test_LocalFS(t *testing.T) {
 		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "/foo",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/foo",
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceFile).Return(nil).Once()
 
@@ -106,8 +106,8 @@ func Test_LocalFS(t *testing.T) {
 		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "foo",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "foo",
 		}).Return(&inodes.ExampleAliceDir, nil).Once()
 		inodesMock.On("Readdir", mock.Anything, &inodes.ExampleAliceDir, &storage.PaginateCmd{Limit: 2}).
 			Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
@@ -129,8 +129,8 @@ func Test_LocalFS(t *testing.T) {
 		require.NoError(t, err)
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Root:     folderFS.folder.RootFS(),
-			FullName: "/foo/bar.txt",
+			Folder: folderFS.folder,
+			Path:   "/foo/bar.txt",
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
 		filesMock.On("Open", mock.Anything, *inodes.ExampleAliceFile.FileID()).
@@ -156,8 +156,8 @@ func Test_LocalFS(t *testing.T) {
 		require.NoError(t, err)
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "/foo/",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/foo/",
 		}).Return(&inodes.ExampleAliceRoot, nil).Once()
 
 		filesMock.On("Create", mock.Anything).Return(file, uuid.UUID("some-file-id"), nil).Once()
@@ -184,13 +184,13 @@ func Test_LocalFS(t *testing.T) {
 		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "/foo.txt",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/foo.txt",
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
 		inodesMock.On("Move", mock.Anything, &inodes.ExampleAliceFile, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "/bar.txt",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/bar.txt",
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
 		err := folderFS.Rename(ctx, "/foo.txt", "/bar.txt")
@@ -206,8 +206,8 @@ func Test_LocalFS(t *testing.T) {
 		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "/foo.txt",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/foo.txt",
 		}).Return(nil, errs.ErrNotFound).Once()
 
 		err := folderFS.Rename(ctx, "/foo.txt", "/bar.txt")
@@ -223,13 +223,13 @@ func Test_LocalFS(t *testing.T) {
 		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "/foo.txt",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/foo.txt",
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
 		inodesMock.On("Move", mock.Anything, &inodes.ExampleAliceFile, &inodes.PathCmd{
-			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
-			FullName: "/bar.txt",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/bar.txt",
 		}).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
 
 		err := folderFS.Rename(ctx, "/foo.txt", "/bar.txt")

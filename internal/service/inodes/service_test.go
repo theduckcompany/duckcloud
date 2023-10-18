@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	mock "github.com/stretchr/testify/mock"
+	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
@@ -146,8 +147,8 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "bar", uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&inode, nil).Once()
 
 		res, err := service.Get(ctx, &PathCmd{
-			Root:     ExampleAliceRoot.ID(),
-			FullName: "/foo/bar",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/foo/bar",
 		})
 
 		assert.NoError(t, err)
@@ -160,13 +161,13 @@ func TestINodes(t *testing.T) {
 		service := NewService(tools, storageMock)
 
 		res, err := service.Get(ctx, &PathCmd{
-			Root:     "some-invalid-id",
-			FullName: "/foo/bar",
+			Folder: nil,
+			Path:   "/foo/bar",
 		})
 
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrValidation)
-		assert.ErrorContains(t, err, "Root: must be a valid UUID v4.")
+		assert.ErrorContains(t, err, "Folder: cannot be blank.")
 	})
 
 	t.Run("Get with an invalid root", func(t *testing.T) {
@@ -177,8 +178,8 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(nil, errNotFound).Once()
 
 		res, err := service.Get(ctx, &PathCmd{
-			Root:     ExampleAliceRoot.ID(),
-			FullName: "/foo/bar",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/foo/bar",
 		})
 
 		assert.Nil(t, res)
@@ -204,8 +205,8 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "bar", uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(nil, errNotFound).Once()
 
 		res, err := service.Get(ctx, &PathCmd{
-			Root:     ExampleAliceRoot.ID(),
-			FullName: "/foo/bar",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/foo/bar",
 		})
 
 		assert.Nil(t, res)
@@ -357,8 +358,8 @@ func TestINodes(t *testing.T) {
 		}, nil).Once()
 
 		res, err := service.Get(ctx, &PathCmd{
-			Root:     ExampleAliceRoot.ID(),
-			FullName: "/foo/bar",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/foo/bar",
 		})
 
 		assert.Nil(t, res)
@@ -489,7 +490,8 @@ func TestINodes(t *testing.T) {
 			fileID:         nil,
 		}
 
-		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetByID", mock.Anything, folders.ExampleAlicePersonalFolder.RootFS()).
+			Return(&ExampleAliceRoot, nil).Once()
 
 		// Check if the folder /foo exists
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(nil, errNotFound).Once()
@@ -515,8 +517,8 @@ func TestINodes(t *testing.T) {
 		storageMock.On("Save", mock.Anything, &barDir).Return(nil).Once()
 
 		res, err := service.MkdirAll(ctx, &PathCmd{
-			Root:     ExampleAliceRoot.ID(),
-			FullName: "/foo/bar",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/foo/bar",
 		})
 
 		assert.NoError(t, err)
@@ -565,8 +567,8 @@ func TestINodes(t *testing.T) {
 		storageMock.On("Save", mock.Anything, &barDir).Return(nil).Once()
 
 		res, err := service.MkdirAll(ctx, &PathCmd{
-			Root:     ExampleAliceRoot.ID(),
-			FullName: "/foo/bar",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/foo/bar",
 		})
 
 		assert.NoError(t, err)
@@ -584,8 +586,8 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceFile, nil).Once()
 
 		res, err := service.MkdirAll(ctx, &PathCmd{
-			Root:     ExampleAliceRoot.ID(),
-			FullName: "/foo/bar",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/foo/bar",
 		})
 
 		assert.Nil(t, res)
@@ -602,8 +604,8 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
 
 		res, err := service.MkdirAll(ctx, &PathCmd{
-			Root:     ExampleAliceRoot.ID(),
-			FullName: "/",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/",
 		})
 
 		assert.NoError(t, err)
@@ -631,8 +633,8 @@ func TestINodes(t *testing.T) {
 		}).Return(nil).Once()
 
 		res, err := service.Move(ctx, &ExampleAliceFile, &PathCmd{
-			Root:     ExampleAliceRoot.ID(),
-			FullName: "/dir-a/file.txt",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/dir-a/file.txt",
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, "file.txt", res.name)
@@ -667,8 +669,8 @@ func TestINodes(t *testing.T) {
 		}).Return(nil).Once()
 
 		res, err := service.Move(ctx, &ExampleAliceFile, &PathCmd{
-			Root:     ExampleAliceRoot.ID(),
-			FullName: "/dir-a/file.txt",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/dir-a/file.txt",
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, "file.txt", res.name)
@@ -685,8 +687,8 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(nil, fmt.Errorf("some-error")).Once()
 
 		res, err := service.Move(ctx, &ExampleAliceFile, &PathCmd{
-			Root:     ExampleAliceRoot.ID(),
-			FullName: "/dir-a/file.txt",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/dir-a/file.txt",
 		})
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)
@@ -714,8 +716,8 @@ func TestINodes(t *testing.T) {
 		}).Return(fmt.Errorf("some-error")).Once()
 
 		res, err := service.Move(ctx, &ExampleAliceFile, &PathCmd{
-			Root:     ExampleAliceRoot.ID(),
-			FullName: "/dir-a/file.txt",
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/dir-a/file.txt",
 		})
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)
