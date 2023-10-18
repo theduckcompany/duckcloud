@@ -68,10 +68,7 @@ func TestFSGC(t *testing.T) {
 		inodesMock.On("GetAllDeleted", mock.Anything, 10).Return([]inodes.INode{inodes.ExampleAliceRoot}, nil).Once()
 
 		// This is a dir we will delete all its content
-		inodesMock.On("Readdir", mock.Anything, &inodes.PathCmd{
-			Root:     inodes.ExampleAliceRoot.ID(),
-			FullName: "/",
-		}, &storage.PaginateCmd{Limit: 10}).Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
+		inodesMock.On("Readdir", mock.Anything, &inodes.ExampleAliceRoot, &storage.PaginateCmd{Limit: 10}).Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
 
 		// We remove the file content and inode
 		tools.ClockMock.On("Now").Return(now)
@@ -111,10 +108,7 @@ func TestFSGC(t *testing.T) {
 		inodesMock.On("GetAllDeleted", mock.Anything, 10).Return([]inodes.INode{inodes.ExampleAliceRoot}, nil).Once()
 
 		// This is a dir we will delete all its content
-		inodesMock.On("Readdir", mock.Anything, &inodes.PathCmd{
-			Root:     inodes.ExampleAliceRoot.ID(),
-			FullName: "/",
-		}, &storage.PaginateCmd{Limit: 10}).Return(nil, fmt.Errorf("some-error")).Once()
+		inodesMock.On("Readdir", mock.Anything, &inodes.ExampleAliceRoot, &storage.PaginateCmd{Limit: 10}).Return(nil, fmt.Errorf("some-error")).Once()
 
 		job := NewTaskRunner(inodesMock, filesMock, foldersMock, tools)
 

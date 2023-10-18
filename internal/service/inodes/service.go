@@ -218,19 +218,9 @@ func (s *INodeService) RegisterWrite(ctx context.Context, inode *INode, sizeWrit
 	return nil
 }
 
-func (s *INodeService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
-	err := cmd.Validate()
-	if err != nil {
-		return nil, errs.Validation(err)
-	}
-
-	dir, err := s.Get(ctx, cmd)
-	if errors.Is(err, errNotFound) {
-		return nil, errs.NotFound(ErrInvalidPath)
-	}
-
-	if err != nil {
-		return nil, errs.Internal(fmt.Errorf("failed to open %q: %w", cmd.FullName, err))
+func (s *INodeService) Readdir(ctx context.Context, dir *INode, paginateCmd *storage.PaginateCmd) ([]INode, error) {
+	if !dir.IsDir() {
+		return nil, errs.BadRequest(ErrIsNotDir)
 	}
 
 	res, err := s.storage.GetAllChildrens(ctx, dir.ID(), paginateCmd)

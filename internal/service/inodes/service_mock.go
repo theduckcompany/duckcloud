@@ -266,25 +266,25 @@ func (_m *MockService) Move(ctx context.Context, source *INode, into *PathCmd) (
 	return r0, r1
 }
 
-// Readdir provides a mock function with given fields: ctx, cmd, paginateCmd
-func (_m *MockService) Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
-	ret := _m.Called(ctx, cmd, paginateCmd)
+// Readdir provides a mock function with given fields: ctx, inode, paginateCmd
+func (_m *MockService) Readdir(ctx context.Context, inode *INode, paginateCmd *storage.PaginateCmd) ([]INode, error) {
+	ret := _m.Called(ctx, inode, paginateCmd)
 
 	var r0 []INode
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd, *storage.PaginateCmd) ([]INode, error)); ok {
-		return rf(ctx, cmd, paginateCmd)
+	if rf, ok := ret.Get(0).(func(context.Context, *INode, *storage.PaginateCmd) ([]INode, error)); ok {
+		return rf(ctx, inode, paginateCmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd, *storage.PaginateCmd) []INode); ok {
-		r0 = rf(ctx, cmd, paginateCmd)
+	if rf, ok := ret.Get(0).(func(context.Context, *INode, *storage.PaginateCmd) []INode); ok {
+		r0 = rf(ctx, inode, paginateCmd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]INode)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *PathCmd, *storage.PaginateCmd) error); ok {
-		r1 = rf(ctx, cmd, paginateCmd)
+	if rf, ok := ret.Get(1).(func(context.Context, *INode, *storage.PaginateCmd) error); ok {
+		r1 = rf(ctx, inode, paginateCmd)
 	} else {
 		r1 = ret.Error(1)
 	}

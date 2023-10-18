@@ -15,7 +15,7 @@ type Service interface {
 	CreateRootDir(ctx context.Context) (*INode, error)
 	Get(ctx context.Context, cmd *PathCmd) (*INode, error)
 	GetByID(ctx context.Context, inodeID uuid.UUID) (*INode, error)
-	Readdir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error)
+	Readdir(ctx context.Context, inode *INode, paginateCmd *storage.PaginateCmd) ([]INode, error)
 	Remove(ctx context.Context, inode *INode) error
 	GetAllDeleted(ctx context.Context, limit int) ([]INode, error)
 	HardDelete(ctx context.Context, inode uuid.UUID) error

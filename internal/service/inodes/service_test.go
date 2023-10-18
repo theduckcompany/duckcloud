@@ -359,15 +359,6 @@ func TestINodes(t *testing.T) {
 
 		paginateCmd := storage.PaginateCmd{Limit: 2}
 
-		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
-		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&INode{
-			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-			parent: ptr.To(ExampleAliceRoot.ID()),
-			name:   "bar",
-			fileID: nil,
-			// some other unused fields
-		}, nil).Once()
-
 		child1 := INode{
 			id:     uuid.UUID("b3411c4b-acc3-4f79-a54e-f315a18ce6c7"),
 			parent: ptr.To(uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")),
@@ -384,30 +375,12 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetAllChildrens", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"), &paginateCmd).Return(
 			[]INode{child1, child2}, nil).Once()
 
-		res, err := service.Readdir(ctx, &PathCmd{
-			Root:     ExampleAliceRoot.ID(),
-			FullName: "/foo",
-		}, &paginateCmd)
+		res, err := service.Readdir(ctx, &ExampleAliceRoot, &paginateCmd)
 
 		assert.NoError(t, err)
 		assert.Len(t, res, 2)
 		assert.Equal(t, child1, res[0])
 		assert.Equal(t, child2, res[1])
-	})
-
-	t.Run("Readdir with a validation error", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
-		service := NewService(tools, storageMock)
-
-		res, err := service.Readdir(ctx, &PathCmd{
-			Root:     "some-invalid-id",
-			FullName: "/some-dir-name",
-		}, &storage.PaginateCmd{Limit: 10})
-
-		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrValidation)
-		assert.ErrorContains(t, err, "Root: must be a valid UUID v4.")
 	})
 
 	t.Run("CreateFile success", func(t *testing.T) {
@@ -861,46 +834,6 @@ func TestINodes(t *testing.T) {
 			Root:     ExampleAliceRoot.ID(),
 			FullName: "/dir-a/file.txt",
 		})
-		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
-	})
-
-	t.Run("GetByNameAndParent success", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
-		service := NewService(tools, storageMock)
-
-		storageMock.On("GetByNameAndParent", mock.Anything, ExampleAliceFile.name, ExampleAliceRoot.ID()).
-			Return(&ExampleAliceFile, nil).Once()
-
-		res, err := service.GetByNameAndParent(ctx, ExampleAliceFile.name, ExampleAliceRoot.ID())
-		assert.NoError(t, err)
-		assert.Equal(t, &ExampleAliceFile, res)
-	})
-
-	t.Run("GetByNameAndParent not found", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
-		service := NewService(tools, storageMock)
-
-		storageMock.On("GetByNameAndParent", mock.Anything, ExampleAliceFile.name, ExampleAliceRoot.ID()).
-			Return(nil, errNotFound).Once()
-
-		res, err := service.GetByNameAndParent(ctx, ExampleAliceFile.name, ExampleAliceRoot.ID())
-		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrNotFound)
-	})
-
-	t.Run("GetByNameAndParent with an unexpected error", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
-		service := NewService(tools, storageMock)
-
-		storageMock.On("GetByNameAndParent", mock.Anything, ExampleAliceFile.name, ExampleAliceRoot.ID()).
-			Return(nil, fmt.Errorf("some-error")).Once()
-
-		res, err := service.GetByNameAndParent(ctx, ExampleAliceFile.name, ExampleAliceRoot.ID())
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
