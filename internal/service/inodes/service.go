@@ -284,7 +284,7 @@ func (s *INodeService) Move(ctx context.Context, source *INode, into *PathCmd) e
 	}
 
 	existingFile, err := s.storage.GetByNameAndParent(ctx, fileName, targetDir.ID())
-	if err != nil && !errors.Is(err, errs.ErrNotFound) {
+	if err != nil && !errors.Is(err, errNotFound) {
 		return errs.Internal(fmt.Errorf("failed to GetByNameAndParent: %w", err))
 	}
 

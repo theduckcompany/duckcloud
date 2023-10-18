@@ -764,7 +764,7 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "dir-a", ExampleAliceRoot.id).Return(&ExampleAliceDir, nil).Once()
 
 		// Check if a file with the same name already exists
-		storageMock.On("GetByNameAndParent", mock.Anything, "file.txt", ExampleAliceDir.id).Return(nil, errs.ErrNotFound).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "file.txt", ExampleAliceDir.id).Return(nil, errNotFound).Once()
 
 		// Update the source parent an name
 		storageMock.On("Patch", mock.Anything, ExampleAliceFile.id, map[string]interface{}{
