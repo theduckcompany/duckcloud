@@ -91,7 +91,7 @@ func (s *LocalFS) Rename(ctx context.Context, oldName, newName string) error {
 		return fmt.Errorf("invalid source: %w", err)
 	}
 
-	err = s.inodes.Move(ctx, source, &inodes.PathCmd{
+	_, err = s.inodes.Move(ctx, source, &inodes.PathCmd{
 		Root:     s.folder.RootFS(),
 		FullName: cleanPath(newName),
 	})
