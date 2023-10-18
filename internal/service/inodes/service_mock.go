@@ -18,25 +18,25 @@ type MockService struct {
 	mock.Mock
 }
 
-// CreateDir provides a mock function with given fields: ctx, cmd
-func (_m *MockService) CreateDir(ctx context.Context, cmd *PathCmd) (*INode, error) {
-	ret := _m.Called(ctx, cmd)
+// CreateDir provides a mock function with given fields: ctx, parent, name
+func (_m *MockService) CreateDir(ctx context.Context, parent *INode, name string) (*INode, error) {
+	ret := _m.Called(ctx, parent, name)
 
 	var r0 *INode
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) (*INode, error)); ok {
-		return rf(ctx, cmd)
+	if rf, ok := ret.Get(0).(func(context.Context, *INode, string) (*INode, error)); ok {
+		return rf(ctx, parent, name)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) *INode); ok {
-		r0 = rf(ctx, cmd)
+	if rf, ok := ret.Get(0).(func(context.Context, *INode, string) *INode); ok {
+		r0 = rf(ctx, parent, name)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*INode)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *PathCmd) error); ok {
-		r1 = rf(ctx, cmd)
+	if rf, ok := ret.Get(1).(func(context.Context, *INode, string) error); ok {
+		r1 = rf(ctx, parent, name)
 	} else {
 		r1 = ret.Error(1)
 	}

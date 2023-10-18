@@ -20,7 +20,7 @@ type Service interface {
 	GetAllDeleted(ctx context.Context, limit int) ([]INode, error)
 	HardDelete(ctx context.Context, inode uuid.UUID) error
 	GetByNameAndParent(ctx context.Context, name string, parent uuid.UUID) (*INode, error)
-	CreateDir(ctx context.Context, cmd *PathCmd) (*INode, error)
+	CreateDir(ctx context.Context, parent *INode, name string) (*INode, error)
 	CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INode, error)
 	RegisterWrite(ctx context.Context, inode *INode, sizeWrite int64, modeTime time.Time) error
 	MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, error)
