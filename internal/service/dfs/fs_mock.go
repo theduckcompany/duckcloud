@@ -20,17 +20,17 @@ type MockFS struct {
 	mock.Mock
 }
 
-// CreateDir provides a mock function with given fields: ctx, name
-func (_m *MockFS) CreateDir(ctx context.Context, name string) (*inodes.INode, error) {
-	ret := _m.Called(ctx, name)
+// CreateDir provides a mock function with given fields: ctx, dirPath
+func (_m *MockFS) CreateDir(ctx context.Context, dirPath string) (*inodes.INode, error) {
+	ret := _m.Called(ctx, dirPath)
 
 	var r0 *inodes.INode
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) (*inodes.INode, error)); ok {
-		return rf(ctx, name)
+		return rf(ctx, dirPath)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) *inodes.INode); ok {
-		r0 = rf(ctx, name)
+		r0 = rf(ctx, dirPath)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*inodes.INode)
@@ -38,7 +38,7 @@ func (_m *MockFS) CreateDir(ctx context.Context, name string) (*inodes.INode, er
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, name)
+		r1 = rf(ctx, dirPath)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -46,17 +46,17 @@ func (_m *MockFS) CreateDir(ctx context.Context, name string) (*inodes.INode, er
 	return r0, r1
 }
 
-// Download provides a mock function with given fields: ctx, name
-func (_m *MockFS) Download(ctx context.Context, name string) (io.ReadSeekCloser, error) {
-	ret := _m.Called(ctx, name)
+// Download provides a mock function with given fields: ctx, filePath
+func (_m *MockFS) Download(ctx context.Context, filePath string) (io.ReadSeekCloser, error) {
+	ret := _m.Called(ctx, filePath)
 
 	var r0 io.ReadSeekCloser
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) (io.ReadSeekCloser, error)); ok {
-		return rf(ctx, name)
+		return rf(ctx, filePath)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) io.ReadSeekCloser); ok {
-		r0 = rf(ctx, name)
+		r0 = rf(ctx, filePath)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(io.ReadSeekCloser)
@@ -64,7 +64,7 @@ func (_m *MockFS) Download(ctx context.Context, name string) (io.ReadSeekCloser,
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, name)
+		r1 = rf(ctx, filePath)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -88,17 +88,17 @@ func (_m *MockFS) Folder() *folders.Folder {
 	return r0
 }
 
-// Get provides a mock function with given fields: ctx, name
-func (_m *MockFS) Get(ctx context.Context, name string) (*inodes.INode, error) {
-	ret := _m.Called(ctx, name)
+// Get provides a mock function with given fields: ctx, path
+func (_m *MockFS) Get(ctx context.Context, path string) (*inodes.INode, error) {
+	ret := _m.Called(ctx, path)
 
 	var r0 *inodes.INode
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) (*inodes.INode, error)); ok {
-		return rf(ctx, name)
+		return rf(ctx, path)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) *inodes.INode); ok {
-		r0 = rf(ctx, name)
+		r0 = rf(ctx, path)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*inodes.INode)
@@ -106,7 +106,7 @@ func (_m *MockFS) Get(ctx context.Context, name string) (*inodes.INode, error) {
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, name)
+		r1 = rf(ctx, path)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -114,17 +114,17 @@ func (_m *MockFS) Get(ctx context.Context, name string) (*inodes.INode, error) {
 	return r0, r1
 }
 
-// ListDir provides a mock function with given fields: ctx, name, cmd
-func (_m *MockFS) ListDir(ctx context.Context, name string, cmd *storage.PaginateCmd) ([]inodes.INode, error) {
-	ret := _m.Called(ctx, name, cmd)
+// ListDir provides a mock function with given fields: ctx, dirPath, cmd
+func (_m *MockFS) ListDir(ctx context.Context, dirPath string, cmd *storage.PaginateCmd) ([]inodes.INode, error) {
+	ret := _m.Called(ctx, dirPath, cmd)
 
 	var r0 []inodes.INode
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, *storage.PaginateCmd) ([]inodes.INode, error)); ok {
-		return rf(ctx, name, cmd)
+		return rf(ctx, dirPath, cmd)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, *storage.PaginateCmd) []inodes.INode); ok {
-		r0 = rf(ctx, name, cmd)
+		r0 = rf(ctx, dirPath, cmd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]inodes.INode)
@@ -132,7 +132,7 @@ func (_m *MockFS) ListDir(ctx context.Context, name string, cmd *storage.Paginat
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, *storage.PaginateCmd) error); ok {
-		r1 = rf(ctx, name, cmd)
+		r1 = rf(ctx, dirPath, cmd)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -140,13 +140,13 @@ func (_m *MockFS) ListDir(ctx context.Context, name string, cmd *storage.Paginat
 	return r0, r1
 }
 
-// Remove provides a mock function with given fields: ctx, name
-func (_m *MockFS) Remove(ctx context.Context, name string) error {
-	ret := _m.Called(ctx, name)
+// Remove provides a mock function with given fields: ctx, path
+func (_m *MockFS) Remove(ctx context.Context, path string) error {
+	ret := _m.Called(ctx, path)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, name)
+		r0 = rf(ctx, path)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -154,13 +154,13 @@ func (_m *MockFS) Remove(ctx context.Context, name string) error {
 	return r0
 }
 
-// Rename provides a mock function with given fields: ctx, oldName, newName
-func (_m *MockFS) Rename(ctx context.Context, oldName string, newName string) error {
-	ret := _m.Called(ctx, oldName, newName)
+// Rename provides a mock function with given fields: ctx, oldPath, newPath
+func (_m *MockFS) Rename(ctx context.Context, oldPath string, newPath string) error {
+	ret := _m.Called(ctx, oldPath, newPath)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, oldName, newName)
+		r0 = rf(ctx, oldPath, newPath)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -168,13 +168,13 @@ func (_m *MockFS) Rename(ctx context.Context, oldName string, newName string) er
 	return r0
 }
 
-// Upload provides a mock function with given fields: ctx, name, w
-func (_m *MockFS) Upload(ctx context.Context, name string, w io.Reader) error {
-	ret := _m.Called(ctx, name, w)
+// Upload provides a mock function with given fields: ctx, filePath, w
+func (_m *MockFS) Upload(ctx context.Context, filePath string, w io.Reader) error {
+	ret := _m.Called(ctx, filePath, w)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, io.Reader) error); ok {
-		r0 = rf(ctx, name, w)
+		r0 = rf(ctx, filePath, w)
 	} else {
 		r0 = ret.Error(0)
 	}

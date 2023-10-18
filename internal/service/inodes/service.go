@@ -273,11 +273,16 @@ func (s *INodeService) GetByNameAndParent(ctx context.Context, name string, pare
 }
 
 func (s *INodeService) Move(ctx context.Context, source *INode, into *PathCmd) (*INode, error) {
-	dir, fileName := path.Split(into.FullName)
+	err := into.Validate()
+	if err != nil {
+		return nil, errs.Validation(err)
+	}
+
+	dir, fileName := path.Split(into.Path)
 
 	targetDir, err := s.MkdirAll(ctx, &PathCmd{
-		Root:     into.Root,
-		FullName: dir,
+		Folder: into.Folder,
+		Path:   dir,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to Mkdir the target folder: %w", err)
@@ -405,7 +410,7 @@ func (s *INodeService) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 // The frag argument will be empty only if dir is the root node and the walk
 // ends at that root node.
 func (s *INodeService) walk(ctx context.Context, cmd *PathCmd, op string, f func(dir *INode, frag string, final bool) error) error {
-	fullname := path.Clean("/" + cmd.FullName)
+	fullname := path.Clean("/" + cmd.Path)
 
 	// Strip any leading "/"s to make fullname a relative path, as the walk
 	// starts at fs.root.
@@ -413,9 +418,9 @@ func (s *INodeService) walk(ctx context.Context, cmd *PathCmd, op string, f func
 		fullname = fullname[1:]
 	}
 
-	dir, err := s.storage.GetByID(ctx, cmd.Root)
+	dir, err := s.storage.GetByID(ctx, cmd.Folder.RootFS())
 	if errors.Is(err, errNotFound) {
-		return errs.NotFound(ErrInvalidRoot, "failed to fetch the root dir %q", cmd.Root)
+		return errs.NotFound(ErrInvalidRoot, "failed to fetch the root dir for folder %q", cmd.Folder.Name())
 	}
 
 	if err != nil {
@@ -431,7 +436,7 @@ func (s *INodeService) walk(ctx context.Context, cmd *PathCmd, op string, f func
 			frag, remaining = fullname[:i], fullname[i+1:]
 		}
 
-		if frag == "" && dir.ID() != cmd.Root {
+		if frag == "" && dir.ID() != cmd.Folder.RootFS() {
 			panic("webdav: empty path fragment for a clean path")
 		}
 
