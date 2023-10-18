@@ -114,8 +114,6 @@ func (s *davFS) RemoveAll(ctx context.Context, name string) error {
 
 	session := ctx.Value(sessionKeyCtx).(*davsessions.DavSession)
 
-	name = path.Clean(name)
-
 	// TODO: Handle several folders
 	folder, err := s.folders.GetUserFolder(ctx, session.UserID(), session.FoldersIDs()[0])
 	if err != nil {
@@ -136,12 +134,14 @@ func (s *davFS) Rename(ctx context.Context, oldName, newName string) error {
 		return &fs.PathError{Op: "rename", Path: newName, Err: fs.ErrInvalid}
 	}
 
-	// session := ctx.Value(sessionKeyCtx).(*davsessions.DavSession)
+	session := ctx.Value(sessionKeyCtx).(*davsessions.DavSession)
 
-	// oldName = path.Clean(oldName)
-	// newName = path.Clean(newName)
+	folder, err := s.folders.GetUserFolder(ctx, session.UserID(), session.FoldersIDs()[0])
+	if err != nil {
+		return fmt.Errorf("failed to folders.GetByID: %w", err)
+	}
 
-	return webdav.ErrNotImplemented
+	return s.fs.GetFolderFS(folder).Rename(ctx, oldName, newName)
 }
 
 func (s *davFS) Stat(ctx context.Context, name string) (os.FileInfo, error) {
