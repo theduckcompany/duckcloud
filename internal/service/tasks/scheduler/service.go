@@ -33,6 +33,15 @@ func (t *TasksService) RegisterFileUploadTask(ctx context.Context, args *FileUpl
 	return t.registerTask(ctx, 2, "file-upload", args)
 }
 
+func (t *TasksService) RegisterFSMove(ctx context.Context, args *FSMoveArgs) error {
+	err := args.Validate()
+	if err != nil {
+		return errs.Validation(err)
+	}
+
+	return t.registerTask(ctx, 2, "fs-move", args)
+}
+
 func (t *TasksService) RegisterUserCreateTask(ctx context.Context, args *UserCreateArgs) error {
 	err := args.Validate()
 	if err != nil {

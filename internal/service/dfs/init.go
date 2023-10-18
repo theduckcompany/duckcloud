@@ -48,7 +48,7 @@ type Result struct {
 }
 
 func Init(cfg Config, fs afero.Fs, db *sql.DB, folders folders.Service, scheduler scheduler.Service, tools tools.Tools) (Result, error) {
-	inodes := inodes.Init(tools, db)
+	inodes := inodes.Init(scheduler, tools, db)
 	files, err := files.Init(cfg.Path, fs, tools)
 	if err != nil {
 		return Result{}, fmt.Errorf("failed to init files: %w", err)

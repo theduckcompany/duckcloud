@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -24,11 +25,11 @@ type Service interface {
 	CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INode, error)
 	RegisterWrite(ctx context.Context, inode *INode, sizeWrite int64, modeTime time.Time) error
 	MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, error)
-	Move(ctx context.Context, source *INode, into *PathCmd) (*INode, error)
+	PatchMove(ctx context.Context, source, parent *INode, newName string, modeTime time.Time) (*INode, error)
 }
 
-func Init(tools tools.Tools, db *sql.DB) Service {
+func Init(scheduler scheduler.Service, tools tools.Tools, db *sql.DB) Service {
 	storage := newSqlStorage(db, tools)
 
-	return NewService(tools, storage)
+	return NewService(scheduler, tools, storage)
 }

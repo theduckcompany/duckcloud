@@ -26,18 +26,19 @@ func (a FileUploadArgs) Validate() error {
 	)
 }
 
-type FileMoveArgs struct {
-	FolderID   uuid.UUID `json:"folder-id"`
-	INodeID    uuid.UUID `json:"inode-id"`
-	TargetPath string    `json:"target-path"`
-	MovedAt    time.Time `json:"moved-at"`
+type FSMoveArgs struct {
+	FolderID    uuid.UUID `json:"folder"`
+	SourceInode uuid.UUID `json:"source-inode"`
+	TargetPath  string    `json:"target-dir"`
+	MovedAt     time.Time `json:"moved-at"`
 }
 
-func (a FileMoveArgs) Validate() error {
+func (a FSMoveArgs) Validate() error {
 	return v.ValidateStruct(&a,
 		v.Field(&a.FolderID, v.Required, is.UUIDv4),
-		v.Field(&a.INodeID, v.Required, is.UUIDv4),
+		v.Field(&a.SourceInode, v.Required, is.UUIDv4),
 		v.Field(&a.TargetPath, v.Required),
+		v.Field(&a.MovedAt, v.Required),
 	)
 }
 

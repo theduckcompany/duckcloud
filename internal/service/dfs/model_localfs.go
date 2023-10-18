@@ -18,12 +18,12 @@ import (
 )
 
 type LocalFS struct {
-	inodes  inodes.Service
-	files   files.Service
-	folder  *folders.Folder
-	folders folders.Service
-	tasks   scheduler.Service
-	clock   clock.Clock
+	inodes    inodes.Service
+	files     files.Service
+	folder    *folders.Folder
+	folders   folders.Service
+	scheduler scheduler.Service
+	clock     clock.Clock
 }
 
 func newLocalFS(
@@ -91,7 +91,7 @@ func (s *LocalFS) Remove(ctx context.Context, path string) error {
 }
 
 func (s *LocalFS) Rename(ctx context.Context, oldPath, newPath string) error {
-	source, err := s.inodes.Get(ctx, &inodes.PathCmd{
+	sourceINode, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Folder: s.folder,
 		Path:   cleanPath(oldPath),
 	})
@@ -99,12 +99,14 @@ func (s *LocalFS) Rename(ctx context.Context, oldPath, newPath string) error {
 		return fmt.Errorf("invalid source: %w", err)
 	}
 
-	_, err = s.inodes.Move(ctx, source, &inodes.PathCmd{
-		Folder: s.folder,
-		Path:   cleanPath(newPath),
+	err = s.scheduler.RegisterFSMove(ctx, &scheduler.FSMoveArgs{
+		FolderID:    s.folder.ID(),
+		SourceInode: sourceINode.ID(),
+		TargetPath:  newPath,
+		MovedAt:     s.clock.Now(),
 	})
 	if err != nil {
-		return fmt.Errorf("failed to Move file: %w", err)
+		return fmt.Errorf("failed to save the task: %w", err)
 	}
 
 	return nil
@@ -193,7 +195,7 @@ func (s *LocalFS) Upload(ctx context.Context, filePath string, w io.Reader) erro
 	//
 	// Once a file is uploaded and closed we need to process it in order to make
 	// it available.
-	err = s.tasks.RegisterFileUploadTask(ctx, &scheduler.FileUploadArgs{
+	err = s.scheduler.RegisterFileUploadTask(ctx, &scheduler.FileUploadArgs{
 		FolderID:   s.folder.ID(),
 		Directory:  dir.ID(),
 		FileName:   fileName,

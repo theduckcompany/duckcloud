@@ -13,6 +13,20 @@ type MockService struct {
 	mock.Mock
 }
 
+// RegisterFSMove provides a mock function with given fields: ctx, args
+func (_m *MockService) RegisterFSMove(ctx context.Context, args *FSMoveArgs) error {
+	ret := _m.Called(ctx, args)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *FSMoveArgs) error); ok {
+		r0 = rf(ctx, args)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // RegisterFileUploadTask provides a mock function with given fields: ctx, args
 func (_m *MockService) RegisterFileUploadTask(ctx context.Context, args *FileUploadArgs) error {
 	ret := _m.Called(ctx, args)
