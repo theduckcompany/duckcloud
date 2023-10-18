@@ -160,7 +160,12 @@ func (s *davFS) Stat(ctx context.Context, name string) (os.FileInfo, error) {
 		return nil, fmt.Errorf("failed to folders.GetByID: %w", err)
 	}
 
-	return s.fs.GetFolderFS(folder).Get(ctx, name)
+	res, err := s.fs.GetFolderFS(folder).Get(ctx, name)
+	if errors.Is(err, errs.ErrNotFound) {
+		return nil, fs.ErrNotExist
+	}
+
+	return res, err
 }
 
 func validatePath(name string) (string, bool) {
