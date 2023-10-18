@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"sync"
 
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/tools"
@@ -37,11 +36,10 @@ type FolderService struct {
 	inodes  inodes.Service
 	clock   clock.Clock
 	uuid    uuid.Service
-	lockMap sync.Map
 }
 
 func NewService(tools tools.Tools, storage Storage, inodes inodes.Service) *FolderService {
-	return &FolderService{storage, inodes, tools.Clock(), tools.UUID(), sync.Map{}}
+	return &FolderService{storage, inodes, tools.Clock(), tools.UUID()}
 }
 
 func (s *FolderService) CreatePersonalFolder(ctx context.Context, cmd *CreatePersonalFolderCmd) (*Folder, error) {
@@ -80,31 +78,7 @@ func (s *FolderService) CreatePersonalFolder(ctx context.Context, cmd *CreatePer
 }
 
 func (s *FolderService) Delete(ctx context.Context, folderID uuid.UUID) error {
-	val, _ := s.lockMap.LoadOrStore(folderID, new(sync.Mutex))
-	lock := val.(*sync.Mutex)
-
-	lock.Lock()
-	defer lock.Unlock()
-
-	folder, err := s.storage.GetByID(ctx, folderID)
-	if errors.Is(err, errNotFound) {
-		return nil
-	}
-
-	if err != nil {
-		return errs.Internal(fmt.Errorf("failed to GetByID: %w", err))
-	}
-
-	res, err := s.inodes.GetByID(ctx, folder.RootFS())
-	if err != nil && !errors.Is(err, errs.ErrNotFound) {
-		return errs.Internal(fmt.Errorf("failed to GetByID: %w", err))
-	}
-
-	if res != nil {
-		return ErrRootFSExist
-	}
-
-	err = s.storage.Delete(ctx, folderID)
+	err := s.storage.Delete(ctx, folderID)
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to Delete: %w", err))
 	}
