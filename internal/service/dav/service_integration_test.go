@@ -17,6 +17,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner/fileupload"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner/usercreate"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
@@ -50,10 +51,13 @@ func Test_DavFS_integration(t *testing.T) {
 	require.NoError(t, err)
 	schedulerSvc := scheduler.Init(db, tools)
 	inodesSvc := inodes.Init(tools, db)
-	foldersSvc := folders.Init(tools, db, inodesSvc)
+	foldersSvc := folders.Init(tools, db)
 	usersSvc := users.Init(tools, db, schedulerSvc)
 	davSessionsSvc := davsessions.Init(db, foldersSvc, usersSvc, tools)
-	runnerSvc := runner.Init([]runner.TaskRunner{fileupload.NewTaskRunner(foldersSvc, filesSvc, inodesSvc)}, nil, tools, db)
+	runnerSvc := runner.Init([]runner.TaskRunner{
+		fileupload.NewTaskRunner(foldersSvc, filesSvc, inodesSvc),
+		usercreate.NewTaskRunner(usersSvc, foldersSvc, inodesSvc),
+	}, nil, tools, db)
 
 	user, err := usersSvc.Create(ctx, &users.CreateCmd{
 		Username: "foo-user",
@@ -62,16 +66,17 @@ func Test_DavFS_integration(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	folder, err := foldersSvc.CreatePersonalFolder(ctx, &folders.CreatePersonalFolderCmd{
-		Name:  "Test",
-		Owner: user.ID(),
-	})
+	// Create all the new user stuff
+	err = runnerSvc.RunSingleJob(ctx)
+	require.NoError(t, err)
+
+	userFolders, err := foldersSvc.GetAllUserFolders(ctx, user.ID(), nil)
 	require.NoError(t, err)
 
 	session, _, err := davSessionsSvc.Create(ctx, &davsessions.CreateCmd{
 		Name:    "test session",
 		UserID:  user.ID(),
-		Folders: []uuid.UUID{folder.ID()},
+		Folders: []uuid.UUID{userFolders[0].ID()},
 	})
 	require.NoError(t, err)
 

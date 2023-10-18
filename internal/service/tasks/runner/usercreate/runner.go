@@ -6,18 +6,21 @@ import (
 	"fmt"
 
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/model"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
+	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 type TaskRunner struct {
 	users   users.Service
 	folders folders.Service
+	inodes  inodes.Service
 }
 
-func NewTaskRunner(users users.Service, folders folders.Service) *TaskRunner {
-	return &TaskRunner{users, folders}
+func NewTaskRunner(users users.Service, folders folders.Service, inodes inodes.Service) *TaskRunner {
+	return &TaskRunner{users, folders, inodes}
 }
 
 func (r *TaskRunner) Name() string { return model.UserCreate }
@@ -48,15 +51,39 @@ func (r *TaskRunner) RunArgs(ctx context.Context, args *scheduler.UserCreateArgs
 		return fmt.Errorf("unepected user status: %s", user.Status())
 	}
 
-	folder, err := r.folders.CreatePersonalFolder(ctx, &folders.CreatePersonalFolderCmd{
-		Name:  "My files",
-		Owner: args.UserID,
-	})
+	existingFolders, err := r.folders.GetAllUserFolders(ctx, user.ID(), nil)
 	if err != nil {
-		return fmt.Errorf("failed to CreatePersonalFolder: %w", err)
+		return fmt.Errorf("failed to GetAllUserFolders: %w", err)
 	}
 
-	_, err = r.users.SetDefaultFolder(ctx, *user, folder)
+	var firstFolder *folders.Folder
+	switch len(existingFolders) {
+	case 0:
+		firstFolder = nil
+	case 1:
+		firstFolder = &existingFolders[0]
+	default:
+		return fmt.Errorf("the new user already have several folder: %+v", existingFolders)
+	}
+
+	if firstFolder == nil {
+		rootFS, err := r.inodes.CreateRootDir(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to CreateRootDir: %w", err)
+		}
+
+		// XXX:MULTI-WRITE
+		firstFolder, err = r.folders.Create(ctx, &folders.CreateCmd{
+			Name:   "My files",
+			Owners: []uuid.UUID{args.UserID},
+			RootFS: rootFS.ID(),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to CreatePersonalFolder: %w", err)
+		}
+	}
+
+	_, err = r.users.SetDefaultFolder(ctx, *user, firstFolder)
 	if err != nil {
 		return fmt.Errorf("failed to SetDefaultFolder: %w", err)
 	}

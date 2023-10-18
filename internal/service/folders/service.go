@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -33,42 +32,30 @@ type Storage interface {
 
 type FolderService struct {
 	storage Storage
-	inodes  inodes.Service
 	clock   clock.Clock
 	uuid    uuid.Service
 }
 
-func NewService(tools tools.Tools, storage Storage, inodes inodes.Service) *FolderService {
-	return &FolderService{storage, inodes, tools.Clock(), tools.UUID()}
+func NewService(tools tools.Tools, storage Storage) *FolderService {
+	return &FolderService{storage, tools.Clock(), tools.UUID()}
 }
 
-func (s *FolderService) CreatePersonalFolder(ctx context.Context, cmd *CreatePersonalFolderCmd) (*Folder, error) {
+func (s *FolderService) Create(ctx context.Context, cmd *CreateCmd) (*Folder, error) {
 	err := cmd.Validate()
 	if err != nil {
 		return nil, errs.Validation(err)
-	}
-
-	inode, err := s.inodes.CreateRootDir(ctx)
-	if err != nil {
-		return nil, errs.Internal(fmt.Errorf("failed to CreateRootDir: %w", err))
 	}
 
 	now := s.clock.Now()
 	folder := Folder{
 		id:        s.uuid.New(),
 		name:      cmd.Name,
-		isPublic:  false,
-		owners:    Owners{cmd.Owner},
-		rootFS:    inode.ID(),
+		isPublic:  len(cmd.Owners) > 1,
+		owners:    cmd.Owners,
+		rootFS:    cmd.RootFS,
 		createdAt: now,
 	}
 
-	// XXX:MULTI-WRITE
-	// This method is used inside the task "usercreate". It means it should be
-	// idempotent because in case of failure the job should be retriggered.
-	//
-	// This function is not idempotent and could lead to the creation of orphan
-	// inodes. That's not great but that's not terrible.
 	err = s.storage.Save(context.WithoutCancel(ctx), &folder)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to Save the folder: %w", err))
