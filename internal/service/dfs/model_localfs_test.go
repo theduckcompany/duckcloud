@@ -189,7 +189,7 @@ func Test_LocalFS(t *testing.T) {
 		inodesMock.On("Move", mock.Anything, &inodes.ExampleAliceFile, &inodes.PathCmd{
 			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
 			FullName: "/bar.txt",
-		}).Return(nil).Once()
+		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
 		err := folderFS.Rename(ctx, "/foo.txt", "/bar.txt")
 		assert.NoError(t, err)
@@ -228,7 +228,7 @@ func Test_LocalFS(t *testing.T) {
 		inodesMock.On("Move", mock.Anything, &inodes.ExampleAliceFile, &inodes.PathCmd{
 			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
 			FullName: "/bar.txt",
-		}).Return(errs.Internal(fmt.Errorf("some-error"))).Once()
+		}).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
 
 		err := folderFS.Rename(ctx, "/foo.txt", "/bar.txt")
 		assert.ErrorIs(t, err, errs.ErrInternal)

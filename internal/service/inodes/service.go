@@ -285,7 +285,7 @@ func (s *INodeService) GetByNameAndParent(ctx context.Context, name string, pare
 	return res, nil
 }
 
-func (s *INodeService) Move(ctx context.Context, source *INode, into *PathCmd) error {
+func (s *INodeService) Move(ctx context.Context, source *INode, into *PathCmd) (*INode, error) {
 	dir, fileName := path.Split(into.FullName)
 
 	targetDir, err := s.MkdirAll(ctx, &PathCmd{
@@ -293,20 +293,26 @@ func (s *INodeService) Move(ctx context.Context, source *INode, into *PathCmd) e
 		FullName: dir,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to Mkdir the target folder: %w", err)
+		return nil, fmt.Errorf("failed to Mkdir the target folder: %w", err)
 	}
 
 	existingFile, err := s.storage.GetByNameAndParent(ctx, fileName, targetDir.ID())
 	if err != nil && !errors.Is(err, errNotFound) {
-		return errs.Internal(fmt.Errorf("failed to GetByNameAndParent: %w", err))
+		return nil, errs.Internal(fmt.Errorf("failed to GetByNameAndParent: %w", err))
 	}
 
+	newFile := *source
+	newFile.name = fileName
+	newFile.parent = &targetDir.id
+	newFile.lastModifiedAt = s.clock.Now()
+
 	err = s.storage.Patch(ctx, source.ID(), map[string]any{
-		"parent": targetDir.ID(),
-		"name":   fileName,
+		"parent":           *newFile.parent,
+		"name":             newFile.name,
+		"last_modified_at": newFile.lastModifiedAt,
 	})
 	if err != nil {
-		return errs.Internal(fmt.Errorf("failed to Patch the inode: %w", err))
+		return nil, errs.Internal(fmt.Errorf("failed to Patch the inode: %w", err))
 	}
 
 	ctx = context.WithoutCancel(ctx)
@@ -323,11 +329,11 @@ func (s *INodeService) Move(ctx context.Context, source *INode, into *PathCmd) e
 		// TODO: Fix this with a commit system
 		err = s.Remove(ctx, existingFile)
 		if err != nil {
-			return errs.Internal(fmt.Errorf("failed to remove the old file: %w", err))
+			return nil, errs.Internal(fmt.Errorf("failed to remove the old file: %w", err))
 		}
 	}
 
-	return nil
+	return &newFile, nil
 }
 
 func (s *INodeService) CreateDir(ctx context.Context, cmd *PathCmd) (*INode, error) {

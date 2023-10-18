@@ -767,16 +767,21 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "file.txt", ExampleAliceDir.id).Return(nil, errNotFound).Once()
 
 		// Update the source parent an name
+		tools.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAliceFile.id, map[string]interface{}{
-			"name":   "file.txt",
-			"parent": ExampleAliceDir.id,
+			"name":             "file.txt",
+			"parent":           ExampleAliceDir.id,
+			"last_modified_at": now,
 		}).Return(nil).Once()
 
-		err := service.Move(ctx, &ExampleAliceFile, &PathCmd{
+		res, err := service.Move(ctx, &ExampleAliceFile, &PathCmd{
 			Root:     ExampleAliceRoot.ID(),
 			FullName: "/dir-a/file.txt",
 		})
 		assert.NoError(t, err)
+		assert.Equal(t, "file.txt", res.name)
+		assert.Equal(t, now, res.lastModifiedAt)
+		assert.Equal(t, &ExampleAliceDir.id, res.parent)
 	})
 
 	t.Run("Move to a file with the same name", func(t *testing.T) {
@@ -792,9 +797,11 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "file.txt", ExampleAliceDir.id).Return(&ExampleAliceFile2, nil).Once()
 
 		// Update the source parent an name
+		tools.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAliceFile.id, map[string]interface{}{
-			"name":   "file.txt",
-			"parent": ExampleAliceDir.id,
+			"name":             "file.txt",
+			"parent":           ExampleAliceDir.id,
+			"last_modified_at": now,
 		}).Return(nil).Once()
 
 		tools.ClockMock.On("Now").Return(now).Once()
@@ -803,11 +810,14 @@ func TestINodes(t *testing.T) {
 			"last_modified_at": now,
 		}).Return(nil).Once()
 
-		err := service.Move(ctx, &ExampleAliceFile, &PathCmd{
+		res, err := service.Move(ctx, &ExampleAliceFile, &PathCmd{
 			Root:     ExampleAliceRoot.ID(),
 			FullName: "/dir-a/file.txt",
 		})
 		assert.NoError(t, err)
+		assert.Equal(t, "file.txt", res.name)
+		assert.Equal(t, now, res.lastModifiedAt)
+		assert.Equal(t, &ExampleAliceDir.id, res.parent)
 	})
 
 	t.Run("Move with a MkdirAll error", func(t *testing.T) {
@@ -818,10 +828,11 @@ func TestINodes(t *testing.T) {
 		// MkdirAll internals
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(nil, fmt.Errorf("some-error")).Once()
 
-		err := service.Move(ctx, &ExampleAliceFile, &PathCmd{
+		res, err := service.Move(ctx, &ExampleAliceFile, &PathCmd{
 			Root:     ExampleAliceRoot.ID(),
 			FullName: "/dir-a/file.txt",
 		})
+		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})
@@ -839,15 +850,18 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "file.txt", ExampleAliceDir.id).Return(&ExampleAliceFile2, nil).Once()
 
 		// Update the source parent an name
+		tools.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAliceFile.id, map[string]interface{}{
-			"name":   "file.txt",
-			"parent": ExampleAliceDir.id,
+			"name":             "file.txt",
+			"parent":           ExampleAliceDir.id,
+			"last_modified_at": now,
 		}).Return(fmt.Errorf("some-error")).Once()
 
-		err := service.Move(ctx, &ExampleAliceFile, &PathCmd{
+		res, err := service.Move(ctx, &ExampleAliceFile, &PathCmd{
 			Root:     ExampleAliceRoot.ID(),
 			FullName: "/dir-a/file.txt",
 		})
+		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})
