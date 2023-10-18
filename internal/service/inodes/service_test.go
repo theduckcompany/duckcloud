@@ -851,4 +851,44 @@ func TestINodes(t *testing.T) {
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})
+
+	t.Run("GetByNameAndParent success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		storageMock.On("GetByNameAndParent", mock.Anything, ExampleAliceFile.name, ExampleAliceRoot.ID()).
+			Return(&ExampleAliceFile, nil).Once()
+
+		res, err := service.GetByNameAndParent(ctx, ExampleAliceFile.name, ExampleAliceRoot.ID())
+		assert.NoError(t, err)
+		assert.Equal(t, &ExampleAliceFile, res)
+	})
+
+	t.Run("GetByNameAndParent not found", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		storageMock.On("GetByNameAndParent", mock.Anything, ExampleAliceFile.name, ExampleAliceRoot.ID()).
+			Return(nil, errNotFound).Once()
+
+		res, err := service.GetByNameAndParent(ctx, ExampleAliceFile.name, ExampleAliceRoot.ID())
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrNotFound)
+	})
+
+	t.Run("GetByNameAndParent with an unexpected error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		storageMock.On("GetByNameAndParent", mock.Anything, ExampleAliceFile.name, ExampleAliceRoot.ID()).
+			Return(nil, fmt.Errorf("some-error")).Once()
+
+		res, err := service.GetByNameAndParent(ctx, ExampleAliceFile.name, ExampleAliceRoot.ID())
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
+	})
 }
