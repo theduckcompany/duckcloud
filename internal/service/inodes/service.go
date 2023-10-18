@@ -272,6 +272,19 @@ func (s *INodeService) Remove(ctx context.Context, inode *INode) error {
 	return nil
 }
 
+func (s *INodeService) GetByNameAndParent(ctx context.Context, name string, parent uuid.UUID) (*INode, error) {
+	res, err := s.storage.GetByNameAndParent(ctx, name, parent)
+	if errors.Is(err, errNotFound) {
+		return nil, errs.NotFound(err)
+	}
+
+	if err != nil {
+		return nil, errs.Internal(err)
+	}
+
+	return res, nil
+}
+
 func (s *INodeService) Move(ctx context.Context, source *INode, into *PathCmd) error {
 	dir, fileName := path.Split(into.FullName)
 

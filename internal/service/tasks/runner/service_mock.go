@@ -32,6 +32,11 @@ func (_m *MockService) RunSingleJob(ctx context.Context) error {
 	return r0
 }
 
+// Stop provides a mock function with given fields:
+func (_m *MockService) Stop() {
+	_m.Called()
+}
+
 // NewMockService creates a new instance of MockService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockService(t interface {
