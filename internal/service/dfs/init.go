@@ -16,13 +16,13 @@ import (
 //go:generate mockery --name FS
 type FS interface {
 	Folder() *folders.Folder
-	CreateDir(ctx context.Context, name string) (*inodes.INode, error)
-	ListDir(ctx context.Context, name string, cmd *storage.PaginateCmd) ([]inodes.INode, error)
-	Remove(ctx context.Context, name string) error
-	Rename(ctx context.Context, oldName, newName string) error
-	Get(ctx context.Context, name string) (*inodes.INode, error)
-	Upload(ctx context.Context, name string, w io.Reader) error
-	Download(ctx context.Context, name string) (io.ReadSeekCloser, error)
+	CreateDir(ctx context.Context, dirPath string) (*inodes.INode, error)
+	ListDir(ctx context.Context, dirPath string, cmd *storage.PaginateCmd) ([]inodes.INode, error)
+	Remove(ctx context.Context, path string) error
+	Rename(ctx context.Context, oldPath, newPath string) error
+	Get(ctx context.Context, path string) (*inodes.INode, error)
+	Upload(ctx context.Context, filePath string, w io.Reader) error
+	Download(ctx context.Context, filePath string) (io.ReadSeekCloser, error)
 }
 
 //go:generate mockery --name Service

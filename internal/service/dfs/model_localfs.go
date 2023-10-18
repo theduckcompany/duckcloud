@@ -41,24 +41,24 @@ func (s *LocalFS) Folder() *folders.Folder {
 	return s.folder
 }
 
-func (s *LocalFS) ListDir(ctx context.Context, name string, cmd *storage.PaginateCmd) ([]inodes.INode, error) {
+func (s *LocalFS) ListDir(ctx context.Context, dirPath string, cmd *storage.PaginateCmd) ([]inodes.INode, error) {
 	dir, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Root:     s.folder.RootFS(),
-		FullName: name,
+		FullName: dirPath,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to open %q: %w", name, err)
+		return nil, fmt.Errorf("failed to open %q: %w", dirPath, err)
 	}
 
 	return s.inodes.Readdir(ctx, dir, cmd)
 }
 
-func (s *LocalFS) CreateDir(ctx context.Context, name string) (*inodes.INode, error) {
-	name = cleanPath(name)
+func (s *LocalFS) CreateDir(ctx context.Context, dirPath string) (*inodes.INode, error) {
+	dirPath = cleanPath(dirPath)
 
 	inode, err := s.inodes.MkdirAll(ctx, &inodes.PathCmd{
 		Root:     s.folder.RootFS(),
-		FullName: name,
+		FullName: dirPath,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to MkdirAll: %w", err)
@@ -67,12 +67,12 @@ func (s *LocalFS) CreateDir(ctx context.Context, name string) (*inodes.INode, er
 	return inode, nil
 }
 
-func (s *LocalFS) Remove(ctx context.Context, name string) error {
-	name = cleanPath(name)
+func (s *LocalFS) Remove(ctx context.Context, path string) error {
+	path = cleanPath(path)
 
 	res, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Root:     s.folder.RootFS(),
-		FullName: name,
+		FullName: path,
 	})
 	if errors.Is(err, errs.ErrNotFound) {
 		return nil
@@ -90,10 +90,10 @@ func (s *LocalFS) Remove(ctx context.Context, name string) error {
 	return nil
 }
 
-func (s *LocalFS) Rename(ctx context.Context, oldName, newName string) error {
+func (s *LocalFS) Rename(ctx context.Context, oldPath, newPath string) error {
 	source, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Root:     s.folder.RootFS(),
-		FullName: cleanPath(oldName),
+		FullName: cleanPath(oldPath),
 	})
 	if err != nil {
 		return fmt.Errorf("invalid source: %w", err)
@@ -101,7 +101,7 @@ func (s *LocalFS) Rename(ctx context.Context, oldName, newName string) error {
 
 	_, err = s.inodes.Move(ctx, source, &inodes.PathCmd{
 		Root:     s.folder.RootFS(),
-		FullName: cleanPath(newName),
+		FullName: cleanPath(newPath),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to Move file: %w", err)
@@ -110,12 +110,12 @@ func (s *LocalFS) Rename(ctx context.Context, oldName, newName string) error {
 	return nil
 }
 
-func (s *LocalFS) Get(ctx context.Context, name string) (*inodes.INode, error) {
-	name = cleanPath(name)
+func (s *LocalFS) Get(ctx context.Context, path string) (*inodes.INode, error) {
+	path = cleanPath(path)
 
 	res, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Root:     s.folder.RootFS(),
-		FullName: name,
+		FullName: path,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to Get: %w", err)
@@ -124,10 +124,10 @@ func (s *LocalFS) Get(ctx context.Context, name string) (*inodes.INode, error) {
 	return res, nil
 }
 
-func (s *LocalFS) Download(ctx context.Context, name string) (io.ReadSeekCloser, error) {
+func (s *LocalFS) Download(ctx context.Context, filePath string) (io.ReadSeekCloser, error) {
 	inode, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Root:     s.folder.RootFS(),
-		FullName: name,
+		FullName: filePath,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to Get: %w", err)
@@ -146,10 +146,10 @@ func (s *LocalFS) Download(ctx context.Context, name string) (io.ReadSeekCloser,
 	return file, nil
 }
 
-func (s *LocalFS) Upload(ctx context.Context, name string, w io.Reader) error {
-	name = cleanPath(name)
+func (s *LocalFS) Upload(ctx context.Context, filePath string, w io.Reader) error {
+	filePath = cleanPath(filePath)
 
-	dirPath, fileName := path.Split(name)
+	dirPath, fileName := path.Split(filePath)
 	if dirPath == "" {
 		dirPath = "/"
 	}
