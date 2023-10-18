@@ -105,10 +105,12 @@ func Test_LocalFS(t *testing.T) {
 		toolsMock := tools.NewMock(t)
 		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
 
-		inodesMock.On("Readdir", mock.Anything, &inodes.PathCmd{
+		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
 			Root:     folders.ExampleAlicePersonalFolder.RootFS(),
 			FullName: "foo",
-		}, &storage.PaginateCmd{Limit: 2}).Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
+		}).Return(&inodes.ExampleAliceDir, nil).Once()
+		inodesMock.On("Readdir", mock.Anything, &inodes.ExampleAliceDir, &storage.PaginateCmd{Limit: 2}).
+			Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
 
 		res, err := folderFS.ListDir(ctx, "foo", &storage.PaginateCmd{Limit: 2})
 		assert.NoError(t, err)

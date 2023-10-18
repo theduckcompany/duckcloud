@@ -61,10 +61,7 @@ func (r *TaskRunner) RunArgs(ctx context.Context, args *scheduler.FSGCArgs) erro
 
 func (r *TaskRunner) deleteDirINode(ctx context.Context, inode *inodes.INode, deletionDate time.Time) error {
 	for {
-		childs, err := r.inodes.Readdir(ctx, &inodes.PathCmd{
-			Root:     inode.ID(),
-			FullName: "/",
-		}, &storage.PaginateCmd{Limit: gcBatchSize})
+		childs, err := r.inodes.Readdir(ctx, inode, &storage.PaginateCmd{Limit: gcBatchSize})
 		if err != nil {
 			return fmt.Errorf("failed to Readdir: %w", err)
 		}

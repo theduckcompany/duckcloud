@@ -42,7 +42,15 @@ func (s *LocalFS) Folder() *folders.Folder {
 }
 
 func (s *LocalFS) ListDir(ctx context.Context, name string, cmd *storage.PaginateCmd) ([]inodes.INode, error) {
-	return s.inodes.Readdir(ctx, &inodes.PathCmd{Root: s.folder.RootFS(), FullName: name}, cmd)
+	dir, err := s.inodes.Get(ctx, &inodes.PathCmd{
+		Root:     s.folder.RootFS(),
+		FullName: name,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to open %q: %w", name, err)
+	}
+
+	return s.inodes.Readdir(ctx, dir, cmd)
 }
 
 func (s *LocalFS) CreateDir(ctx context.Context, name string) (*inodes.INode, error) {
