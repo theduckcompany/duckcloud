@@ -7,8 +7,8 @@ import (
 	"fmt"
 
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/model"
@@ -25,7 +25,7 @@ type TaskRunner struct {
 	oauthSessions oauthsessions.Service
 	oauthConsents oauthconsents.Service
 	folders       folders.Service
-	fs            dfs.Service
+	inodes        inodes.Service
 }
 
 func NewTaskRunner(
@@ -35,7 +35,7 @@ func NewTaskRunner(
 	oauthSessions oauthsessions.Service,
 	oauthConsents oauthconsents.Service,
 	folders folders.Service,
-	fs dfs.Service,
+	inodes inodes.Service,
 ) *TaskRunner {
 	return &TaskRunner{
 		users,
@@ -44,7 +44,7 @@ func NewTaskRunner(
 		oauthSessions,
 		oauthConsents,
 		folders,
-		fs,
+		inodes,
 	}
 }
 
@@ -60,24 +60,24 @@ func (j *TaskRunner) Run(ctx context.Context, rawArgs json.RawMessage) error {
 	return j.RunArgs(ctx, &args)
 }
 
-func (j *TaskRunner) RunArgs(ctx context.Context, args *scheduler.UserDeleteArgs) error {
+func (r *TaskRunner) RunArgs(ctx context.Context, args *scheduler.UserDeleteArgs) error {
 	// First delete the accesses
-	err := j.webSessions.DeleteAll(ctx, args.UserID)
+	err := r.webSessions.DeleteAll(ctx, args.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to delete all web sessions: %w", err)
 	}
 
-	err = j.davSessions.DeleteAll(ctx, args.UserID)
+	err = r.davSessions.DeleteAll(ctx, args.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to delete all dav sessions: %w", err)
 	}
 
-	err = j.oauthSessions.DeleteAllForUser(ctx, args.UserID)
+	err = r.oauthSessions.DeleteAllForUser(ctx, args.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to delete all oauth sessions: %w", err)
 	}
 
-	folders, err := j.folders.GetAllUserFolders(ctx, args.UserID, nil)
+	folders, err := r.folders.GetAllUserFolders(ctx, args.UserID, nil)
 	if err != nil {
 		return fmt.Errorf("failed to GetAllUserFolders: %w", err)
 	}
@@ -87,25 +87,33 @@ func (j *TaskRunner) RunArgs(ctx context.Context, args *scheduler.UserDeleteArgs
 			continue
 		}
 
-		// Then delete the data
-		ffs := j.fs.GetFolderFS(&folder)
-		err = ffs.Remove(ctx, "/")
-		if err != nil && !errors.Is(err, errs.ErrNotFound) {
-			return fmt.Errorf("failed to delete the user root fs: %w", err)
+		rootFS, err := r.inodes.GetByID(ctx, folder.RootFS())
+		if errors.Is(err, errs.ErrNotFound) {
+			continue
 		}
 
-		err = j.folders.Delete(ctx, folder.ID())
+		if err != nil {
+			return fmt.Errorf("failed to Get the rootFS for %q: %w", folder.Name(), err)
+		}
+
+		// TODO: Create a folderdelete task
+		err = r.inodes.Remove(ctx, rootFS)
+		if err != nil {
+			return fmt.Errorf("failed to remove the rootFS for %q: %w", folder.Name(), err)
+		}
+
+		err = r.folders.Delete(ctx, folder.ID())
 		if err != nil {
 			return fmt.Errorf("failed to delete the folder %q: %w", folder.ID(), err)
 		}
 	}
 
-	err = j.oauthConsents.DeleteAll(ctx, args.UserID)
+	err = r.oauthConsents.DeleteAll(ctx, args.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to delete all oauth consents: %w", err)
 	}
 
-	err = j.users.HardDelete(ctx, args.UserID)
+	err = r.users.HardDelete(ctx, args.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to hard delete the user: %w", err)
 	}

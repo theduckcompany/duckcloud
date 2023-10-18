@@ -3,15 +3,14 @@ package userdelete
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/model"
@@ -37,18 +36,16 @@ func TestUserDeleteTask(t *testing.T) {
 		oauthSessionsMock := oauthsessions.NewMockService(t)
 		oauthConsentMock := oauthconsents.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
-		fsMock := dfs.NewMockService(t)
-		job := NewTaskRunner(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, fsMock)
+		inodesMock := inodes.NewMockService(t)
+		job := NewTaskRunner(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, inodesMock)
 
 		webSessionsMock.On("DeleteAll", mock.Anything, uuid.UUID("b13c77ab-02fa-48a0-aad4-2079b6894d7b")).Return(nil).Once()
 		davSessionsMock.On("DeleteAll", mock.Anything, uuid.UUID("b13c77ab-02fa-48a0-aad4-2079b6894d7b")).Return(nil).Once()
 		oauthSessionsMock.On("DeleteAllForUser", mock.Anything, uuid.UUID("b13c77ab-02fa-48a0-aad4-2079b6894d7b")).Return(nil).Once()
 		foldersMock.On("GetAllUserFolders", mock.Anything, uuid.UUID("b13c77ab-02fa-48a0-aad4-2079b6894d7b"), (*storage.PaginateCmd)(nil)).Return([]folders.Folder{folders.ExampleAlicePersonalFolder}, nil).Once()
 
-		folderFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
-
-		folderFSMock.On("Remove", mock.Anything, "/").Return(nil).Once()
+		inodesMock.On("GetByID", mock.Anything, folders.ExampleAlicePersonalFolder.RootFS()).Return(&inodes.ExampleAliceRoot, nil).Once()
+		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceRoot).Return(nil).Once()
 		foldersMock.On("Delete", mock.Anything, folders.ExampleAlicePersonalFolder.ID()).Return(nil).Once()
 
 		oauthConsentMock.On("DeleteAll", mock.Anything, uuid.UUID("b13c77ab-02fa-48a0-aad4-2079b6894d7b")).Return(nil).Once()
@@ -65,8 +62,8 @@ func TestUserDeleteTask(t *testing.T) {
 		oauthSessionsMock := oauthsessions.NewMockService(t)
 		oauthConsentMock := oauthconsents.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
-		fsMock := dfs.NewMockService(t)
-		job := NewTaskRunner(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, fsMock)
+		inodesMock := inodes.NewMockService(t)
+		job := NewTaskRunner(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, inodesMock)
 
 		err := job.Run(ctx, json.RawMessage(`some-invalid-json`))
 		assert.ErrorContains(t, err, "failed to unmarshal the args")
@@ -79,19 +76,16 @@ func TestUserDeleteTask(t *testing.T) {
 		oauthSessionsMock := oauthsessions.NewMockService(t)
 		oauthConsentMock := oauthconsents.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
-		fsMock := dfs.NewMockService(t)
-
-		job := NewTaskRunner(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, fsMock)
+		inodesMock := inodes.NewMockService(t)
+		job := NewTaskRunner(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, inodesMock)
 
 		webSessionsMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()
 		davSessionsMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()
 		oauthSessionsMock.On("DeleteAllForUser", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()
 		foldersMock.On("GetAllUserFolders", mock.Anything, users.ExampleDeletingAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]folders.Folder{folders.ExampleAlicePersonalFolder}, nil).Once()
 
-		folderFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
-
-		folderFSMock.On("Remove", mock.Anything, "/").Return(nil).Once()
+		inodesMock.On("GetByID", mock.Anything, folders.ExampleAlicePersonalFolder.RootFS()).Return(&inodes.ExampleAliceRoot, nil).Once()
+		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceRoot).Return(nil).Once()
 		foldersMock.On("Delete", mock.Anything, folders.ExampleAlicePersonalFolder.ID()).Return(nil).Once()
 
 		oauthConsentMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()
@@ -108,9 +102,8 @@ func TestUserDeleteTask(t *testing.T) {
 		oauthSessionsMock := oauthsessions.NewMockService(t)
 		oauthConsentMock := oauthconsents.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
-		fsMock := dfs.NewMockService(t)
-
-		job := NewTaskRunner(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, fsMock)
+		inodesMock := inodes.NewMockService(t)
+		job := NewTaskRunner(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, inodesMock)
 
 		// For each users remove all the data
 		webSessionsMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(fmt.Errorf("some-error")).Once()
@@ -126,9 +119,8 @@ func TestUserDeleteTask(t *testing.T) {
 		oauthSessionsMock := oauthsessions.NewMockService(t)
 		oauthConsentMock := oauthconsents.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
-		fsMock := dfs.NewMockService(t)
-
-		job := NewTaskRunner(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, fsMock)
+		inodesMock := inodes.NewMockService(t)
+		job := NewTaskRunner(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, inodesMock)
 
 		// For each users remove all the data
 		webSessionsMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()
@@ -145,9 +137,8 @@ func TestUserDeleteTask(t *testing.T) {
 		oauthSessionsMock := oauthsessions.NewMockService(t)
 		oauthConsentMock := oauthconsents.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
-		fsMock := dfs.NewMockService(t)
-
-		job := NewTaskRunner(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, fsMock)
+		inodesMock := inodes.NewMockService(t)
+		job := NewTaskRunner(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, inodesMock)
 
 		// For each users remove all the data
 		webSessionsMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()
@@ -158,16 +149,15 @@ func TestUserDeleteTask(t *testing.T) {
 		assert.EqualError(t, err, "failed to delete all oauth sessions: some-error")
 	})
 
-	t.Run("with a fs deletion error", func(t *testing.T) {
+	t.Run("with a rootFS deletion error", func(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		webSessionsMock := websessions.NewMockService(t)
 		davSessionsMock := davsessions.NewMockService(t)
 		oauthSessionsMock := oauthsessions.NewMockService(t)
 		oauthConsentMock := oauthconsents.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
-		fsMock := dfs.NewMockService(t)
-
-		job := NewTaskRunner(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, fsMock)
+		inodesMock := inodes.NewMockService(t)
+		job := NewTaskRunner(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, inodesMock)
 
 		// For each users remove all the data
 		webSessionsMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()
@@ -175,12 +165,11 @@ func TestUserDeleteTask(t *testing.T) {
 		oauthSessionsMock.On("DeleteAllForUser", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()
 		foldersMock.On("GetAllUserFolders", mock.Anything, users.ExampleDeletingAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]folders.Folder{folders.ExampleAlicePersonalFolder}, nil).Once()
 
-		folderFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
-		folderFSMock.On("Remove", mock.Anything, "/").Return(errors.New("some-error")).Once()
+		inodesMock.On("GetByID", mock.Anything, folders.ExampleAlicePersonalFolder.RootFS()).Return(&inodes.ExampleAliceRoot, nil).Once()
+		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceRoot).Return(fmt.Errorf("some-error")).Once()
 
 		err := job.RunArgs(ctx, &scheduler.UserDeleteArgs{UserID: users.ExampleDeletingAlice.ID()})
-		assert.EqualError(t, err, "failed to delete the user root fs: some-error")
+		assert.EqualError(t, err, `failed to remove the rootFS for "Alice's Folder": some-error`)
 	})
 
 	t.Run("with an fs deletion error", func(t *testing.T) {
@@ -190,9 +179,8 @@ func TestUserDeleteTask(t *testing.T) {
 		oauthSessionsMock := oauthsessions.NewMockService(t)
 		oauthConsentMock := oauthconsents.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
-		fsMock := dfs.NewMockService(t)
-
-		job := NewTaskRunner(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, fsMock)
+		inodesMock := inodes.NewMockService(t)
+		job := NewTaskRunner(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, inodesMock)
 
 		// For each users remove all the data
 		webSessionsMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()
@@ -200,10 +188,8 @@ func TestUserDeleteTask(t *testing.T) {
 		oauthSessionsMock.On("DeleteAllForUser", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()
 		foldersMock.On("GetAllUserFolders", mock.Anything, users.ExampleDeletingAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]folders.Folder{folders.ExampleAlicePersonalFolder}, nil).Once()
 
-		folderFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
-		folderFSMock.On("Remove", mock.Anything, "/").Return(nil).Once()
-
+		inodesMock.On("GetByID", mock.Anything, folders.ExampleAlicePersonalFolder.RootFS()).Return(&inodes.ExampleAliceRoot, nil).Once()
+		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceRoot).Return(nil).Once()
 		foldersMock.On("Delete", mock.Anything, folders.ExampleAlicePersonalFolder.ID()).Return(nil).Once()
 		oauthConsentMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(fmt.Errorf("some-error")).Once()
 
@@ -218,9 +204,8 @@ func TestUserDeleteTask(t *testing.T) {
 		oauthSessionsMock := oauthsessions.NewMockService(t)
 		oauthConsentMock := oauthconsents.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
-		fsMock := dfs.NewMockService(t)
-
-		job := NewTaskRunner(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, fsMock)
+		inodesMock := inodes.NewMockService(t)
+		job := NewTaskRunner(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, foldersMock, inodesMock)
 
 		// For each users remove all the data
 		webSessionsMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()
@@ -228,9 +213,8 @@ func TestUserDeleteTask(t *testing.T) {
 		oauthSessionsMock.On("DeleteAllForUser", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()
 		foldersMock.On("GetAllUserFolders", mock.Anything, users.ExampleDeletingAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]folders.Folder{folders.ExampleAlicePersonalFolder}, nil).Once()
 
-		folderFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
-		folderFSMock.On("Remove", mock.Anything, "/").Return(nil).Once()
+		inodesMock.On("GetByID", mock.Anything, folders.ExampleAlicePersonalFolder.RootFS()).Return(&inodes.ExampleAliceRoot, nil).Once()
+		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceRoot).Return(nil).Once()
 		foldersMock.On("Delete", mock.Anything, folders.ExampleAlicePersonalFolder.ID()).Return(nil).Once()
 		oauthConsentMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()
 		usersMock.On("HardDelete", mock.Anything, users.ExampleDeletingAlice.ID()).Return(fmt.Errorf("some-error")).Once()
