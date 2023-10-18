@@ -362,7 +362,9 @@ func (s *INodeService) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	}
 
 	var inode *INode
+	currentPath := "/"
 	err = s.walk(ctx, cmd, "open", func(dir *INode, frag string, final bool) error {
+		currentPath = path.Join(currentPath, dir.Name())
 		if !final {
 			return nil
 		}
@@ -374,7 +376,7 @@ func (s *INodeService) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 
 		inode, err = s.storage.GetByNameAndParent(ctx, frag, dir.ID())
 		if errors.Is(err, errNotFound) {
-			return errs.NotFound(ErrInvalidPath)
+			return errs.NotFound(fmt.Errorf("%q doesn't have a child named %q", currentPath, frag))
 		}
 
 		if err != nil {

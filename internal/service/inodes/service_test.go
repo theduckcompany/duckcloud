@@ -301,6 +301,33 @@ func TestINodes(t *testing.T) {
 		assert.ErrorIs(t, err, ErrInvalidRoot)
 	})
 
+	t.Run("Get with a child not found", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
+
+		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&INode{
+			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+			parent: ptr.To(ExampleAliceRoot.ID()),
+			name:   "foo",
+			fileID: nil,
+			// some other unused fields
+		}, nil).Once()
+
+		storageMock.On("GetByNameAndParent", mock.Anything, "bar", uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(nil, errNotFound).Once()
+
+		res, err := service.Get(ctx, &PathCmd{
+			Root:     ExampleAliceRoot.ID(),
+			FullName: "/foo/bar",
+		})
+
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrNotFound)
+		assert.ErrorContains(t, err, `"/foo" doesn't have a child named "bar"`)
+	})
+
 	t.Run("GetAllDeleted success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
