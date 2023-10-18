@@ -16,16 +16,16 @@ type MockService struct {
 	mock.Mock
 }
 
-// CreatePersonalFolder provides a mock function with given fields: ctx, cmd
-func (_m *MockService) CreatePersonalFolder(ctx context.Context, cmd *CreatePersonalFolderCmd) (*Folder, error) {
+// Create provides a mock function with given fields: ctx, cmd
+func (_m *MockService) Create(ctx context.Context, cmd *CreateCmd) (*Folder, error) {
 	ret := _m.Called(ctx, cmd)
 
 	var r0 *Folder
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *CreatePersonalFolderCmd) (*Folder, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *CreateCmd) (*Folder, error)); ok {
 		return rf(ctx, cmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *CreatePersonalFolderCmd) *Folder); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *CreateCmd) *Folder); ok {
 		r0 = rf(ctx, cmd)
 	} else {
 		if ret.Get(0) != nil {
@@ -33,7 +33,7 @@ func (_m *MockService) CreatePersonalFolder(ctx context.Context, cmd *CreatePers
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *CreatePersonalFolderCmd) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *CreateCmd) error); ok {
 		r1 = rf(ctx, cmd)
 	} else {
 		r1 = ret.Error(1)

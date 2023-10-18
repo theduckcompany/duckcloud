@@ -13,7 +13,10 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner/usercreate"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
@@ -23,25 +26,37 @@ import (
 func Test_Walk(t *testing.T) {
 	ctx := context.Background()
 
-	userID := uuid.UUID("02bd2941-ef0f-4e75-af3e-8b9f835c2ea6")
-
 	tools := tools.NewToolbox(tools.Config{Log: logger.Config{}})
 	db := storage.NewTestStorage(t)
-	inodesSvc := inodes.Init(tools, db)
-	foldersSvc := folders.Init(tools, db, inodesSvc)
-	schedulerSvc := scheduler.Init(db, tools)
-
 	afs := afero.NewMemMapFs()
+
 	filesSvc, err := files.NewFSService(afs, "/", tools)
 	require.NoError(t, err)
 
-	folder, err := foldersSvc.CreatePersonalFolder(ctx, &folders.CreatePersonalFolderCmd{
-		Name:  "Test",
-		Owner: userID,
+	inodesSvc := inodes.Init(tools, db)
+	foldersSvc := folders.Init(tools, db)
+	schedulerSvc := scheduler.Init(db, tools)
+	fsSvc := NewFSService(inodesSvc, filesSvc, foldersSvc, schedulerSvc, tools)
+	usersSvc := users.Init(tools, db, schedulerSvc)
+	runnerSvc := runner.Init([]runner.TaskRunner{
+		usercreate.NewTaskRunner(usersSvc, foldersSvc, inodesSvc),
+	}, nil, tools, db)
+
+	user, err := usersSvc.Create(ctx, &users.CreateCmd{
+		Username: "Jane-Doe",
+		Password: "my little secret",
+		IsAdmin:  true,
 	})
 	require.NoError(t, err)
 
-	fsSvc := NewFSService(inodesSvc, filesSvc, foldersSvc, schedulerSvc, tools)
+	// Create all the user stuff
+	err = runnerSvc.RunSingleJob(ctx)
+	require.NoError(t, err)
+
+	userFolders, err := foldersSvc.GetAllUserFolders(ctx, user.ID(), nil)
+	require.NoError(t, err)
+
+	folder := &userFolders[0]
 
 	ffs := fsSvc.GetFolderFS(folder)
 

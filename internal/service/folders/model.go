@@ -55,15 +55,17 @@ func (t *Owners) Scan(src any) error {
 	return nil
 }
 
-type CreatePersonalFolderCmd struct {
-	Name  string
-	Owner uuid.UUID
+type CreateCmd struct {
+	Name   string
+	Owners []uuid.UUID
+	RootFS uuid.UUID
 }
 
 // Validate the fields.
-func (t CreatePersonalFolderCmd) Validate() error {
+func (t CreateCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.Name, v.Required, v.Length(1, 30)),
-		v.Field(&t.Owner, v.Required, is.UUIDv4),
+		v.Field(&t.Owners, v.Required, v.Each(is.UUIDv4)),
+		v.Field(&t.RootFS, v.Required, is.UUIDv4),
 	)
 }
