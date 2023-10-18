@@ -737,6 +737,23 @@ func TestINodes(t *testing.T) {
 		assert.ErrorIs(t, err, ErrIsNotDir)
 	})
 
+	t.Run("MkdirAll with with / as fullname", func(t *testing.T) {
+		// In this case it will return the Root.
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		service := NewService(tools, storageMock)
+
+		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
+
+		res, err := service.MkdirAll(ctx, &PathCmd{
+			Root:     ExampleAliceRoot.ID(),
+			FullName: "/",
+		})
+
+		assert.NoError(t, err)
+		assert.Equal(t, &ExampleAliceRoot, res)
+	})
+
 	t.Run("Move success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)

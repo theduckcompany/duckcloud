@@ -68,7 +68,15 @@ func (s *INodeService) MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, erro
 	}
 
 	var inode *INode
+	currentPath := "/"
 	err = s.walk(ctx, cmd, "mkdir", func(dir *INode, frag string, _ bool) error {
+		currentPath = path.Join(currentPath, dir.Name())
+
+		if frag == "" {
+			inode = dir
+			return nil
+		}
+
 		nextDir, err := s.storage.GetByNameAndParent(ctx, frag, dir.ID())
 		if err != nil && !errors.Is(err, errNotFound) {
 			return errs.Internal(fmt.Errorf("failed to GetByNameAndParent: %w", err))
@@ -92,7 +100,7 @@ func (s *INodeService) MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, erro
 			FullName: frag,
 		})
 		if err != nil {
-			return errs.Internal(fmt.Errorf("failed to CreateDir: %w", err))
+			return fmt.Errorf("failed to CreateDir %q: %w", path.Join(currentPath, frag), err)
 		}
 
 		return nil
@@ -272,7 +280,7 @@ func (s *INodeService) Move(ctx context.Context, source *INode, into *PathCmd) e
 		FullName: dir,
 	})
 	if err != nil {
-		return errs.Internal(fmt.Errorf("failed to fetch the target inode: %w", err))
+		return fmt.Errorf("failed to Mkdir the target folder: %w", err)
 	}
 
 	existingFile, err := s.storage.GetByNameAndParent(ctx, fileName, targetDir.ID())
