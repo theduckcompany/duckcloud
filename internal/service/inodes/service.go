@@ -95,10 +95,7 @@ func (s *INodeService) MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, erro
 		//
 		// This function is idempotent so there isn't a real issue here. Worst case
 		// senario only some folders are recreated but a new call would create them.
-		inode, err = s.CreateDir(ctx, &PathCmd{
-			Root:     dir.ID(),
-			FullName: frag,
-		})
+		inode, err = s.CreateDir(ctx, dir, frag)
 		if err != nil {
 			return fmt.Errorf("failed to CreateDir %q: %w", path.Join(currentPath, frag), err)
 		}
@@ -326,50 +323,36 @@ func (s *INodeService) Move(ctx context.Context, source *INode, into *PathCmd) (
 	return &newFile, nil
 }
 
-func (s *INodeService) CreateDir(ctx context.Context, cmd *PathCmd) (*INode, error) {
-	err := cmd.Validate()
-	if err != nil {
-		return nil, errs.Validation(err)
+func (s *INodeService) CreateDir(ctx context.Context, parent *INode, name string) (*INode, error) {
+	if !parent.IsDir() {
+		return nil, errs.BadRequest(ErrIsNotDir)
 	}
 
-	var inode *INode
-	err = s.walk(ctx, cmd, "mkdir", func(dir *INode, frag string, final bool) error {
-		if !final {
-			return nil
-		}
-
-		now := s.clock.Now()
-
-		inode = &INode{
-			id:             s.uuid.New(),
-			parent:         ptr.To(dir.ID()),
-			name:           frag,
-			lastModifiedAt: now,
-			createdAt:      now,
-			fileID:         nil,
-		}
-
-		res, err := s.storage.GetByNameAndParent(ctx, frag, dir.ID())
-		if err != nil && !errors.Is(err, errNotFound) {
-			return errs.Internal(fmt.Errorf("failed to GetByNameAndParent: %w", err))
-		}
-
-		if res != nil {
-			return errs.BadRequest(ErrAlreadyExists)
-		}
-
-		err = s.storage.Save(ctx, inode)
-		if err != nil {
-			return errs.Internal(fmt.Errorf("failed to save into the storage: %w", err))
-		}
-
-		return nil
-	})
-	if err != nil {
-		return nil, err
+	res, err := s.storage.GetByNameAndParent(ctx, name, parent.ID())
+	if err != nil && !errors.Is(err, errNotFound) {
+		return nil, fmt.Errorf("failed to GetByNameAndParent: %w", err)
 	}
 
-	return inode, nil
+	if res != nil {
+		return nil, errs.BadRequest(ErrAlreadyExists)
+	}
+
+	now := s.clock.Now()
+	newDir := INode{
+		id:             s.uuid.New(),
+		parent:         ptr.To(parent.ID()),
+		name:           name,
+		lastModifiedAt: now,
+		createdAt:      now,
+		fileID:         nil,
+	}
+
+	err = s.storage.Save(ctx, &newDir)
+	if err != nil {
+		return nil, errs.Internal(fmt.Errorf("failed to save into the storage: %w", err))
+	}
+
+	return &newDir, nil
 }
 
 func (s *INodeService) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
