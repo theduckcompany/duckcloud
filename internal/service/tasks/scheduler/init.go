@@ -11,6 +11,7 @@ import (
 //go:generate mockery --name Service
 type Service interface {
 	RegisterFileUploadTask(ctx context.Context, args *FileUploadArgs) error
+	RegisterFSMove(ctx context.Context, args *FSMoveArgs) error
 	RegisterUserCreateTask(ctx context.Context, args *UserCreateArgs) error
 	RegisterUserDeleteTask(ctx context.Context, args *UserDeleteArgs) error
 }

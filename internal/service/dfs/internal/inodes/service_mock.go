@@ -240,25 +240,25 @@ func (_m *MockService) MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, erro
 	return r0, r1
 }
 
-// Move provides a mock function with given fields: ctx, source, into
-func (_m *MockService) Move(ctx context.Context, source *INode, into *PathCmd) (*INode, error) {
-	ret := _m.Called(ctx, source, into)
+// PatchMove provides a mock function with given fields: ctx, source, parent, newName, modeTime
+func (_m *MockService) PatchMove(ctx context.Context, source *INode, parent *INode, newName string, modeTime time.Time) (*INode, error) {
+	ret := _m.Called(ctx, source, parent, newName, modeTime)
 
 	var r0 *INode
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *INode, *PathCmd) (*INode, error)); ok {
-		return rf(ctx, source, into)
+	if rf, ok := ret.Get(0).(func(context.Context, *INode, *INode, string, time.Time) (*INode, error)); ok {
+		return rf(ctx, source, parent, newName, modeTime)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *INode, *PathCmd) *INode); ok {
-		r0 = rf(ctx, source, into)
+	if rf, ok := ret.Get(0).(func(context.Context, *INode, *INode, string, time.Time) *INode); ok {
+		r0 = rf(ctx, source, parent, newName, modeTime)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*INode)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *INode, *PathCmd) error); ok {
-		r1 = rf(ctx, source, into)
+	if rf, ok := ret.Get(1).(func(context.Context, *INode, *INode, string, time.Time) error); ok {
+		r1 = rf(ctx, source, parent, newName, modeTime)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -40,13 +41,14 @@ type Storage interface {
 }
 
 type INodeService struct {
-	storage Storage
-	clock   clock.Clock
-	uuid    uuid.Service
+	scheduler scheduler.Service
+	storage   Storage
+	clock     clock.Clock
+	uuid      uuid.Service
 }
 
-func NewService(tools tools.Tools, storage Storage) *INodeService {
-	return &INodeService{storage, tools.Clock(), tools.UUID()}
+func NewService(scheduler scheduler.Service, tools tools.Tools, storage Storage) *INodeService {
+	return &INodeService{scheduler, storage, tools.Clock(), tools.UUID()}
 }
 
 func (s *INodeService) GetByID(ctx context.Context, inodeID uuid.UUID) (*INode, error) {
@@ -272,57 +274,19 @@ func (s *INodeService) GetByNameAndParent(ctx context.Context, name string, pare
 	return res, nil
 }
 
-func (s *INodeService) Move(ctx context.Context, source *INode, into *PathCmd) (*INode, error) {
-	err := into.Validate()
-	if err != nil {
-		return nil, errs.Validation(err)
-	}
-
-	dir, fileName := path.Split(into.Path)
-
-	targetDir, err := s.MkdirAll(ctx, &PathCmd{
-		Folder: into.Folder,
-		Path:   dir,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to Mkdir the target folder: %w", err)
-	}
-
-	existingFile, err := s.storage.GetByNameAndParent(ctx, fileName, targetDir.ID())
-	if err != nil && !errors.Is(err, errNotFound) {
-		return nil, errs.Internal(fmt.Errorf("failed to GetByNameAndParent: %w", err))
-	}
-
+func (s *INodeService) PatchMove(ctx context.Context, source, parent *INode, newName string, modeTime time.Time) (*INode, error) {
 	newFile := *source
-	newFile.name = fileName
-	newFile.parent = &targetDir.id
-	newFile.lastModifiedAt = s.clock.Now()
+	newFile.name = newName
+	newFile.parent = &parent.id
+	newFile.lastModifiedAt = modeTime
 
-	err = s.storage.Patch(ctx, source.ID(), map[string]any{
+	err := s.storage.Patch(ctx, source.ID(), map[string]any{
 		"parent":           *newFile.parent,
 		"name":             newFile.name,
 		"last_modified_at": newFile.lastModifiedAt,
 	})
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to Patch the inode: %w", err))
-	}
-
-	ctx = context.WithoutCancel(ctx)
-
-	if existingFile != nil {
-		// XXX:MULTI-WRITE
-		//
-		// During a move the old file should be removed. In case of error we can end's
-		// with the old and the new file. This is not really dangerous as we don't loose
-		// any data but both files will have the exact same name and this can be
-		// problematic for the deletion for the manual example. We can't know which one
-		// will be selected if we delete base on a path.
-		//
-		// TODO: Fix this with a commit system
-		err = s.Remove(ctx, existingFile)
-		if err != nil {
-			return nil, errs.Internal(fmt.Errorf("failed to remove the old file: %w", err))
-		}
 	}
 
 	return &newFile, nil

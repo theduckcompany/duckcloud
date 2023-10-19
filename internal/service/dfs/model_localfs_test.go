@@ -188,10 +188,13 @@ func Test_LocalFS(t *testing.T) {
 			Path:   "/foo.txt",
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
-		inodesMock.On("Move", mock.Anything, &inodes.ExampleAliceFile, &inodes.PathCmd{
-			Folder: &folders.ExampleAlicePersonalFolder,
-			Path:   "/bar.txt",
-		}).Return(&inodes.ExampleAliceFile, nil).Once()
+		toolsMock.ClockMock.On("Now").Return(now).Once()
+		schedulerMock.On("RegisterFSMove", mock.Anything, &scheduler.FSMoveArgs{
+			FolderID:    folders.ExampleAlicePersonalFolder.ID(),
+			SourceInode: inodes.ExampleAliceFile.ID(),
+			TargetPath:  "/bar.txt",
+			MovedAt:     now,
+		}).Return(nil).Once()
 
 		err := folderFS.Rename(ctx, "/foo.txt", "/bar.txt")
 		assert.NoError(t, err)
@@ -227,10 +230,13 @@ func Test_LocalFS(t *testing.T) {
 			Path:   "/foo.txt",
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
-		inodesMock.On("Move", mock.Anything, &inodes.ExampleAliceFile, &inodes.PathCmd{
-			Folder: &folders.ExampleAlicePersonalFolder,
-			Path:   "/bar.txt",
-		}).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
+		toolsMock.ClockMock.On("Now").Return(now).Once()
+		schedulerMock.On("RegisterFSMove", mock.Anything, &scheduler.FSMoveArgs{
+			FolderID:    folders.ExampleAlicePersonalFolder.ID(),
+			SourceInode: inodes.ExampleAliceFile.ID(),
+			TargetPath:  "/bar.txt",
+			MovedAt:     now,
+		}).Return(errs.Internal(fmt.Errorf("some-error"))).Once()
 
 		err := folderFS.Rename(ctx, "/foo.txt", "/bar.txt")
 		assert.ErrorIs(t, err, errs.ErrInternal)
