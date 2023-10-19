@@ -59,14 +59,16 @@ func (t *Folders) Scan(src any) error {
 }
 
 type CreateCmd struct {
-	Name    string
-	UserID  uuid.UUID
-	Folders []uuid.UUID
+	Name     string
+	Username string
+	UserID   uuid.UUID
+	Folders  []uuid.UUID
 }
 
 func (t CreateCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.Name, v.Required, v.Match(DavSessionRegexp)),
+		v.Field(&t.Username, v.Required, v.Length(1, 30)),
 		v.Field(&t.UserID, v.Required, is.UUIDv4),
 		v.Field(&t.Folders, v.Required, v.Each(is.UUIDv4)),
 	)

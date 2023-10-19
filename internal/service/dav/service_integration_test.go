@@ -53,7 +53,7 @@ func Test_DavFS_integration(t *testing.T) {
 	inodesSvc := inodes.Init(tools, db)
 	foldersSvc := folders.Init(tools, db)
 	usersSvc := users.Init(tools, db, schedulerSvc)
-	davSessionsSvc := davsessions.Init(db, foldersSvc, usersSvc, tools)
+	davSessionsSvc := davsessions.Init(db, foldersSvc, tools)
 	runnerSvc := runner.Init([]runner.TaskRunner{
 		fileupload.NewTaskRunner(foldersSvc, filesSvc, inodesSvc),
 		usercreate.NewTaskRunner(usersSvc, foldersSvc, inodesSvc),
@@ -74,9 +74,10 @@ func Test_DavFS_integration(t *testing.T) {
 	require.NoError(t, err)
 
 	session, _, err := davSessionsSvc.Create(ctx, &davsessions.CreateCmd{
-		Name:    "test session",
-		UserID:  user.ID(),
-		Folders: []uuid.UUID{userFolders[0].ID()},
+		Name:     "test session",
+		UserID:   user.ID(),
+		Username: user.Username(),
+		Folders:  []uuid.UUID{userFolders[0].ID()},
 	})
 	require.NoError(t, err)
 

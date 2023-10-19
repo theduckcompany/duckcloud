@@ -24,9 +24,10 @@ func Test_CreateUserRequest_is_validatable(t *testing.T) {
 
 func Test_CreateRequest_Validate_success(t *testing.T) {
 	err := CreateCmd{
-		Name:    ExampleAliceSession.Name(),
-		UserID:  uuid.UUID("2c6b2615-6204-4817-a126-b6c13074afdf"),
-		Folders: []uuid.UUID{folders.ExampleAlicePersonalFolder.ID()},
+		Name:     ExampleAliceSession.Name(),
+		UserID:   uuid.UUID("2c6b2615-6204-4817-a126-b6c13074afdf"),
+		Username: "Jane Doe",
+		Folders:  []uuid.UUID{folders.ExampleAlicePersonalFolder.ID()},
 	}.Validate()
 
 	assert.NoError(t, err)
@@ -34,9 +35,10 @@ func Test_CreateRequest_Validate_success(t *testing.T) {
 
 func Test_CreateRequest_Validate_with_no_folders(t *testing.T) {
 	err := CreateCmd{
-		Name:    ExampleAliceSession.Name(),
-		UserID:  uuid.UUID("2c6b2615-6204-4817-a126-b6c13074afdf"),
-		Folders: []uuid.UUID{},
+		Name:     ExampleAliceSession.Name(),
+		UserID:   uuid.UUID("2c6b2615-6204-4817-a126-b6c13074afdf"),
+		Username: "Jane Doe",
+		Folders:  []uuid.UUID{},
 	}.Validate()
 
 	assert.EqualError(t, err, "Folders: cannot be blank.")

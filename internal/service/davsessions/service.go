@@ -9,7 +9,6 @@ import (
 	"slices"
 
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -34,18 +33,16 @@ type Storage interface {
 
 type DavSessionsService struct {
 	storage Storage
-	users   users.Service
 	folders folders.Service
 	uuid    uuid.Service
 	clock   clock.Clock
 }
 
 func NewService(storage Storage,
-	users users.Service,
 	folders folders.Service,
 	tools tools.Tools,
 ) *DavSessionsService {
-	return &DavSessionsService{storage, users, folders, tools.UUID(), tools.Clock()}
+	return &DavSessionsService{storage, folders, tools.UUID(), tools.Clock()}
 }
 
 func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSession, string, error) {
@@ -54,17 +51,8 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 		return nil, "", errs.Validation(err)
 	}
 
-	user, err := s.users.GetByID(ctx, cmd.UserID)
-	if errors.Is(err, errNotFound) {
-		return nil, "", errs.Validation(errors.New("userID: not found"))
-	}
-
-	if err != nil {
-		return nil, "", errs.Internal(fmt.Errorf("failed to usersGetByID: %w", err))
-	}
-
 	for _, folderID := range cmd.Folders {
-		folder, err := s.folders.GetUserFolder(ctx, user.ID(), folderID)
+		folder, err := s.folders.GetUserFolder(ctx, cmd.UserID, folderID)
 		if err != nil && !errors.Is(err, errs.ErrNotFound) {
 			return nil, "", errs.Internal(fmt.Errorf("failed to get the folder %q by id: %w", folderID, err))
 		}
@@ -79,9 +67,9 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 
 	session := DavSession{
 		id:        s.uuid.New(),
-		userID:    user.ID(),
+		userID:    cmd.UserID,
 		name:      cmd.Name,
-		username:  user.Username(),
+		username:  cmd.Username,
 		password:  hex.EncodeToString(rawSha[:]),
 		folders:   cmd.Folders,
 		createdAt: s.clock.Now(),
