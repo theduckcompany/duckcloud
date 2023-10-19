@@ -7,22 +7,10 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/files"
-	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner/fileupload"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner/usercreate"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
-	"github.com/theduckcompany/duckcloud/internal/service/users"
-	"github.com/theduckcompany/duckcloud/internal/tools"
-	"github.com/theduckcompany/duckcloud/internal/tools/logger"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/startutils"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -43,46 +31,21 @@ func (s *simpleFS) Open(name string) (fs.File, error) {
 func Test_DavFS_integration(t *testing.T) {
 	ctx := context.Background()
 
-	tools := tools.NewToolbox(tools.Config{Log: logger.Config{}})
-	afs := afero.NewMemMapFs()
-	db := storage.NewTestStorage(t)
+	serv := startutils.NewServer(t)
+	serv.Bootstrap(t)
 
-	filesSvc, err := files.NewFSService(afs, "/", tools)
-	require.NoError(t, err)
-	schedulerSvc := scheduler.Init(db, tools)
-	inodesSvc := inodes.Init(tools, db)
-	foldersSvc := folders.Init(tools, db)
-	usersSvc := users.Init(tools, db, schedulerSvc)
-	davSessionsSvc := davsessions.Init(db, foldersSvc, tools)
-	runnerSvc := runner.Init([]runner.TaskRunner{
-		fileupload.NewTaskRunner(foldersSvc, filesSvc, inodesSvc),
-		usercreate.NewTaskRunner(usersSvc, foldersSvc, inodesSvc),
-	}, nil, tools, db)
-
-	user, err := usersSvc.Create(ctx, &users.CreateCmd{
-		Username: "foo-user",
-		Password: "my-little-secret",
-		IsAdmin:  false,
-	})
+	userFolders, err := serv.FoldersSvc.GetAllUserFolders(ctx, serv.User.ID(), nil)
 	require.NoError(t, err)
 
-	// Create all the new user stuff
-	err = runnerSvc.RunSingleJob(ctx)
-	require.NoError(t, err)
-
-	userFolders, err := foldersSvc.GetAllUserFolders(ctx, user.ID(), nil)
-	require.NoError(t, err)
-
-	session, _, err := davSessionsSvc.Create(ctx, &davsessions.CreateCmd{
+	session, _, err := serv.DavSessionsSvc.Create(ctx, &davsessions.CreateCmd{
 		Name:     "test session",
-		UserID:   user.ID(),
-		Username: user.Username(),
+		UserID:   serv.User.ID(),
+		Username: serv.User.Username(),
 		Folders:  []uuid.UUID{userFolders[0].ID()},
 	})
 	require.NoError(t, err)
 
-	fsSvc := dfs.NewFSService(inodesSvc, filesSvc, foldersSvc, schedulerSvc, tools)
-	davfs := &davFS{foldersSvc, fsSvc}
+	davfs := &davFS{serv.FoldersSvc, serv.DFSSvc}
 
 	ctx = context.WithValue(ctx, sessionKeyCtx, session)
 
@@ -113,7 +76,7 @@ func Test_DavFS_integration(t *testing.T) {
 		require.NoError(t, file.Close())
 
 		//  Run all the pending tasks
-		err = runnerSvc.RunSingleJob(ctx)
+		err = serv.RunnerSvc.RunSingleJob(ctx)
 		require.NoError(t, err)
 
 		res, err := fs.ReadFile(&simpleFS{davfs, session}, "foo/bar.2.txt")
