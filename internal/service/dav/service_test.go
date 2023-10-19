@@ -12,7 +12,6 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 )
 
 func Test_DAVFS(t *testing.T) {
@@ -28,11 +27,11 @@ func Test_DAVFS(t *testing.T) {
 		folderFSMock := dfs.NewMockFS(t)
 		fsServiceMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock).Once()
 
-		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&inodes.ExampleAliceFile, nil).Once()
+		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&dfs.ExampleAliceFile, nil).Once()
 
 		res, err := dav.Stat(ctx, "foo/bar")
 		assert.NoError(t, err)
-		assert.EqualValues(t, &inodes.ExampleAliceFile, res)
+		assert.EqualValues(t, &dfs.ExampleAliceFile, res)
 	})
 
 	t.Run("Stat with an invalid path", func(t *testing.T) {
@@ -86,7 +85,7 @@ func Test_DAVFS(t *testing.T) {
 		folderFSMock := dfs.NewMockFS(t)
 		fsServiceMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock).Once()
 
-		folderFSMock.On("CreateDir", mock.Anything, "foo").Return(&inodes.ExampleAliceRoot, nil).Once()
+		folderFSMock.On("CreateDir", mock.Anything, "foo").Return(&dfs.ExampleAliceRoot, nil).Once()
 
 		err := dav.Mkdir(ctx, "foo", 0o644)
 		assert.NoError(t, err)
@@ -104,7 +103,7 @@ func Test_DAVFS(t *testing.T) {
 		folderFSMock := dfs.NewMockFS(t)
 		fsServiceMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock).Once()
 
-		folderFSMock.On("Get", mock.Anything, "foo").Return(&inodes.ExampleAliceRoot, nil).Once()
+		folderFSMock.On("Get", mock.Anything, "foo").Return(&dfs.ExampleAliceRoot, nil).Once()
 
 		res, err := dav.OpenFile(ctx, "foo", os.O_RDONLY, 0o644)
 		assert.NoError(t, err)
@@ -113,7 +112,7 @@ func Test_DAVFS(t *testing.T) {
 		stats, err := res.Stat()
 		require.NoError(t, err)
 		assert.True(t, stats.IsDir())
-		assert.Equal(t, inodes.ExampleAliceRoot.LastModifiedAt(), stats.ModTime())
+		assert.Equal(t, dfs.ExampleAliceRoot.LastModifiedAt(), stats.ModTime())
 		assert.Equal(t, int64(0), stats.Size())
 		assert.Nil(t, stats.Sys())
 		assert.Equal(t, fs.FileMode(0o755), stats.Mode().Perm())
@@ -132,19 +131,19 @@ func Test_DAVFS(t *testing.T) {
 		folderFSMock := dfs.NewMockFS(t)
 		fsServiceMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock).Once()
 
-		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&inodes.ExampleAliceFile, nil).Once()
+		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&dfs.ExampleAliceFile, nil).Once()
 
 		res, err := dav.OpenFile(ctx, "foo/bar", os.O_RDONLY, 0o644)
 		assert.NoError(t, err)
 
-		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&inodes.ExampleAliceFile, nil).Once()
+		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&dfs.ExampleAliceFile, nil).Once()
 
 		// Check the file infos
 		stats, err := res.Stat()
 		require.NoError(t, err)
 		assert.False(t, stats.IsDir())
-		assert.Equal(t, inodes.ExampleAliceRoot.LastModifiedAt(), stats.ModTime())
-		assert.Equal(t, inodes.ExampleAliceFile.Size(), stats.Size())
+		assert.Equal(t, dfs.ExampleAliceRoot.LastModifiedAt(), stats.ModTime())
+		assert.Equal(t, dfs.ExampleAliceFile.Size(), stats.Size())
 		assert.Nil(t, stats.Sys())
 		assert.Equal(t, fs.FileMode(0o644), stats.Mode().Perm())
 		assert.False(t, stats.Mode().IsDir())
@@ -163,7 +162,7 @@ func Test_DAVFS(t *testing.T) {
 		folderFSMock := dfs.NewMockFS(t)
 		fsServiceMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock).Once()
 
-		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&inodes.ExampleAliceFile, nil).Once()
+		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&dfs.ExampleAliceFile, nil).Once()
 
 		res, err := dav.OpenFile(ctx, "foo/bar", os.O_WRONLY, 0o644)
 		assert.Nil(t, res)
@@ -231,7 +230,7 @@ func Test_DAVFS(t *testing.T) {
 		folderFSMock := dfs.NewMockFS(t)
 		fsServiceMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock).Once()
 
-		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&inodes.ExampleAliceFile, nil).Once()
+		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&dfs.ExampleAliceFile, nil).Once()
 
 		res, err := dav.OpenFile(ctx, "foo/bar", os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o644)
 		assert.EqualError(t, err, "open foo/bar: file already exists")
@@ -251,7 +250,7 @@ func Test_DAVFS(t *testing.T) {
 		folderFSMock := dfs.NewMockFS(t)
 		fsServiceMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock).Once()
 
-		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&inodes.ExampleAliceFile, nil).Once()
+		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&dfs.ExampleAliceFile, nil).Once()
 
 		res, err := dav.OpenFile(ctx, "foo/bar", os.O_WRONLY|os.O_SYNC, 0o644)
 		assert.EqualError(t, err, "invalid argument: O_SYNC and O_APPEND not supported")
@@ -271,7 +270,7 @@ func Test_DAVFS(t *testing.T) {
 		folderFSMock := dfs.NewMockFS(t)
 		fsServiceMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock).Once()
 
-		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&inodes.ExampleAliceFile, nil).Once()
+		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&dfs.ExampleAliceFile, nil).Once()
 
 		res, err := dav.OpenFile(ctx, "foo/bar", os.O_WRONLY|os.O_APPEND, 0o644)
 		assert.EqualError(t, err, "invalid argument: O_SYNC and O_APPEND not supported")
@@ -291,7 +290,7 @@ func Test_DAVFS(t *testing.T) {
 		folderFSMock := dfs.NewMockFS(t)
 		fsServiceMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock).Once()
 
-		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&inodes.ExampleAliceFile, nil).Once()
+		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&dfs.ExampleAliceFile, nil).Once()
 		folderFSMock.On("Remove", mock.Anything, "foo/bar").Return(nil).Once()
 
 		res, err := dav.OpenFile(ctx, "foo/bar", os.O_WRONLY|os.O_TRUNC, 0o644)

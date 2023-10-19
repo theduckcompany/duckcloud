@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 )
 
 type readSeekCloser struct {
@@ -45,11 +44,11 @@ func Test_File(t *testing.T) {
 		fsMock := dfs.NewMockFS(t)
 		duckFile := NewFile("/foo/bar.txt", fsMock)
 
-		fsMock.On("Get", mock.Anything, "/foo/bar.txt").Return(&inodes.ExampleAliceFile, nil).Once()
+		fsMock.On("Get", mock.Anything, "/foo/bar.txt").Return(&dfs.ExampleAliceFile, nil).Once()
 
 		res, err := duckFile.Stat()
 		assert.NoError(t, err)
-		assert.Equal(t, &inodes.ExampleAliceFile, res)
+		assert.Equal(t, &dfs.ExampleAliceFile, res)
 	})
 
 	t.Run("Write success", func(t *testing.T) {

@@ -30,7 +30,7 @@ func (t *TasksService) RegisterFileUploadTask(ctx context.Context, args *FileUpl
 		return errs.Validation(err)
 	}
 
-	return t.registerTask(ctx, 2, model.FileUpload, args)
+	return t.registerTask(ctx, 2, "file-upload", args)
 }
 
 func (t *TasksService) RegisterUserCreateTask(ctx context.Context, args *UserCreateArgs) error {
@@ -39,7 +39,7 @@ func (t *TasksService) RegisterUserCreateTask(ctx context.Context, args *UserCre
 		return errs.Validation(err)
 	}
 
-	return t.registerTask(ctx, 1, model.UserCreate, args)
+	return t.registerTask(ctx, 1, "user-create", args)
 }
 
 func (t *TasksService) RegisterUserDeleteTask(ctx context.Context, args *UserDeleteArgs) error {
@@ -48,7 +48,7 @@ func (t *TasksService) RegisterUserDeleteTask(ctx context.Context, args *UserDel
 		return errs.Validation(err)
 	}
 
-	return t.registerTask(ctx, 1, model.UserDelete, args)
+	return t.registerTask(ctx, 1, "user-delete", args)
 }
 
 func (t *TasksService) registerTask(ctx context.Context, priority int, name string, args any) error {

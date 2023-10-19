@@ -9,14 +9,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
+	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
+	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner/fileupload"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner/usercreate"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
+	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
@@ -29,14 +28,15 @@ type Server struct {
 	FS    afero.Fs
 
 	// Services
-	FilesSvc       files.Service
-	InodesSvc      inodes.Service
-	FoldersSvc     folders.Service
-	SchedulerSvc   scheduler.Service
-	DavSessionsSvc davsessions.Service
-	DFSSvc         dfs.Service
-	UsersSvc       users.Service
-	RunnerSvc      runner.Service
+	FoldersSvc       folders.Service
+	SchedulerSvc     scheduler.Service
+	DavSessionsSvc   davsessions.Service
+	WebSessionsSvc   websessions.Service
+	OauthSessionsSvc oauthsessions.Service
+	OauthConsentsSvc oauthconsents.Service
+	DFSSvc           dfs.Service
+	UsersSvc         users.Service
+	RunnerSvc        runner.Service
 
 	User *users.User
 }
@@ -46,23 +46,20 @@ func NewServer(t *testing.T) *Server {
 	db := storage.NewTestStorage(t)
 	afs := afero.NewMemMapFs()
 
-	filesSvc, err := files.NewFSService(afs, "/", tools)
-	require.NoError(t, err)
-
-	inodesSvc := inodes.Init(tools, db)
 	foldersSvc := folders.Init(tools, db)
 	schedulerSvc := scheduler.Init(db, tools)
-	dfsSvc := dfs.NewFSService(inodesSvc, filesSvc, foldersSvc, schedulerSvc, tools)
-	usersSvc := users.Init(tools, db, schedulerSvc)
+	webSessionsSvc := websessions.Init(tools, db)
 	davSessionsSvc := davsessions.Init(db, foldersSvc, tools)
+	oauthSessionsSvc := oauthsessions.Init(tools, db)
+	oauthConsentsSvc := oauthconsents.Init(tools, db)
 
-	fileUploadTask := fileupload.NewTaskRunner(foldersSvc, filesSvc, inodesSvc)
-	userCreateTask := usercreate.NewTaskRunner(usersSvc, foldersSvc, inodesSvc)
+	dfsInit, err := dfs.Init(dfs.Config{Path: "/"}, afs, db, foldersSvc, schedulerSvc, tools)
+	require.NoError(t, err)
 
-	runnerSvc := runner.Init([]runner.TaskRunner{
-		userCreateTask,
-		fileUploadTask,
-	}, nil, tools, db)
+	usersSvc := users.Init(tools, db, schedulerSvc, foldersSvc, dfsInit.Service, webSessionsSvc,
+		davSessionsSvc, oauthSessionsSvc, oauthConsentsSvc)
+
+	runnerSvc := runner.Init(append(dfsInit.Tasks, usersSvc.Tasks...), nil, tools, db)
 
 	return &Server{
 		Tools: tools,
@@ -70,14 +67,16 @@ func NewServer(t *testing.T) *Server {
 		FS:    afs,
 
 		// Services
-		FilesSvc:       filesSvc,
-		InodesSvc:      inodesSvc,
-		FoldersSvc:     foldersSvc,
-		SchedulerSvc:   schedulerSvc,
-		DFSSvc:         dfsSvc,
-		DavSessionsSvc: davSessionsSvc,
-		UsersSvc:       usersSvc,
-		RunnerSvc:      runnerSvc,
+		FoldersSvc:       foldersSvc,
+		SchedulerSvc:     schedulerSvc,
+		DavSessionsSvc:   davSessionsSvc,
+		WebSessionsSvc:   webSessionsSvc,
+		OauthSessionsSvc: oauthSessionsSvc,
+		OauthConsentsSvc: oauthConsentsSvc,
+
+		DFSSvc:    dfsInit.Service,
+		UsersSvc:  usersSvc.Service,
+		RunnerSvc: runnerSvc,
 	}
 }
 

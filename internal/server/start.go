@@ -11,19 +11,13 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/debug"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/oauth2"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthclients"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthcodes"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner/fileupload"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner/fsgc"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner/usercreate"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner/userdelete"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
@@ -78,8 +72,6 @@ func start(ctx context.Context, db *sql.DB, fs afero.Fs, folderPath string, invo
 			fx.Annotate(oauthconsents.Init, fx.As(new(oauthconsents.Service))),
 			fx.Annotate(websessions.Init, fx.As(new(websessions.Service))),
 			fx.Annotate(oauth2.Init, fx.As(new(oauth2.Service))),
-			fx.Annotate(inodes.Init, fx.As(new(inodes.Service))),
-			fx.Annotate(files.Init, fx.As(new(files.Service))),
 			fx.Annotate(davsessions.Init, fx.As(new(davsessions.Service))),
 			fx.Annotate(folders.Init, fx.As(new(folders.Service))),
 			fx.Annotate(dfs.Init, fx.As(new(dfs.Service))),
@@ -95,12 +87,6 @@ func start(ctx context.Context, db *sql.DB, fs afero.Fs, folderPath string, invo
 			// HTTP Router / HTTP Server
 			router.InitMiddlewares,
 			fx.Annotate(router.NewServer, fx.ParamTags(`group:"routes"`)),
-
-			// Background Tasks
-			AsTask(fileupload.NewTaskRunner),
-			AsTask(fsgc.NewTaskRunner),
-			AsTask(usercreate.NewTaskRunner),
-			AsTask(userdelete.NewTaskRunner),
 
 			// Task Runner
 			fx.Annotate(runner.Init, fx.ParamTags(`group:"tasks"`), fx.As(new(runner.Service))),

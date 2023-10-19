@@ -16,7 +16,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
@@ -316,7 +315,7 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	dirContent := []inodes.INode{}
+	dirContent := []dfs.INode{}
 	if inode.IsDir() {
 		dirContent, err = ffs.ListDir(r.Context(), fullPath, &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
@@ -422,7 +421,7 @@ func (h *browserHandler) serveFolderContent(w http.ResponseWriter, r *http.Reque
 
 	writer := zip.NewWriter(w)
 
-	dfs.Walk(r.Context(), ffs, root, func(ctx context.Context, p string, i *inodes.INode) error {
+	dfs.Walk(r.Context(), ffs, root, func(ctx context.Context, p string, i *dfs.INode) error {
 		header, err := zip.FileInfoHeader(i)
 		if err != nil {
 			return fmt.Errorf("failed to create zip fileinfo: %w", err)
@@ -466,7 +465,7 @@ func (h *browserHandler) serveFolderContent(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *browserHandler) serveContent(w http.ResponseWriter, r *http.Request, inode *inodes.INode, file io.ReadSeeker) {
+func (h *browserHandler) serveContent(w http.ResponseWriter, r *http.Request, inode *dfs.INode, file io.ReadSeeker) {
 	w.Header().Set("Etag", inode.Checksum())
 	w.Header().Set("Expires", time.Now().Add(365*24*time.Hour).UTC().Format(http.TimeFormat))
 	w.Header().Set("Cache-Control", "max-age=31536000")

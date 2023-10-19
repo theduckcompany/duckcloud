@@ -16,7 +16,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
@@ -105,12 +104,12 @@ func Test_Browser_Page(t *testing.T) {
 		folderFSMock.On("Folder").Return(&folders.ExampleAlicePersonalFolder)
 
 		// Then look for the path inside this folder
-		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&inodes.ExampleAliceRoot, nil).Once()
+		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&dfs.ExampleAliceRoot, nil).Once()
 
 		folderFSMock.On("ListDir", mock.Anything, "foo/bar", &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
 			Limit:      PageSize,
-		}).Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
+		}).Return([]dfs.INode{dfs.ExampleAliceFile}, nil).Once()
 
 		folderID := string(folders.ExampleAlicePersonalFolder.ID())
 		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
@@ -123,7 +122,7 @@ func Test_Browser_Page(t *testing.T) {
 				{Name: "bar", Href: "/browser/" + folderID + "/foo/bar", Current: true},
 			},
 			"folders": []folders.Folder{folders.ExampleAlicePersonalFolder, folders.ExampleAliceBobSharedFolder},
-			"inodes":  []inodes.INode{inodes.ExampleAliceFile},
+			"inodes":  []dfs.INode{dfs.ExampleAliceFile},
 		}).Once()
 
 		w := httptest.NewRecorder()
@@ -161,7 +160,7 @@ func Test_Browser_Page(t *testing.T) {
 		folderFSMock.On("Folder").Return(&folders.ExampleAlicePersonalFolder)
 
 		// Then look for the path inside this folder
-		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&inodes.ExampleAliceFile, nil).Once()
+		folderFSMock.On("Get", mock.Anything, "foo/bar").Return(&dfs.ExampleAliceFile, nil).Once()
 
 		afs := afero.NewMemMapFs()
 		file, err := afero.TempFile(afs, t.TempDir(), "")
@@ -389,7 +388,7 @@ func Test_Browser_Page(t *testing.T) {
 		folderFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
 
-		folderFSMock.On("CreateDir", mock.Anything, "/foo/bar/baz").Return(&inodes.ExampleAliceRoot, nil).Once()
+		folderFSMock.On("CreateDir", mock.Anything, "/foo/bar/baz").Return(&dfs.ExampleAliceRoot, nil).Once()
 
 		folderFSMock.On("Upload", mock.Anything, "foo/bar/baz/hello.txt", mock.Anything).
 			Run(func(args mock.Arguments) {
@@ -450,12 +449,12 @@ func Test_Browser_Page(t *testing.T) {
 		folderFSMock.On("Remove", mock.Anything, "foo/bar").Return(nil).Once()
 
 		// Then look for the path inside this folder
-		folderFSMock.On("Get", mock.Anything, "foo").Return(&inodes.ExampleAliceRoot, nil).Once()
+		folderFSMock.On("Get", mock.Anything, "foo").Return(&dfs.ExampleAliceRoot, nil).Once()
 
 		folderFSMock.On("ListDir", mock.Anything, "foo", &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
 			Limit:      PageSize,
-		}).Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
+		}).Return([]dfs.INode{dfs.ExampleAliceFile}, nil).Once()
 
 		foldersMock.On("GetAllUserFolders", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).
 			Return([]folders.Folder{folders.ExampleAlicePersonalFolder, folders.ExampleAliceBobSharedFolder}, nil).Once()
@@ -470,7 +469,7 @@ func Test_Browser_Page(t *testing.T) {
 				{Name: "foo", Href: "/browser/" + folderID + "/foo", Current: true},
 			},
 			"folders": []folders.Folder{folders.ExampleAlicePersonalFolder, folders.ExampleAliceBobSharedFolder},
-			"inodes":  []inodes.INode{inodes.ExampleAliceFile},
+			"inodes":  []dfs.INode{dfs.ExampleAliceFile},
 		}).Once()
 
 		w := httptest.NewRecorder()

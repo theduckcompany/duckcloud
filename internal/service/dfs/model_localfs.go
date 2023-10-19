@@ -7,9 +7,9 @@ import (
 	"io"
 	"path"
 
-	"github.com/theduckcompany/duckcloud/internal/service/files"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/files"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
@@ -41,7 +41,7 @@ func (s *LocalFS) Folder() *folders.Folder {
 	return s.folder
 }
 
-func (s *LocalFS) ListDir(ctx context.Context, dirPath string, cmd *storage.PaginateCmd) ([]inodes.INode, error) {
+func (s *LocalFS) ListDir(ctx context.Context, dirPath string, cmd *storage.PaginateCmd) ([]INode, error) {
 	dir, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Folder: s.folder,
 		Path:   dirPath,
@@ -53,7 +53,7 @@ func (s *LocalFS) ListDir(ctx context.Context, dirPath string, cmd *storage.Pagi
 	return s.inodes.Readdir(ctx, dir, cmd)
 }
 
-func (s *LocalFS) CreateDir(ctx context.Context, dirPath string) (*inodes.INode, error) {
+func (s *LocalFS) CreateDir(ctx context.Context, dirPath string) (*INode, error) {
 	dirPath = cleanPath(dirPath)
 
 	inode, err := s.inodes.MkdirAll(ctx, &inodes.PathCmd{
@@ -110,7 +110,7 @@ func (s *LocalFS) Rename(ctx context.Context, oldPath, newPath string) error {
 	return nil
 }
 
-func (s *LocalFS) Get(ctx context.Context, path string) (*inodes.INode, error) {
+func (s *LocalFS) Get(ctx context.Context, path string) (*INode, error) {
 	path = cleanPath(path)
 
 	res, err := s.inodes.Get(ctx, &inodes.PathCmd{

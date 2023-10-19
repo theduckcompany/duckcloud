@@ -1,4 +1,4 @@
-package fsgc
+package dfs
 
 import (
 	"context"
@@ -9,10 +9,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/theduckcompany/duckcloud/internal/service/files"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/files"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/model"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
@@ -24,8 +23,8 @@ func TestFSGC(t *testing.T) {
 
 	t.Run("Name", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		job := NewTaskRunner(nil, nil, nil, tools)
-		assert.Equal(t, model.FSGC, job.Name())
+		job := NewFSGGCTaskRunner(nil, nil, nil, tools)
+		assert.Equal(t, "fs-gc", job.Name())
 	})
 
 	t.Run("Run Success", func(t *testing.T) {
@@ -33,7 +32,7 @@ func TestFSGC(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		job := NewTaskRunner(inodesMock, filesMock, foldersMock, tools)
+		job := NewFSGGCTaskRunner(inodesMock, filesMock, foldersMock, tools)
 
 		// First loop to fetch the deleted inodes
 		inodesMock.On("GetAllDeleted", mock.Anything, 10).Return([]inodes.INode{}, nil).Once()
@@ -47,7 +46,7 @@ func TestFSGC(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		job := NewTaskRunner(inodesMock, filesMock, foldersMock, tools)
+		job := NewFSGGCTaskRunner(inodesMock, filesMock, foldersMock, tools)
 
 		// First loop to fetch the deleted inodes
 		inodesMock.On("GetAllDeleted", mock.Anything, 10).Return([]inodes.INode{}, nil).Once()
@@ -62,7 +61,7 @@ func TestFSGC(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		job := NewTaskRunner(inodesMock, filesMock, foldersMock, tools)
+		job := NewFSGGCTaskRunner(inodesMock, filesMock, foldersMock, tools)
 
 		// First loop to fetch the deleted inodes
 		inodesMock.On("GetAllDeleted", mock.Anything, 10).Return([]inodes.INode{inodes.ExampleAliceRoot}, nil).Once()
@@ -92,7 +91,7 @@ func TestFSGC(t *testing.T) {
 		// First loop to fetch the deleted inodes
 		inodesMock.On("GetAllDeleted", mock.Anything, 10).Return(nil, fmt.Errorf("some-error")).Once()
 
-		job := NewTaskRunner(inodesMock, filesMock, foldersMock, tools)
+		job := NewFSGGCTaskRunner(inodesMock, filesMock, foldersMock, tools)
 
 		err := job.RunArgs(ctx, &scheduler.FSGCArgs{})
 		assert.EqualError(t, err, "failed to GetAllDeleted: some-error")
@@ -110,7 +109,7 @@ func TestFSGC(t *testing.T) {
 		// This is a dir we will delete all its content
 		inodesMock.On("Readdir", mock.Anything, &inodes.ExampleAliceRoot, &storage.PaginateCmd{Limit: 10}).Return(nil, fmt.Errorf("some-error")).Once()
 
-		job := NewTaskRunner(inodesMock, filesMock, foldersMock, tools)
+		job := NewFSGGCTaskRunner(inodesMock, filesMock, foldersMock, tools)
 
 		err := job.RunArgs(ctx, &scheduler.FSGCArgs{})
 		assert.EqualError(t, err, "failed to delete inode \"f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f\": failed to Readdir: some-error")

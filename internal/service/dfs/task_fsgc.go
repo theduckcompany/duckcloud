@@ -1,4 +1,4 @@
-package fsgc
+package dfs
 
 import (
 	"context"
@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/theduckcompany/duckcloud/internal/service/files"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/files"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/model"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
@@ -18,7 +17,7 @@ import (
 
 const gcBatchSize = 10
 
-type TaskRunner struct {
+type FSGGCTaskRunner struct {
 	inodes  inodes.Service
 	files   files.Service
 	folders folders.Service
@@ -27,17 +26,17 @@ type TaskRunner struct {
 	quit    chan struct{}
 }
 
-func NewTaskRunner(inodes inodes.Service, files files.Service, folders folders.Service, tools tools.Tools) *TaskRunner {
-	return &TaskRunner{inodes, files, folders, nil, tools.Clock(), make(chan struct{})}
+func NewFSGGCTaskRunner(inodes inodes.Service, files files.Service, folders folders.Service, tools tools.Tools) *FSGGCTaskRunner {
+	return &FSGGCTaskRunner{inodes, files, folders, nil, tools.Clock(), make(chan struct{})}
 }
 
-func (r *TaskRunner) Name() string { return model.FSGC }
+func (r *FSGGCTaskRunner) Name() string { return "fs-gc" }
 
-func (r *TaskRunner) Run(ctx context.Context, rawArgs json.RawMessage) error {
+func (r *FSGGCTaskRunner) Run(ctx context.Context, rawArgs json.RawMessage) error {
 	return r.RunArgs(ctx, &scheduler.FSGCArgs{})
 }
 
-func (r *TaskRunner) RunArgs(ctx context.Context, args *scheduler.FSGCArgs) error {
+func (r *FSGGCTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSGCArgs) error {
 	for {
 		toDelete, err := r.inodes.GetAllDeleted(ctx, gcBatchSize)
 		if err != nil {
@@ -59,7 +58,7 @@ func (r *TaskRunner) RunArgs(ctx context.Context, args *scheduler.FSGCArgs) erro
 	}
 }
 
-func (r *TaskRunner) deleteDirINode(ctx context.Context, inode *inodes.INode, deletionDate time.Time) error {
+func (r *FSGGCTaskRunner) deleteDirINode(ctx context.Context, inode *inodes.INode, deletionDate time.Time) error {
 	for {
 		childs, err := r.inodes.Readdir(ctx, inode, &storage.PaginateCmd{Limit: gcBatchSize})
 		if err != nil {
@@ -86,7 +85,7 @@ func (r *TaskRunner) deleteDirINode(ctx context.Context, inode *inodes.INode, de
 	return nil
 }
 
-func (j *TaskRunner) deleteINode(ctx context.Context, inode *inodes.INode, deletionDate time.Time) error {
+func (j *FSGGCTaskRunner) deleteINode(ctx context.Context, inode *inodes.INode, deletionDate time.Time) error {
 	// XXX:MULTI-WRITE
 	//
 	// This file have severa consecutive writes but they are all idempotent and the

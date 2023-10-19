@@ -1,56 +1,52 @@
-package userdelete
+package users
 
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/model"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
-	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
-	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 )
 
-type TaskRunner struct {
-	users         users.Service
+type UserDeleteTaskRunner struct {
+	users         Service
 	webSessions   websessions.Service
 	davSessions   davsessions.Service
 	oauthSessions oauthsessions.Service
 	oauthConsents oauthconsents.Service
 	folders       folders.Service
-	inodes        inodes.Service
+	fs            dfs.Service
 }
 
-func NewTaskRunner(
-	users users.Service,
+func NewUserDeleteTaskRunner(
+	users Service,
 	webSessions websessions.Service,
 	davSessions davsessions.Service,
 	oauthSessions oauthsessions.Service,
 	oauthConsents oauthconsents.Service,
 	folders folders.Service,
-	inodes inodes.Service,
-) *TaskRunner {
-	return &TaskRunner{
+	fs dfs.Service,
+) *UserDeleteTaskRunner {
+	return &UserDeleteTaskRunner{
 		users,
 		webSessions,
 		davSessions,
 		oauthSessions,
 		oauthConsents,
 		folders,
-		inodes,
+		fs,
 	}
 }
 
-func (r *TaskRunner) Name() string { return model.UserDelete }
+func (r *UserDeleteTaskRunner) Name() string { return "user-delete" }
 
-func (j *TaskRunner) Run(ctx context.Context, rawArgs json.RawMessage) error {
+func (j *UserDeleteTaskRunner) Run(ctx context.Context, rawArgs json.RawMessage) error {
 	var args scheduler.UserDeleteArgs
 	err := json.Unmarshal(rawArgs, &args)
 	if err != nil {
@@ -60,7 +56,7 @@ func (j *TaskRunner) Run(ctx context.Context, rawArgs json.RawMessage) error {
 	return j.RunArgs(ctx, &args)
 }
 
-func (r *TaskRunner) RunArgs(ctx context.Context, args *scheduler.UserDeleteArgs) error {
+func (r *UserDeleteTaskRunner) RunArgs(ctx context.Context, args *scheduler.UserDeleteArgs) error {
 	// First delete the accesses
 	err := r.webSessions.DeleteAll(ctx, args.UserID)
 	if err != nil {
@@ -87,24 +83,9 @@ func (r *TaskRunner) RunArgs(ctx context.Context, args *scheduler.UserDeleteArgs
 			continue
 		}
 
-		rootFS, err := r.inodes.GetByID(ctx, folder.RootFS())
-		if errors.Is(err, errs.ErrNotFound) {
-			continue
-		}
-
+		err = r.fs.RemoveFS(ctx, &folder)
 		if err != nil {
-			return fmt.Errorf("failed to Get the rootFS for %q: %w", folder.Name(), err)
-		}
-
-		// TODO: Create a folderdelete task
-		err = r.inodes.Remove(ctx, rootFS)
-		if err != nil {
-			return fmt.Errorf("failed to remove the rootFS for %q: %w", folder.Name(), err)
-		}
-
-		err = r.folders.Delete(ctx, folder.ID())
-		if err != nil {
-			return fmt.Errorf("failed to delete the folder %q: %w", folder.ID(), err)
+			return fmt.Errorf("failed to RemoveFS: %w", err)
 		}
 	}
 
