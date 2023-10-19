@@ -42,9 +42,9 @@ func NewBootstrapCmd(_ string) *cobra.Command {
 				Log:      logger.Config{Level: slog.LevelInfo},
 			})
 			scheduler := scheduler.Init(db, tools)
-			userSvc := users.Init(tools, db, scheduler)
+			userInit := users.Init(tools, db, scheduler, nil, nil, nil, nil, nil, nil)
 
-			setupAdmin(cmd, userSvc)
+			setupAdmin(cmd, userInit.Service)
 		},
 	}
 

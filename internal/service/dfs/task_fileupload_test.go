@@ -1,4 +1,4 @@
-package fileupload
+package dfs
 
 import (
 	"context"
@@ -10,10 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"github.com/theduckcompany/duckcloud/internal/service/files"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/files"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/model"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -33,15 +32,15 @@ func TestFileUploadTask(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Name", func(t *testing.T) {
-		job := NewTaskRunner(nil, nil, nil)
-		assert.Equal(t, model.FileUpload, job.Name())
+		job := NewFileUploadTaskRunner(nil, nil, nil)
+		assert.Equal(t, "file-upload", job.Name())
 	})
 
 	t.Run("Run Success", func(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		inodesMock := inodes.NewMockService(t)
-		job := NewTaskRunner(foldersMock, filesMock, inodesMock)
+		job := NewFileUploadTaskRunner(foldersMock, filesMock, inodesMock)
 
 		content := []byte("Hello, World!")
 		afs := afero.NewMemMapFs()
@@ -81,7 +80,7 @@ func TestFileUploadTask(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		inodesMock := inodes.NewMockService(t)
-		job := NewTaskRunner(foldersMock, filesMock, inodesMock)
+		job := NewFileUploadTaskRunner(foldersMock, filesMock, inodesMock)
 
 		err := job.Run(ctx, json.RawMessage(`some-invalid-json`))
 		assert.ErrorContains(t, err, "failed to unmarshal the args")
@@ -91,7 +90,7 @@ func TestFileUploadTask(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		inodesMock := inodes.NewMockService(t)
-		job := NewTaskRunner(foldersMock, filesMock, inodesMock)
+		job := NewFileUploadTaskRunner(foldersMock, filesMock, inodesMock)
 
 		content := []byte("Hello, World!")
 

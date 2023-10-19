@@ -8,13 +8,12 @@ import (
 	"io/fs"
 	"path"
 
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
 const WalkBatchSize = 100
 
-type WalkDirFunc func(ctx context.Context, path string, i *inodes.INode) error
+type WalkDirFunc func(ctx context.Context, path string, i *INode) error
 
 func Walk(ctx context.Context, ffs FS, root string, fn WalkDirFunc) error {
 	if !fs.ValidPath(root) {

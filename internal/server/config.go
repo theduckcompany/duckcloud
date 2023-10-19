@@ -9,7 +9,7 @@ import (
 
 	"github.com/theduckcompany/duckcloud/assets"
 	"github.com/theduckcompany/duckcloud/internal/service/config"
-	"github.com/theduckcompany/duckcloud/internal/service/files"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/response"
@@ -22,12 +22,12 @@ import (
 
 type Config struct {
 	fx.Out
-	Listeners []router.Config `json:"listeners"`
-	Assets    assets.Config   `json:"assets"`
-	Storage   storage.Config  `json:"storage"`
-	Files     files.Config    `json:"files"`
-	Tools     tools.Config    `json:"tools"`
-	Web       web.Config      `json:"web"`
+	Listeners []router.Config
+	Assets    assets.Config
+	Storage   storage.Config
+	FS        dfs.Config
+	Tools     tools.Config
+	Web       web.Config
 }
 
 func NewConfigFromDB(ctx context.Context, configSvc config.Service, folderPath string) (Config, error) {
@@ -64,7 +64,7 @@ func NewConfigFromDB(ctx context.Context, configSvc config.Service, folderPath s
 		Assets: assets.Config{
 			HotReload: devModeEnabled,
 		},
-		Files: files.Config{
+		FS: dfs.Config{
 			Path: path.Join(folderPath, "files"),
 		},
 		Tools: tools.Config{

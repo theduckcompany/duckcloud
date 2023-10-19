@@ -3,16 +3,14 @@ package dfs_test
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"path"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
 	"github.com/theduckcompany/duckcloud/internal/tools/startutils"
-	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 func Test_Walk(t *testing.T) {
@@ -31,7 +29,7 @@ func Test_Walk(t *testing.T) {
 	t.Run("with an empty folder", func(t *testing.T) {
 		res := []string{}
 
-		err = dfs.Walk(ctx, ffs, ".", func(_ context.Context, p string, _ *inodes.INode) error {
+		err = dfs.Walk(ctx, ffs, ".", func(_ context.Context, p string, _ *dfs.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -41,19 +39,14 @@ func Test_Walk(t *testing.T) {
 	})
 
 	t.Run("with a simple file", func(t *testing.T) {
-		_, err := serv.InodesSvc.CreateFile(ctx, &inodes.CreateFileCmd{
-			Parent:     folder.RootFS(),
-			Name:       "foo.txt",
-			Size:       0,
-			Checksum:   "deadbeef",
-			FileID:     uuid.UUID("b30f1f80-d07a-4c17-a543-71503624fa3a"),
-			UploadedAt: time.Now(),
-		})
+		err := ffs.Upload(ctx, "/foo.txt", http.NoBody)
+		require.NoError(t, err)
+
+		err = serv.RunnerSvc.RunSingleJob(ctx)
 		require.NoError(t, err)
 
 		res := []string{}
-
-		err = dfs.Walk(ctx, ffs, "foo.txt", func(_ context.Context, p string, _ *inodes.INode) error {
+		err = dfs.Walk(ctx, ffs, "foo.txt", func(_ context.Context, p string, _ *dfs.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -62,14 +55,16 @@ func Test_Walk(t *testing.T) {
 		assert.Equal(t, []string{"foo.txt"}, res)
 	})
 
-	var dirA *inodes.INode
 	t.Run("with an empty directory", func(t *testing.T) {
-		dirA, err = ffs.CreateDir(ctx, "dir-a")
+		_, err := ffs.CreateDir(ctx, "dir-a")
+		require.NoError(t, err)
+
+		err = serv.RunnerSvc.RunSingleJob(ctx)
 		require.NoError(t, err)
 
 		res := []string{}
 
-		err = dfs.Walk(ctx, ffs, "dir-a", func(_ context.Context, p string, _ *inodes.INode) error {
+		err = dfs.Walk(ctx, ffs, "dir-a", func(_ context.Context, p string, _ *dfs.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -81,7 +76,7 @@ func Test_Walk(t *testing.T) {
 	t.Run("the root with a file and a dir", func(t *testing.T) {
 		res := []string{}
 
-		err = dfs.Walk(ctx, ffs, ".", func(_ context.Context, p string, _ *inodes.INode) error {
+		err = dfs.Walk(ctx, ffs, ".", func(_ context.Context, p string, _ *dfs.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -91,19 +86,14 @@ func Test_Walk(t *testing.T) {
 	})
 
 	t.Run("do all the sub folders", func(t *testing.T) {
-		_, err := serv.InodesSvc.CreateFile(ctx, &inodes.CreateFileCmd{
-			Parent:     dirA.ID(),
-			Name:       "file-a.txt",
-			Size:       0,
-			Checksum:   "deadbeef",
-			FileID:     uuid.UUID("b30f1f80-d07a-4c17-a543-71503624fa3a"),
-			UploadedAt: time.Now(),
-		})
+		err := ffs.Upload(ctx, "/dir-a/file-a.txt", http.NoBody)
+		require.NoError(t, err)
+
+		err = serv.RunnerSvc.RunSingleJob(ctx)
 		require.NoError(t, err)
 
 		res := []string{}
-
-		err = dfs.Walk(ctx, ffs, ".", func(_ context.Context, p string, _ *inodes.INode) error {
+		err = dfs.Walk(ctx, ffs, ".", func(_ context.Context, p string, _ *dfs.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -113,24 +103,20 @@ func Test_Walk(t *testing.T) {
 	})
 
 	t.Run("with a big folder and pagination", func(t *testing.T) {
-		dir, err := ffs.CreateDir(ctx, "big-folder")
+		_, err := ffs.CreateDir(ctx, "big-folder")
 		require.NoError(t, err)
 
 		for i := 0; i < 100; i++ {
-			_, err := serv.InodesSvc.CreateFile(ctx, &inodes.CreateFileCmd{
-				Parent:     dir.ID(),
-				Name:       fmt.Sprintf("%d.txt", i),
-				Size:       0,
-				Checksum:   "deadbeef",
-				FileID:     uuid.UUID("b30f1f80-d07a-4c17-a543-71503624fa3a"),
-				UploadedAt: time.Now(),
-			})
+			err := ffs.Upload(ctx, fmt.Sprintf("/big-folder/%d.txt", i), http.NoBody)
 			require.NoError(t, err)
 		}
 
+		err = serv.RunnerSvc.RunSingleJob(ctx)
+		require.NoError(t, err)
+
 		res := []string{}
 
-		err = dfs.Walk(ctx, ffs, "big-folder", func(_ context.Context, p string, _ *inodes.INode) error {
+		err = dfs.Walk(ctx, ffs, "big-folder", func(_ context.Context, p string, _ *dfs.INode) error {
 			res = append(res, p)
 			return nil
 		})

@@ -11,10 +11,6 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
-type Config struct {
-	Path string `json:"path"`
-}
-
 //go:generate mockery --name Service
 type Service interface {
 	Create(ctx context.Context) (afero.File, uuid.UUID, error)
@@ -22,11 +18,11 @@ type Service interface {
 	Delete(ctx context.Context, fileID uuid.UUID) error
 }
 
-func Init(cfg Config, fs afero.Fs, tools tools.Tools) (Service, error) {
-	err := fs.MkdirAll(cfg.Path, 0o700)
+func Init(dirPath string, fs afero.Fs, tools tools.Tools) (Service, error) {
+	err := fs.MkdirAll(dirPath, 0o700)
 	if err != nil && !errors.Is(err, os.ErrExist) {
 		return nil, fmt.Errorf("failed to create the files directory: %w", err)
 	}
 
-	return NewFSService(fs, cfg.Path, tools)
+	return NewFSService(fs, dirPath, tools)
 }

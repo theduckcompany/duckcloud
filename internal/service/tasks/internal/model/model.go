@@ -8,13 +8,6 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
-const (
-	FileUpload = "file-upload"
-	UserCreate = "user-create"
-	UserDelete = "user-delete"
-	FSGC       = "fs-gc"
-)
-
 type Status string
 
 const (

@@ -4,11 +4,18 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
+	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
+	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
+	"go.uber.org/fx"
 )
 
 //go:generate mockery --name Service
@@ -24,8 +31,32 @@ type Service interface {
 	SetDefaultFolder(ctx context.Context, user User, folder *folders.Folder) (*User, error)
 }
 
-func Init(tools tools.Tools, db *sql.DB, scheduler scheduler.Service) Service {
+type Result struct {
+	fx.Out
+	Service Service
+	Tasks   []runner.TaskRunner `group:"tasks"`
+}
+
+func Init(
+	tools tools.Tools,
+	db *sql.DB,
+	scheduler scheduler.Service,
+	folders folders.Service,
+	fs dfs.Service,
+	webSessions websessions.Service,
+	davSessions davsessions.Service,
+	oauthSessions oauthsessions.Service,
+	oauthConsents oauthconsents.Service,
+) Result {
 	storage := newSqlStorage(db, tools)
 
-	return NewService(tools, storage, scheduler)
+	svc := NewService(tools, storage, scheduler)
+
+	userCreateTask := NewUserCreateTaskRunner(svc, folders, fs)
+	userDeleteTask := NewUserDeleteTaskRunner(svc, webSessions, davSessions, oauthSessions, oauthConsents, folders, fs)
+
+	return Result{
+		Service: svc,
+		Tasks:   []runner.TaskRunner{userCreateTask, userDeleteTask},
+	}
 }

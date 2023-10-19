@@ -1,4 +1,4 @@
-package fileupload
+package dfs
 
 import (
 	"context"
@@ -8,26 +8,25 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/theduckcompany/duckcloud/internal/service/files"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/files"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
-	"github.com/theduckcompany/duckcloud/internal/service/inodes"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/model"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 )
 
-type TaskRunner struct {
+type FileUploadTaskRunner struct {
 	folders folders.Service
 	files   files.Service
 	inodes  inodes.Service
 }
 
-func NewTaskRunner(folders folders.Service, files files.Service, inodes inodes.Service) *TaskRunner {
-	return &TaskRunner{folders, files, inodes}
+func NewFileUploadTaskRunner(folders folders.Service, files files.Service, inodes inodes.Service) *FileUploadTaskRunner {
+	return &FileUploadTaskRunner{folders, files, inodes}
 }
 
-func (r *TaskRunner) Name() string { return model.FileUpload }
+func (r *FileUploadTaskRunner) Name() string { return "file-upload" }
 
-func (r *TaskRunner) Run(ctx context.Context, rawArgs json.RawMessage) error {
+func (r *FileUploadTaskRunner) Run(ctx context.Context, rawArgs json.RawMessage) error {
 	var args scheduler.FileUploadArgs
 	err := json.Unmarshal(rawArgs, &args)
 	if err != nil {
@@ -37,7 +36,7 @@ func (r *TaskRunner) Run(ctx context.Context, rawArgs json.RawMessage) error {
 	return r.RunArgs(ctx, &args)
 }
 
-func (r *TaskRunner) RunArgs(ctx context.Context, args *scheduler.FileUploadArgs) error {
+func (r *FileUploadTaskRunner) RunArgs(ctx context.Context, args *scheduler.FileUploadArgs) error {
 	file, err := r.files.Open(ctx, args.FileID)
 	if err != nil {
 		return fmt.Errorf("failed to files.Open: %w", err)
