@@ -1,4 +1,4 @@
-package dfs
+package dfs_test
 
 import (
 	"context"
@@ -7,63 +7,31 @@ import (
 	"testing"
 	"time"
 
-	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/theduckcompany/duckcloud/internal/service/files"
-	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/inodes"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner/usercreate"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
-	"github.com/theduckcompany/duckcloud/internal/service/users"
-	"github.com/theduckcompany/duckcloud/internal/tools"
-	"github.com/theduckcompany/duckcloud/internal/tools/logger"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/startutils"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 func Test_Walk(t *testing.T) {
 	ctx := context.Background()
 
-	tools := tools.NewToolbox(tools.Config{Log: logger.Config{}})
-	db := storage.NewTestStorage(t)
-	afs := afero.NewMemMapFs()
+	serv := startutils.NewServer(t)
+	serv.Bootstrap(t)
 
-	filesSvc, err := files.NewFSService(afs, "/", tools)
-	require.NoError(t, err)
-
-	inodesSvc := inodes.Init(tools, db)
-	foldersSvc := folders.Init(tools, db)
-	schedulerSvc := scheduler.Init(db, tools)
-	fsSvc := NewFSService(inodesSvc, filesSvc, foldersSvc, schedulerSvc, tools)
-	usersSvc := users.Init(tools, db, schedulerSvc)
-	runnerSvc := runner.Init([]runner.TaskRunner{
-		usercreate.NewTaskRunner(usersSvc, foldersSvc, inodesSvc),
-	}, nil, tools, db)
-
-	user, err := usersSvc.Create(ctx, &users.CreateCmd{
-		Username: "Jane-Doe",
-		Password: "my little secret",
-		IsAdmin:  true,
-	})
-	require.NoError(t, err)
-
-	// Create all the user stuff
-	err = runnerSvc.RunSingleJob(ctx)
-	require.NoError(t, err)
-
-	userFolders, err := foldersSvc.GetAllUserFolders(ctx, user.ID(), nil)
+	userFolders, err := serv.FoldersSvc.GetAllUserFolders(ctx, serv.User.ID(), nil)
 	require.NoError(t, err)
 
 	folder := &userFolders[0]
 
-	ffs := fsSvc.GetFolderFS(folder)
+	ffs := serv.DFSSvc.GetFolderFS(folder)
 
 	t.Run("with an empty folder", func(t *testing.T) {
 		res := []string{}
 
-		err = Walk(ctx, ffs, ".", func(_ context.Context, p string, _ *inodes.INode) error {
+		err = dfs.Walk(ctx, ffs, ".", func(_ context.Context, p string, _ *inodes.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -73,7 +41,7 @@ func Test_Walk(t *testing.T) {
 	})
 
 	t.Run("with a simple file", func(t *testing.T) {
-		_, err := inodesSvc.CreateFile(ctx, &inodes.CreateFileCmd{
+		_, err := serv.InodesSvc.CreateFile(ctx, &inodes.CreateFileCmd{
 			Parent:     folder.RootFS(),
 			Name:       "foo.txt",
 			Size:       0,
@@ -85,7 +53,7 @@ func Test_Walk(t *testing.T) {
 
 		res := []string{}
 
-		err = Walk(ctx, ffs, "foo.txt", func(_ context.Context, p string, _ *inodes.INode) error {
+		err = dfs.Walk(ctx, ffs, "foo.txt", func(_ context.Context, p string, _ *inodes.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -101,7 +69,7 @@ func Test_Walk(t *testing.T) {
 
 		res := []string{}
 
-		err = Walk(ctx, ffs, "dir-a", func(_ context.Context, p string, _ *inodes.INode) error {
+		err = dfs.Walk(ctx, ffs, "dir-a", func(_ context.Context, p string, _ *inodes.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -113,7 +81,7 @@ func Test_Walk(t *testing.T) {
 	t.Run("the root with a file and a dir", func(t *testing.T) {
 		res := []string{}
 
-		err = Walk(ctx, ffs, ".", func(_ context.Context, p string, _ *inodes.INode) error {
+		err = dfs.Walk(ctx, ffs, ".", func(_ context.Context, p string, _ *inodes.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -123,7 +91,7 @@ func Test_Walk(t *testing.T) {
 	})
 
 	t.Run("do all the sub folders", func(t *testing.T) {
-		_, err := inodesSvc.CreateFile(ctx, &inodes.CreateFileCmd{
+		_, err := serv.InodesSvc.CreateFile(ctx, &inodes.CreateFileCmd{
 			Parent:     dirA.ID(),
 			Name:       "file-a.txt",
 			Size:       0,
@@ -135,7 +103,7 @@ func Test_Walk(t *testing.T) {
 
 		res := []string{}
 
-		err = Walk(ctx, ffs, ".", func(_ context.Context, p string, _ *inodes.INode) error {
+		err = dfs.Walk(ctx, ffs, ".", func(_ context.Context, p string, _ *inodes.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -149,7 +117,7 @@ func Test_Walk(t *testing.T) {
 		require.NoError(t, err)
 
 		for i := 0; i < 100; i++ {
-			_, err := inodesSvc.CreateFile(ctx, &inodes.CreateFileCmd{
+			_, err := serv.InodesSvc.CreateFile(ctx, &inodes.CreateFileCmd{
 				Parent:     dir.ID(),
 				Name:       fmt.Sprintf("%d.txt", i),
 				Size:       0,
@@ -162,7 +130,7 @@ func Test_Walk(t *testing.T) {
 
 		res := []string{}
 
-		err = Walk(ctx, ffs, "big-folder", func(_ context.Context, p string, _ *inodes.INode) error {
+		err = dfs.Walk(ctx, ffs, "big-folder", func(_ context.Context, p string, _ *inodes.INode) error {
 			res = append(res, p)
 			return nil
 		})
