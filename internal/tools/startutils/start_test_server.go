@@ -56,10 +56,16 @@ func NewServer(t *testing.T) *Server {
 	dfsInit, err := dfs.Init(dfs.Config{Path: "/"}, afs, db, foldersSvc, schedulerSvc, tools)
 	require.NoError(t, err)
 
-	usersSvc := users.Init(tools, db, schedulerSvc, foldersSvc, dfsInit.Service, webSessionsSvc,
+	usersInit := users.Init(tools, db, schedulerSvc, foldersSvc, dfsInit.Service, webSessionsSvc,
 		davSessionsSvc, oauthSessionsSvc, oauthConsentsSvc)
 
-	runnerSvc := runner.Init(append(dfsInit.Tasks, usersSvc.Tasks...), nil, tools, db)
+	runnerSvc := runner.Init(
+		[]runner.TaskRunner{
+			dfsInit.FSGCTask,
+			dfsInit.FileUploadTask,
+			usersInit.UserCreateTask,
+			usersInit.UserDeleteTask,
+		}, nil, tools, db)
 
 	return &Server{
 		Tools: tools,
@@ -75,7 +81,7 @@ func NewServer(t *testing.T) *Server {
 		OauthConsentsSvc: oauthConsentsSvc,
 
 		DFSSvc:    dfsInit.Service,
-		UsersSvc:  usersSvc.Service,
+		UsersSvc:  usersInit.Service,
 		RunnerSvc: runnerSvc,
 	}
 }

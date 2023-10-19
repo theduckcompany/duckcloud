@@ -43,8 +43,9 @@ type Service interface {
 
 type Result struct {
 	fx.Out
-	Service Service
-	Tasks   []runner.TaskRunner `group:"tasks"`
+	Service        Service
+	FileUploadTask runner.TaskRunner `group:"tasks"`
+	FSGCTask       runner.TaskRunner `group:"tasks"`
 }
 
 func Init(cfg Config, fs afero.Fs, db *sql.DB, folders folders.Service, scheduler scheduler.Service, tools tools.Tools) (Result, error) {
@@ -54,13 +55,9 @@ func Init(cfg Config, fs afero.Fs, db *sql.DB, folders folders.Service, schedule
 		return Result{}, fmt.Errorf("failed to init files: %w", err)
 	}
 
-	svc := NewFSService(inodes, files, folders, scheduler, tools)
-
-	fileUploadTask := NewFileUploadTaskRunner(folders, files, inodes)
-	fsGCTask := NewFSGGCTaskRunner(inodes, files, folders, tools)
-
 	return Result{
-		Service: svc,
-		Tasks:   []runner.TaskRunner{fileUploadTask, fsGCTask},
+		Service:        NewFSService(inodes, files, folders, scheduler, tools),
+		FileUploadTask: NewFileUploadTaskRunner(folders, files, inodes),
+		FSGCTask:       NewFSGGCTaskRunner(inodes, files, folders, tools),
 	}, nil
 }
