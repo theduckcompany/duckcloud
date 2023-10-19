@@ -48,6 +48,7 @@ func NewService(tools tools.Tools, storage storage.Storage, runners []TaskRunner
 }
 
 func (t *TasksRunner) RunLoop() {
+	t.log.Info("start tasks loop", slog.Int("tasks", len(t.runners)))
 	ticker := time.NewTicker(t.pauseDuration)
 	ctx, cancel := context.WithCancel(context.Background())
 	t.cancel = cancel

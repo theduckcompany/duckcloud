@@ -64,7 +64,8 @@ func start(ctx context.Context, db *sql.DB, fs afero.Fs, folderPath string, invo
 			fx.Annotate(tools.NewToolbox, fx.As(new(tools.Tools))),
 
 			// Services
-			fx.Annotate(users.Init, fx.As(new(users.Service))),
+			users.Init,
+			dfs.Init,
 			fx.Annotate(config.Init, fx.As(new(config.Service))),
 			fx.Annotate(oauthcodes.Init, fx.As(new(oauthcodes.Service))),
 			fx.Annotate(oauthsessions.Init, fx.As(new(oauthsessions.Service))),
@@ -74,7 +75,6 @@ func start(ctx context.Context, db *sql.DB, fs afero.Fs, folderPath string, invo
 			fx.Annotate(oauth2.Init, fx.As(new(oauth2.Service))),
 			fx.Annotate(davsessions.Init, fx.As(new(davsessions.Service))),
 			fx.Annotate(folders.Init, fx.As(new(folders.Service))),
-			fx.Annotate(dfs.Init, fx.As(new(dfs.Service))),
 			fx.Annotate(scheduler.Init, fx.As(new(scheduler.Service))),
 
 			// HTTP handlers

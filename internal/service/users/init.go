@@ -33,8 +33,9 @@ type Service interface {
 
 type Result struct {
 	fx.Out
-	Service Service
-	Tasks   []runner.TaskRunner `group:"tasks"`
+	Service        Service
+	UserDeleteTask runner.TaskRunner `group:"tasks"`
+	UserCreateTask runner.TaskRunner `group:"tasks"`
 }
 
 func Init(
@@ -52,11 +53,9 @@ func Init(
 
 	svc := NewService(tools, storage, scheduler)
 
-	userCreateTask := NewUserCreateTaskRunner(svc, folders, fs)
-	userDeleteTask := NewUserDeleteTaskRunner(svc, webSessions, davSessions, oauthSessions, oauthConsents, folders, fs)
-
 	return Result{
-		Service: svc,
-		Tasks:   []runner.TaskRunner{userCreateTask, userDeleteTask},
+		Service:        svc,
+		UserCreateTask: NewUserCreateTaskRunner(svc, folders, fs),
+		UserDeleteTask: NewUserDeleteTaskRunner(svc, webSessions, davSessions, oauthSessions, oauthConsents, folders, fs),
 	}
 }
