@@ -46,13 +46,11 @@ func TestFSMoveTask(t *testing.T) {
 			Folder: &folders.ExampleAlicePersonalFolder,
 			Path:   "/",
 		}).Return(&inodes.ExampleAliceRoot, nil).Once()
-		inodesMock.On("GetByID", mock.Anything, *inodes.ExampleAliceFile.Parent()).
-			Return(&inodes.ExampleAliceRoot, nil).Once()
 		inodesMock.On("RegisterWrite", mock.Anything, &inodes.ExampleAliceFile, int64(-42), now).
 			Return(nil).Once()
 		inodesMock.On("PatchMove", mock.Anything, &inodes.ExampleAliceFile, &inodes.ExampleAliceRoot, "bar.txt", now).
 			Return(&newFile, nil).Once()
-		inodesMock.On("RegisterWrite", mock.Anything, &newFile, int64(42), now).
+		inodesMock.On("RegisterWrite", mock.Anything, &newFile, int64(42), now.Add(time.Microsecond)).
 			Return(nil).Once()
 
 		err := runner.RunArgs(ctx, &scheduler.FSMoveArgs{
@@ -86,14 +84,12 @@ func TestFSMoveTask(t *testing.T) {
 			Folder: &folders.ExampleAlicePersonalFolder,
 			Path:   "/",
 		}).Return(&inodes.ExampleAliceRoot, nil).Once()
-		inodesMock.On("GetByID", mock.Anything, *inodes.ExampleAliceFile.Parent()).
-			Return(&inodes.ExampleAliceRoot, nil).Once()
 		inodesMock.On("RegisterWrite", mock.Anything, &inodes.ExampleAliceFile, int64(-42), now).
 			Return(nil).Once()
 		inodesMock.On("PatchMove", mock.Anything, &inodes.ExampleAliceFile, &inodes.ExampleAliceRoot, "bar.txt", now).
 			Return(&newFile, nil).Once()
 		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceDir).Return(nil).Once()
-		inodesMock.On("RegisterWrite", mock.Anything, &newFile, int64(42), now).
+		inodesMock.On("RegisterWrite", mock.Anything, &newFile, int64(42), now.Add(time.Microsecond)).
 			Return(nil).Once()
 
 		err := runner.RunArgs(ctx, &scheduler.FSMoveArgs{
@@ -190,37 +186,6 @@ func TestFSMoveTask(t *testing.T) {
 			Folder: &folders.ExampleAlicePersonalFolder,
 			Path:   "/",
 		}).Return(nil, errs.Internal(errors.New("some-error"))).Once()
-
-		err := runner.RunArgs(ctx, &scheduler.FSMoveArgs{
-			FolderID:    folders.ExampleAlicePersonalFolder.ID(),
-			SourceInode: inodes.ExampleAliceFile.ID(),
-			TargetPath:  "/bar.txt",
-			MovedAt:     now,
-		})
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
-	})
-
-	t.Run("RunArg with a a get parent id error", func(t *testing.T) {
-		inodesMock := inodes.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
-
-		runner := NewFSMoveTaskRunner(inodesMock, foldersMock)
-
-		foldersMock.On("GetByID", mock.Anything, folders.ExampleAlicePersonalFolder.ID()).
-			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
-		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Folder: &folders.ExampleAlicePersonalFolder,
-			Path:   "/bar.txt",
-		}).Return(&inodes.ExampleAliceDir, nil).Once()
-		inodesMock.On("GetByID", mock.Anything, inodes.ExampleAliceFile.ID()).
-			Return(&inodes.ExampleAliceFile, nil).Once()
-		inodesMock.On("MkdirAll", mock.Anything, &inodes.PathCmd{
-			Folder: &folders.ExampleAlicePersonalFolder,
-			Path:   "/",
-		}).Return(&inodes.ExampleAliceRoot, nil).Once()
-		inodesMock.On("GetByID", mock.Anything, *inodes.ExampleAliceFile.Parent()).
-			Return(nil, errs.Internal(errors.New("some-error"))).Once()
 
 		err := runner.RunArgs(ctx, &scheduler.FSMoveArgs{
 			FolderID:    folders.ExampleAlicePersonalFolder.ID(),

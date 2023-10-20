@@ -286,7 +286,7 @@ func (s *INodeService) PatchMove(ctx context.Context, source, parent *INode, new
 		"last_modified_at": newFile.lastModifiedAt,
 	})
 	if err != nil {
-		return nil, errs.Internal(fmt.Errorf("failed to Patch the inode: %w", err))
+		return nil, errs.Internal(fmt.Errorf("failed to PatchMove the inode: %w", err))
 	}
 
 	return &newFile, nil
