@@ -62,6 +62,7 @@ func NewServer(t *testing.T) *Server {
 	runnerSvc := runner.Init(
 		[]runner.TaskRunner{
 			dfsInit.FSGCTask,
+			dfsInit.FSMoveTask,
 			dfsInit.FileUploadTask,
 			usersInit.UserCreateTask,
 			usersInit.UserDeleteTask,
