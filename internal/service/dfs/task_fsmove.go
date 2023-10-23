@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"path"
+	"time"
 
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
@@ -63,21 +64,12 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 		return fmt.Errorf("failed to fetch the source: %w", err)
 	}
 
-	if oldNode.Parent() != nil {
-		parentOldNode, err := r.inodes.GetByID(ctx, *oldNode.Parent())
-		if err != nil {
-			return fmt.Errorf("failed to retrieve the old node parent: %w", err)
-		}
-
-		if parentOldNode.LastModifiedAt().Before(args.MovedAt) {
-			// XXX:MULTI-WRITE
-			//
-			// This call is idemptotent and will be executed only once.
-			err = r.inodes.RegisterWrite(ctx, oldNode, -oldNode.Size(), args.MovedAt)
-			if err != nil {
-				return fmt.Errorf("failed to remove the old inode file size: %w", err)
-			}
-		}
+	// XXX:MULTI-WRITE
+	//
+	//
+	err = r.inodes.RegisterWrite(ctx, oldNode, -oldNode.Size(), args.MovedAt)
+	if err != nil {
+		return fmt.Errorf("failed to remove the old inode file size: %w", err)
 	}
 
 	newNode, err := r.inodes.PatchMove(ctx, oldNode, targetDir, filename, args.MovedAt)
@@ -101,11 +93,9 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 		}
 	}
 
-	if newNode.LastModifiedAt().Before(args.MovedAt) {
-		err = r.inodes.RegisterWrite(ctx, newNode, newNode.Size(), args.MovedAt)
-		if err != nil {
-			return fmt.Errorf("failed to add the new inode file size: %w", err)
-		}
+	err = r.inodes.RegisterWrite(ctx, newNode, newNode.Size(), args.MovedAt.Add(time.Microsecond))
+	if err != nil {
+		return fmt.Errorf("failed to add the new inode file size: %w", err)
 	}
 
 	return nil
