@@ -88,7 +88,7 @@ func TestWebdavLitmus(t *testing.T) {
 		}
 		h.ServeHTTP(w, r)
 
-		jobErr := serv.RunnerSvc.RunSingleJob(r.Context())
+		jobErr := serv.RunnerSvc.Run(r.Context())
 		if jobErr != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

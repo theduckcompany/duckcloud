@@ -68,7 +68,7 @@ func NewServer(t *testing.T) *Server {
 			dfsInit.FileUploadTask,
 			usersInit.UserCreateTask,
 			usersInit.UserDeleteTask,
-		}, nil, tools, db)
+		}, tools, db)
 
 	return &Server{
 		Tools: tools,
@@ -99,7 +99,7 @@ func (s *Server) Bootstrap(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = s.RunnerSvc.RunSingleJob(ctx)
+	err = s.RunnerSvc.Run(ctx)
 	require.NoError(t, err)
 
 	// Fetch again the user in order to have the values changed by

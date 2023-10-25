@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/spf13/afero"
 	"github.com/theduckcompany/duckcloud/assets"
@@ -22,6 +23,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/cron"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
@@ -92,8 +94,14 @@ func start(ctx context.Context, db *sql.DB, fs afero.Fs, folderPath string, invo
 			fx.Annotate(runner.Init, fx.ParamTags(`group:"tasks"`), fx.As(new(runner.Service))),
 		),
 
-		// Start the command
+		// Run the migration
 		fx.Invoke(storage.RunMigrations),
+
+		// Start the tasks-runner
+		fx.Invoke(func(svc runner.Service, lc fx.Lifecycle, tools tools.Tools) {
+			cronSvc := cron.New("tasks-runner", 500*time.Millisecond, tools, svc)
+			cronSvc.FXRegister(lc)
+		}),
 		invoke,
 	)
 

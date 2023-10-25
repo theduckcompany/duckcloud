@@ -129,7 +129,7 @@ func TestPrefix(t *testing.T) {
 			continue
 		}
 
-		require.NoError(t, tc.Runner.RunSingleJob(ctx))
+		require.NoError(t, tc.Runner.Run(ctx))
 
 		wantB := map[string]int{
 			"/":       http.StatusCreated,
@@ -142,7 +142,7 @@ func TestPrefix(t *testing.T) {
 			continue
 		}
 
-		require.NoError(t, tc.Runner.RunSingleJob(ctx))
+		require.NoError(t, tc.Runner.Run(ctx))
 
 		wantC := map[string]int{
 			"/":       http.StatusCreated,
@@ -155,7 +155,7 @@ func TestPrefix(t *testing.T) {
 			continue
 		}
 
-		require.NoError(t, tc.Runner.RunSingleJob(ctx))
+		require.NoError(t, tc.Runner.Run(ctx))
 
 		wantD := map[string]int{
 			"/":       http.StatusCreated,
@@ -168,7 +168,7 @@ func TestPrefix(t *testing.T) {
 			continue
 		}
 
-		require.NoError(t, tc.Runner.RunSingleJob(ctx))
+		require.NoError(t, tc.Runner.Run(ctx))
 
 		wantE := map[string]int{
 			"/":       http.StatusCreated,
@@ -181,7 +181,7 @@ func TestPrefix(t *testing.T) {
 			continue
 		}
 
-		require.NoError(t, tc.Runner.RunSingleJob(ctx))
+		require.NoError(t, tc.Runner.Run(ctx))
 
 		wantF := map[string]int{
 			"/":       http.StatusCreated,
@@ -208,7 +208,7 @@ func TestPrefix(t *testing.T) {
 			lockToken = h.Get("Lock-Token")
 		}
 
-		require.NoError(t, tc.Runner.RunSingleJob(ctx))
+		require.NoError(t, tc.Runner.Run(ctx))
 
 		ifHeader := fmt.Sprintf("<%s/a/b/e/g> (%s)", srv.URL, lockToken)
 		wantH := map[string]int{
@@ -222,7 +222,7 @@ func TestPrefix(t *testing.T) {
 			continue
 		}
 
-		require.NoError(t, tc.Runner.RunSingleJob(ctx))
+		require.NoError(t, tc.Runner.Run(ctx))
 
 		got, err := find(ctx, nil, fs, "/")
 		if err != nil {
@@ -363,7 +363,7 @@ func TestFilenameEscape(t *testing.T) {
 		}
 	}
 
-	err := tc.Runner.RunSingleJob(ctx)
+	err := tc.Runner.Run(ctx)
 	require.NoError(t, err)
 
 	srv := httptest.NewServer(&Handler{

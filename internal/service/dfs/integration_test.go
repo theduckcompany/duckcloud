@@ -192,7 +192,7 @@ func Test_DFS_Integration(t *testing.T) {
 		})
 
 		t.Run("Run the tasks", func(t *testing.T) {
-			err := serv.RunnerSvc.RunSingleJob(ctx)
+			err := serv.RunnerSvc.Run(ctx)
 			require.NoError(t, err)
 		})
 
@@ -250,7 +250,7 @@ func Test_DFS_Integration(t *testing.T) {
 		})
 
 		t.Run("Run the tasks", func(t *testing.T) {
-			err := serv.RunnerSvc.RunSingleJob(ctx)
+			err := serv.RunnerSvc.Run(ctx)
 			require.NoError(t, err)
 		})
 

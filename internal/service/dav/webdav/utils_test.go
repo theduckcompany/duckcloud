@@ -62,7 +62,7 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 			t.Fatalf("unknown file operation %q", op[0])
 		}
 
-		err = serv.RunnerSvc.RunSingleJob(ctx)
+		err = serv.RunnerSvc.Run(ctx)
 		require.NoError(t, err)
 	}
 
