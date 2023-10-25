@@ -42,7 +42,7 @@ func Test_Walk(t *testing.T) {
 		err := ffs.Upload(ctx, "/foo.txt", http.NoBody)
 		require.NoError(t, err)
 
-		err = serv.RunnerSvc.RunSingleJob(ctx)
+		err = serv.RunnerSvc.Run(ctx)
 		require.NoError(t, err)
 
 		res := []string{}
@@ -59,7 +59,7 @@ func Test_Walk(t *testing.T) {
 		_, err := ffs.CreateDir(ctx, "dir-a")
 		require.NoError(t, err)
 
-		err = serv.RunnerSvc.RunSingleJob(ctx)
+		err = serv.RunnerSvc.Run(ctx)
 		require.NoError(t, err)
 
 		res := []string{}
@@ -89,7 +89,7 @@ func Test_Walk(t *testing.T) {
 		err := ffs.Upload(ctx, "/dir-a/file-a.txt", http.NoBody)
 		require.NoError(t, err)
 
-		err = serv.RunnerSvc.RunSingleJob(ctx)
+		err = serv.RunnerSvc.Run(ctx)
 		require.NoError(t, err)
 
 		res := []string{}
@@ -111,7 +111,7 @@ func Test_Walk(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		err = serv.RunnerSvc.RunSingleJob(ctx)
+		err = serv.RunnerSvc.Run(ctx)
 		require.NoError(t, err)
 
 		res := []string{}

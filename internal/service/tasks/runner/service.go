@@ -14,19 +14,15 @@ import (
 )
 
 const (
-	defaultTimeduration = 500 * time.Millisecond
-	defaultRetryDelay   = 5 * time.Second
-	defaultMaxRetries   = 5
+	defaultRetryDelay = 5 * time.Second
+	defaultMaxRetries = 5
 )
 
 type TasksRunner struct {
-	storage       storage.Storage
-	pauseDuration time.Duration
-	runners       map[string]TaskRunner
-	cancel        context.CancelFunc
-	quit          chan struct{}
-	log           *slog.Logger
-	clock         clock.Clock
+	storage storage.Storage
+	runners map[string]TaskRunner
+	clock   clock.Clock
+	log     *slog.Logger
 }
 
 func NewService(tools tools.Tools, storage storage.Storage, runners []TaskRunner) *TasksRunner {
@@ -37,45 +33,14 @@ func NewService(tools tools.Tools, storage storage.Storage, runners []TaskRunner
 	}
 
 	return &TasksRunner{
-		storage:       storage,
-		pauseDuration: defaultTimeduration,
-		runners:       runnerMap,
-		cancel:        nil,
-		quit:          make(chan struct{}),
-		log:           tools.Logger(),
-		clock:         tools.Clock(),
+		storage: storage,
+		runners: runnerMap,
+		clock:   tools.Clock(),
+		log:     tools.Logger(),
 	}
 }
 
-func (t *TasksRunner) RunLoop() {
-	t.log.Info("start tasks loop", slog.Int("tasks", len(t.runners)))
-	ticker := time.NewTicker(t.pauseDuration)
-	ctx, cancel := context.WithCancel(context.Background())
-	t.cancel = cancel
-
-	for {
-		select {
-		case <-ticker.C:
-			err := t.RunSingleJob(ctx)
-			if err != nil {
-				t.log.Error("fs gc error", slog.String("error", err.Error()))
-			}
-		case <-t.quit:
-			ticker.Stop()
-			cancel()
-		}
-	}
-}
-
-func (t *TasksRunner) Stop() {
-	close(t.quit)
-
-	if t.cancel != nil {
-		t.cancel()
-	}
-}
-
-func (t *TasksRunner) RunSingleJob(ctx context.Context) error {
+func (t *TasksRunner) Run(ctx context.Context) error {
 	for {
 		task, err := t.storage.GetNext(ctx)
 		if errors.Is(err, storage.ErrNotFound) {
@@ -87,11 +52,9 @@ func (t *TasksRunner) RunSingleJob(ctx context.Context) error {
 			return fmt.Errorf("failed to GetNext task: %w", err)
 		}
 
-		log := t.log.With("task", task)
-
 		runner, ok := t.runners[task.Name]
 		if !ok {
-			log.Error(fmt.Sprintf("unhandled task name: %s", task.Name))
+			t.log.Error(fmt.Sprintf("unhandled task name: %s", task.Name))
 
 			err := t.storage.Patch(ctx, task.ID, map[string]any{"status": model.Failed})
 			if err != nil {
@@ -105,13 +68,13 @@ func (t *TasksRunner) RunSingleJob(ctx context.Context) error {
 		err = runner.Run(ctx, task.Args)
 		switch {
 		case err == nil:
-			log.DebugContext(ctx, "task succeed")
+			t.log.DebugContext(ctx, "task succeed")
 
 			patchErr = t.storage.Patch(ctx, task.ID, map[string]any{"status": model.Succeeded})
 
 		case task.Retries < defaultMaxRetries:
 			task.Retries++
-			log.With(slog.String("error", err.Error())).
+			t.log.With(slog.String("error", err.Error())).
 				ErrorContext(ctx, fmt.Sprintf("task failed (#%d), retry later", task.Retries))
 
 			patchErr = t.storage.Patch(ctx, task.ID, map[string]any{
@@ -121,7 +84,7 @@ func (t *TasksRunner) RunSingleJob(ctx context.Context) error {
 
 		default:
 			task.Status = model.Failed
-			log.With(slog.String("error", err.Error())).
+			t.log.With(slog.String("error", err.Error())).
 				ErrorContext(ctx, "task failed, too many retries")
 
 			patchErr = t.storage.Patch(ctx, task.ID, map[string]any{"status": model.Failed})
