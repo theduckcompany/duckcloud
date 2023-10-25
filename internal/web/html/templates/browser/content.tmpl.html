@@ -1,5 +1,5 @@
 {{ $url := pathJoin "/browser" $.folder.ID $.fullPath}}
-<section id="content" class="p-4" hx-get="{{$url}}" hx-trigger="refresh-event">
+<section id="content" class="p-4" hx-get="{{$url}}" hx-swap="outerHTML" hx-trigger="refresh-event">
   <div id="status-bar"></div>
   <div class="row justify-content-between">
     <div class="col-md-10 col-8">
@@ -15,7 +15,15 @@
     </div>
 
     <div class="col-md-2 col-4">
-      <button id="upload-btn" class="btn btn-primary button-lg">Upload</button>
+      <div class="dropdown">
+        <button class="d-flex btn btn-primary button-lg dropdown-toggle align-items-center" type="button"
+          id="add-button" data-mdb-toggle="dropdown" aria-expanded="false"><i class="bi bi-plus me-1"
+            style="font-size: 1.3rem;"></i>Add</button>
+        <ul class="dropdown-menu" arai-labelledby="add-button">
+          <li><a id="upload-file-btn" class="dropdown-item">Upload File</a></li>
+          <li><a id="upload-folder-btn" class="dropdown-item">Upload Folder</a></li>
+        </ul>
+      </div>
     </div>
   </div>
 
@@ -36,23 +44,66 @@
 
 </section>
 <script type="module">
-  import {Uppy, XHRUpload, Dashboard, StatusBar} from "/assets/js/uppy.min.mjs"
+  import {Uppy, XHRUpload, StatusBar} from "/assets/js/uppy.min.mjs"
   let client = new Uppy().use(XHRUpload, {
     endpoint: 'https://{{.host}}/browser/upload',
+    allowMultipleUploadBatches: true
   })
 
   client.setMeta({rootPath: {{$.fullPath}}})
   client.setMeta({folderID: {{$.folder.ID}}})
-
-  client.use(Dashboard, {
-    autoProceed: true,
-    fileManagerSelectionType: 'both',
-    proudlyDisplayPoweredByUppy: false,
-    trigger: "#upload-btn",
-    showProgressDetails: true,
-    closeModalOnClickOutside: true,
-  })
   client.use(StatusBar, {target: '#status-bar'});
 
+  client.on('complete', (result) => {
+    htmx.trigger("#content", "refresh-event");
+    // console.log('successful files:', result.successful);
+    // console.log('failed files:', result.failed);
+  });
+
+  document.getElementById('upload-file-btn').
+    addEventListener("click", (e) => {
+      var input = document.createElement('input');
+      input.type = 'file';
+      input.multiple = true
+
+      input.onchange = e => {
+        for (const file of e.target.files) {
+          client.addFile(file)
+        }
+
+        client.upload()
+      }
+
+      input.click();
+    })
+
+  document.getElementById('upload-folder-btn').
+    addEventListener("click", (e) => {
+      var input = document.createElement('input');
+      input.type = 'file';
+      input.multiple = true
+      input.webkitdirectory = true
+      input.mozdirectory = true
+      input.directory = true
+
+      input.onchange = e => {
+        for (const file of e.target.files) {
+          console.log(file)
+          console.log(file.webkitRelativePath)
+          client.addFile({
+
+            name: file.webkitRelativePath,
+            data: file,
+            type: file.type,
+            source: 'Local',
+            isRemote: false,
+          })
+        }
+
+        client.upload()
+      }
+
+      input.click();
+    })
 
 </script>

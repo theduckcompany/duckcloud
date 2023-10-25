@@ -388,8 +388,6 @@ func Test_Browser_Page(t *testing.T) {
 		folderFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetFolderFS", &folders.ExampleAlicePersonalFolder).Return(folderFSMock)
 
-		folderFSMock.On("CreateDir", mock.Anything, "/foo/bar/baz").Return(&dfs.ExampleAliceRoot, nil).Once()
-
 		folderFSMock.On("Upload", mock.Anything, "foo/bar/baz/hello.txt", mock.Anything).
 			Run(func(args mock.Arguments) {
 				uploaded, err := io.ReadAll(args[2].(io.Reader))
