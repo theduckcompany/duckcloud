@@ -41,13 +41,18 @@ func (s *LocalFS) Folder() *folders.Folder {
 	return s.folder
 }
 
-func (s *LocalFS) ListDir(ctx context.Context, dirPath string, cmd *storage.PaginateCmd) ([]INode, error) {
+func (s *LocalFS) ListDir(ctx context.Context, path string, cmd *storage.PaginateCmd) ([]inodes.INode, error) {
+	path = cleanPath(path)
+
 	dir, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Folder: s.folder,
-		Path:   dirPath,
+		Path:   path,
 	})
+	if errors.Is(err, errs.ErrNotFound) {
+		return nil, errs.NotFound(err)
+	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to open %q: %w", dirPath, err)
+		return nil, fmt.Errorf("failed to Get inode: %w", err)
 	}
 
 	return s.inodes.Readdir(ctx, dir, cmd)
@@ -77,9 +82,8 @@ func (s *LocalFS) Remove(ctx context.Context, path string) error {
 	if errors.Is(err, errs.ErrNotFound) {
 		return nil
 	}
-
 	if err != nil {
-		return fmt.Errorf("failed to Get inodes: %w", err)
+		return fmt.Errorf("failed to Get inode: %w", err)
 	}
 
 	err = s.inodes.Remove(ctx, res)
@@ -152,9 +156,6 @@ func (s *LocalFS) Upload(ctx context.Context, filePath string, w io.Reader) erro
 	filePath = cleanPath(filePath)
 
 	dirPath, fileName := path.Split(filePath)
-	if dirPath == "" {
-		dirPath = "/"
-	}
 
 	dir, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Folder: s.folder,
