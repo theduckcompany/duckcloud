@@ -174,9 +174,10 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 	}
 
 	newSession, secret, err := h.davSessions.Create(r.Context(), &davsessions.CreateCmd{
-		UserID:  user.ID(),
-		Name:    r.FormValue("name"),
-		Folders: foldersIDs,
+		UserID:   user.ID(),
+		Name:     r.FormValue("name"),
+		Username: user.Username(),
+		Folders:  foldersIDs,
 	})
 	if errors.Is(err, errs.ErrValidation) {
 		h.renderDavSessions(w, r, renderDavCmd{User: user, Session: session, Error: err})
