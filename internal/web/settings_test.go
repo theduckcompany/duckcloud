@@ -159,9 +159,10 @@ func Test_Settings(t *testing.T) {
 		tools.UUIDMock.On("Parse", "folder-id-2").Return(uuid.UUID("folder-id-2"), nil).Once()
 
 		davSessionsMock.On("Create", mock.Anything, &davsessions.CreateCmd{
-			UserID:  users.ExampleAlice.ID(),
-			Name:    "some dav-session name",
-			Folders: []uuid.UUID{uuid.UUID("folder-id-1"), uuid.UUID("folder-id-2")},
+			UserID:   users.ExampleAlice.ID(),
+			Name:     "some dav-session name",
+			Username: users.ExampleAlice.Username(),
+			Folders:  []uuid.UUID{uuid.UUID("folder-id-1"), uuid.UUID("folder-id-2")},
 		}).Return(&davsessions.ExampleAliceSession2, "some-session-secret", nil).Once()
 
 		davSessionsMock.On("GetAllForUser", mock.Anything, users.ExampleAlice.ID(), &storage.PaginateCmd{Limit: 10}).
