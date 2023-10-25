@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"path"
 
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/files"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
@@ -37,6 +38,21 @@ func (r *FileUploadTaskRunner) Run(ctx context.Context, rawArgs json.RawMessage)
 }
 
 func (r *FileUploadTaskRunner) RunArgs(ctx context.Context, args *scheduler.FileUploadArgs) error {
+	folder, err := r.folders.GetByID(ctx, args.FolderID)
+	if err != nil {
+		return fmt.Errorf("failed to get the folder: %w", err)
+	}
+
+	dirPath, fileName := path.Split(args.Path)
+
+	dir, err := r.inodes.MkdirAll(ctx, &inodes.PathCmd{
+		Folder: folder,
+		Path:   dirPath,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to Get the dir: %w", err)
+	}
+
 	file, err := r.files.Open(ctx, args.FileID)
 	if err != nil {
 		return fmt.Errorf("failed to files.Open: %w", err)
@@ -51,8 +67,8 @@ func (r *FileUploadTaskRunner) RunArgs(ctx context.Context, args *scheduler.File
 	}
 
 	inode, err := r.inodes.CreateFile(ctx, &inodes.CreateFileCmd{
-		Parent:     args.Directory,
-		Name:       args.FileName,
+		Parent:     dir.ID(),
+		Name:       fileName,
 		Size:       uint64(written),
 		Checksum:   base64.URLEncoding.EncodeToString(hasher.Sum(nil)),
 		FileID:     args.FileID,

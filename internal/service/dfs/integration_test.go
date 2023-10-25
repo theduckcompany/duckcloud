@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"net/http"
 	"testing"
 	"time"
 
@@ -231,12 +230,6 @@ func Test_DFS_Integration(t *testing.T) {
 			assert.Equal(t, modTime, dir.LastModifiedAt())
 			assert.Equal(t, int64(len(content)), dir.Size())
 		})
-	})
-
-	t.Run("Create an empty file in an unexisting directory", func(t *testing.T) {
-		err := folderFS.Upload(ctx, "/unknown-dir/emptyfile.txt", http.NoBody)
-		require.ErrorIs(t, err, errs.ErrNotFound)
-		require.ErrorContains(t, err, `doesn't have a child named "unknown-dir"`)
 	})
 
 	t.Run("Rename success", func(t *testing.T) {

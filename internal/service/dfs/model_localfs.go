@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"path"
 
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/files"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
@@ -155,16 +154,6 @@ func (s *LocalFS) Download(ctx context.Context, filePath string) (io.ReadSeekClo
 func (s *LocalFS) Upload(ctx context.Context, filePath string, w io.Reader) error {
 	filePath = cleanPath(filePath)
 
-	dirPath, fileName := path.Split(filePath)
-
-	dir, err := s.inodes.Get(ctx, &inodes.PathCmd{
-		Folder: s.folder,
-		Path:   dirPath,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to Get the dir: %w", err)
-	}
-
 	file, fileID, err := s.files.Create(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to Create file: %w", err)
@@ -198,8 +187,7 @@ func (s *LocalFS) Upload(ctx context.Context, filePath string, w io.Reader) erro
 	// it available.
 	err = s.scheduler.RegisterFileUploadTask(ctx, &scheduler.FileUploadArgs{
 		FolderID:   s.folder.ID(),
-		Directory:  dir.ID(),
-		FileName:   fileName,
+		Path:       filePath,
 		FileID:     fileID,
 		UploadedAt: s.clock.Now(),
 	})
