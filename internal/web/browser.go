@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -249,10 +248,10 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 	} else {
 		fullPath = path.Join(cmd.rootPath, cmd.relPath)
 
-		_, err = ffs.CreateDir(ctx, path.Dir(fullPath))
-		if err != nil && !errors.Is(err, fs.ErrExist) {
-			return fmt.Errorf("failed to CreateDir: %w", err)
-		}
+		// _, err = ffs.CreateDir(ctx, path.Dir(fullPath))
+		// if err != nil && !errors.Is(err, fs.ErrExist) {
+		// 	return fmt.Errorf("failed to CreateDir: %w", err)
+		// }
 	}
 
 	if fullPath[0] == '/' {
