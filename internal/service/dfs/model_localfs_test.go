@@ -155,18 +155,12 @@ func Test_LocalFS(t *testing.T) {
 		file, err := afero.TempFile(fs, "foo", "")
 		require.NoError(t, err)
 
-		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Folder: &folders.ExampleAlicePersonalFolder,
-			Path:   "/foo/",
-		}).Return(&inodes.ExampleAliceRoot, nil).Once()
-
 		filesMock.On("Create", mock.Anything).Return(file, uuid.UUID("some-file-id"), nil).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 
 		schedulerMock.On("RegisterFileUploadTask", mock.Anything, &scheduler.FileUploadArgs{
 			FolderID:   folders.ExampleAlicePersonalFolder.ID(),
-			Directory:  inodes.ExampleAliceRoot.ID(),
-			FileName:   "bar.txt",
+			Path:       "/foo/bar.txt",
 			FileID:     uuid.UUID("some-file-id"),
 			UploadedAt: now,
 		}).Return(nil).Once()

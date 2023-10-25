@@ -21,8 +21,7 @@ var (
 	now                = time.Now().UTC()
 	ExampleAliceUpload = scheduler.FileUploadArgs{
 		FolderID:   folders.ExampleAlicePersonalFolder.ID(),
-		Directory:  inodes.ExampleAliceRoot.ID(),
-		FileName:   "foo.txt",
+		Path:       "/dir/foo.txt",
 		FileID:     *inodes.ExampleAliceFile.FileID(),
 		UploadedAt: now,
 	}
@@ -52,9 +51,16 @@ func TestFileUploadTask(t *testing.T) {
 		parsedTime, err := time.Parse(time.RFC3339, "2019-10-12T07:20:50.52Z")
 		require.NoError(t, err)
 
+		foldersMock.On("GetByID", mock.Anything, uuid.UUID("959a8808-273e-4079-90ed-a8394b356379")).
+			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
+		inodesMock.On("MkdirAll", mock.Anything, &inodes.PathCmd{
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/foo/",
+		}).Return(&inodes.ExampleAliceDir, nil).Once()
+
 		filesMock.On("Open", mock.Anything, uuid.UUID("01d39aea-9565-4e2f-9177-c3a2b4ea7ae9")).Return(file, nil).Once()
 		inodesMock.On("CreateFile", mock.Anything, &inodes.CreateFileCmd{
-			Parent:     uuid.UUID("c85dc5dc-daff-47da-a4e3-67690aae2de3"),
+			Parent:     inodes.ExampleAliceDir.ID(),
 			Name:       "todo.txt",
 			Size:       uint64(len(content)),
 			Checksum:   "3_1gIbsr1bCvZ2KQgJ7DpTGR3YHH9wpLKGiKNiGCmG8=", // SHA256 of "Hello, World!"
@@ -68,8 +74,7 @@ func TestFileUploadTask(t *testing.T) {
 
 		err = job.Run(ctx, json.RawMessage(`{
 			"folder-id": "959a8808-273e-4079-90ed-a8394b356379",
-			"directory": "c85dc5dc-daff-47da-a4e3-67690aae2de3",
-			"file-name": "todo.txt",
+			"path": "/foo/todo.txt",
 			"file-id": "01d39aea-9565-4e2f-9177-c3a2b4ea7ae9",
 			"uploaded-at": "2019-10-12T07:20:50.52Z"
 		}`))
@@ -100,10 +105,17 @@ func TestFileUploadTask(t *testing.T) {
 		file, err := afs.Open("some-file")
 		require.NoError(t, err)
 
+		foldersMock.On("GetByID", mock.Anything, folders.ExampleAlicePersonalFolder.ID()).
+			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
+		inodesMock.On("MkdirAll", mock.Anything, &inodes.PathCmd{
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/dir/",
+		}).Return(&inodes.ExampleAliceDir, nil).Once()
+
 		filesMock.On("Open", mock.Anything, ExampleAliceUpload.FileID).Return(file, nil).Once()
 		inodesMock.On("CreateFile", mock.Anything, &inodes.CreateFileCmd{
-			Parent:     ExampleAliceUpload.Directory,
-			Name:       ExampleAliceUpload.FileName,
+			Parent:     inodes.ExampleAliceDir.ID(),
+			Name:       "foo.txt",
 			Size:       uint64(len(content)),
 			Checksum:   "3_1gIbsr1bCvZ2KQgJ7DpTGR3YHH9wpLKGiKNiGCmG8=", // SHA256 of "Hello, World!"
 			FileID:     ExampleAliceUpload.FileID,

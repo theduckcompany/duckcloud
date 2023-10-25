@@ -10,18 +10,16 @@ import (
 
 type FileUploadArgs struct {
 	FolderID   uuid.UUID `json:"folder-id"`
-	Directory  uuid.UUID `json:"directory"`
+	Path       string    `json:"path"`
 	FileID     uuid.UUID `json:"file-id"`
-	FileName   string    `json:"file-name"`
 	UploadedAt time.Time `json:"uploaded-at"`
 }
 
 func (a FileUploadArgs) Validate() error {
 	return v.ValidateStruct(&a,
 		v.Field(&a.FolderID, v.Required, is.UUIDv4),
-		v.Field(&a.Directory, v.Required, is.UUIDv4),
+		v.Field(&a.Path, v.Required, v.Length(1, 10024)),
 		v.Field(&a.FileID, v.Required, is.UUIDv4),
-		v.Field(&a.FileName, v.Required, v.Length(1, 1024)),
 		v.Field(&a.UploadedAt, v.Required),
 	)
 }
