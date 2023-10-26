@@ -183,7 +183,7 @@ func Test_LocalFS(t *testing.T) {
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
 		toolsMock.ClockMock.On("Now").Return(now).Once()
-		schedulerMock.On("RegisterFSMove", mock.Anything, &scheduler.FSMoveArgs{
+		schedulerMock.On("RegisterFSMoveTask", mock.Anything, &scheduler.FSMoveArgs{
 			FolderID:    folders.ExampleAlicePersonalFolder.ID(),
 			SourceInode: inodes.ExampleAliceFile.ID(),
 			TargetPath:  "/bar.txt",
@@ -225,7 +225,7 @@ func Test_LocalFS(t *testing.T) {
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
 		toolsMock.ClockMock.On("Now").Return(now).Once()
-		schedulerMock.On("RegisterFSMove", mock.Anything, &scheduler.FSMoveArgs{
+		schedulerMock.On("RegisterFSMoveTask", mock.Anything, &scheduler.FSMoveArgs{
 			FolderID:    folders.ExampleAlicePersonalFolder.ID(),
 			SourceInode: inodes.ExampleAliceFile.ID(),
 			TargetPath:  "/bar.txt",

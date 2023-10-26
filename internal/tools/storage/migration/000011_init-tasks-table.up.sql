@@ -10,3 +10,4 @@ CREATE TABLE IF NOT EXISTS tasks (
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_id ON tasks(id);
 CREATE INDEX IF NOT EXISTS idx_tasks_status_priority_registered ON tasks(status, priority, registered_at);
+CREATE INDEX IF NOT EXISTS idx_tasks_name_registered ON tasks(name, registered_at);

@@ -10,8 +10,8 @@ import (
 
 type FileUploadArgs struct {
 	FolderID   uuid.UUID `json:"folder-id"`
-	Path       string    `json:"path"`
 	FileID     uuid.UUID `json:"file-id"`
+	Path       string    `json:"path"`
 	UploadedAt time.Time `json:"uploaded-at"`
 }
 
@@ -27,7 +27,7 @@ func (a FileUploadArgs) Validate() error {
 type FSMoveArgs struct {
 	FolderID    uuid.UUID `json:"folder"`
 	SourceInode uuid.UUID `json:"source-inode"`
-	TargetPath  string    `json:"target-dir"`
+	TargetPath  string    `json:"target-path"`
 	MovedAt     time.Time `json:"moved-at"`
 }
 
@@ -42,7 +42,7 @@ func (a FSMoveArgs) Validate() error {
 
 type FSGCArgs struct{}
 
-func (a *FSGCArgs) Validate() error {
+func (a FSGCArgs) Validate() error {
 	return v.ValidateStruct(&a)
 }
 

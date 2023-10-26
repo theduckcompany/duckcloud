@@ -102,7 +102,7 @@ func (s *LocalFS) Rename(ctx context.Context, oldPath, newPath string) error {
 		return fmt.Errorf("invalid source: %w", err)
 	}
 
-	err = s.scheduler.RegisterFSMove(ctx, &scheduler.FSMoveArgs{
+	err = s.scheduler.RegisterFSMoveTask(ctx, &scheduler.FSMoveArgs{
 		FolderID:    s.folder.ID(),
 		SourceInode: sourceINode.ID(),
 		TargetPath:  newPath,
