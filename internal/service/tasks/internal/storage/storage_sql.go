@@ -23,6 +23,7 @@ type Storage interface {
 	Save(ctx context.Context, task *model.Task) error
 	GetNext(ctx context.Context) (*model.Task, error)
 	Patch(ctx context.Context, taskID uuid.UUID, fields map[string]any) error
+	GetLastRegisteredTask(ctx context.Context, name string) (*model.Task, error)
 }
 
 type sqlStorage struct {
@@ -58,6 +59,40 @@ func (s *sqlStorage) Save(ctx context.Context, task *model.Task) error {
 	}
 
 	return nil
+}
+
+func (s *sqlStorage) GetLastRegisteredTask(ctx context.Context, name string) (*model.Task, error) {
+	res := model.Task{}
+
+	var rawArgs json.RawMessage
+
+	err := sq.
+		Select(allFields...).
+		From(tableName).
+		Where(sq.Eq{"name": name}).
+		OrderBy("registered_at DESC").
+		Limit(1).
+		RunWith(s.db).
+		ScanContext(ctx,
+			&res.ID,
+			&res.Priority,
+			&res.Name,
+			&res.Status,
+			&res.Retries,
+			&res.RegisteredAt,
+			&rawArgs,
+		)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("sql error: %w", err)
+	}
+
+	json.Unmarshal(rawArgs, &res.Args)
+
+	return &res, nil
 }
 
 func (s *sqlStorage) GetNext(ctx context.Context) (*model.Task, error) {

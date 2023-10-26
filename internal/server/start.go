@@ -102,6 +102,12 @@ func start(ctx context.Context, db *sql.DB, fs afero.Fs, folderPath string, invo
 			cronSvc := cron.New("tasks-runner", 500*time.Millisecond, tools, svc)
 			cronSvc.FXRegister(lc)
 		}),
+
+		// Start the scheduler
+		fx.Invoke(func(svc scheduler.Service, lc fx.Lifecycle, tools tools.Tools) {
+			cronSvc := cron.New("tasks-scheduler", time.Minute, tools, svc)
+			cronSvc.FXRegister(lc)
+		}),
 		invoke,
 	)
 
