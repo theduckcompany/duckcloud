@@ -94,14 +94,14 @@ func (j *FSGGCTaskRunner) deleteINode(ctx context.Context, inode *inodes.INode, 
 		return j.deleteDirINode(ctx, inode, deletionDate)
 	}
 
-	err := j.inodes.HardDelete(ctx, inode.ID())
-	if err != nil {
-		return fmt.Errorf("failed to HardDelete: %w", err)
-	}
-
-	err = j.inodes.RegisterWrite(ctx, inode, -inode.Size(), deletionDate)
+	err := j.inodes.RegisterWrite(ctx, inode, -inode.Size(), deletionDate)
 	if err != nil {
 		return fmt.Errorf("failed to RegisterWrite: %w", err)
+	}
+
+	err = j.inodes.HardDelete(ctx, inode.ID())
+	if err != nil {
+		return fmt.Errorf("failed to HardDelete: %w", err)
 	}
 
 	err = j.files.Delete(ctx, *inode.FileID())

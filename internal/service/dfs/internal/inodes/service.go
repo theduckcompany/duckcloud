@@ -188,7 +188,12 @@ func (s *INodeService) RegisterWrite(ctx context.Context, inode *INode, sizeWrit
 			if sizeWrite > 0 {
 				parent.size += uint64(sizeWrite)
 			} else {
-				parent.size -= uint64(math.Abs(float64(sizeWrite)))
+				absVal := uint64(math.Abs(float64(sizeWrite)))
+				if parent.size > absVal {
+					parent.size -= absVal
+				} else {
+					parent.size = 0
+				}
 			}
 
 			// XXX:MULTI-WRITE
