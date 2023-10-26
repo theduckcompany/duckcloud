@@ -41,7 +41,7 @@ func (t *TasksService) ensureTaskEvery(ctx context.Context, name string, every t
 		return fmt.Errorf("failed to GetLastRegisteredTask: %w", err)
 	}
 
-	if lastTask == nil || lastTask.RegisteredAt.Add(every).After(t.clock.Now()) {
+	if lastTask != nil && lastTask.RegisteredAt.Add(every).After(t.clock.Now()) {
 		return nil
 	}
 

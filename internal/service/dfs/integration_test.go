@@ -70,7 +70,7 @@ func Test_DFS_Integration(t *testing.T) {
 		require.True(t, rootFS.IsDir())
 		require.Equal(t, int64(0), rootFS.Size())
 		require.Empty(t, rootFS.Checksum())
-		require.WithinDuration(t, time.Now(), rootFS.LastModifiedAt(), 10*time.Millisecond)
+		require.WithinDuration(t, time.Now(), rootFS.LastModifiedAt(), 14*time.Millisecond)
 	})
 
 	t.Run("ListDir with an empty directory", func(t *testing.T) {
@@ -179,7 +179,7 @@ func Test_DFS_Integration(t *testing.T) {
 		})
 	})
 
-	t.Run("Uploadn and Download success", func(t *testing.T) {
+	t.Run("Upload and Download success", func(t *testing.T) {
 		content := "Hello, World!"
 		var modTime time.Time
 

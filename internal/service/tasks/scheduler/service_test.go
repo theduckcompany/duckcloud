@@ -201,6 +201,17 @@ func TestSchdulerService(t *testing.T) {
 
 		storageMock.On("GetLastRegisteredTask", mock.Anything, "fs-gc").Return(nil, storage.ErrNotFound).Once()
 
+		tools.UUIDMock.On("New").Return(uuid.UUID("some-new-uuid")).Once()
+		tools.ClockMock.On("Now").Return(now.Add(time.Second)).Once()
+		storageMock.On("Save", mock.Anything, &model.Task{
+			ID:           uuid.UUID("some-new-uuid"),
+			Priority:     4,
+			Status:       model.Queuing,
+			Name:         "fs-gc",
+			RegisteredAt: now.Add(time.Second),
+			Args:         json.RawMessage(`{}`),
+		}).Return(nil).Once()
+
 		err := svc.Run(ctx)
 		require.NoError(t, err)
 	})
