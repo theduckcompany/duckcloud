@@ -27,7 +27,7 @@ func NewService(storage storage.Storage, tools tools.Tools) *TasksService {
 }
 
 func (t *TasksService) Run(ctx context.Context) error {
-	err := t.ensureTaskEvery(ctx, "fs-gc", time.Minute)
+	err := t.ensureTaskEvery(ctx, "fs-gc", 30*time.Second)
 	if err != nil {
 		return fmt.Errorf("failed to schedule fs-gc task: %w", err)
 	}

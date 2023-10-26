@@ -441,6 +441,37 @@ func TestINodes(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	t.Run("RegisterWrite with a negative success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		service := NewService(schedulerMock, tools, storageMock)
+
+		now := time.Now().UTC()
+
+		// Get the parent
+		storageMock.On("GetByID", mock.Anything, *ExampleAliceFile.Parent()).Return(&ExampleAliceDir, nil).Once()
+		// Add the given  size to the parent
+		storageMock.On("Patch", mock.Anything, ExampleAliceDir.id, map[string]any{
+			"last_modified_at": now,
+			"size":             uint64(ExampleAliceDir.Size() - 10),
+		}).Return(nil).Once()
+
+		// Get the parent's parent
+		storageMock.On("GetByID", mock.Anything, *ExampleAliceDir.Parent()).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("Patch", mock.Anything, ExampleAliceRoot.id, map[string]any{
+			"last_modified_at": now,
+			"size":             uint64(ExampleAliceRoot.Size() - 10),
+		}).Return(nil).Once()
+		// The root doesn't have any parent so it stop here
+
+		// Duplicate in order to avoid side effects on other tests
+		aliceFile := ExampleAliceFile
+
+		err := service.RegisterWrite(ctx, &aliceFile, -10, now)
+		assert.NoError(t, err)
+	})
+
 	t.Run("RegisterWrite with a GetByID error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
