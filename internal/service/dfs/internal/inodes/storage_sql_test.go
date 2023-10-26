@@ -120,6 +120,21 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	t.Run("GetByID a soft deleted inode success", func(t *testing.T) {
+		res, err := store.GetByID(ctx, uuid.UUID("some-child-id-5"))
+
+		require.NoError(t, err)
+		require.NotNil(t, res)
+		assert.EqualValues(t, &INode{
+			id:             uuid.UUID("some-child-id-5"),
+			parent:         ptr.To(ExampleBobRoot.ID()),
+			name:           "child-5",
+			lastModifiedAt: nowData,
+			createdAt:      nowData,
+			fileID:         nil,
+		}, res)
+	})
+
 	t.Run("GetAllDeleted", func(t *testing.T) {
 		res, err := store.GetAllDeleted(ctx, 10)
 
