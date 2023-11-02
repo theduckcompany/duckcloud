@@ -1,5 +1,14 @@
 {{ $url := pathJoin "/browser" $.folder.ID $.fullPath}}
 <section id="content" class="p-4" hx-get="{{$url}}" hx-swap="outerHTML" hx-trigger="refresh-event">
+
+  <!-- Modal -->
+  <div id="modal-target" class="modal modal-blur fade" style="display: none" aria-hidden="false" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+      <div class="modal-content"></div>
+    </div>
+  </div>
+
+
   <div id="status-bar"></div>
   <div class="row justify-content-between">
     <div class="col-md-10 col-8">
@@ -19,9 +28,18 @@
         <button class="d-flex btn btn-primary button-lg dropdown-toggle align-items-center" type="button"
           id="add-button" data-mdb-toggle="dropdown" aria-expanded="false"><i class="bi bi-plus me-1"
             style="font-size: 1.3rem;"></i>Add</button>
-        <ul class="dropdown-menu" arai-labelledby="add-button">
-          <li><a id="upload-file-btn" class="dropdown-item">Upload File</a></li>
-          <li><a id="upload-folder-btn" class="dropdown-item">Upload Folder</a></li>
+        <ul class="dropdown-menu" aria-labelledby="add-button">
+          <li><a class="dropdown-item text-dark" hx-get="/browser/create-dir?folder={{$.folder.ID}}&dir={{$.fullPath}}"
+              hx-target="#modal-target" hx-trigger="click" data-mdb-toggle="modal" hx-swap="innerHTML"
+              data-mdb-target="#modal-target"><i class="bi bi-folder-fill me-2"
+                style="font-size: 1.1rem; color: cornflowerblue;"></i>New folder</a></li>
+          <li>
+            <hr class="dropdown-divider" />
+          </li>
+          <li><a id="upload-file-btn" class="dropdown-item text-dark"><i class="bi bi-upload me-2"></i>Upload File</a>
+          </li>
+          <li><a id="upload-folder-btn" class="dropdown-item text-dark"><i class="bi bi-upload me-2"></i>Upload
+              Folder</a></li>
         </ul>
       </div>
     </div>
@@ -41,6 +59,8 @@
   <hr class="mb-1">
 
   {{template "browser/rows.tmpl" (.)}}
+
+
 
 </section>
 <script type="module">
@@ -105,5 +125,9 @@
 
       input.click();
     })
+
+  document.body.classList.remove("modal-open")
+  document.querySelectorAll('.modal-backdrop').forEach(e => e.remove());
+
 
 </script>

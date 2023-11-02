@@ -17,6 +17,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
@@ -64,11 +65,94 @@ func (h *browserHandler) Register(r chi.Router, mids *router.Middlewares) {
 	r.Post("/browser/upload", h.upload)
 	r.Get("/browser/*", h.getBrowserContent)
 	r.Get("/download/*", h.download)
+
+	r.Get("/browser/create-dir", h.getCreateDirModal)
+	r.Post("/browser/create-dir", h.handleCreateDirReq)
+
 	r.Delete("/browser/*", h.deleteAll)
 }
 
 func (h *browserHandler) String() string {
 	return "web.browser"
+}
+
+func (h *browserHandler) getCreateDirModal(w http.ResponseWriter, r *http.Request) {
+	_, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	if abort {
+		return
+	}
+
+	dir := r.URL.Query().Get("dir")
+	if dir == "" {
+		h.html.WriteHTMLErrorPage(w, r, errors.New("failed to get the dir path from the url query"))
+		return
+	}
+
+	folderID := r.URL.Query().Get("folder")
+	if folderID == "" {
+		h.html.WriteHTMLErrorPage(w, r, errors.New("failed to get the folder id from the url query"))
+		return
+	}
+
+	h.html.WriteHTML(w, r, http.StatusOK, "browser/create-dir.tmpl", map[string]interface{}{
+		"directory": dir,
+		"folderID":  folderID,
+	})
+}
+
+func (h *browserHandler) handleCreateDirReq(w http.ResponseWriter, r *http.Request) {
+	user, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	if abort {
+		return
+	}
+
+	dir := r.FormValue("dirPath")
+	name := r.FormValue("name")
+	folderID, err := h.uuid.Parse(r.FormValue("folderID"))
+	if err != nil {
+		h.html.WriteHTMLErrorPage(w, r, errors.New("invalid folder id param"))
+		return
+	}
+
+	if name == "" {
+		h.html.WriteHTML(w, r, http.StatusUnprocessableEntity, "browser/create-dir.tmpl", map[string]interface{}{
+			"directory": dir,
+			"folderID":  folderID,
+			"error":     "Must not be empty",
+		})
+		return
+	}
+
+	folder, err := h.folders.GetUserFolder(r.Context(), user.ID(), folderID)
+	if err != nil {
+		h.html.WriteHTMLErrorPage(w, r, errs.BadRequest(fmt.Errorf("failed to GetUserFolder: %w", err)))
+		return
+	}
+
+	fs := h.fs.GetFolderFS(folder)
+
+	existingDir, err := fs.Get(r.Context(), path.Join(dir, name))
+	if err != nil && !errors.Is(err, errs.ErrNotFound) {
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to get the directory: %w", err))
+		return
+	}
+
+	if existingDir != nil {
+		h.html.WriteHTML(w, r, http.StatusUnprocessableEntity, "browser/create-dir.tmpl", map[string]interface{}{
+			"directory": dir,
+			"folderID":  folderID,
+			"error":     "Already exists",
+		})
+		return
+	}
+
+	_, err = fs.CreateDir(r.Context(), path.Join(dir, name))
+	if err != nil {
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to create the directory: %w", err))
+		return
+	}
+
+	h.renderBrowserContent(w, r, user, fs, dir)
 }
 
 func (h *browserHandler) redirectDefaultBrowser(w http.ResponseWriter, r *http.Request) {
@@ -247,11 +331,6 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 		fullPath = path.Join(cmd.rootPath, cmd.name)
 	} else {
 		fullPath = path.Join(cmd.rootPath, cmd.relPath)
-
-		// _, err = ffs.CreateDir(ctx, path.Dir(fullPath))
-		// if err != nil && !errors.Is(err, fs.ErrExist) {
-		// 	return fmt.Errorf("failed to CreateDir: %w", err)
-		// }
 	}
 
 	if fullPath[0] == '/' {
