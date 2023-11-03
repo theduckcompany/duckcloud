@@ -140,13 +140,13 @@ func (_m *MockFS) ListDir(ctx context.Context, dirPath string, cmd *storage.Pagi
 	return r0, r1
 }
 
-// Remove provides a mock function with given fields: ctx, path
-func (_m *MockFS) Remove(ctx context.Context, path string) error {
-	ret := _m.Called(ctx, path)
+// Move provides a mock function with given fields: ctx, oldPath, newPath
+func (_m *MockFS) Move(ctx context.Context, oldPath string, newPath string) error {
+	ret := _m.Called(ctx, oldPath, newPath)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, path)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, oldPath, newPath)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -154,13 +154,13 @@ func (_m *MockFS) Remove(ctx context.Context, path string) error {
 	return r0
 }
 
-// Rename provides a mock function with given fields: ctx, oldPath, newPath
-func (_m *MockFS) Rename(ctx context.Context, oldPath string, newPath string) error {
-	ret := _m.Called(ctx, oldPath, newPath)
+// Remove provides a mock function with given fields: ctx, path
+func (_m *MockFS) Remove(ctx context.Context, path string) error {
+	ret := _m.Called(ctx, path)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, oldPath, newPath)
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, path)
 	} else {
 		r0 = ret.Error(0)
 	}

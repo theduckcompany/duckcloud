@@ -169,7 +169,7 @@ func Test_LocalFS(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("Rename success", func(t *testing.T) {
+	t.Run("Move success", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
@@ -190,11 +190,11 @@ func Test_LocalFS(t *testing.T) {
 			MovedAt:     now,
 		}).Return(nil).Once()
 
-		err := folderFS.Rename(ctx, "/foo.txt", "/bar.txt")
+		err := folderFS.Move(ctx, "/foo.txt", "/bar.txt")
 		assert.NoError(t, err)
 	})
 
-	t.Run("Rename with a source not found", func(t *testing.T) {
+	t.Run("Move with a source not found", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
@@ -207,11 +207,11 @@ func Test_LocalFS(t *testing.T) {
 			Path:   "/foo.txt",
 		}).Return(nil, errs.ErrNotFound).Once()
 
-		err := folderFS.Rename(ctx, "/foo.txt", "/bar.txt")
+		err := folderFS.Move(ctx, "/foo.txt", "/bar.txt")
 		assert.ErrorIs(t, err, errs.ErrNotFound)
 	})
 
-	t.Run("Rename with a move error", func(t *testing.T) {
+	t.Run("Move with a move error", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
@@ -232,7 +232,7 @@ func Test_LocalFS(t *testing.T) {
 			MovedAt:     now,
 		}).Return(errs.Internal(fmt.Errorf("some-error"))).Once()
 
-		err := folderFS.Rename(ctx, "/foo.txt", "/bar.txt")
+		err := folderFS.Move(ctx, "/foo.txt", "/bar.txt")
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})

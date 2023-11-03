@@ -1,0 +1,43 @@
+<div class="modal-dialog modal-dialog-centered" hx-target-4*="this">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" id="exampleModalLabel">Create Directory</h5>
+      <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+    </div>
+
+    <form action="/browser/create-dir" method="post" target="_top" hx-post="/browser/create-dir" hx-target="#content"
+      hx-swap="outerHTML">
+      <div class="modal-body">
+
+        <div class="input-group input-group-lg">
+          <span class="input-group-text" id="newDirectorySpan">Name</span>
+          <input type="text" name="name" id="newDirectoryInput" class="form-control" aria-label="New directory input"
+            aria-describedby="newDirectorySpan" value="New Folder" />
+        </div>
+
+        <input type="hidden" name="dirPath" value="{{.directory}}" />
+        <input type="hidden" name="folderID" value="{{.folderID}}" />
+
+        {{if .error}}
+        <br>
+        <div id="validation-alert" class="alert alert-danger role=">{{.error}}</div>
+        {{end}}
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Close</button>
+        <button type="submit" type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  var myModal = document.getElementById('modal-target');
+  var myInput = document.getElementById('newDirectoryInput');
+
+  myModal.addEventListener('shown.mdb.modal', () => {
+    myInput.focus();
+    myInput.select();
+  });
+</script>
