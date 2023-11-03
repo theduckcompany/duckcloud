@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -491,6 +492,8 @@ func (h *browserHandler) download(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *browserHandler) serveFolderContent(w http.ResponseWriter, r *http.Request, ffs dfs.FS, root string) {
+	var err error
+
 	_, dir := path.Split(root)
 
 	w.Header().Set("Content-Type", "application/zip")
@@ -500,12 +503,20 @@ func (h *browserHandler) serveFolderContent(w http.ResponseWriter, r *http.Reque
 	writer := zip.NewWriter(w)
 
 	dfs.Walk(r.Context(), ffs, root, func(ctx context.Context, p string, i *dfs.INode) error {
-		header, err := zip.FileInfoHeader(i)
-		if err != nil {
-			return fmt.Errorf("failed to create zip fileinfo: %w", err)
+		header := &zip.FileHeader{
+			Method:             zip.Deflate,
+			Comment:            "From DuckCloud with love",
+			Name:               i.Name(),
+			UncompressedSize64: i.Size(),
+			Modified:           i.LastModifiedAt(),
 		}
 
-		header.Method = zip.Deflate
+		if i.IsDir() {
+			header.SetMode(0o755 | fs.ModeDir)
+		} else {
+			header.SetMode(0o644)
+		}
+
 		header.Name, err = filepath.Rel(root, p)
 		if err != nil {
 			return fmt.Errorf("failed to find the relative path: %w", err)
@@ -534,7 +545,7 @@ func (h *browserHandler) serveFolderContent(w http.ResponseWriter, r *http.Reque
 		return err
 	})
 
-	err := writer.Close()
+	err = writer.Close()
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Close the zip file: %w", err))
 		return
@@ -547,5 +558,5 @@ func (h *browserHandler) serveContent(w http.ResponseWriter, r *http.Request, in
 	w.Header().Set("Etag", inode.Checksum())
 	w.Header().Set("Expires", time.Now().Add(365*24*time.Hour).UTC().Format(http.TimeFormat))
 	w.Header().Set("Cache-Control", "max-age=31536000")
-	http.ServeContent(w, r, inode.Name(), inode.ModTime(), file)
+	http.ServeContent(w, r, inode.Name(), inode.LastModifiedAt(), file)
 }

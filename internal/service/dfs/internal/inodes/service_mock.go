@@ -292,12 +292,26 @@ func (_m *MockService) Readdir(ctx context.Context, inode *INode, paginateCmd *s
 	return r0, r1
 }
 
-// RegisterWrite provides a mock function with given fields: ctx, inode, sizeWrite, modeTime
-func (_m *MockService) RegisterWrite(ctx context.Context, inode *INode, sizeWrite int64, modeTime time.Time) error {
+// RegisterDeletion provides a mock function with given fields: ctx, inode, sizeWrite, modeTime
+func (_m *MockService) RegisterDeletion(ctx context.Context, inode *INode, sizeWrite uint64, modeTime time.Time) error {
 	ret := _m.Called(ctx, inode, sizeWrite, modeTime)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *INode, int64, time.Time) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *INode, uint64, time.Time) error); ok {
+		r0 = rf(ctx, inode, sizeWrite, modeTime)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RegisterWrite provides a mock function with given fields: ctx, inode, sizeWrite, modeTime
+func (_m *MockService) RegisterWrite(ctx context.Context, inode *INode, sizeWrite uint64, modeTime time.Time) error {
+	ret := _m.Called(ctx, inode, sizeWrite, modeTime)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *INode, uint64, time.Time) error); ok {
 		r0 = rf(ctx, inode, sizeWrite, modeTime)
 	} else {
 		r0 = ret.Error(0)

@@ -263,7 +263,7 @@ func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request, fs d
 
 	w.Header().Set("ETag", info.Checksum())
 	// Let ServeContent determine the Content-Type header.
-	http.ServeContent(w, r, reqPath, info.ModTime(), f)
+	http.ServeContent(w, r, reqPath, info.LastModifiedAt(), f)
 	return 0, nil
 }
 
@@ -608,7 +608,7 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, fs dfs.
 
 	mw := multistatusWriter{w: w}
 
-	walkFn := func(reqPath string, info os.FileInfo, err error) error {
+	walkFn := func(reqPath string, info *dfs.INode, err error) error {
 		if err != nil {
 			return handlePropfindError(err, info)
 		}
@@ -710,7 +710,7 @@ func makePropstatResponse(href string, pstats []Propstat) *response {
 	return &resp
 }
 
-func handlePropfindError(err error, info os.FileInfo) error {
+func handlePropfindError(err error, info *dfs.INode) error {
 	var skipResp error = nil
 	if info != nil && info.IsDir() {
 		skipResp = filepath.SkipDir
@@ -817,12 +817,14 @@ func slashClean(name string) string {
 	return path.Clean(name)
 }
 
+type WalkFunc func(path string, info *dfs.INode, err error) error
+
 // walkFS traverses filesystem fs starting at name up to depth levels.
 //
 // Allowed values for depth are 0, 1 or infiniteDepth. For each visited node,
 // walkFS calls walkFn. If a visited file system node is a directory and
 // walkFn returns filepath.SkipDir, walkFS will skip traversal of this node.
-func walkFS(ctx context.Context, fs dfs.FS, depth int, name string, info os.FileInfo, walkFn filepath.WalkFunc) error {
+func walkFS(ctx context.Context, fs dfs.FS, depth int, name string, info *dfs.INode, walkFn WalkFunc) error {
 	// This implementation is based on Walk's code in the standard path/filepath package.
 	err := walkFn(name, info, nil)
 	if err != nil {

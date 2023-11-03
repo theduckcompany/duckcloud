@@ -90,11 +90,11 @@ func (j *FSGGCTaskRunner) deleteINode(ctx context.Context, inode *inodes.INode, 
 	//
 	// This file have severa consecutive writes but they are all idempotent and the
 	// task is retried in case of error.
-	if inode.Mode().IsDir() {
+	if inode.IsDir() {
 		return j.deleteDirINode(ctx, inode, deletionDate)
 	}
 
-	err := j.inodes.RegisterWrite(ctx, inode, -inode.Size(), deletionDate)
+	err := j.inodes.RegisterDeletion(ctx, inode, inode.Size(), deletionDate)
 	if err != nil {
 		return fmt.Errorf("failed to RegisterWrite: %w", err)
 	}

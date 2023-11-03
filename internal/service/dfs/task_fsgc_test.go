@@ -72,7 +72,7 @@ func TestFSGC(t *testing.T) {
 		// We remove the file content and inode
 		tools.ClockMock.On("Now").Return(now)
 		inodesMock.On("HardDelete", mock.Anything, inodes.ExampleAliceFile.ID()).Return(nil).Once()
-		inodesMock.On("RegisterWrite", mock.Anything, &inodes.ExampleAliceFile, -inodes.ExampleAliceFile.Size(), now).Return(nil).Once()
+		inodesMock.On("RegisterDeletion", mock.Anything, &inodes.ExampleAliceFile, inodes.ExampleAliceFile.Size(), now).Return(nil).Once()
 		filesMock.On("Delete", mock.Anything, *inodes.ExampleAliceFile.FileID()).Return(nil).Once()
 
 		// We remove the dir itself

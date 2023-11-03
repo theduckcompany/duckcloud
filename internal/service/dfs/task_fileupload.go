@@ -82,7 +82,7 @@ func (r *FileUploadTaskRunner) RunArgs(ctx context.Context, args *scheduler.File
 	//
 	// This file have severa consecutive writes but they are all idempotent and the
 	// task is retried in case of error.
-	err = r.inodes.RegisterWrite(ctx, inode, written, inode.LastModifiedAt())
+	err = r.inodes.RegisterWrite(ctx, inode, uint64(written), inode.LastModifiedAt())
 	if err != nil {
 		return fmt.Errorf("failed to RegisterWrite: %w", err)
 	}

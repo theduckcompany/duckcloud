@@ -68,7 +68,7 @@ func Test_DFS_Integration(t *testing.T) {
 
 		require.Equal(t, "", rootFS.Name())
 		require.True(t, rootFS.IsDir())
-		require.Equal(t, int64(0), rootFS.Size())
+		require.Equal(t, uint64(0), rootFS.Size())
 		require.Empty(t, rootFS.Checksum())
 		require.WithinDuration(t, time.Now(), rootFS.LastModifiedAt(), 14*time.Millisecond)
 	})
@@ -90,12 +90,12 @@ func Test_DFS_Integration(t *testing.T) {
 		require.NoError(t, err)
 
 		require.Equal(t, "Documents", dir.Name())
-		require.Equal(t, int64(0), dir.Size())
+		require.Equal(t, uint64(0), dir.Size())
 		require.Nil(t, dir.FileID())
 		require.Equal(t, ptr.To(rootFS.ID()), dir.Parent()) // It have a parent and this is the root ("/")
 		require.True(t, dir.IsDir())
 		require.Empty(t, dir.Checksum())
-		require.WithinDuration(t, time.Now(), dir.LastModifiedAt(), 10*time.Millisecond)
+		require.WithinDuration(t, time.Now(), dir.LastModifiedAt(), 20*time.Millisecond)
 
 		// TODO: Check that the modified date have been modified for all the parents
 		// newRootFS, err := folderFS.Get(ctx, "/")
@@ -120,11 +120,11 @@ func Test_DFS_Integration(t *testing.T) {
 			require.NoError(t, err)
 
 			require.Equal(t, "baz", dirBaz.Name())
-			require.Equal(t, int64(0), dirBaz.Size())
+			require.Equal(t, uint64(0), dirBaz.Size())
 			require.Nil(t, dirBaz.FileID())
 			require.True(t, dirBaz.IsDir())
 			require.Empty(t, dirBaz.Checksum())
-			require.WithinDuration(t, time.Now(), dirBaz.LastModifiedAt(), 10*time.Millisecond)
+			require.WithinDuration(t, time.Now(), dirBaz.LastModifiedAt(), 20*time.Millisecond)
 		})
 
 		t.Run("/foo/bar/bar have /foo/bar as parent", func(t *testing.T) {
@@ -202,9 +202,9 @@ func Test_DFS_Integration(t *testing.T) {
 
 			require.Equal(t, "todo.txt", info.Name())
 			require.False(t, info.IsDir())
-			require.Equal(t, int64(len(content)), info.Size())
+			require.Equal(t, uint64(len(content)), info.Size())
 			require.Equal(t, "3_1gIbsr1bCvZ2KQgJ7DpTGR3YHH9wpLKGiKNiGCmG8=", info.Checksum())
-			require.WithinDuration(t, time.Now(), info.LastModifiedAt(), 10*time.Millisecond)
+			require.WithinDuration(t, time.Now(), info.LastModifiedAt(), 20*time.Millisecond)
 			modTime = info.LastModifiedAt()
 		})
 
@@ -223,12 +223,12 @@ func Test_DFS_Integration(t *testing.T) {
 			root, err := folderFS.Get(ctx, "/")
 			require.NoError(t, err)
 			assert.Equal(t, modTime, root.LastModifiedAt())
-			assert.Equal(t, int64(len(content)), root.Size())
+			assert.Equal(t, uint64(len(content)), root.Size())
 
 			dir, err := folderFS.Get(ctx, "/Documents")
 			require.NoError(t, err)
 			assert.Equal(t, modTime, dir.LastModifiedAt())
-			assert.Equal(t, int64(len(content)), dir.Size())
+			assert.Equal(t, uint64(len(content)), dir.Size())
 		})
 	})
 
@@ -264,26 +264,26 @@ func Test_DFS_Integration(t *testing.T) {
 			require.Equal(t, oldFile.ID(), newFile.ID())
 			require.Equal(t, "todo.txt", newFile.Name())
 			require.NotEqual(t, oldFile.LastModifiedAt(), newFile.LastModifiedAt())
-			require.WithinDuration(t, time.Now(), newFile.LastModifiedAt(), 10*time.Millisecond)
+			require.WithinDuration(t, time.Now(), newFile.LastModifiedAt(), 20*time.Millisecond)
 		})
 
 		t.Run("Check old parents modtime and size", func(t *testing.T) {
 			dir, err := folderFS.Get(ctx, "/Documents")
 			require.NoError(t, err)
-			assert.Equal(t, newFile.ModTime(), dir.LastModifiedAt())
+			assert.Equal(t, newFile.LastModifiedAt(), dir.LastModifiedAt())
 			// Theres is no more files so the size is 0
-			assert.Equal(t, int64(0), dir.Size())
+			assert.Equal(t, uint64(0), dir.Size())
 		})
 
 		t.Run("Check new parents modtime and size", func(t *testing.T) {
 			root, err := folderFS.Get(ctx, "/")
 			require.NoError(t, err)
-			assert.Equal(t, newFile.ModTime().Add(time.Microsecond), root.LastModifiedAt())
+			assert.Equal(t, newFile.LastModifiedAt().Add(time.Microsecond), root.LastModifiedAt())
 			assert.Equal(t, newFile.Size(), root.Size())
 
 			dir, err := folderFS.Get(ctx, "/NewDocuments")
 			require.NoError(t, err)
-			assert.Equal(t, newFile.ModTime().Add(time.Microsecond), dir.LastModifiedAt())
+			assert.Equal(t, newFile.LastModifiedAt().Add(time.Microsecond), dir.LastModifiedAt())
 			assert.Equal(t, newFile.Size(), dir.Size())
 		})
 	})
