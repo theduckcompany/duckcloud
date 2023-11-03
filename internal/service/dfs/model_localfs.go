@@ -93,7 +93,7 @@ func (s *LocalFS) Remove(ctx context.Context, path string) error {
 	return nil
 }
 
-func (s *LocalFS) Rename(ctx context.Context, oldPath, newPath string) error {
+func (s *LocalFS) Move(ctx context.Context, oldPath, newPath string) error {
 	sourceINode, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Folder: s.folder,
 		Path:   cleanPath(oldPath),

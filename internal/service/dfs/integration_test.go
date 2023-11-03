@@ -232,7 +232,7 @@ func Test_DFS_Integration(t *testing.T) {
 		})
 	})
 
-	t.Run("Rename success", func(t *testing.T) {
+	t.Run("Move success", func(t *testing.T) {
 		var oldFile *dfs.INode
 		var newFile *dfs.INode
 
@@ -243,9 +243,9 @@ func Test_DFS_Integration(t *testing.T) {
 			require.NoError(t, err)
 		})
 
-		t.Run("Rename", func(t *testing.T) {
+		t.Run("Move", func(t *testing.T) {
 			// The /NewFolder doesn't exists yet. It must be automatically created
-			err := folderFS.Rename(ctx, "/Documents/todo.txt", "/NewDocuments/todo.txt")
+			err := folderFS.Move(ctx, "/Documents/todo.txt", "/NewDocuments/todo.txt")
 			require.NoError(t, err)
 		})
 
