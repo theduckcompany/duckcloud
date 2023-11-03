@@ -67,7 +67,7 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 	// XXX:MULTI-WRITE
 	//
 	//
-	err = r.inodes.RegisterWrite(ctx, oldNode, -oldNode.Size(), args.MovedAt)
+	err = r.inodes.RegisterDeletion(ctx, oldNode, oldNode.Size(), args.MovedAt)
 	if err != nil {
 		return fmt.Errorf("failed to remove the old inode file size: %w", err)
 	}

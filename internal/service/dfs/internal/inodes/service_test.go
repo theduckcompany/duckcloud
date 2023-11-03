@@ -328,7 +328,7 @@ func TestINodes(t *testing.T) {
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
 			Parent:   "some-invalid-id",
 			Name:     "foobar",
-			Size:     uint64(ExampleAliceFile.Size()),
+			Size:     ExampleAliceFile.Size(),
 			Checksum: ExampleAliceFile.Checksum(),
 			FileID:   *ExampleAliceFile.FileID(),
 		})
@@ -349,7 +349,7 @@ func TestINodes(t *testing.T) {
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
 			Parent:   ExampleAliceRoot.ID(),
 			Name:     "foobar",
-			Size:     uint64(ExampleAliceFile.Size()),
+			Size:     ExampleAliceFile.Size(),
 			Checksum: ExampleAliceFile.Checksum(),
 			FileID:   *ExampleAliceFile.FileID(),
 		})
@@ -423,14 +423,14 @@ func TestINodes(t *testing.T) {
 		// Add the given  size to the parent
 		storageMock.On("Patch", mock.Anything, ExampleAliceDir.id, map[string]any{
 			"last_modified_at": now,
-			"size":             uint64(ExampleAliceDir.Size() + 10),
+			"size":             ExampleAliceDir.Size() + 10,
 		}).Return(nil).Once()
 
 		// Get the parent's parent
 		storageMock.On("GetByID", mock.Anything, *ExampleAliceDir.Parent()).Return(&ExampleAliceRoot, nil).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAliceRoot.id, map[string]any{
 			"last_modified_at": now,
-			"size":             uint64(ExampleAliceRoot.Size() + 10),
+			"size":             ExampleAliceRoot.Size() + 10,
 		}).Return(nil).Once()
 		// The root doesn't have any parent so it stop here
 
@@ -454,21 +454,21 @@ func TestINodes(t *testing.T) {
 		// Add the given  size to the parent
 		storageMock.On("Patch", mock.Anything, ExampleAliceDir.id, map[string]any{
 			"last_modified_at": now,
-			"size":             uint64(ExampleAliceDir.Size() - 10),
+			"size":             ExampleAliceDir.Size() - 10,
 		}).Return(nil).Once()
 
 		// Get the parent's parent
 		storageMock.On("GetByID", mock.Anything, *ExampleAliceDir.Parent()).Return(&ExampleAliceRoot, nil).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAliceRoot.id, map[string]any{
 			"last_modified_at": now,
-			"size":             uint64(ExampleAliceRoot.Size() - 10),
+			"size":             ExampleAliceRoot.Size() - 10,
 		}).Return(nil).Once()
 		// The root doesn't have any parent so it stop here
 
 		// Duplicate in order to avoid side effects on other tests
 		aliceFile := ExampleAliceFile
 
-		err := service.RegisterWrite(ctx, &aliceFile, -10, now)
+		err := service.RegisterDeletion(ctx, &aliceFile, 10, now)
 		assert.NoError(t, err)
 	})
 
@@ -501,14 +501,14 @@ func TestINodes(t *testing.T) {
 		// Add the given  size to the parent
 		storageMock.On("Patch", mock.Anything, ExampleAliceDir.id, map[string]any{
 			"last_modified_at": now,
-			"size":             uint64(ExampleAliceDir.Size() + 10),
+			"size":             ExampleAliceDir.Size() + 10,
 		}).Return(fmt.Errorf("some-error")).Once()
 
 		// Get the parent's parent
 		storageMock.On("GetByID", mock.Anything, *ExampleAliceDir.Parent()).Return(&ExampleAliceRoot, nil).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAliceRoot.id, map[string]any{
 			"last_modified_at": now,
-			"size":             uint64(ExampleAliceRoot.Size() + 10),
+			"size":             ExampleAliceRoot.Size() + 10,
 		}).Return(nil).Once()
 		// The root doesn't have any parent so it stop here
 

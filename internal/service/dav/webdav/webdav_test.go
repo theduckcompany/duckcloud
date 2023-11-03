@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"path"
 	"path/filepath"
 	"reflect"
@@ -23,6 +22,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -439,7 +439,7 @@ func TestWalkFS(t *testing.T) {
 		buildfs []string
 		startAt string
 		depth   int
-		walkFn  filepath.WalkFunc
+		walkFn  WalkFunc
 		want    []string
 	}{{
 		"just root",
@@ -573,7 +573,7 @@ func TestWalkFS(t *testing.T) {
 		},
 		"/",
 		infiniteDepth,
-		func(path string, info os.FileInfo, err error) error {
+		func(path string, info *dfs.INode, err error) error {
 			if path == "/a/b/g" {
 				return filepath.SkipDir
 			}
@@ -591,7 +591,7 @@ func TestWalkFS(t *testing.T) {
 	for _, tc := range testCases {
 		fs := buildTestFS(t, tc.buildfs).FS
 		var got []string
-		traceFn := func(path string, info os.FileInfo, err error) error {
+		traceFn := func(path string, info *dfs.INode, err error) error {
 			if tc.walkFn != nil {
 				err = tc.walkFn(path, info, err)
 				if err != nil {

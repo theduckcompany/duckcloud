@@ -9,11 +9,9 @@ import (
 	"context"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"io"
 	"mime"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strconv"
 
@@ -105,7 +103,7 @@ type DeadPropsHolder interface {
 var liveProps = map[xml.Name]struct {
 	// findFn implements the propfind function of this property. If nil,
 	// it indicates a hidden property.
-	findFn func(context.Context, dfs.FS, LockSystem, string, os.FileInfo) (string, error)
+	findFn func(context.Context, dfs.FS, LockSystem, string, *dfs.INode) (string, error)
 	// dir is true if the property applies to directories.
 	dir bool
 }{
@@ -352,14 +350,14 @@ func escapeXML(s string) string {
 	return s
 }
 
-func findResourceType(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi os.FileInfo) (string, error) {
+func findResourceType(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi *dfs.INode) (string, error) {
 	if fi.IsDir() {
 		return `<D:collection xmlns:D="DAV:"/>`, nil
 	}
 	return "", nil
 }
 
-func findDisplayName(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi os.FileInfo) (string, error) {
+func findDisplayName(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi *dfs.INode) (string, error) {
 	if slashClean(name) == "/" {
 		// Hide the real name of a possibly prefixed root directory.
 		return "", nil
@@ -367,19 +365,19 @@ func findDisplayName(ctx context.Context, fs dfs.FS, ls LockSystem, name string,
 	return escapeXML(fi.Name()), nil
 }
 
-func findContentLength(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi os.FileInfo) (string, error) {
-	return strconv.FormatInt(fi.Size(), 10), nil
+func findContentLength(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi *dfs.INode) (string, error) {
+	return strconv.FormatUint(fi.Size(), 10), nil
 }
 
-func findLastModified(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi os.FileInfo) (string, error) {
-	return fi.ModTime().UTC().Format(http.TimeFormat), nil
+func findLastModified(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi *dfs.INode) (string, error) {
+	return fi.LastModifiedAt().UTC().Format(http.TimeFormat), nil
 }
 
 // ErrNotImplemented should be returned by optional interfaces if they
 // want the original implementation to be used.
 var ErrNotImplemented = errors.New("not implemented")
 
-// ContentTyper is an optional interface for the os.FileInfo
+// ContentTyper is an optional interface for the *dfs.INode
 // objects returned by the FileSystem.
 //
 // If this interface is defined then it will be used to read the
@@ -396,13 +394,9 @@ type ContentTyper interface {
 	ContentType(ctx context.Context) (string, error)
 }
 
-func findContentType(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi os.FileInfo) (string, error) {
-	if do, ok := fi.(ContentTyper); ok {
-		ctype, err := do.ContentType(ctx)
-		if err != ErrNotImplemented {
-			return ctype, err
-		}
-	}
+func findContentType(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi *dfs.INode) (string, error) {
+	// TODO: Implement Content-type
+
 	// This implementation is based on serveContent's code in the standard net/http package.
 	ctype := mime.TypeByExtension(filepath.Ext(name))
 	if ctype != "" {
@@ -427,14 +421,14 @@ func findContentType(ctx context.Context, fs dfs.FS, ls LockSystem, name string,
 	return ctype, err
 }
 
-// ETager is an optional interface for the os.FileInfo objects
+// ETager is an optional interface for the *dfs.INode objects
 // returned by the FileSystem.
 //
 // If this interface is defined then it will be used to read the ETag
 // for the object.
 //
 // If this interface is not defined an ETag will be computed using the
-// ModTime() and the Size() methods of the os.FileInfo object.
+// ModTime() and the Size() methods of the *dfs.INode object.
 type ETager interface {
 	// ETag returns an ETag for the file.  This should be of the
 	// form "value" or W/"value"
@@ -445,20 +439,11 @@ type ETager interface {
 	ETag(ctx context.Context) (string, error)
 }
 
-func findETag(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi os.FileInfo) (string, error) {
-	if do, ok := fi.(ETager); ok {
-		etag, err := do.ETag(ctx)
-		if err != ErrNotImplemented {
-			return etag, err
-		}
-	}
-	// The Apache http 2.4 web server by default concatenates the
-	// modification time and size of a file. We replicate the heuristic
-	// with nanosecond granularity.
-	return fmt.Sprintf(`"%x%x"`, fi.ModTime().UnixNano(), fi.Size()), nil
+func findETag(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi *dfs.INode) (string, error) {
+	return fi.Checksum(), nil
 }
 
-func findSupportedLock(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi os.FileInfo) (string, error) {
+func findSupportedLock(ctx context.Context, fs dfs.FS, ls LockSystem, name string, fi *dfs.INode) (string, error) {
 	return `` +
 		`<D:lockentry xmlns:D="DAV:">` +
 		`<D:lockscope><D:exclusive/></D:lockscope>` +

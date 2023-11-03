@@ -23,7 +23,8 @@ type Service interface {
 	GetByNameAndParent(ctx context.Context, name string, parent uuid.UUID) (*INode, error)
 	CreateDir(ctx context.Context, parent *INode, name string) (*INode, error)
 	CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INode, error)
-	RegisterWrite(ctx context.Context, inode *INode, sizeWrite int64, modeTime time.Time) error
+	RegisterWrite(ctx context.Context, inode *INode, sizeWrite uint64, modeTime time.Time) error
+	RegisterDeletion(ctx context.Context, inode *INode, sizeWrite uint64, modeTime time.Time) error
 	MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, error)
 	PatchMove(ctx context.Context, source, parent *INode, newName string, modeTime time.Time) (*INode, error)
 }

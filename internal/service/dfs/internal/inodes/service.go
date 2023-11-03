@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"path"
 	"strings"
 	"time"
@@ -164,12 +163,25 @@ func (s *INodeService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INo
 	return &inode, nil
 }
 
-// RegisterWrite will add/deduce the `sizeWrite` to all the given inode parents. The ModeTime will also
+// RegisterDeletion will subtract the `sizeWrite` to all the given inode parents. The ModeTime will also
 // be change for all the parents.
 //
 // This fonction contains several consecutive writes and is idempotent. In case of error you should call this
 // function again. This keep the data coherent.
-func (s *INodeService) RegisterWrite(ctx context.Context, inode *INode, sizeWrite int64, modeTime time.Time) error {
+func (s *INodeService) RegisterDeletion(ctx context.Context, inode *INode, sizeWrite uint64, modeTime time.Time) error {
+	return s.registerWrite(ctx, inode, sizeWrite, modeTime, false)
+}
+
+// RegisterWrite will add the `sizeWrite` to all the given inode parents. The ModeTime will also
+// be change for all the parents.
+//
+// This fonction contains several consecutive writes and is idempotent. In case of error you should call this
+// function again. This keep the data coherent.
+func (s *INodeService) RegisterWrite(ctx context.Context, inode *INode, sizeWrite uint64, modeTime time.Time) error {
+	return s.registerWrite(ctx, inode, sizeWrite, modeTime, true)
+}
+
+func (s *INodeService) registerWrite(ctx context.Context, inode *INode, sizeWrite uint64, modeTime time.Time, positif bool) error {
 	var gerr error
 
 	parentID := inode.Parent()
@@ -185,15 +197,14 @@ func (s *INodeService) RegisterWrite(ctx context.Context, inode *INode, sizeWrit
 
 		if !parent.LastModifiedAt().Equal(modeTime) {
 			parent.lastModifiedAt = modeTime
-			if sizeWrite > 0 {
-				parent.size += uint64(sizeWrite)
-			} else {
-				absVal := uint64(math.Abs(float64(sizeWrite)))
-				if parent.size > absVal {
-					parent.size -= absVal
-				} else {
-					parent.size = 0
-				}
+			switch {
+			case positif:
+				parent.size += sizeWrite
+			case !positif && sizeWrite > parent.size:
+				// Should not append but we need to be protected again overflows.
+				parent.size = 0
+			default:
+				parent.size -= sizeWrite
 			}
 
 			// XXX:MULTI-WRITE

@@ -1,7 +1,6 @@
 package inodes
 
 import (
-	"io/fs"
 	"time"
 
 	v "github.com/go-ozzo/ozzo-validation"
@@ -58,20 +57,9 @@ type INode struct {
 func (n *INode) ID() uuid.UUID             { return n.id }
 func (n *INode) Parent() *uuid.UUID        { return n.parent }
 func (n *INode) Name() string              { return n.name }
-func (n *INode) Size() int64               { return int64(n.size) }
-func (n *INode) USize() uint64             { return n.size }
-func (n *INode) ModTime() time.Time        { return n.lastModifiedAt }
+func (n *INode) Size() uint64              { return n.size }
 func (n *INode) CreatedAt() time.Time      { return n.createdAt }
 func (n *INode) LastModifiedAt() time.Time { return n.lastModifiedAt }
 func (n *INode) FileID() *uuid.UUID        { return n.fileID }
 func (n *INode) IsDir() bool               { return n.fileID == nil }
 func (n *INode) Checksum() string          { return n.checksum }
-func (n *INode) Sys() any                  { return nil }
-
-func (n *INode) Mode() fs.FileMode {
-	if n.IsDir() {
-		return 0o755 | fs.ModeDir
-	}
-
-	return 0o644 // Regular file
-}
