@@ -24,7 +24,7 @@ type FS interface {
 	CreateDir(ctx context.Context, dirPath string) (*INode, error)
 	ListDir(ctx context.Context, dirPath string, cmd *storage.PaginateCmd) ([]INode, error)
 	Remove(ctx context.Context, path string) error
-	Rename(ctx context.Context, oldPath, newPath string) error
+	Move(ctx context.Context, oldPath, newPath string) error
 	Get(ctx context.Context, path string) (*INode, error)
 	Upload(ctx context.Context, filePath string, w io.Reader) error
 	Download(ctx context.Context, filePath string) (io.ReadSeekCloser, error)

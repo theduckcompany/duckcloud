@@ -459,7 +459,7 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.
 		return http.StatusPreconditionFailed, nil
 	}
 
-	err = fs.Rename(ctx, src, dst)
+	err = fs.Move(ctx, src, dst)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
