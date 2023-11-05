@@ -15,14 +15,14 @@ import (
 
 // HTTPHandler serve files via the Webdav protocol over http.
 type HTTPHandler struct {
-	davHandler *webdav.Handler
+	webdavHandler *webdav.Handler
 }
 
 // NewHTTPHandler builds a new EchoHandler.
 func NewHTTPHandler(tools tools.Tools, fs dfs.Service, folders folders.Service, davSessions davsessions.Service) *HTTPHandler {
 	return &HTTPHandler{
-		davHandler: &webdav.Handler{
-			Prefix:     "/dav",
+		webdavHandler: &webdav.Handler{
+			Prefix:     "/webdav",
 			FileSystem: fs,
 			Folders:    folders,
 			Sessions:   davSessions,
@@ -41,8 +41,8 @@ func (h *HTTPHandler) Register(r chi.Router, mids *router.Middlewares) {
 		r = r.With(mids.StripSlashed, mids.Logger)
 	}
 
-	r.Handle("/dav", h.davHandler)
-	r.Handle("/dav/*", h.davHandler)
+	r.Handle("/webdav", h.webdavHandler)
+	r.Handle("/webdav/*", h.webdavHandler)
 }
 
 func (h *HTTPHandler) String() string {
