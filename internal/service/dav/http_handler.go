@@ -26,7 +26,6 @@ func NewHTTPHandler(tools tools.Tools, fs dfs.Service, folders folders.Service, 
 			FileSystem: fs,
 			Folders:    folders,
 			Sessions:   davSessions,
-			LockSystem: webdav.NewMemLS(),
 			Logger: func(r *http.Request, err error) {
 				if err != nil {
 					logger.LogEntrySetError(r, err)
@@ -41,10 +40,18 @@ func (h *HTTPHandler) Register(r chi.Router, mids *router.Middlewares) {
 		r = r.With(mids.StripSlashed, mids.Logger)
 	}
 
-	r.Handle("/webdav", h.webdavHandler)
+	r.HandleFunc("/webdav", h.handleWebdavCollections)
 	r.Handle("/webdav/*", h.webdavHandler)
 }
 
 func (h *HTTPHandler) String() string {
 	return "dav"
+}
+
+func (h *HTTPHandler) handleWebdavCollections(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "OPTIONS":
+		h.webdavHandler.ServeHTTP(w, r)
+	default:
+	}
 }

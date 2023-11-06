@@ -11,6 +11,14 @@ import (
 	"strings"
 )
 
+// Condition can match a WebDAV resource, based on a token or ETag.
+// Exactly one of Token and ETag should be non-empty.
+type Condition struct {
+	Not   bool
+	Token string
+	ETag  string
+}
+
 // ifHeader is a disjunction (OR) of ifLists.
 type ifHeader struct {
 	lists []ifList

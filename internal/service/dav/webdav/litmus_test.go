@@ -33,7 +33,6 @@ func TestWebdavLitmus(t *testing.T) {
 
 	h := &Handler{
 		FileSystem: serv.DFSSvc,
-		LockSystem: NewMemLS(),
 		Sessions:   serv.DavSessionsSvc,
 		Folders:    serv.FoldersSvc,
 		Logger: func(r *http.Request, err error) {
