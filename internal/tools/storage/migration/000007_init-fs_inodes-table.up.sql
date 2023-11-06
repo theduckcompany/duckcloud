@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS fs_inodes (
   "parent" TEXT DEFAULT NULL,
   "name" TEXT NOT NULL,
   "size" NUMERIC NOT NULL,
+  "mimetype" TEXT DEFAULT NULL,
   "checksum" TEXT NOT NULL,
   "last_modified_at" DATETIME NOT NULL,
   "file_id" TEXT DEFAULT NULL,

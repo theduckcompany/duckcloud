@@ -293,6 +293,7 @@ func TestINodes(t *testing.T) {
 			id:             uuid.UUID("some-inode-id"),
 			parent:         ptr.To(ExampleAliceRoot.ID()),
 			name:           "foobar",
+			mimetype:       ptr.To("application/pdf"),
 			size:           42,
 			checksum:       "deadbeef",
 			createdAt:      now,
@@ -309,6 +310,7 @@ func TestINodes(t *testing.T) {
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
 			Parent:     ExampleAliceRoot.ID(),
 			Name:       "foobar",
+			Mime:       "application/pdf",
 			Size:       42,
 			Checksum:   "deadbeef",
 			UploadedAt: now,
@@ -328,6 +330,7 @@ func TestINodes(t *testing.T) {
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
 			Parent:   "some-invalid-id",
 			Name:     "foobar",
+			Mime:     "application/pdf",
 			Size:     ExampleAliceFile.Size(),
 			Checksum: ExampleAliceFile.Checksum(),
 			FileID:   *ExampleAliceFile.FileID(),
@@ -349,6 +352,7 @@ func TestINodes(t *testing.T) {
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
 			Parent:   ExampleAliceRoot.ID(),
 			Name:     "foobar",
+			Mime:     "application/pdf",
 			Size:     ExampleAliceFile.Size(),
 			Checksum: ExampleAliceFile.Checksum(),
 			FileID:   *ExampleAliceFile.FileID(),

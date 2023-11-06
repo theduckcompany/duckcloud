@@ -41,6 +41,7 @@ func TestFileUploadTask(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		job := NewFileUploadTaskRunner(foldersMock, filesMock, inodesMock)
 
+		// text/plain content type
 		content := []byte("Hello, World!")
 		afs := afero.NewMemMapFs()
 		err := afero.WriteFile(afs, "some-file", content, 0o700)
@@ -62,6 +63,7 @@ func TestFileUploadTask(t *testing.T) {
 		inodesMock.On("CreateFile", mock.Anything, &inodes.CreateFileCmd{
 			Parent:     inodes.ExampleAliceDir.ID(),
 			Name:       "todo.txt",
+			Mime:       "text/plain; charset=utf-8",
 			Size:       uint64(len(content)),
 			Checksum:   "3_1gIbsr1bCvZ2KQgJ7DpTGR3YHH9wpLKGiKNiGCmG8=", // SHA256 of "Hello, World!"
 			FileID:     uuid.UUID("01d39aea-9565-4e2f-9177-c3a2b4ea7ae9"),
@@ -117,6 +119,7 @@ func TestFileUploadTask(t *testing.T) {
 			Parent:     inodes.ExampleAliceDir.ID(),
 			Name:       "foo.txt",
 			Size:       uint64(len(content)),
+			Mime:       "text/plain; charset=utf-8",
 			Checksum:   "3_1gIbsr1bCvZ2KQgJ7DpTGR3YHH9wpLKGiKNiGCmG8=", // SHA256 of "Hello, World!"
 			FileID:     ExampleAliceUpload.FileID,
 			UploadedAt: ExampleAliceUpload.UploadedAt,
