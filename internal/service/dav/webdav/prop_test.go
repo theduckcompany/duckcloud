@@ -21,7 +21,7 @@ func TestMemPS(t *testing.T) {
 	ctx := context.Background()
 	// calcProps calculates the getlastmodified and getetag DAV: property
 	// values in pstats for resource name in file-system fs.
-	calcProps := func(name string, fs dfs.FS, ls LockSystem, pstats []Propstat) error {
+	calcProps := func(name string, fs dfs.FS, pstats []Propstat) error {
 		fi, err := fs.Get(ctx, name)
 		if err != nil {
 			return err
@@ -36,7 +36,7 @@ func TestMemPS(t *testing.T) {
 					if fi.IsDir() {
 						continue
 					}
-					etag, err := findETag(ctx, fs, ls, name, fi)
+					etag, err := findETag(ctx, fs, name, fi)
 					if err != nil {
 						return err
 					}
@@ -510,11 +510,10 @@ func TestMemPS(t *testing.T) {
 	for _, tc := range testCases {
 		fs := buildTestFS(t, tc.buildfs).FS
 
-		ls := NewMemLS()
 		var err error
 		for _, op := range tc.propOp {
 			desc := fmt.Sprintf("%s: %s %s", tc.desc, op.op, op.name)
-			if err = calcProps(op.name, fs, ls, op.wantPropstats); err != nil {
+			if err = calcProps(op.name, fs, op.wantPropstats); err != nil {
 				t.Fatalf("%s: calcProps: %v", desc, err)
 			}
 
@@ -522,7 +521,7 @@ func TestMemPS(t *testing.T) {
 			var propstats []Propstat
 			switch op.op {
 			case "propname":
-				pnames, err := propnames(ctx, fs, ls, op.name)
+				pnames, err := propnames(ctx, fs, op.name)
 				if err != nil {
 					t.Errorf("%s: got error %v, want nil", desc, err)
 					continue
@@ -534,11 +533,11 @@ func TestMemPS(t *testing.T) {
 				}
 				continue
 			case "allprop":
-				propstats, err = allprop(ctx, fs, ls, op.name, op.pnames)
+				propstats, err = allprop(ctx, fs, op.name, op.pnames)
 			case "propfind":
-				propstats, err = props(ctx, fs, ls, op.name, op.pnames)
+				propstats, err = props(ctx, fs, op.name, op.pnames)
 			case "proppatch":
-				propstats, err = patch(ctx, fs, ls, op.name, op.patches)
+				propstats, err = patch(ctx, fs, op.name, op.patches)
 			default:
 				t.Fatalf("%s: %s not implemented", desc, op.op)
 			}

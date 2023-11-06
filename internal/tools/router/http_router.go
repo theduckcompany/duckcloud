@@ -36,7 +36,6 @@ func init() {
 	chi.RegisterMethod("CHECKIN")
 	chi.RegisterMethod("CHECKOUT")
 	chi.RegisterMethod("COPY")
-	chi.RegisterMethod("LOCK")
 	chi.RegisterMethod("MKCALENDAR")
 	chi.RegisterMethod("MKCOL")
 	chi.RegisterMethod("MOVE")
@@ -46,7 +45,6 @@ func init() {
 	chi.RegisterMethod("REPORT")
 	chi.RegisterMethod("SEARCH")
 	chi.RegisterMethod("UNCHECKOUT")
-	chi.RegisterMethod("UNLOCK")
 	chi.RegisterMethod("VERSION-CONTROL")
 }
 

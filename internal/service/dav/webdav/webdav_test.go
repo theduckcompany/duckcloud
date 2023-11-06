@@ -30,17 +30,6 @@ import (
 func TestPrefix(t *testing.T) {
 	const dst, blah = "Destination", "blah blah blah"
 
-	// createLockBody comes from the example in Section 9.10.7.
-	const createLockBody = `<?xml version="1.0" encoding="utf-8" ?>
-		<D:lockinfo xmlns:D='DAV:'>
-			<D:lockscope><D:exclusive/></D:lockscope>
-			<D:locktype><D:write/></D:locktype>
-			<D:owner>
-				<D:href>http://example.org/~ejw/contact.html</D:href>
-			</D:owner>
-		</D:lockinfo>
-	`
-
 	do := func(username, token, method, urlStr string, body string, wantStatusCode int, headers ...string) (http.Header, error) {
 		var bodyReader io.Reader
 		if body != "" {
@@ -80,7 +69,6 @@ func TestPrefix(t *testing.T) {
 
 		h := &Handler{
 			FileSystem: tc.FSService,
-			LockSystem: NewMemLS(),
 			Sessions:   tc.DavSessionsSvc,
 			Folders:    tc.FoldersSvc,
 			Logger: func(_ *http.Request, err error) {
@@ -113,7 +101,6 @@ func TestPrefix(t *testing.T) {
 		//	COPY  /a/b/c /a/b/d
 		//	MKCOL /a/b/e
 		//	MOVE  /a/b/d /a/b/e/f
-		//	LOCK  /a/b/e/g
 		//	PUT   /a/b/e/g
 		// which should yield the (possibly stripped) filenames /a/b/c,
 		// /a/b/e/f and /a/b/e/g, plus their parent directories.
@@ -194,34 +181,6 @@ func TestPrefix(t *testing.T) {
 			continue
 		}
 
-		var lockToken string
-		wantG := map[string]int{
-			"/":       http.StatusCreated,
-			"/a/":     http.StatusCreated,
-			"/a/b/":   http.StatusCreated,
-			"/a/b/c/": http.StatusNotFound,
-		}[prefix]
-		if h, err := do(username, token, "LOCK", srv.URL+"/a/b/e/g", createLockBody, wantG); err != nil {
-			t.Errorf("prefix=%-9q LOCK /a/b/e/g: %v", prefix, err)
-			continue
-		} else {
-			lockToken = h.Get("Lock-Token")
-		}
-
-		require.NoError(t, tc.Runner.Run(ctx))
-
-		ifHeader := fmt.Sprintf("<%s/a/b/e/g> (%s)", srv.URL, lockToken)
-		wantH := map[string]int{
-			"/":       http.StatusCreated,
-			"/a/":     http.StatusCreated,
-			"/a/b/":   http.StatusCreated,
-			"/a/b/c/": http.StatusNotFound,
-		}[prefix]
-		if _, err := do(username, token, "PUT", srv.URL+"/a/b/e/g", blah, wantH, "If", ifHeader); err != nil {
-			t.Errorf("prefix=%-9q PUT /a/b/e/g: %v", prefix, err)
-			continue
-		}
-
 		require.NoError(t, tc.Runner.Run(ctx))
 
 		got, err := find(ctx, nil, fs, "/")
@@ -231,9 +190,9 @@ func TestPrefix(t *testing.T) {
 		}
 		sort.Strings(got)
 		want := map[string][]string{
-			"/":       {"/", "/a", "/a/b", "/a/b/c", "/a/b/e", "/a/b/e/f", "/a/b/e/g"},
-			"/a/":     {"/", "/b", "/b/c", "/b/e", "/b/e/f", "/b/e/g"},
-			"/a/b/":   {"/", "/c", "/e", "/e/f", "/e/g"},
+			"/":       {"/", "/a", "/a/b", "/a/b/c", "/a/b/e", "/a/b/e/f"},
+			"/a/":     {"/", "/b", "/b/c", "/b/e", "/b/e/f"},
+			"/a/b/":   {"/", "/c", "/e", "/e/f"},
 			"/a/b/c/": {"/"},
 		}[prefix]
 		if !reflect.DeepEqual(got, want) {
@@ -368,7 +327,6 @@ func TestFilenameEscape(t *testing.T) {
 
 	srv := httptest.NewServer(&Handler{
 		FileSystem: tc.FSService,
-		LockSystem: NewMemLS(),
 		Sessions:   tc.DavSessionsSvc,
 		Folders:    tc.FoldersSvc,
 		Logger: func(_ *http.Request, err error) {
