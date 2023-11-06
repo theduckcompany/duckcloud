@@ -9,6 +9,7 @@ import (
 	"io"
 	"path"
 
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/files"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/folders"
@@ -66,9 +67,20 @@ func (r *FileUploadTaskRunner) RunArgs(ctx context.Context, args *scheduler.File
 		return fmt.Errorf("failed to generate the hash: %w", err)
 	}
 
+	_, err = file.Seek(0, io.SeekStart)
+	if err != nil {
+		return fmt.Errorf("failed to reset the file offset: %w", err)
+	}
+
+	mime, err := mimetype.DetectReader(file)
+	if err != nil {
+		return fmt.Errorf("failed to detete the mimetype: %w", err)
+	}
+
 	inode, err := r.inodes.CreateFile(ctx, &inodes.CreateFileCmd{
 		Parent:     dir.ID(),
 		Name:       fileName,
+		Mime:       mime.String(),
 		Size:       uint64(written),
 		Checksum:   base64.URLEncoding.EncodeToString(hasher.Sum(nil)),
 		FileID:     args.FileID,

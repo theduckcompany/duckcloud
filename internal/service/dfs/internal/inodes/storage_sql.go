@@ -17,7 +17,7 @@ const tableName = "fs_inodes"
 
 var errNotFound = errors.New("not found")
 
-var allFiels = []string{"id", "name", "parent", "checksum", "size", "last_modified_at", "created_at", "file_id"}
+var allFiels = []string{"id", "name", "parent", "checksum", "mimetype", "size", "last_modified_at", "created_at", "file_id"}
 
 type sqlStorage struct {
 	db    *sql.DB
@@ -28,11 +28,11 @@ func newSqlStorage(db *sql.DB, tools tools.Tools) *sqlStorage {
 	return &sqlStorage{db, tools.Clock()}
 }
 
-func (s *sqlStorage) Save(ctx context.Context, inode *INode) error {
+func (s *sqlStorage) Save(ctx context.Context, i *INode) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(allFiels...).
-		Values(inode.id, inode.name, inode.parent, inode.checksum, inode.size, inode.lastModifiedAt, inode.createdAt, inode.fileID).
+		Values(i.id, i.name, i.parent, i.checksum, i.mimetype, i.size, i.lastModifiedAt, i.createdAt, i.fileID).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -115,7 +115,7 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]INode, error) {
 	for rows.Next() {
 		var res INode
 
-		err := rows.Scan(&res.id, &res.name, &res.parent, &res.checksum, &res.size, &res.lastModifiedAt, &res.createdAt, &res.fileID)
+		err := rows.Scan(&res.id, &res.name, &res.parent, &res.checksum, &res.mimetype, &res.size, &res.lastModifiedAt, &res.createdAt, &res.fileID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}
@@ -138,7 +138,7 @@ func (s *sqlStorage) GetByNameAndParent(ctx context.Context, name string, parent
 		From(tableName).
 		Where(sq.Eq{"parent": string(parent), "name": name, "deleted_at": nil}).
 		RunWith(s.db).
-		ScanContext(ctx, &res.id, &res.name, &res.parent, &res.checksum, &res.size, &res.lastModifiedAt, &res.createdAt, &res.fileID)
+		ScanContext(ctx, &res.id, &res.name, &res.parent, &res.checksum, &res.mimetype, &res.size, &res.lastModifiedAt, &res.createdAt, &res.fileID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errNotFound
 	}
@@ -163,7 +163,7 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*INode, erro
 
 	err := query.
 		RunWith(s.db).
-		ScanContext(ctx, &res.id, &res.name, &res.parent, &res.checksum, &res.size, &res.lastModifiedAt, &res.createdAt, &res.fileID)
+		ScanContext(ctx, &res.id, &res.name, &res.parent, &res.checksum, &res.mimetype, &res.size, &res.lastModifiedAt, &res.createdAt, &res.fileID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errNotFound
 	}

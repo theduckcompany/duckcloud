@@ -10,6 +10,7 @@ require (
 	github.com/adrg/xdg v0.4.0
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/dustin/go-humanize v1.0.1
+	github.com/gabriel-vasile/mimetype v1.4.1
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-chi/cors v1.2.1
 	github.com/go-oauth2/oauth2/v4 v4.5.2
@@ -25,7 +26,6 @@ require (
 	github.com/unrolled/render v1.6.0
 	go.uber.org/fx v1.20.0
 	golang.org/x/crypto v0.14.0
-	golang.org/x/net v0.17.0
 )
 
 require (
@@ -52,6 +52,7 @@ require (
 	go.uber.org/dig v1.17.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.25.0 // indirect
+	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect

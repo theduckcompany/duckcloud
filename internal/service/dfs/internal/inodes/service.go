@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"mime"
 	"path"
 	"strings"
 	"time"
@@ -18,13 +19,14 @@ import (
 )
 
 var (
-	ErrInvalidPath   = errors.New("invalid path")
-	ErrInvalidRoot   = errors.New("invalid root")
-	ErrInvalidParent = errors.New("invalid parent")
-	ErrIsNotDir      = errors.New("not a directory")
-	ErrIsADir        = errors.New("is a directory")
-	ErrNotFound      = errors.New("inode not found")
-	ErrAlreadyExists = errors.New("already exists")
+	ErrInvalidPath     = errors.New("invalid path")
+	ErrInvalidRoot     = errors.New("invalid root")
+	ErrInvalidParent   = errors.New("invalid parent")
+	ErrInvalidMimeType = errors.New("invalid mime type")
+	ErrIsNotDir        = errors.New("not a directory")
+	ErrIsADir          = errors.New("is a directory")
+	ErrNotFound        = errors.New("inode not found")
+	ErrAlreadyExists   = errors.New("already exists")
 )
 
 //go:generate mockery --name Storage
@@ -116,6 +118,7 @@ func (s *INodeService) CreateRootDir(ctx context.Context) (*INode, error) {
 	node := INode{
 		id:             s.uuid.New(),
 		parent:         nil,
+		mimetype:       nil,
 		createdAt:      now,
 		lastModifiedAt: now,
 		fileID:         nil,
@@ -144,9 +147,15 @@ func (s *INodeService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INo
 		return nil, errs.Internal(fmt.Errorf("failed to GetByID: %w", err))
 	}
 
+	mediaType, params, err := mime.ParseMediaType(cmd.Mime)
+	if err != nil {
+		return nil, errs.BadRequest(fmt.Errorf("%s: %w: %w", cmd.Mime, ErrInvalidMimeType, err))
+	}
+
 	inode := INode{
 		id:             s.uuid.New(),
 		parent:         ptr.To(parent.ID()),
+		mimetype:       ptr.To(mime.FormatMediaType(mediaType, params)),
 		size:           cmd.Size,
 		checksum:       cmd.Checksum,
 		name:           cmd.Name,
@@ -326,6 +335,7 @@ func (s *INodeService) CreateDir(ctx context.Context, parent *INode, name string
 	newDir := INode{
 		id:             s.uuid.New(),
 		parent:         ptr.To(parent.ID()),
+		mimetype:       nil,
 		name:           name,
 		lastModifiedAt: now,
 		createdAt:      now,

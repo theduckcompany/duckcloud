@@ -9,9 +9,7 @@ import (
 	"context"
 	"encoding/xml"
 	"errors"
-	"mime"
 	"net/http"
-	"path/filepath"
 	"strconv"
 
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
@@ -378,15 +376,11 @@ type ContentTyper interface {
 }
 
 func findContentType(ctx context.Context, name string, fi *dfs.INode) (string, error) {
-	// TODO: Implement Content-type
-
-	// This implementation is based on serveContent's code in the standard net/http package.
-	ctype := mime.TypeByExtension(filepath.Ext(name))
-	if ctype != "" {
-		return ctype, nil
+	if fi.IsDir() {
+		return "", errors.New("try to detect content type on a dir")
 	}
 
-	return "", nil
+	return *fi.MimeType(), nil
 }
 
 // ETager is an optional interface for the *dfs.INode objects
