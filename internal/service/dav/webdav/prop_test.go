@@ -36,7 +36,7 @@ func TestMemPS(t *testing.T) {
 					if fi.IsDir() {
 						continue
 					}
-					etag, err := findETag(ctx, fs, name, fi)
+					etag, err := findETag(ctx, name, fi)
 					if err != nil {
 						return err
 					}
@@ -517,11 +517,16 @@ func TestMemPS(t *testing.T) {
 				t.Fatalf("%s: calcProps: %v", desc, err)
 			}
 
+			info, err := fs.Get(ctx, op.name)
+			if err != nil {
+				t.Fatalf("failed to get %q\n", op.name)
+			}
+
 			// Call property system.
 			var propstats []Propstat
 			switch op.op {
 			case "propname":
-				pnames, err := propnames(ctx, fs, op.name)
+				pnames, err := propnames(ctx, info, op.name)
 				if err != nil {
 					t.Errorf("%s: got error %v, want nil", desc, err)
 					continue
@@ -533,9 +538,9 @@ func TestMemPS(t *testing.T) {
 				}
 				continue
 			case "allprop":
-				propstats, err = allprop(ctx, fs, op.name, op.pnames)
+				propstats, err = allprop(ctx, info, op.name, op.pnames)
 			case "propfind":
-				propstats, err = props(ctx, fs, op.name, op.pnames)
+				propstats, err = props(ctx, info, op.name, op.pnames)
 			case "proppatch":
 				propstats, err = patch(ctx, fs, op.name, op.patches)
 			default:

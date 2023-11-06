@@ -378,7 +378,7 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, fs dfs.
 		var pstats []Propstat
 		switch {
 		case pf.Propname != nil:
-			pnames, err := propnames(ctx, fs, reqPath)
+			pnames, err := propnames(ctx, info, reqPath)
 			if err != nil {
 				return handlePropfindError(err, info)
 			}
@@ -388,9 +388,9 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, fs dfs.
 			}
 			pstats = append(pstats, pstat)
 		case pf.Allprop != nil:
-			pstats, err = allprop(ctx, fs, reqPath, pf.Prop)
+			pstats, err = allprop(ctx, info, reqPath, pf.Prop)
 		default:
-			pstats, err = props(ctx, fs, reqPath, pf.Prop)
+			pstats, err = props(ctx, info, reqPath, pf.Prop)
 		}
 		if err != nil {
 			return handlePropfindError(err, info)
