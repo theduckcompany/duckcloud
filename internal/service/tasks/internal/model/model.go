@@ -11,9 +11,8 @@ import (
 type Status string
 
 const (
-	Queuing   Status = "queuing"
-	Failed    Status = "failed"
-	Succeeded Status = "succeeded"
+	Queuing Status = "queuing"
+	Failed  Status = "failed"
 )
 
 type Task struct {

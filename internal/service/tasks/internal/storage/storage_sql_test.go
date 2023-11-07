@@ -31,7 +31,7 @@ var ExampleFileUploadFileAlice2 = model.Task{
 	ID:           uuid.UUID("7ab0ae07-2383-4266-acfb-cdf0b0ec5312"),
 	Priority:     2,
 	Name:         "file-upload",
-	Status:       model.Succeeded,
+	Status:       model.Failed,
 	Retries:      0,
 	RegisteredAt: nowAfter,
 	Args:         json.RawMessage(`{"foo":"bar"}`),
