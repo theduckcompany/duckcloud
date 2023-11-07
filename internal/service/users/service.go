@@ -174,15 +174,16 @@ func (s *UserService) Authenticate(ctx context.Context, username, userPassword s
 		return nil, errs.Internal(fmt.Errorf("failed to GetbyUsername: %w", err))
 	}
 
-	err = s.password.Compare(ctx, user.password, userPassword)
-	switch {
-	case errors.Is(err, password.ErrMissmatchedPassword):
-		return nil, errs.BadRequest(ErrInvalidPassword)
-	case err != nil:
+	ok, err := s.password.Compare(ctx, user.password, userPassword)
+	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed password compare: %w", err))
-	default:
-		return user, nil
 	}
+
+	if !ok {
+		return nil, errs.BadRequest(ErrInvalidPassword)
+	}
+
+	return user, nil
 }
 
 func (s *UserService) GetByID(ctx context.Context, userID uuid.UUID) (*User, error) {
