@@ -64,20 +64,20 @@ func (t *TasksRunner) Run(ctx context.Context) error {
 			continue
 		}
 
-		var patchErr error
+		var updateErr error
 		err = runner.Run(ctx, task.Args)
 		switch {
 		case err == nil:
 			t.log.DebugContext(ctx, "task succeed")
 
-			patchErr = t.storage.Patch(ctx, task.ID, map[string]any{"status": model.Succeeded})
+			updateErr = t.storage.Delete(ctx, task.ID)
 
 		case task.Retries < defaultMaxRetries:
 			task.Retries++
 			t.log.With(slog.String("error", err.Error())).
 				ErrorContext(ctx, fmt.Sprintf("task failed (#%d), retry later", task.Retries))
 
-			patchErr = t.storage.Patch(ctx, task.ID, map[string]any{
+			updateErr = t.storage.Patch(ctx, task.ID, map[string]any{
 				"retries":       task.Retries,
 				"registered_at": time.Now().Add(defaultRetryDelay),
 			})
@@ -87,10 +87,10 @@ func (t *TasksRunner) Run(ctx context.Context) error {
 			t.log.With(slog.String("error", err.Error())).
 				ErrorContext(ctx, "task failed, too many retries")
 
-			patchErr = t.storage.Patch(ctx, task.ID, map[string]any{"status": model.Failed})
+			updateErr = t.storage.Patch(ctx, task.ID, map[string]any{"status": model.Failed})
 		}
 
-		if patchErr != nil {
+		if updateErr != nil {
 			return fmt.Errorf("failed to Patch the task status: %w", err)
 		}
 	}

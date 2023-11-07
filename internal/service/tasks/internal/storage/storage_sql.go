@@ -24,6 +24,8 @@ type Storage interface {
 	GetNext(ctx context.Context) (*model.Task, error)
 	Patch(ctx context.Context, taskID uuid.UUID, fields map[string]any) error
 	GetLastRegisteredTask(ctx context.Context, name string) (*model.Task, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*model.Task, error)
+	Delete(ctx context.Context, taskID uuid.UUID) error
 }
 
 type sqlStorage struct {
@@ -95,37 +97,28 @@ func (s *sqlStorage) GetLastRegisteredTask(ctx context.Context, name string) (*m
 	return &res, nil
 }
 
+func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*model.Task, error) {
+	row := sq.
+		Select(allFields...).
+		From(tableName).
+		Where(sq.Eq{"id": id}).
+		OrderBy("priority", "registered_at").
+		RunWith(s.db).
+		QueryRowContext(ctx)
+
+	return s.scanRow(row)
+}
+
 func (s *sqlStorage) GetNext(ctx context.Context) (*model.Task, error) {
-	res := model.Task{}
-
-	var rawArgs json.RawMessage
-
-	err := sq.
+	row := sq.
 		Select(allFields...).
 		From(tableName).
 		Where(sq.Eq{"status": model.Queuing}).
 		OrderBy("priority", "registered_at").
 		RunWith(s.db).
-		ScanContext(ctx,
-			&res.ID,
-			&res.Priority,
-			&res.Name,
-			&res.Status,
-			&res.Retries,
-			&res.RegisteredAt,
-			&rawArgs,
-		)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, ErrNotFound
-	}
+		QueryRowContext(ctx)
 
-	if err != nil {
-		return nil, fmt.Errorf("sql error: %w", err)
-	}
-
-	json.Unmarshal(rawArgs, &res.Args)
-
-	return &res, nil
+	return s.scanRow(row)
 }
 
 func (s *sqlStorage) Patch(ctx context.Context, taskID uuid.UUID, fields map[string]any) error {
@@ -139,4 +132,42 @@ func (s *sqlStorage) Patch(ctx context.Context, taskID uuid.UUID, fields map[str
 	}
 
 	return nil
+}
+
+func (s *sqlStorage) Delete(ctx context.Context, taskID uuid.UUID) error {
+	_, err := sq.Delete(tableName).
+		Where(sq.Eq{"id": taskID}).
+		RunWith(s.db).
+		ExecContext(ctx)
+	if err != nil {
+		return fmt.Errorf("sql error: %w", err)
+	}
+
+	return nil
+}
+
+func (s *sqlStorage) scanRow(row sq.RowScanner) (*model.Task, error) {
+	res := model.Task{}
+	var rawArgs json.RawMessage
+
+	err := row.Scan(
+		&res.ID,
+		&res.Priority,
+		&res.Name,
+		&res.Status,
+		&res.Retries,
+		&res.RegisteredAt,
+		&rawArgs,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan the sql result: %w", err)
+	}
+
+	json.Unmarshal(rawArgs, &res.Args)
+
+	return &res, nil
 }

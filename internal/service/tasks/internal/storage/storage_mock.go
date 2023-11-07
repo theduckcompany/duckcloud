@@ -15,6 +15,46 @@ type MockStorage struct {
 	mock.Mock
 }
 
+// Delete provides a mock function with given fields: ctx, taskID
+func (_m *MockStorage) Delete(ctx context.Context, taskID uuid.UUID) error {
+	ret := _m.Called(ctx, taskID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, taskID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GetByID provides a mock function with given fields: ctx, id
+func (_m *MockStorage) GetByID(ctx context.Context, id uuid.UUID) (*model.Task, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 *model.Task
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (*model.Task, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) *model.Task); ok {
+		r0 = rf(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Task)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetLastRegisteredTask provides a mock function with given fields: ctx, name
 func (_m *MockStorage) GetLastRegisteredTask(ctx context.Context, name string) (*model.Task, error) {
 	ret := _m.Called(ctx, name)
