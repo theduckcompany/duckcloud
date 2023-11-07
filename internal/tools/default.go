@@ -33,7 +33,7 @@ func NewToolbox(cfg Config) *Toolbox {
 		uuid:      uuid.NewProvider(),
 		log:       log,
 		resWriter: response.Init(cfg.Response),
-		password:  password.NewBcryptPassword(),
+		password:  password.NewArgon2IDPassword(),
 	}
 }
 
@@ -46,7 +46,7 @@ func NewToolboxForTest(t *testing.T) *Toolbox {
 		uuid:      uuid.NewProvider(),
 		log:       log,
 		resWriter: response.Init(response.Config{PrettyRender: true}),
-		password:  password.NewBcryptPassword(),
+		password:  password.NewArgon2IDPassword(),
 	}
 }
 

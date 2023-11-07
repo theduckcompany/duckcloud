@@ -14,17 +14,27 @@ type MockPassword struct {
 }
 
 // Compare provides a mock function with given fields: ctx, hash, password
-func (_m *MockPassword) Compare(ctx context.Context, hash string, password string) error {
+func (_m *MockPassword) Compare(ctx context.Context, hash string, password string) (bool, error) {
 	ret := _m.Called(ctx, hash, password)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (bool, error)); ok {
+		return rf(ctx, hash, password)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) bool); ok {
 		r0 = rf(ctx, hash, password)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(bool)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, hash, password)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // Encrypt provides a mock function with given fields: ctx, password

@@ -12,28 +12,22 @@ func TestBcryptPassword(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Encrypt/Compare success", func(t *testing.T) {
-		password := &BcryptPassword{}
+		password := &Argon2IDPassword{}
 
 		hashed, err := password.Encrypt(ctx, "some-password")
 		require.NoError(t, err)
 		require.NotEqual(t, hashed, "some-password")
 
-		err = password.Compare(ctx, hashed, "some-password")
+		ok, err := password.Compare(ctx, hashed, "some-password")
+		assert.True(t, ok)
 		assert.NoError(t, err)
 	})
 
-	t.Run("Encrypt with a password too long", func(t *testing.T) {
-		password := &BcryptPassword{}
-
-		hashed, err := password.Encrypt(ctx, "some-very-very-very-very-very-very-very-very-very-very-very-very----very-very-very-very-long-password")
-		assert.EqualError(t, err, "bcrypt: password length exceeds 72 bytes")
-		assert.Empty(t, hashed)
-	})
-
 	t.Run("Decrypte with a no base64 string", func(t *testing.T) {
-		password := &BcryptPassword{}
+		password := &Argon2IDPassword{}
 
-		err := password.Compare(ctx, "not a hex string#", "some-password")
-		assert.EqualError(t, err, "failed to decode the password: illegal base64 data at input byte 3")
+		ok, err := password.Compare(ctx, "not a hex string#", "some-password")
+		assert.False(t, ok)
+		assert.EqualError(t, err, "failed to decode the hash: the encoded hash is not in the correct format")
 	})
 }
