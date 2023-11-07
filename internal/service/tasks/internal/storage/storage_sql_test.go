@@ -48,6 +48,12 @@ func Test_Tasks_SQLStorage(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	t.Run("GetByID success", func(t *testing.T) {
+		res, err := storage.GetByID(ctx, ExampleFileUploadFileAlice.ID)
+		assert.Equal(t, &ExampleFileUploadFileAlice, res)
+		assert.NoError(t, err)
+	})
+
 	t.Run("GetNext success", func(t *testing.T) {
 		task, err := storage.GetNext(ctx)
 		assert.NoError(t, err)
@@ -77,5 +83,20 @@ func Test_Tasks_SQLStorage(t *testing.T) {
 		res, err := storage.GetLastRegisteredTask(ctx, "unknown-task")
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, ErrNotFound)
+	})
+
+	t.Run("Delete success", func(t *testing.T) {
+		err := storage.Delete(ctx, ExampleFileUploadFileAlice.ID)
+		assert.NoError(t, err)
+
+		res, err := storage.GetByID(ctx, ExampleFileUploadFileAlice.ID)
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, ErrNotFound)
+	})
+
+	t.Run("Delete an already deleted task success", func(t *testing.T) {
+		// Deleted by the previous test
+		err := storage.Delete(ctx, ExampleFileUploadFileAlice.ID)
+		assert.NoError(t, err)
 	})
 }
