@@ -7,12 +7,13 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 func TestFileService(t *testing.T) {
+	const someFileID = uuid.UUID("fa603efe-d91b-4530-baaa-820c297214bd")
+
 	ctx := context.Background()
 
 	t.Run("Open success", func(t *testing.T) {
@@ -22,14 +23,14 @@ func TestFileService(t *testing.T) {
 		svc, err := NewFSService(fs, "/", tools)
 		require.NoError(t, err)
 
-		file, err := svc.Open(ctx, *inodes.ExampleAliceFile.FileID())
+		file, err := svc.Open(ctx, someFileID)
 		assert.NoError(t, err)
 
 		file.WriteString("Hello, World!")
 		err = file.Close()
 		require.NoError(t, err)
 
-		file2, err := svc.Open(ctx, *inodes.ExampleAliceFile.FileID())
+		file2, err := svc.Open(ctx, someFileID)
 		assert.NoError(t, err)
 
 		buf := make([]byte, 13)
@@ -127,14 +128,14 @@ func TestFileService(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create a file
-		file, err := svc.Open(ctx, *inodes.ExampleAliceFile.FileID())
+		file, err := svc.Open(ctx, someFileID)
 		assert.NoError(t, err)
 		file.WriteString("Hello, World!")
 		err = file.Close()
 		require.NoError(t, err)
 
 		// Delete it
-		err = svc.Delete(ctx, *inodes.ExampleAliceFile.FileID())
+		err = svc.Delete(ctx, someFileID)
 		assert.NoError(t, err)
 	})
 
