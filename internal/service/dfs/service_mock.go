@@ -6,7 +6,7 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
-	folders "github.com/theduckcompany/duckcloud/internal/service/folders"
+	folders "github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )

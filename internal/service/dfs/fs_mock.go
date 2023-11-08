@@ -5,8 +5,8 @@ package dfs
 import (
 	context "context"
 
+	folders "github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	inodes "github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
-	folders "github.com/theduckcompany/duckcloud/internal/service/folders"
 
 	io "io"
 

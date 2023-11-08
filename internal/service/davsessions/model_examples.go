@@ -3,7 +3,7 @@ package davsessions
 import (
 	"time"
 
-	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
