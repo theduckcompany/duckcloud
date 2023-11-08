@@ -143,41 +143,20 @@ func (s *LocalFS) Download(ctx context.Context, filePath string) (io.ReadSeekClo
 		return nil, files.ErrInodeNotAFile
 	}
 
-	file, err := s.files.Open(ctx, *fileID)
+	fileReader, err := s.files.Download(ctx, *fileID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to Open file %q: %w", inode.ID(), err)
 	}
 
-	return file, nil
+	return fileReader, nil
 }
 
 func (s *LocalFS) Upload(ctx context.Context, filePath string, w io.Reader) error {
 	filePath = cleanPath(filePath)
 
-	file, fileID, err := s.files.Create(ctx)
+	fileID, err := s.files.Upload(ctx, w)
 	if err != nil {
 		return fmt.Errorf("failed to Create file: %w", err)
-	}
-
-	success := false
-	defer func() {
-		// In case of error rollback the file creation. Use a panic to
-		// ensure it is executed, even in case of a panic.
-		if !success {
-			_ = s.files.Delete(ctx, fileID)
-		}
-	}()
-
-	_, err = io.Copy(file, w)
-	if err != nil {
-		// In case of error rollback the file creation.
-		_ = s.files.Delete(ctx, fileID)
-		return errs.Internal(fmt.Errorf("failed to copy the file content: %w", err))
-	}
-
-	err = file.Close()
-	if err != nil {
-		return errs.Internal(fmt.Errorf("failed to close the file: %w", err))
 	}
 
 	ctx = context.WithoutCancel(ctx)
@@ -194,8 +173,6 @@ func (s *LocalFS) Upload(ctx context.Context, filePath string, w io.Reader) erro
 	if err != nil {
 		return fmt.Errorf("failed to Register the upload: %w", err)
 	}
-
-	success = true
 
 	return nil
 }

@@ -54,7 +54,7 @@ func (r *FileUploadTaskRunner) RunArgs(ctx context.Context, args *scheduler.File
 		return fmt.Errorf("failed to Get the dir: %w", err)
 	}
 
-	file, err := r.files.Open(ctx, args.FileID)
+	file, err := r.files.Download(ctx, args.FileID)
 	if err != nil {
 		return fmt.Errorf("failed to files.Open: %w", err)
 	}

@@ -1,12 +1,12 @@
 package dfs
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"testing"
 	"time"
 
-	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -27,6 +27,12 @@ var (
 	}
 )
 
+type file struct {
+	*bytes.Reader
+}
+
+func (f file) Close() error { return nil }
+
 func TestFileUploadTask(t *testing.T) {
 	ctx := context.Background()
 
@@ -43,23 +49,21 @@ func TestFileUploadTask(t *testing.T) {
 
 		// text/plain content type
 		content := []byte("Hello, World!")
-		afs := afero.NewMemMapFs()
-		err := afero.WriteFile(afs, "some-file", content, 0o700)
-		require.NoError(t, err)
-		file, err := afs.Open("some-file")
-		require.NoError(t, err)
 
 		parsedTime, err := time.Parse(time.RFC3339, "2019-10-12T07:20:50.52Z")
 		require.NoError(t, err)
 
 		foldersMock.On("GetByID", mock.Anything, uuid.UUID("959a8808-273e-4079-90ed-a8394b356379")).
 			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
+
+		file := file{bytes.NewReader(content)}
+
+		filesMock.On("Download", mock.Anything, uuid.UUID("01d39aea-9565-4e2f-9177-c3a2b4ea7ae9")).Return(file, nil).Once()
 		inodesMock.On("MkdirAll", mock.Anything, &inodes.PathCmd{
 			Folder: &folders.ExampleAlicePersonalFolder,
 			Path:   "/foo/",
 		}).Return(&inodes.ExampleAliceDir, nil).Once()
 
-		filesMock.On("Open", mock.Anything, uuid.UUID("01d39aea-9565-4e2f-9177-c3a2b4ea7ae9")).Return(file, nil).Once()
 		inodesMock.On("CreateFile", mock.Anything, &inodes.CreateFileCmd{
 			Parent:     inodes.ExampleAliceDir.ID(),
 			Name:       "todo.txt",
@@ -101,12 +105,6 @@ func TestFileUploadTask(t *testing.T) {
 
 		content := []byte("Hello, World!")
 
-		afs := afero.NewMemMapFs()
-		err := afero.WriteFile(afs, "some-file", content, 0o700)
-		require.NoError(t, err)
-		file, err := afs.Open("some-file")
-		require.NoError(t, err)
-
 		foldersMock.On("GetByID", mock.Anything, folders.ExampleAlicePersonalFolder.ID()).
 			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
 		inodesMock.On("MkdirAll", mock.Anything, &inodes.PathCmd{
@@ -114,7 +112,8 @@ func TestFileUploadTask(t *testing.T) {
 			Path:   "/dir/",
 		}).Return(&inodes.ExampleAliceDir, nil).Once()
 
-		filesMock.On("Open", mock.Anything, ExampleAliceUpload.FileID).Return(file, nil).Once()
+		file := file{bytes.NewReader(content)}
+		filesMock.On("Download", mock.Anything, ExampleAliceUpload.FileID).Return(file, nil).Once()
 		inodesMock.On("CreateFile", mock.Anything, &inodes.CreateFileCmd{
 			Parent:     inodes.ExampleAliceDir.ID(),
 			Name:       "foo.txt",
