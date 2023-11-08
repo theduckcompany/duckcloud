@@ -26,7 +26,12 @@ type FSGGCTaskRunner struct {
 	quit    chan struct{}
 }
 
-func NewFSGGCTaskRunner(inodes inodes.Service, files files.Service, folders folders.Service, tools tools.Tools) *FSGGCTaskRunner {
+func NewFSGGCTaskRunner(
+	inodes inodes.Service,
+	files files.Service,
+	folders folders.Service,
+	tools tools.Tools,
+) *FSGGCTaskRunner {
 	return &FSGGCTaskRunner{inodes, files, folders, nil, tools.Clock(), make(chan struct{})}
 }
 
@@ -77,7 +82,7 @@ func (r *FSGGCTaskRunner) deleteDirINode(ctx context.Context, inode *inodes.INod
 		}
 	}
 
-	err := r.inodes.HardDelete(ctx, inode.ID())
+	err := r.inodes.HardDelete(ctx, inode)
 	if err != nil {
 		return fmt.Errorf("failed to HardDelete: %w", err)
 	}
@@ -94,12 +99,7 @@ func (j *FSGGCTaskRunner) deleteINode(ctx context.Context, inode *inodes.INode, 
 		return j.deleteDirINode(ctx, inode, deletionDate)
 	}
 
-	err := j.inodes.RegisterDeletion(ctx, inode, inode.Size(), deletionDate)
-	if err != nil {
-		return fmt.Errorf("failed to RegisterWrite: %w", err)
-	}
-
-	err = j.inodes.HardDelete(ctx, inode.ID())
+	err := j.inodes.HardDelete(ctx, inode)
 	if err != nil {
 		return fmt.Errorf("failed to HardDelete: %w", err)
 	}

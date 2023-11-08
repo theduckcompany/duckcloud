@@ -39,6 +39,7 @@ type Storage interface {
 	GetAllDeleted(ctx context.Context, limit int) ([]INode, error)
 	GetDeleted(ctx context.Context, id uuid.UUID) (*INode, error)
 	Patch(ctx context.Context, inode uuid.UUID, fields map[string]any) error
+	GetSumChildsSize(ctx context.Context, parent uuid.UUID) (uint64, error)
 }
 
 type INodeService struct {
@@ -172,71 +173,17 @@ func (s *INodeService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INo
 	return &inode, nil
 }
 
-// RegisterDeletion will subtract the `sizeWrite` to all the given inode parents. The ModeTime will also
-// be change for all the parents.
-//
-// This fonction contains several consecutive writes and is idempotent. In case of error you should call this
-// function again. This keep the data coherent.
-func (s *INodeService) RegisterDeletion(ctx context.Context, inode *INode, sizeWrite uint64, modeTime time.Time) error {
-	return s.registerWrite(ctx, inode, sizeWrite, modeTime, false)
+func (s *INodeService) GetSumChildsSize(ctx context.Context, parent uuid.UUID) (uint64, error) {
+	return s.storage.GetSumChildsSize(ctx, parent)
 }
 
-// RegisterWrite will add the `sizeWrite` to all the given inode parents. The ModeTime will also
-// be change for all the parents.
-//
-// This fonction contains several consecutive writes and is idempotent. In case of error you should call this
-// function again. This keep the data coherent.
-func (s *INodeService) RegisterWrite(ctx context.Context, inode *INode, sizeWrite uint64, modeTime time.Time) error {
-	return s.registerWrite(ctx, inode, sizeWrite, modeTime, true)
-}
-
-func (s *INodeService) registerWrite(ctx context.Context, inode *INode, sizeWrite uint64, modeTime time.Time, positif bool) error {
-	var gerr error
-
-	parentID := inode.Parent()
-	for {
-		if parentID == nil {
-			break
-		}
-
-		parent, err := s.GetByID(ctx, *parentID)
-		if err != nil {
-			return fmt.Errorf("failed to GetByID the parent: %w", err)
-		}
-
-		if !parent.LastModifiedAt().Equal(modeTime) {
-			parent.lastModifiedAt = modeTime
-			switch {
-			case positif:
-				parent.size += sizeWrite
-			case !positif && sizeWrite > parent.size:
-				// Should not append but we need to be protected again overflows.
-				parent.size = 0
-			default:
-				parent.size -= sizeWrite
-			}
-
-			// XXX:MULTI-WRITE
-			//
-			// Those writes are done inside tasks and are indempotent so they should
-			// be retried. In the worst case scenario we do not register a write size
-			// and this is not dramatic.
-			//
-			// TODO: Create a job that will recalculate the correct size from time to time.
-			err := s.storage.Patch(ctx, parent.ID(), map[string]any{
-				"last_modified_at": parent.lastModifiedAt,
-				"size":             parent.size,
-			})
-			if err != nil {
-				gerr = fmt.Errorf("failed to Patch: %w", err)
-			}
-		}
-
-		parentID = parent.Parent()
-	}
-
-	if gerr != nil {
-		return errs.Internal(gerr)
+func (s *INodeService) RegisterModification(ctx context.Context, inode *INode, newSize uint64, modeTime time.Time) error {
+	err := s.storage.Patch(ctx, inode.ID(), map[string]any{
+		"last_modified_at": modeTime,
+		"size":             newSize,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to Patch: %w", err)
 	}
 
 	return nil
@@ -264,8 +211,8 @@ func (s *INodeService) GetAllDeleted(ctx context.Context, limit int) ([]INode, e
 	return res, nil
 }
 
-func (s *INodeService) HardDelete(ctx context.Context, inode uuid.UUID) error {
-	err := s.storage.HardDelete(ctx, inode)
+func (s *INodeService) HardDelete(ctx context.Context, inode *INode) error {
+	err := s.storage.HardDelete(ctx, inode.id)
 	if err != nil {
 		return errs.Internal(err)
 	}
@@ -281,6 +228,16 @@ func (s *INodeService) Remove(ctx context.Context, inode *INode) error {
 	})
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to Patch: %w", err))
+	}
+
+	if inode.parent != nil {
+		err = s.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
+			INode:      *inode.Parent(),
+			ModifiedAt: now,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to schedule the fs-refresh-size task: %w", err)
+		}
 	}
 
 	return nil

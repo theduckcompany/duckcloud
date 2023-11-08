@@ -57,6 +57,15 @@ func (t *TasksService) RegisterFSGCTask(ctx context.Context) error {
 	return t.registerTask(ctx, 4, "fs-gc", struct{}{})
 }
 
+func (t *TasksService) RegisterFSRefreshSizeTask(ctx context.Context, args *FSRefreshSizeArg) error {
+	err := args.Validate()
+	if err != nil {
+		return errs.Validation(err)
+	}
+
+	return t.registerTask(ctx, 2, "fs-refresh-size", args)
+}
+
 func (t *TasksService) RegisterFileUploadTask(ctx context.Context, args *FileUploadArgs) error {
 	err := args.Validate()
 	if err != nil {

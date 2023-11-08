@@ -15,6 +15,7 @@ type Service interface {
 	RegisterFSMoveTask(ctx context.Context, args *FSMoveArgs) error
 	RegisterUserCreateTask(ctx context.Context, args *UserCreateArgs) error
 	RegisterUserDeleteTask(ctx context.Context, args *UserDeleteArgs) error
+	RegisterFSRefreshSizeTask(ctx context.Context, args *FSRefreshSizeArg) error
 }
 
 func Init(db *sql.DB, tools tools.Tools) Service {

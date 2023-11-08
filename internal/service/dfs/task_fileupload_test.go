@@ -37,7 +37,7 @@ func TestFileUploadTask(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Name", func(t *testing.T) {
-		job := NewFileUploadTaskRunner(nil, nil, nil)
+		job := NewFileUploadTaskRunner(nil, nil, nil, nil)
 		assert.Equal(t, "file-upload", job.Name())
 	})
 
@@ -45,7 +45,8 @@ func TestFileUploadTask(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		inodesMock := inodes.NewMockService(t)
-		job := NewFileUploadTaskRunner(foldersMock, filesMock, inodesMock)
+		schedulerMock := scheduler.NewMockService(t)
+		job := NewFileUploadTaskRunner(foldersMock, filesMock, inodesMock, schedulerMock)
 
 		// text/plain content type
 		content := []byte("Hello, World!")
@@ -74,9 +75,10 @@ func TestFileUploadTask(t *testing.T) {
 			UploadedAt: parsedTime,
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
-		// Start to update the size for all the parent folders
-		inodesMock.On("RegisterWrite", mock.Anything, &inodes.ExampleAliceFile, uint64(len(content)), inodes.ExampleAliceFile.LastModifiedAt()).
-			Return(nil).Once()
+		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
+			INode:      *inodes.ExampleAliceFile.Parent(),
+			ModifiedAt: parsedTime,
+		}).Return(nil).Once()
 
 		err = job.Run(ctx, json.RawMessage(`{
 			"folder-id": "959a8808-273e-4079-90ed-a8394b356379",
@@ -91,7 +93,8 @@ func TestFileUploadTask(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		inodesMock := inodes.NewMockService(t)
-		job := NewFileUploadTaskRunner(foldersMock, filesMock, inodesMock)
+		schedulerMock := scheduler.NewMockService(t)
+		job := NewFileUploadTaskRunner(foldersMock, filesMock, inodesMock, schedulerMock)
 
 		err := job.Run(ctx, json.RawMessage(`some-invalid-json`))
 		assert.ErrorContains(t, err, "failed to unmarshal the args")
@@ -101,7 +104,8 @@ func TestFileUploadTask(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		inodesMock := inodes.NewMockService(t)
-		job := NewFileUploadTaskRunner(foldersMock, filesMock, inodesMock)
+		schedulerMock := scheduler.NewMockService(t)
+		job := NewFileUploadTaskRunner(foldersMock, filesMock, inodesMock, schedulerMock)
 
 		content := []byte("Hello, World!")
 
@@ -123,8 +127,10 @@ func TestFileUploadTask(t *testing.T) {
 			FileID:     ExampleAliceUpload.FileID,
 			UploadedAt: ExampleAliceUpload.UploadedAt,
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
-		inodesMock.On("RegisterWrite", mock.Anything, &inodes.ExampleAliceFile, uint64(len(content)), inodes.ExampleAliceFile.LastModifiedAt()).
-			Return(nil).Once()
+		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
+			INode:      *inodes.ExampleAliceFile.Parent(),
+			ModifiedAt: ExampleAliceUpload.UploadedAt,
+		}).Return(nil).Once()
 
 		job.RunArgs(ctx, &ExampleAliceUpload)
 	})

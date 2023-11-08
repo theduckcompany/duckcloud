@@ -112,6 +112,30 @@ func TestSchdulerService(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	t.Run("RegisterFSRefreshSizeTask", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := storage.NewMockStorage(t)
+		svc := NewService(storageMock, tools)
+
+		tools.UUIDMock.On("New").Return(uuid.UUID("some-uuid")).Once()
+		tools.ClockMock.On("Now").Return(now).Once()
+
+		storageMock.On("Save", mock.Anything, &model.Task{
+			ID:           uuid.UUID("some-uuid"),
+			Priority:     2,
+			Status:       model.Queuing,
+			Name:         "fs-refresh-size",
+			RegisteredAt: now,
+			Args:         json.RawMessage(`{"inode":"a379fef3-ebc3-4069-b1ef-8c67948b3cff","modified_at":"2020-02-12T11:10:00Z"}`),
+		}).Return(nil).Once()
+
+		err := svc.RegisterFSRefreshSizeTask(ctx, &FSRefreshSizeArg{
+			INode:      uuid.UUID("a379fef3-ebc3-4069-b1ef-8c67948b3cff"),
+			ModifiedAt: now,
+		})
+		assert.NoError(t, err)
+	})
+
 	t.Run("RegisterFSMoveTask", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := storage.NewMockStorage(t)

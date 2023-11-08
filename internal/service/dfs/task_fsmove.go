@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"path"
-	"time"
 
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
@@ -15,12 +14,13 @@ import (
 )
 
 type FSMoveTaskRunner struct {
-	inodes  inodes.Service
-	folders folders.Service
+	inodes    inodes.Service
+	folders   folders.Service
+	scheduler scheduler.Service
 }
 
-func NewFSMoveTaskRunner(inodes inodes.Service, folders folders.Service) *FSMoveTaskRunner {
-	return &FSMoveTaskRunner{inodes, folders}
+func NewFSMoveTaskRunner(inodes inodes.Service, folders folders.Service, scheduler scheduler.Service) *FSMoveTaskRunner {
+	return &FSMoveTaskRunner{inodes, folders, scheduler}
 }
 
 func (r *FSMoveTaskRunner) Name() string { return "fs-move" }
@@ -67,15 +67,12 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 	// XXX:MULTI-WRITE
 	//
 	//
-	err = r.inodes.RegisterDeletion(ctx, oldNode, oldNode.Size(), args.MovedAt)
-	if err != nil {
-		return fmt.Errorf("failed to remove the old inode file size: %w", err)
-	}
-
 	newNode, err := r.inodes.PatchMove(ctx, oldNode, targetDir, filename, args.MovedAt)
 	if err != nil {
 		return fmt.Errorf("failed to PatchMove: %w", err)
 	}
+
+	ctx = context.WithoutCancel(ctx)
 
 	if existingFile != nil {
 		// XXX:MULTI-WRITE
@@ -83,8 +80,8 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 		// During a move the old file should be removed. In case of error we can end's
 		// with the old and the new file. This is not really dangerous as we don't loose
 		// any data but both files will have the exact same name and this can be
-		// problematic for the deletion for the manual example. We can't know which one
-		// will be selected if we delete base on a path.
+		// problematic. We can't know which one will be selected if we delete based on a
+		// path for example.
 		//
 		// TODO: Fix this with a commit system
 		err = r.inodes.Remove(ctx, existingFile)
@@ -93,9 +90,24 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 		}
 	}
 
-	err = r.inodes.RegisterWrite(ctx, newNode, newNode.Size(), args.MovedAt.Add(time.Microsecond))
+	if oldNode.Parent() != nil {
+		r.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
+			INode:      *oldNode.Parent(),
+			ModifiedAt: args.MovedAt,
+		})
+	}
 	if err != nil {
-		return fmt.Errorf("failed to add the new inode file size: %w", err)
+		return fmt.Errorf("failed to schedule the fs-refresh-size task for the old node: %w", err)
+	}
+
+	if newNode.Parent() != nil {
+		r.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
+			INode:      *newNode.Parent(),
+			ModifiedAt: args.MovedAt,
+		})
+	}
+	if err != nil {
+		return fmt.Errorf("failed to schedule the fs-refresh-size task for the new node: %w", err)
 	}
 
 	return nil

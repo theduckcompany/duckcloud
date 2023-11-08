@@ -41,6 +41,7 @@ func TestINodeSqlstore(t *testing.T) {
 			err := store.Save(ctx, &INode{
 				id:             uuid.UUID(fmt.Sprintf("some-child-id-%d", i)),
 				parent:         ptr.To(ExampleBobRoot.ID()),
+				size:           10,
 				name:           fmt.Sprintf("child-%d", i),
 				lastModifiedAt: nowData,
 				createdAt:      nowData,
@@ -68,9 +69,23 @@ func TestINodeSqlstore(t *testing.T) {
 			parent:         ptr.To(ExampleBobRoot.ID()),
 			name:           "child-5",
 			lastModifiedAt: nowData,
+			size:           10,
 			createdAt:      nowData,
 			fileID:         nil,
 		}, res)
+	})
+
+	t.Run("GetSumChildsSize success", func(t *testing.T) {
+		totalSize, err := store.GetSumChildsSize(ctx, ExampleBobRoot.ID())
+		assert.NoError(t, err)
+		// 10 bytes x 10 files ==  100 bytes
+		assert.Equal(t, uint64(100), totalSize)
+	})
+
+	t.Run("GetSumChildsSize with an invalid folder", func(t *testing.T) {
+		totalSize, err := store.GetSumChildsSize(ctx, uuid.UUID("some-invalid-id"))
+		assert.Equal(t, uint64(0), totalSize)
+		assert.NoError(t, err)
 	})
 
 	t.Run("GetByID not found", func(t *testing.T) {
@@ -88,6 +103,7 @@ func TestINodeSqlstore(t *testing.T) {
 			parent:         ptr.To(ExampleBobRoot.ID()),
 			name:           "child-5",
 			lastModifiedAt: nowData,
+			size:           10,
 			createdAt:      nowData,
 			fileID:         nil,
 		}, res)
@@ -129,6 +145,7 @@ func TestINodeSqlstore(t *testing.T) {
 			id:             uuid.UUID("some-child-id-5"),
 			parent:         ptr.To(ExampleBobRoot.ID()),
 			name:           "child-5",
+			size:           10,
 			lastModifiedAt: nowData,
 			createdAt:      nowData,
 			fileID:         nil,
@@ -144,6 +161,7 @@ func TestINodeSqlstore(t *testing.T) {
 			id:             uuid.UUID("some-child-id-5"),
 			parent:         ptr.To(ExampleBobRoot.ID()),
 			name:           "child-5",
+			size:           10,
 			lastModifiedAt: nowData,
 			createdAt:      nowData,
 			fileID:         nil,

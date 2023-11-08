@@ -43,10 +43,11 @@ type Service interface {
 
 type Result struct {
 	fx.Out
-	Service        Service
-	FileUploadTask runner.TaskRunner `group:"tasks"`
-	FSGCTask       runner.TaskRunner `group:"tasks"`
-	FSMoveTask     runner.TaskRunner `group:"tasks"`
+	Service           Service
+	FileUploadTask    runner.TaskRunner `group:"tasks"`
+	FSGCTask          runner.TaskRunner `group:"tasks"`
+	FSMoveTask        runner.TaskRunner `group:"tasks"`
+	FSRefreshSizeTask runner.TaskRunner `group:"tasks"`
 }
 
 func Init(cfg Config, fs afero.Fs, db *sql.DB, folders folders.Service, scheduler scheduler.Service, tools tools.Tools) (Result, error) {
@@ -57,9 +58,10 @@ func Init(cfg Config, fs afero.Fs, db *sql.DB, folders folders.Service, schedule
 	}
 
 	return Result{
-		Service:        NewFSService(inodes, files, folders, scheduler, tools),
-		FileUploadTask: NewFileUploadTaskRunner(folders, files, inodes),
-		FSGCTask:       NewFSGGCTaskRunner(inodes, files, folders, tools),
-		FSMoveTask:     NewFSMoveTaskRunner(inodes, folders),
+		Service:           NewFSService(inodes, files, folders, scheduler, tools),
+		FileUploadTask:    NewFileUploadTaskRunner(folders, files, inodes, scheduler),
+		FSGCTask:          NewFSGGCTaskRunner(inodes, files, folders, tools),
+		FSMoveTask:        NewFSMoveTaskRunner(inodes, folders, scheduler),
+		FSRefreshSizeTask: NewFSRefreshSizeTaskRunner(inodes),
 	}, nil
 }

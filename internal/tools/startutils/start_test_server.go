@@ -66,6 +66,7 @@ func NewServer(t *testing.T) *Server {
 			dfsInit.FSGCTask,
 			dfsInit.FSMoveTask,
 			dfsInit.FileUploadTask,
+			dfsInit.FSRefreshSizeTask,
 			usersInit.UserCreateTask,
 			usersInit.UserDeleteTask,
 		}, tools, db)
