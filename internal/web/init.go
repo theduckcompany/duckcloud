@@ -4,7 +4,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthclients"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/users"

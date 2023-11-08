@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
-	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"

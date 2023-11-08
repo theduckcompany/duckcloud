@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"

@@ -5,7 +5,7 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/stretchr/testify/assert"
-	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 

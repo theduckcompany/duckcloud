@@ -5,7 +5,7 @@ import (
 
 	v "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
-	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 

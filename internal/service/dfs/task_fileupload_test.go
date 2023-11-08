@@ -10,9 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/files"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
-	"github.com/theduckcompany/duckcloud/internal/service/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )

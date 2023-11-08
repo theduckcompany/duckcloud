@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"

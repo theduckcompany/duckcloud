@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
