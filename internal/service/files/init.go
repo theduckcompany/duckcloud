@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/spf13/afero"
@@ -13,8 +14,8 @@ import (
 
 //go:generate mockery --name Service
 type Service interface {
-	Create(ctx context.Context) (afero.File, uuid.UUID, error)
-	Open(ctx context.Context, fileID uuid.UUID) (afero.File, error)
+	Upload(ctx context.Context, r io.Reader) (uuid.UUID, error)
+	Download(ctx context.Context, fileID uuid.UUID) (io.ReadSeekCloser, error)
 	Delete(ctx context.Context, fileID uuid.UUID) error
 }
 

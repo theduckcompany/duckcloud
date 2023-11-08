@@ -1,47 +1,41 @@
 package files
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"testing"
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/tools"
-	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 func TestFileService(t *testing.T) {
-	const someFileID = uuid.UUID("fa603efe-d91b-4530-baaa-820c297214bd")
-
 	ctx := context.Background()
 
-	t.Run("Open success", func(t *testing.T) {
-		tools := tools.NewMock(t)
+	t.Run("Upload and Download success", func(t *testing.T) {
+		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
 
 		svc, err := NewFSService(fs, "/", tools)
 		require.NoError(t, err)
 
-		file, err := svc.Open(ctx, someFileID)
+		fileID, err := svc.Upload(ctx, bytes.NewReader([]byte("Hello, World!")))
+		assert.NoError(t, err)
+		assert.NotEmpty(t, fileID)
+
+		reader, err := svc.Download(ctx, fileID)
 		assert.NoError(t, err)
 
-		file.WriteString("Hello, World!")
-		err = file.Close()
-		require.NoError(t, err)
-
-		file2, err := svc.Open(ctx, someFileID)
+		res, err := io.ReadAll(reader)
 		assert.NoError(t, err)
-
-		buf := make([]byte, 13)
-		nb, err := file2.Read(buf)
-		assert.NoError(t, err)
-		assert.Equal(t, nb, 13)
-		assert.Equal(t, "Hello, World!", string(buf))
+		assert.Equal(t, []byte("Hello, World!"), res)
 	})
 
-	t.Run("Open with a fs error", func(t *testing.T) {
-		tools := tools.NewMock(t)
+	t.Run("Upload with a fs error", func(t *testing.T) {
+		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
 
 		svc, err := NewFSService(fs, "/", tools)
@@ -50,14 +44,15 @@ func TestFileService(t *testing.T) {
 		// Create an fs error by removing the write permission
 		svc.fs = afero.NewReadOnlyFs(fs)
 
-		file, err := svc.Open(ctx, uuid.UUID("0367b0e5-4566-449b-ba4c-260010635f01"))
-		assert.Nil(t, file)
-		assert.EqualError(t, err, "internal: failed to Open \"03/0367b0e5-4566-449b-ba4c-260010635f01\": operation not permitted")
+		fileID, err := svc.Upload(ctx, bytes.NewReader([]byte("Hello, World!")))
+		assert.Empty(t, fileID)
+		assert.ErrorContains(t, err, "operation not permitted")
+		assert.ErrorContains(t, err, "internal: failed to open")
 	})
 
 	t.Run("NewFSService setup the dir fanout", func(t *testing.T) {
 		fs := afero.NewMemMapFs()
-		tools := tools.NewMock(t)
+		tools := tools.NewToolboxForTest(t)
 
 		svc, err := NewFSService(fs, "/", tools)
 		require.NoError(t, err)
@@ -74,7 +69,7 @@ func TestFileService(t *testing.T) {
 	})
 
 	t.Run("NewFSService can be called with a fs already setup", func(t *testing.T) {
-		tools := tools.NewMock(t)
+		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
 
 		// First time
@@ -98,7 +93,7 @@ func TestFileService(t *testing.T) {
 	})
 
 	t.Run("NewFSService with an invalid root path", func(t *testing.T) {
-		tools := tools.NewMock(t)
+		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
 
 		// First time
@@ -108,7 +103,7 @@ func TestFileService(t *testing.T) {
 	})
 
 	t.Run("NewFSService with a file as root path", func(t *testing.T) {
-		tools := tools.NewMock(t)
+		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
 
 		_, err := fs.Create("/foo")
@@ -121,44 +116,19 @@ func TestFileService(t *testing.T) {
 	})
 
 	t.Run("Delete success", func(t *testing.T) {
-		tools := tools.NewMock(t)
+		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
 
 		svc, err := NewFSService(fs, "/", tools)
 		require.NoError(t, err)
 
 		// Create a file
-		file, err := svc.Open(ctx, someFileID)
-		assert.NoError(t, err)
-		file.WriteString("Hello, World!")
-		err = file.Close()
+		fileID, err := svc.Upload(ctx, bytes.NewReader([]byte("Hello, World!")))
 		require.NoError(t, err)
+		assert.NotEmpty(t, fileID)
 
 		// Delete it
-		err = svc.Delete(ctx, someFileID)
+		err = svc.Delete(ctx, fileID)
 		assert.NoError(t, err)
-	})
-
-	t.Run("Create success", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		fs := afero.NewMemMapFs()
-
-		svc, err := NewFSService(fs, "/", tools)
-		require.NoError(t, err)
-
-		tools.UUIDMock.On("New").Return(uuid.UUID("60d04893-f015-4c09-b68c-6841a08643f3")).Once()
-
-		file, resUUID, err := svc.Create(ctx)
-		assert.NoError(t, err)
-		assert.NotNil(t, file)
-		assert.Equal(t, uuid.UUID("60d04893-f015-4c09-b68c-6841a08643f3"), resUUID)
-
-		_, err = file.Write([]byte("Hello, World!"))
-		assert.NoError(t, err)
-		require.NoError(t, file.Close())
-
-		res, err := afero.ReadFile(fs, "/60/60d04893-f015-4c09-b68c-6841a08643f3")
-		assert.NoError(t, err)
-		assert.Equal(t, "Hello, World!", string(res))
 	})
 }

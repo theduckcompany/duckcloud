@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path"
 
@@ -57,28 +58,35 @@ func NewFSService(fs afero.Fs, rootPath string, tools tools.Tools) (*FSService, 
 	return &FSService{rootFS, tools.UUID()}, nil
 }
 
-func (s *FSService) Create(ctx context.Context) (afero.File, uuid.UUID, error) {
+func (s *FSService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error) {
 	fileID := s.uuid.New()
 
-	file, err := s.Open(ctx, fileID)
+	file, err := s.open(ctx, fileID)
 	if err != nil {
-		return nil, "", errs.Internal(fmt.Errorf("failed to open the file: %w", err))
+		_ = s.Delete(context.WithoutCancel(ctx), fileID)
+		return "", fmt.Errorf("failed to open the file: %w", err)
 	}
 
-	return file, fileID, nil
+	_, err = io.Copy(file, r)
+	if err != nil {
+		_ = file.Close()
+		_ = s.Delete(context.WithoutCancel(ctx), fileID)
+		return "", fmt.Errorf("failed to write the file: %w", err)
+	}
+
+	err = file.Close()
+	if err != nil {
+		_ = s.Delete(context.WithoutCancel(ctx), fileID)
+		return "", fmt.Errorf("failed to close the file: %w", err)
+	}
+
+	return fileID, nil
 }
 
-func (s *FSService) Open(ctx context.Context, fileID uuid.UUID) (afero.File, error) {
-	idStr := string(fileID)
-	filePath := path.Join(idStr[:2], idStr)
-
-	file, err := s.fs.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0o600)
-	if errors.Is(err, errs.ErrNotFound) {
-		return nil, errs.BadRequest(ErrNotExist)
-	}
-
+func (s *FSService) Download(ctx context.Context, fileID uuid.UUID) (io.ReadSeekCloser, error) {
+	file, err := s.open(ctx, fileID)
 	if err != nil {
-		return nil, errs.Internal(fmt.Errorf("failed to Open %q: %w", filePath, err))
+		return nil, fmt.Errorf("failed to open the file: %w", err)
 	}
 
 	return file, nil
@@ -94,4 +102,20 @@ func (s *FSService) Delete(ctx context.Context, fileID uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func (s *FSService) open(ctx context.Context, fileID uuid.UUID) (afero.File, error) {
+	idStr := string(fileID)
+	filePath := path.Join(idStr[:2], idStr)
+
+	file, err := s.fs.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0o600)
+	if errors.Is(err, errs.ErrNotFound) {
+		return nil, errs.BadRequest(ErrNotExist)
+	}
+
+	if err != nil {
+		return nil, errs.Internal(fmt.Errorf("failed to open %q: %w", filePath, err))
+	}
+
+	return file, nil
 }

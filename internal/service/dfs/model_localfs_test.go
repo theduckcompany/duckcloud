@@ -133,7 +133,7 @@ func Test_LocalFS(t *testing.T) {
 			Path:   "/foo/bar.txt",
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
-		filesMock.On("Open", mock.Anything, *inodes.ExampleAliceFile.FileID()).
+		filesMock.On("Download", mock.Anything, *inodes.ExampleAliceFile.FileID()).
 			Return(file, nil).Once()
 
 		res, err := folderFS.Download(ctx, "/foo/bar.txt")
@@ -151,11 +151,7 @@ func Test_LocalFS(t *testing.T) {
 
 		content := "Hello, World!"
 
-		fs := afero.NewMemMapFs()
-		file, err := afero.TempFile(fs, "foo", "")
-		require.NoError(t, err)
-
-		filesMock.On("Create", mock.Anything).Return(file, uuid.UUID("some-file-id"), nil).Once()
+		filesMock.On("Upload", mock.Anything, bytes.NewBufferString(content)).Return(uuid.UUID("some-file-id"), nil).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 
 		schedulerMock.On("RegisterFileUploadTask", mock.Anything, &scheduler.FileUploadArgs{
@@ -165,7 +161,7 @@ func Test_LocalFS(t *testing.T) {
 			UploadedAt: now,
 		}).Return(nil).Once()
 
-		err = folderFS.Upload(ctx, "foo/bar.txt", bytes.NewBufferString(content))
+		err := folderFS.Upload(ctx, "foo/bar.txt", bytes.NewBufferString(content))
 		assert.NoError(t, err)
 	})
 
