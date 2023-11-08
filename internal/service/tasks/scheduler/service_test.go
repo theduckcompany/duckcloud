@@ -100,13 +100,13 @@ func TestSchdulerService(t *testing.T) {
 			Status:       model.Queuing,
 			Name:         "file-upload",
 			RegisteredAt: now,
-			Args:         json.RawMessage(`{"folder-id":"a379fef3-ebc3-4069-b1ef-8c67948b3cff","file-id":"0d76c071-2e8b-4873-92e9-d8be871ef636","path":"/foo/bar.txt","uploaded-at":"2020-02-12T11:10:00Z"}`),
+			Args:         json.RawMessage(`{"folder-id":"a379fef3-ebc3-4069-b1ef-8c67948b3cff","file-id":"0d76c071-2e8b-4873-92e9-d8be871ef636","inode-id":"c87ebbda-435b-43b7-bab6-e93ca8f3831a","uploaded-at":"2020-02-12T11:10:00Z"}`),
 		}).Return(nil).Once()
 
 		err := svc.RegisterFileUploadTask(ctx, &FileUploadArgs{
 			FolderID:   uuid.UUID("a379fef3-ebc3-4069-b1ef-8c67948b3cff"),
 			FileID:     uuid.UUID("0d76c071-2e8b-4873-92e9-d8be871ef636"),
-			Path:       "/foo/bar.txt",
+			INodeID:    uuid.UUID("c87ebbda-435b-43b7-bab6-e93ca8f3831a"),
 			UploadedAt: now,
 		})
 		assert.NoError(t, err)

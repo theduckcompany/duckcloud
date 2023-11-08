@@ -91,23 +91,23 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 	}
 
 	if oldNode.Parent() != nil {
-		r.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
+		err = r.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
 			INode:      *oldNode.Parent(),
 			ModifiedAt: args.MovedAt,
 		})
-	}
-	if err != nil {
-		return fmt.Errorf("failed to schedule the fs-refresh-size task for the old node: %w", err)
+		if err != nil {
+			return fmt.Errorf("failed to schedule the fs-refresh-size task for the old node: %w", err)
+		}
 	}
 
 	if newNode.Parent() != nil {
-		r.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
+		err = r.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
 			INode:      *newNode.Parent(),
 			ModifiedAt: args.MovedAt,
 		})
-	}
-	if err != nil {
-		return fmt.Errorf("failed to schedule the fs-refresh-size task for the new node: %w", err)
+		if err != nil {
+			return fmt.Errorf("failed to schedule the fs-refresh-size task for the new node: %w", err)
+		}
 	}
 
 	return nil

@@ -16,6 +16,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -36,6 +37,7 @@ var ErrInvalidFolderID = errors.New("invalid folderID")
 type browserHandler struct {
 	html    html.Writer
 	folders folders.Service
+	files   files.Service
 	uuid    uuid.Service
 	auth    *Authenticator
 	fs      dfs.Service
@@ -45,12 +47,14 @@ func newBrowserHandler(
 	tools tools.Tools,
 	html html.Writer,
 	folders folders.Service,
+	files files.Service,
 	auth *Authenticator,
 	fs dfs.Service,
 ) *browserHandler {
 	return &browserHandler{
 		html:    html,
 		folders: folders,
+		files:   files,
 		uuid:    tools.UUID(),
 		auth:    auth,
 		fs:      fs,
@@ -338,6 +342,12 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 		fullPath = fullPath[1:]
 	}
 
+	dirPath := path.Dir(fullPath)
+	_, err = ffs.CreateDir(ctx, dirPath)
+	if err != nil && !errors.Is(err, fs.ErrExist) {
+		return fmt.Errorf("failed to create the directory %q: %w", dirPath, err)
+	}
+
 	err = ffs.Upload(ctx, fullPath, cmd.fileReader)
 	if err != nil {
 		return fmt.Errorf("failed to Upload file: %w", err)
@@ -405,6 +415,7 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 			return
 		}
 	} else {
+		fileMeta, _ := h.files.GetMetadata(r.Context(), *inode.FileID())
 		file, err := ffs.Download(r.Context(), fullPath)
 		if err != nil {
 			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Download: %w", err))
@@ -412,7 +423,7 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 		}
 		defer file.Close()
 
-		h.serveContent(w, r, inode, file)
+		h.serveContent(w, r, inode, file, fileMeta)
 		return
 	}
 
@@ -479,6 +490,8 @@ func (h *browserHandler) download(w http.ResponseWriter, r *http.Request) {
 	if inode.IsDir() {
 		h.serveFolderContent(w, r, ffs, fullPath)
 	} else {
+		fileMeta, _ := h.files.GetMetadata(r.Context(), *inode.FileID())
+
 		file, err := ffs.Download(r.Context(), fullPath)
 		if err != nil {
 			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Download: %w", err))
@@ -486,7 +499,7 @@ func (h *browserHandler) download(w http.ResponseWriter, r *http.Request) {
 		}
 		defer file.Close()
 
-		h.serveContent(w, r, inode, file)
+		h.serveContent(w, r, inode, file, fileMeta)
 		return
 	}
 }
@@ -554,9 +567,14 @@ func (h *browserHandler) serveFolderContent(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *browserHandler) serveContent(w http.ResponseWriter, r *http.Request, inode *dfs.INode, file io.ReadSeeker) {
-	w.Header().Set("Etag", inode.Checksum())
+func (h *browserHandler) serveContent(w http.ResponseWriter, r *http.Request, inode *dfs.INode, file io.ReadSeeker, fileMeta *files.FileMeta) {
+	if fileMeta != nil {
+		w.Header().Set("Etag", fileMeta.Checksum())
+		w.Header().Set("Content-Type", fileMeta.MimeType())
+	}
+
 	w.Header().Set("Expires", time.Now().Add(365*24*time.Hour).UTC().Format(http.TimeFormat))
 	w.Header().Set("Cache-Control", "max-age=31536000")
+
 	http.ServeContent(w, r, inode.Name(), inode.LastModifiedAt(), file)
 }

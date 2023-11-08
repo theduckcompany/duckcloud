@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
+	"github.com/theduckcompany/duckcloud/internal/service/files"
 )
 
 func TestMemPS(t *testing.T) {
@@ -21,11 +22,17 @@ func TestMemPS(t *testing.T) {
 	ctx := context.Background()
 	// calcProps calculates the getlastmodified and getetag DAV: property
 	// values in pstats for resource name in file-system fs.
-	calcProps := func(name string, fs dfs.FS, pstats []Propstat) error {
+	calcProps := func(name string, fs dfs.FS, files files.Service, pstats []Propstat) error {
 		fi, err := fs.Get(ctx, name)
 		if err != nil {
 			return err
 		}
+
+		meta, err := files.GetMetadata(ctx, *fi.FileID())
+		if err != nil {
+			return err
+		}
+
 		for _, pst := range pstats {
 			for i, p := range pst.Props {
 				switch p.XMLName {
@@ -36,7 +43,7 @@ func TestMemPS(t *testing.T) {
 					if fi.IsDir() {
 						continue
 					}
-					etag, err := findETag(ctx, name, fi)
+					etag, err := findETag(ctx, name, fi, meta)
 					if err != nil {
 						return err
 					}
@@ -508,18 +515,25 @@ func TestMemPS(t *testing.T) {
 	}}
 
 	for _, tc := range testCases {
-		fs := buildTestFS(t, tc.buildfs).FS
+		testContext := buildTestFS(t, tc.buildfs)
+		fs := testContext.FS
+		files := testContext.Files
 
 		var err error
 		for _, op := range tc.propOp {
 			desc := fmt.Sprintf("%s: %s %s", tc.desc, op.op, op.name)
-			if err = calcProps(op.name, fs, op.wantPropstats); err != nil {
+			if err = calcProps(op.name, fs, files, op.wantPropstats); err != nil {
 				t.Fatalf("%s: calcProps: %v", desc, err)
 			}
 
 			info, err := fs.Get(ctx, op.name)
 			if err != nil {
 				t.Fatalf("failed to get %q\n", op.name)
+			}
+
+			meta, err := files.GetMetadata(ctx, *info.FileID())
+			if err != nil {
+				t.Fatalf("failed to get files metas for  %q\n", *info.FileID())
 			}
 
 			// Call property system.
@@ -538,9 +552,9 @@ func TestMemPS(t *testing.T) {
 				}
 				continue
 			case "allprop":
-				propstats, err = allprop(ctx, info, op.name, op.pnames)
+				propstats, err = allprop(ctx, info, meta, op.name, op.pnames)
 			case "propfind":
-				propstats, err = props(ctx, info, op.name, op.pnames)
+				propstats, err = props(ctx, info, meta, op.name, op.pnames)
 			case "proppatch":
 				propstats, err = patch(ctx, fs, op.name, op.patches)
 			default:

@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	inodes "github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
+	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 )
@@ -18,13 +19,14 @@ func TestFSRefreshSizeTask(t *testing.T) {
 	now := time.Now().UTC().Add(time.Minute)
 
 	t.Run("Name", func(t *testing.T) {
-		runner := NewFSRefreshSizeTaskRunner(nil)
+		runner := NewFSRefreshSizeTaskRunner(nil, nil)
 		assert.Equal(t, "fs-refresh-size", runner.Name())
 	})
 
 	t.Run("RunArg success", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
-		runner := NewFSRefreshSizeTaskRunner(inodesMock)
+		filesMock := files.NewMockService(t)
+		runner := NewFSRefreshSizeTaskRunner(inodesMock, filesMock)
 
 		inodesMock.On("GetByID", mock.Anything, ExampleAliceDir.ID()).Return(&ExampleAliceDir, nil).Once()
 		inodesMock.On("GetSumChildsSize", mock.Anything, ExampleAliceDir.ID()).Return(uint64(42), nil).Once()
@@ -46,7 +48,8 @@ func TestFSRefreshSizeTask(t *testing.T) {
 
 	t.Run("RunArg with a inode not found", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
-		runner := NewFSRefreshSizeTaskRunner(inodesMock)
+		filesMock := files.NewMockService(t)
+		runner := NewFSRefreshSizeTaskRunner(inodesMock, filesMock)
 
 		inodesMock.On("GetByID", mock.Anything, ExampleAliceDir.ID()).Return(&ExampleAliceDir, nil).Once()
 		inodesMock.On("GetSumChildsSize", mock.Anything, ExampleAliceDir.ID()).Return(uint64(42), nil).Once()
@@ -65,7 +68,8 @@ func TestFSRefreshSizeTask(t *testing.T) {
 
 	t.Run("RunArg success", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
-		runner := NewFSRefreshSizeTaskRunner(inodesMock)
+		filesMock := files.NewMockService(t)
+		runner := NewFSRefreshSizeTaskRunner(inodesMock, filesMock)
 
 		inodesMock.On("GetByID", mock.Anything, ExampleAliceDir.ID()).Return(&ExampleAliceDir, nil).Once()
 		inodesMock.On("GetSumChildsSize", mock.Anything, ExampleAliceDir.ID()).Return(uint64(0), errors.New("some-error")).Once()
@@ -79,7 +83,8 @@ func TestFSRefreshSizeTask(t *testing.T) {
 
 	t.Run("RunArg success", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
-		runner := NewFSRefreshSizeTaskRunner(inodesMock)
+		filesMock := files.NewMockService(t)
+		runner := NewFSRefreshSizeTaskRunner(inodesMock, filesMock)
 
 		inodesMock.On("GetByID", mock.Anything, ExampleAliceDir.ID()).Return(&ExampleAliceDir, nil).Once()
 		inodesMock.On("GetSumChildsSize", mock.Anything, ExampleAliceDir.ID()).Return(uint64(42), nil).Once()

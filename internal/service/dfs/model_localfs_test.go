@@ -151,12 +151,22 @@ func Test_LocalFS(t *testing.T) {
 
 		content := "Hello, World!"
 
+		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
+			Folder: &folders.ExampleAlicePersonalFolder,
+			Path:   "/foo/",
+		}).Return(&ExampleAliceDir, nil).Once()
 		filesMock.On("Upload", mock.Anything, bytes.NewBufferString(content)).Return(uuid.UUID("some-file-id"), nil).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
+		inodesMock.On("CreateFile", mock.Anything, &inodes.CreateFileCmd{
+			Parent:     ExampleAliceDir.ID(),
+			Name:       "bar.txt",
+			FileID:     uuid.UUID("some-file-id"),
+			UploadedAt: now,
+		}).Return(&ExampleAliceFile, nil).Once()
 
 		schedulerMock.On("RegisterFileUploadTask", mock.Anything, &scheduler.FileUploadArgs{
 			FolderID:   folders.ExampleAlicePersonalFolder.ID(),
-			Path:       "/foo/bar.txt",
+			INodeID:    ExampleAliceFile.ID(),
 			FileID:     uuid.UUID("some-file-id"),
 			UploadedAt: now,
 		}).Return(nil).Once()

@@ -19,6 +19,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 )
 
@@ -34,6 +35,7 @@ type Handler struct {
 	// Sessions handle the users sessions used for authentification.
 	Sessions davsessions.Service
 	Folders  folders.Service
+	Files    files.Service
 	// Logger is an optional error logger. If non-nil, it will be called
 	// for all HTTP requests.
 	Logger func(*http.Request, error)
@@ -164,8 +166,13 @@ func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request, fs d
 	}
 	defer f.Close()
 
-	w.Header().Set("ETag", info.Checksum())
-	// Let ServeContent determine the Content-Type header.
+	fileMetas, err := h.Files.GetMetadata(ctx, *info.FileID())
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("failed to get the file metadatas: %w", err)
+	}
+
+	w.Header().Set("ETag", fileMetas.Checksum())
+	w.Header().Set("Content-Type", fileMetas.MimeType())
 	http.ServeContent(w, r, reqPath, info.LastModifiedAt(), f)
 	return 0, nil
 }
@@ -375,6 +382,12 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, fs dfs.
 			return handlePropfindError(err, info)
 		}
 
+		var fileMeta *files.FileMeta
+		if info.FileID() != nil {
+			// TODO: Log the error?
+			fileMeta, _ = h.Files.GetMetadata(ctx, *info.FileID())
+		}
+
 		var pstats []Propstat
 		switch {
 		case pf.Propname != nil:
@@ -388,9 +401,9 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, fs dfs.
 			}
 			pstats = append(pstats, pstat)
 		case pf.Allprop != nil:
-			pstats, err = allprop(ctx, info, reqPath, pf.Prop)
+			pstats, err = allprop(ctx, info, fileMeta, reqPath, pf.Prop)
 		default:
-			pstats, err = props(ctx, info, reqPath, pf.Prop)
+			pstats, err = props(ctx, info, fileMeta, reqPath, pf.Prop)
 		}
 		if err != nil {
 			return handlePropfindError(err, info)

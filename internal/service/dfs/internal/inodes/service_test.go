@@ -318,9 +318,7 @@ func TestINodes(t *testing.T) {
 			id:             uuid.UUID("some-inode-id"),
 			parent:         ptr.To(ExampleAliceRoot.ID()),
 			name:           "foobar",
-			mimetype:       ptr.To("application/pdf"),
-			size:           42,
-			checksum:       "deadbeef",
+			size:           0,
 			createdAt:      now,
 			lastModifiedAt: now,
 			fileID:         ptr.To(uuid.UUID("b30f1f80-d07a-4c17-a543-71503624fa3a")),
@@ -335,9 +333,6 @@ func TestINodes(t *testing.T) {
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
 			Parent:     ExampleAliceRoot.ID(),
 			Name:       "foobar",
-			Mime:       "application/pdf",
-			Size:       42,
-			Checksum:   "deadbeef",
 			UploadedAt: now,
 			FileID:     uuid.UUID("b30f1f80-d07a-4c17-a543-71503624fa3a"),
 		})
@@ -353,12 +348,9 @@ func TestINodes(t *testing.T) {
 		service := NewService(schedulerMock, tools, storageMock)
 
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
-			Parent:   "some-invalid-id",
-			Name:     "foobar",
-			Mime:     "application/pdf",
-			Size:     ExampleAliceFile.Size(),
-			Checksum: ExampleAliceFile.Checksum(),
-			FileID:   *ExampleAliceFile.FileID(),
+			Parent: "some-invalid-id",
+			Name:   "foobar",
+			FileID: *ExampleAliceFile.FileID(),
 		})
 
 		assert.Nil(t, res)
@@ -375,12 +367,9 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, ExampleAliceRoot.ID()).Return(nil, errNotFound).Once()
 
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
-			Parent:   ExampleAliceRoot.ID(),
-			Name:     "foobar",
-			Mime:     "application/pdf",
-			Size:     ExampleAliceFile.Size(),
-			Checksum: ExampleAliceFile.Checksum(),
-			FileID:   *ExampleAliceFile.FileID(),
+			Parent: ExampleAliceRoot.ID(),
+			Name:   "foobar",
+			FileID: *ExampleAliceFile.FileID(),
 		})
 
 		assert.Nil(t, res)
@@ -652,5 +641,58 @@ func TestINodes(t *testing.T) {
 
 		err := service.RegisterModification(ctx, &ExampleAliceFile, 24, now)
 		assert.NoError(t, err)
+	})
+
+	t.Run("PatchFileID", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		service := NewService(schedulerMock, tools, storageMock)
+
+		storageMock.On("Patch", mock.Anything, ExampleAliceFile.ID(), map[string]any{
+			"file_id": uuid.UUID("some-new-id"),
+		}).Return(nil).Once()
+
+		input := ExampleAliceFile
+
+		res, err := service.PatchFileID(ctx, &input, uuid.UUID("some-new-id"))
+		assert.NoError(t, err)
+
+		expected := ExampleAliceFile
+		expected.fileID = ptr.To(uuid.UUID("some-new-id"))
+
+		assert.Equal(t, &expected, res)
+	})
+
+	t.Run("PatchFileID with a patch error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		service := NewService(schedulerMock, tools, storageMock)
+
+		storageMock.On("Patch", mock.Anything, ExampleAliceFile.ID(), map[string]any{
+			"file_id": uuid.UUID("some-new-id"),
+		}).Return(errors.New("some-error")).Once()
+
+		input := ExampleAliceFile
+
+		res, err := service.PatchFileID(ctx, &input, uuid.UUID("some-new-id"))
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
+	})
+
+	t.Run("GetAllInodesWithFile success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		service := NewService(schedulerMock, tools, storageMock)
+
+		storageMock.On("GetAllInodesWithFileID", mock.Anything, uuid.UUID("some-file-id")).
+			Return([]INode{ExampleAliceFile}, nil).Once()
+
+		res, err := service.GetAllInodesWithFileID(ctx, uuid.UUID("some-file-id"))
+		assert.NoError(t, err)
+		assert.Equal(t, []INode{ExampleAliceFile}, res)
 	})
 }

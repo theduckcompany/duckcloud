@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"mime"
 	"path"
 	"strings"
 	"time"
@@ -40,6 +39,7 @@ type Storage interface {
 	GetDeleted(ctx context.Context, id uuid.UUID) (*INode, error)
 	Patch(ctx context.Context, inode uuid.UUID, fields map[string]any) error
 	GetSumChildsSize(ctx context.Context, parent uuid.UUID) (uint64, error)
+	GetAllInodesWithFileID(ctx context.Context, fileID uuid.UUID) ([]INode, error)
 }
 
 type INodeService struct {
@@ -119,7 +119,6 @@ func (s *INodeService) CreateRootDir(ctx context.Context) (*INode, error) {
 	node := INode{
 		id:             s.uuid.New(),
 		parent:         nil,
-		mimetype:       nil,
 		createdAt:      now,
 		lastModifiedAt: now,
 		fileID:         nil,
@@ -148,17 +147,10 @@ func (s *INodeService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INo
 		return nil, errs.Internal(fmt.Errorf("failed to GetByID: %w", err))
 	}
 
-	mediaType, params, err := mime.ParseMediaType(cmd.Mime)
-	if err != nil {
-		return nil, errs.BadRequest(fmt.Errorf("%s: %w: %w", cmd.Mime, ErrInvalidMimeType, err))
-	}
-
 	inode := INode{
 		id:             s.uuid.New(),
 		parent:         ptr.To(parent.ID()),
-		mimetype:       ptr.To(mime.FormatMediaType(mediaType, params)),
-		size:           cmd.Size,
-		checksum:       cmd.Checksum,
+		size:           0,
 		name:           cmd.Name,
 		createdAt:      cmd.UploadedAt,
 		lastModifiedAt: cmd.UploadedAt,
@@ -220,6 +212,10 @@ func (s *INodeService) HardDelete(ctx context.Context, inode *INode) error {
 	return nil
 }
 
+func (s *INodeService) GetAllInodesWithFileID(ctx context.Context, fileID uuid.UUID) ([]INode, error) {
+	return s.storage.GetAllInodesWithFileID(ctx, fileID)
+}
+
 func (s *INodeService) Remove(ctx context.Context, inode *INode) error {
 	now := s.clock.Now()
 	err := s.storage.Patch(ctx, inode.ID(), map[string]any{
@@ -274,6 +270,24 @@ func (s *INodeService) PatchMove(ctx context.Context, source, parent *INode, new
 	return &newFile, nil
 }
 
+func (s *INodeService) GetAllInodesWithFile(ctx context.Context, fileID uuid.UUID) ([]INode, error) {
+	return nil, nil
+}
+
+func (s *INodeService) PatchFileID(ctx context.Context, inode *INode, newFileID uuid.UUID) (*INode, error) {
+	newFile := *inode
+	newFile.fileID = ptr.To(newFileID)
+
+	err := s.storage.Patch(ctx, newFile.ID(), map[string]any{
+		"file_id": *newFile.fileID,
+	})
+	if err != nil {
+		return nil, errs.Internal(fmt.Errorf("fialed to Patch the inode: %w", err))
+	}
+
+	return &newFile, nil
+}
+
 func (s *INodeService) CreateDir(ctx context.Context, parent *INode, name string) (*INode, error) {
 	if !parent.IsDir() {
 		return nil, errs.BadRequest(ErrIsNotDir)
@@ -292,7 +306,6 @@ func (s *INodeService) CreateDir(ctx context.Context, parent *INode, name string
 	newDir := INode{
 		id:             s.uuid.New(),
 		parent:         ptr.To(parent.ID()),
-		mimetype:       nil,
 		name:           name,
 		lastModifiedAt: now,
 		createdAt:      now,

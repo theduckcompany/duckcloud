@@ -13,6 +13,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/debug"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/oauth2"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthclients"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthcodes"
@@ -68,6 +69,7 @@ func start(ctx context.Context, db *sql.DB, fs afero.Fs, folderPath string, invo
 			// Services
 			users.Init,
 			dfs.Init,
+			files.Init,
 			fx.Annotate(config.Init, fx.As(new(config.Service))),
 			fx.Annotate(oauthcodes.Init, fx.As(new(oauthcodes.Service))),
 			fx.Annotate(oauthsessions.Init, fx.As(new(oauthsessions.Service))),

@@ -12,6 +12,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
@@ -25,6 +26,7 @@ type TestContext struct {
 
 	FSService dfs.Service
 	Scheduler scheduler.Service
+	Files     files.Service
 	Runner    runner.Service
 	FS        dfs.FS
 
@@ -74,6 +76,7 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 		FSService: serv.DFSSvc,
 		Scheduler: serv.SchedulerSvc,
 		Runner:    serv.RunnerSvc,
+		Files:     serv.Files,
 		FS:        fs,
 
 		User:   serv.User,

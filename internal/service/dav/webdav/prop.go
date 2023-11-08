@@ -13,6 +13,7 @@ import (
 	"strconv"
 
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
+	"github.com/theduckcompany/duckcloud/internal/service/files"
 )
 
 // Proppatch describes a property update instruction as defined in RFC 4918.
@@ -100,7 +101,7 @@ type DeadPropsHolder interface {
 var liveProps = map[xml.Name]struct {
 	// findFn implements the propfind function of this property. If nil,
 	// it indicates a hidden property.
-	findFn func(context.Context, string, *dfs.INode) (string, error)
+	findFn func(context.Context, string, *dfs.INode, *files.FileMeta) (string, error)
 	// dir is true if the property applies to directories.
 	dir bool
 }{
@@ -155,7 +156,7 @@ var liveProps = map[xml.Name]struct {
 //
 // Each Propstat has a unique status and each property name will only be part
 // of one Propstat element.
-func props(ctx context.Context, fi *dfs.INode, name string, pnames []xml.Name) ([]Propstat, error) {
+func props(ctx context.Context, fi *dfs.INode, fm *files.FileMeta, name string, pnames []xml.Name) ([]Propstat, error) {
 	isDir := fi.IsDir()
 
 	var deadProps map[xml.Name]Property
@@ -177,7 +178,7 @@ func props(ctx context.Context, fi *dfs.INode, name string, pnames []xml.Name) (
 		}
 		// Otherwise, it must either be a live property or we don't know it.
 		if prop := liveProps[pn]; prop.findFn != nil && (prop.dir || !isDir) {
-			innerXML, err := prop.findFn(ctx, name, fi)
+			innerXML, err := prop.findFn(ctx, name, fi, fm)
 			if err != nil {
 				return nil, err
 			}
@@ -228,7 +229,7 @@ func propnames(ctx context.Context, fi *dfs.INode, name string) ([]xml.Name, err
 // returned if they are named in 'include'.
 //
 // See http://www.webdav.org/specs/rfc4918.html#METHOD_PROPFIND
-func allprop(ctx context.Context, fi *dfs.INode, name string, include []xml.Name) ([]Propstat, error) {
+func allprop(ctx context.Context, fi *dfs.INode, fm *files.FileMeta, name string, include []xml.Name) ([]Propstat, error) {
 	pnames, err := propnames(ctx, fi, name)
 	if err != nil {
 		return nil, err
@@ -243,7 +244,7 @@ func allprop(ctx context.Context, fi *dfs.INode, name string, include []xml.Name
 			pnames = append(pnames, pn)
 		}
 	}
-	return props(ctx, fi, name, pnames)
+	return props(ctx, fi, fm, name, pnames)
 }
 
 // patch patches the properties of resource name. The return values are
@@ -331,14 +332,14 @@ func escapeXML(s string) string {
 	return s
 }
 
-func findResourceType(ctx context.Context, name string, fi *dfs.INode) (string, error) {
+func findResourceType(ctx context.Context, name string, fi *dfs.INode, meta *files.FileMeta) (string, error) {
 	if fi.IsDir() {
 		return `<D:collection xmlns:D="DAV:"/>`, nil
 	}
 	return "", nil
 }
 
-func findDisplayName(ctx context.Context, name string, fi *dfs.INode) (string, error) {
+func findDisplayName(ctx context.Context, name string, fi *dfs.INode, meta *files.FileMeta) (string, error) {
 	if slashClean(name) == "/" {
 		// Hide the real name of a possibly prefixed root directory.
 		return "", nil
@@ -346,11 +347,11 @@ func findDisplayName(ctx context.Context, name string, fi *dfs.INode) (string, e
 	return escapeXML(fi.Name()), nil
 }
 
-func findContentLength(ctx context.Context, name string, fi *dfs.INode) (string, error) {
+func findContentLength(ctx context.Context, name string, fi *dfs.INode, meta *files.FileMeta) (string, error) {
 	return strconv.FormatUint(fi.Size(), 10), nil
 }
 
-func findLastModified(ctx context.Context, name string, fi *dfs.INode) (string, error) {
+func findLastModified(ctx context.Context, name string, fi *dfs.INode, meta *files.FileMeta) (string, error) {
 	return fi.LastModifiedAt().UTC().Format(http.TimeFormat), nil
 }
 
@@ -375,12 +376,12 @@ type ContentTyper interface {
 	ContentType(ctx context.Context) (string, error)
 }
 
-func findContentType(ctx context.Context, name string, fi *dfs.INode) (string, error) {
-	if fi.IsDir() {
-		return "", errors.New("try to detect content type on a dir")
+func findContentType(ctx context.Context, name string, fi *dfs.INode, meta *files.FileMeta) (string, error) {
+	if meta == nil {
+		return "???", nil
 	}
 
-	return *fi.MimeType(), nil
+	return meta.MimeType(), nil
 }
 
 // ETager is an optional interface for the *dfs.INode objects
@@ -401,6 +402,10 @@ type ETager interface {
 	ETag(ctx context.Context) (string, error)
 }
 
-func findETag(ctx context.Context, name string, fi *dfs.INode) (string, error) {
-	return fi.Checksum(), nil
+func findETag(ctx context.Context, name string, fi *dfs.INode, meta *files.FileMeta) (string, error) {
+	if meta == nil {
+		return "???", nil
+	}
+
+	return meta.Checksum(), nil
 }

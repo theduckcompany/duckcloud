@@ -41,6 +41,20 @@ func (_m *MockService) RegisterFSRefreshSizeTask(ctx context.Context, args *FSRe
 	return r0
 }
 
+// RegisterFSRemoveDuplicateFile provides a mock function with given fields: ctx, args
+func (_m *MockService) RegisterFSRemoveDuplicateFile(ctx context.Context, args *FSRemoveDuplicateFileArgs) error {
+	ret := _m.Called(ctx, args)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *FSRemoveDuplicateFileArgs) error); ok {
+		r0 = rf(ctx, args)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // RegisterFileUploadTask provides a mock function with given fields: ctx, args
 func (_m *MockService) RegisterFileUploadTask(ctx context.Context, args *FileUploadArgs) error {
 	ret := _m.Called(ctx, args)

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"path"
 
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
@@ -154,21 +155,47 @@ func (s *LocalFS) Download(ctx context.Context, filePath string) (io.ReadSeekClo
 func (s *LocalFS) Upload(ctx context.Context, filePath string, w io.Reader) error {
 	filePath = cleanPath(filePath)
 
+	dirPath, fileName := path.Split(filePath)
+
+	dir, err := s.inodes.Get(ctx, &inodes.PathCmd{
+		Folder: s.folder,
+		Path:   dirPath,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to get the dir: %w", err)
+	}
+
 	fileID, err := s.files.Upload(ctx, w)
 	if err != nil {
 		return fmt.Errorf("failed to Create file: %w", err)
 	}
 
 	ctx = context.WithoutCancel(ctx)
+	now := s.clock.Now()
+
+	inode, err := s.inodes.CreateFile(ctx, &inodes.CreateFileCmd{
+		Parent:     dir.ID(),
+		Name:       fileName,
+		FileID:     fileID,
+		UploadedAt: now,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to inodes.CreateFile: %w", err)
+	}
+
 	// XXX:MULTI-WRITE
 	//
-	// Once a file is uploaded and closed we need to process it in order to make
-	// it available.
+	// We make the file available only when it is successfully uploaded and the fileupload task
+	// is also successfully registered.
+	//
+	// In the worst case senario we end up with a file and no file metadata or a file with the
+	// metadatas but not linked to the dfs. In those two cases this have no impact and can be
+	// cleaned later by a background job.
 	err = s.scheduler.RegisterFileUploadTask(ctx, &scheduler.FileUploadArgs{
 		FolderID:   s.folder.ID(),
-		Path:       filePath,
 		FileID:     fileID,
-		UploadedAt: s.clock.Now(),
+		INodeID:    inode.ID(),
+		UploadedAt: now,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to Register the upload: %w", err)

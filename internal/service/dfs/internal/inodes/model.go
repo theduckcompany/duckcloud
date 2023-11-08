@@ -27,9 +27,6 @@ func (t PathCmd) Validate() error {
 type CreateFileCmd struct {
 	Parent     uuid.UUID
 	Name       string
-	Mime       string
-	Size       uint64
-	Checksum   string
 	FileID     uuid.UUID
 	UploadedAt time.Time
 }
@@ -39,9 +36,7 @@ func (t CreateFileCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.Parent, v.Required, is.UUIDv4),
 		v.Field(&t.Name, v.Required, v.Length(1, 255)),
-		v.Field(&t.Checksum, v.Required), // TODO: Add a checksum format rule
 		v.Field(&t.FileID, v.Required, is.UUIDv4),
-		v.Field(&t.Mime, v.Required, v.Length(0, 250)),
 	)
 }
 
@@ -49,8 +44,6 @@ type INode struct {
 	id             uuid.UUID
 	parent         *uuid.UUID
 	name           string
-	mimetype       *string
-	checksum       string
 	size           uint64
 	createdAt      time.Time
 	lastModifiedAt time.Time
@@ -61,9 +54,7 @@ func (n *INode) ID() uuid.UUID             { return n.id }
 func (n *INode) Parent() *uuid.UUID        { return n.parent }
 func (n *INode) Name() string              { return n.name }
 func (n *INode) Size() uint64              { return n.size }
-func (n *INode) MimeType() *string         { return n.mimetype }
 func (n *INode) CreatedAt() time.Time      { return n.createdAt }
 func (n *INode) LastModifiedAt() time.Time { return n.lastModifiedAt }
 func (n *INode) FileID() *uuid.UUID        { return n.fileID }
 func (n *INode) IsDir() bool               { return n.fileID == nil }
-func (n *INode) Checksum() string          { return n.checksum }

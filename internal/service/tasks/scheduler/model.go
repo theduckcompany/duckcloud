@@ -11,14 +11,14 @@ import (
 type FileUploadArgs struct {
 	FolderID   uuid.UUID `json:"folder-id"`
 	FileID     uuid.UUID `json:"file-id"`
-	Path       string    `json:"path"`
+	INodeID    uuid.UUID `json:"inode-id"`
 	UploadedAt time.Time `json:"uploaded-at"`
 }
 
 func (a FileUploadArgs) Validate() error {
 	return v.ValidateStruct(&a,
 		v.Field(&a.FolderID, v.Required, is.UUIDv4),
-		v.Field(&a.Path, v.Required, v.Length(1, 10024)),
+		v.Field(&a.INodeID, v.Required, is.UUIDv4),
 		v.Field(&a.FileID, v.Required, is.UUIDv4),
 		v.Field(&a.UploadedAt, v.Required),
 	)
@@ -75,5 +75,17 @@ func (a FSRefreshSizeArg) Validate() error {
 	return v.ValidateStruct(&a,
 		v.Field(&a.INode, v.Required, is.UUIDv4),
 		v.Field(&a.ModifiedAt, v.Required),
+	)
+}
+
+type FSRemoveDuplicateFileArgs struct {
+	INode        uuid.UUID `json:"inode"`
+	TargetFileID uuid.UUID `json:"target-file-id"`
+}
+
+func (a FSRemoveDuplicateFileArgs) Validate() error {
+	return v.ValidateStruct(&a,
+		v.Field(&a.INode, v.Required, is.UUIDv4),
+		v.Field(&a.TargetFileID, v.Required, is.UUIDv4),
 	)
 }

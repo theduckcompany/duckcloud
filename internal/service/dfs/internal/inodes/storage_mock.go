@@ -68,6 +68,32 @@ func (_m *MockStorage) GetAllDeleted(ctx context.Context, limit int) ([]INode, e
 	return r0, r1
 }
 
+// GetAllInodesWithFileID provides a mock function with given fields: ctx, fileID
+func (_m *MockStorage) GetAllInodesWithFileID(ctx context.Context, fileID uuid.UUID) ([]INode, error) {
+	ret := _m.Called(ctx, fileID)
+
+	var r0 []INode
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]INode, error)); ok {
+		return rf(ctx, fileID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []INode); ok {
+		r0 = rf(ctx, fileID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]INode)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, fileID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByID provides a mock function with given fields: ctx, id
 func (_m *MockStorage) GetByID(ctx context.Context, id uuid.UUID) (*INode, error) {
 	ret := _m.Called(ctx, id)

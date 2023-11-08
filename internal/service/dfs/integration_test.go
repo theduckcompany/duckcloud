@@ -68,8 +68,6 @@ func Test_DFS_Integration(t *testing.T) {
 
 		require.Equal(t, "", rootFS.Name())
 		require.True(t, rootFS.IsDir())
-		require.Equal(t, uint64(0), rootFS.Size())
-		require.Empty(t, rootFS.Checksum())
 		require.WithinDuration(t, time.Now(), rootFS.LastModifiedAt(), 14*time.Millisecond)
 	})
 
@@ -94,7 +92,6 @@ func Test_DFS_Integration(t *testing.T) {
 		require.Nil(t, dir.FileID())
 		require.Equal(t, ptr.To(rootFS.ID()), dir.Parent()) // It have a parent and this is the root ("/")
 		require.True(t, dir.IsDir())
-		require.Empty(t, dir.Checksum())
 		require.WithinDuration(t, time.Now(), dir.LastModifiedAt(), 20*time.Millisecond)
 
 		// TODO: Check that the modified date have been modified for all the parents
@@ -123,7 +120,6 @@ func Test_DFS_Integration(t *testing.T) {
 			require.Equal(t, uint64(0), dirBaz.Size())
 			require.Nil(t, dirBaz.FileID())
 			require.True(t, dirBaz.IsDir())
-			require.Empty(t, dirBaz.Checksum())
 			require.WithinDuration(t, time.Now(), dirBaz.LastModifiedAt(), 20*time.Millisecond)
 		})
 
@@ -203,7 +199,6 @@ func Test_DFS_Integration(t *testing.T) {
 			require.Equal(t, "todo.txt", info.Name())
 			require.False(t, info.IsDir())
 			require.Equal(t, uint64(len(content)), info.Size())
-			require.Equal(t, "3_1gIbsr1bCvZ2KQgJ7DpTGR3YHH9wpLKGiKNiGCmG8=", info.Checksum())
 			require.WithinDuration(t, time.Now(), info.LastModifiedAt(), 20*time.Millisecond)
 			modTime = info.LastModifiedAt()
 		})
@@ -285,6 +280,71 @@ func Test_DFS_Integration(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, newFile.LastModifiedAt(), dir.LastModifiedAt())
 			assert.Equal(t, newFile.Size(), dir.Size())
+		})
+	})
+
+	t.Run("Check duplicate files", func(t *testing.T) {
+		content := "Hello, World!"
+
+		t.Run("Create the test directory", func(t *testing.T) {
+			_, err := folderFS.CreateDir(ctx, "/Duplicate")
+			require.NoError(t, err)
+		})
+
+		t.Run("Upload the first file", func(t *testing.T) {
+			buf := bytes.NewBuffer(nil)
+			buf.WriteString(content)
+
+			err := folderFS.Upload(ctx, "/Duplicate/todo.txt", buf)
+			require.NoError(t, err)
+
+			err = serv.RunnerSvc.Run(ctx)
+			require.NoError(t, err)
+		})
+
+		t.Run("Upload the second same file", func(t *testing.T) {
+			buf := bytes.NewBuffer(nil)
+			buf.WriteString(content)
+
+			err := folderFS.Upload(ctx, "/Duplicate/todo-duplicate.txt", buf)
+			require.NoError(t, err)
+
+			err = serv.RunnerSvc.Run(ctx)
+			require.NoError(t, err)
+		})
+
+		t.Run("The two file must have the same fileID", func(t *testing.T) {
+			file1, err := folderFS.Get(ctx, "/Duplicate/todo.txt")
+			require.NoError(t, err)
+
+			file2, err := folderFS.Get(ctx, "/Duplicate/todo-duplicate.txt")
+			require.NoError(t, err)
+
+			require.Equal(t, file1.FileID(), file2.FileID())
+		})
+
+		t.Run("The first replicate is deleted, the second still have the file", func(t *testing.T) {
+			err := folderFS.Remove(ctx, "/Duplicate/todo.txt")
+			require.NoError(t, err)
+
+			err = serv.RunnerSvc.Run(ctx)
+			require.NoError(t, err)
+
+			reader, err := folderFS.Download(ctx, "/Duplicate/todo-duplicate.txt")
+			require.NoError(t, err)
+
+			res, err := io.ReadAll(reader)
+			require.NoError(t, err)
+
+			assert.Equal(t, []byte(content), res)
+		})
+
+		t.Run("Delete the directory", func(t *testing.T) {
+			err := folderFS.Remove(ctx, "/Duplicate")
+			require.NoError(t, err)
+
+			err = serv.RunnerSvc.Run(ctx)
+			require.NoError(t, err)
 		})
 	})
 }
