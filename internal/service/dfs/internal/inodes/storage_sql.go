@@ -130,6 +130,26 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]INode, error) {
 	return inodes, nil
 }
 
+func (s *sqlStorage) GetSumChildsSize(ctx context.Context, parent uuid.UUID) (uint64, error) {
+	var size *uint64
+
+	err := sq.
+		Select("SUM(size)").
+		From(tableName).
+		Where(sq.Eq{"parent": string(parent), "deleted_at": nil}).
+		RunWith(s.db).
+		ScanContext(ctx, &size)
+	if err != nil {
+		return 0, fmt.Errorf("sql error: %w", err)
+	}
+
+	if size == nil {
+		return 0, nil
+	}
+
+	return *size, nil
+}
+
 func (s *sqlStorage) GetByNameAndParent(ctx context.Context, name string, parent uuid.UUID) (*INode, error) {
 	res := INode{}
 

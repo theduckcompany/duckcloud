@@ -20,19 +20,19 @@ func TestFSMoveTask(t *testing.T) {
 	now := time.Now().UTC().Add(time.Minute)
 
 	t.Run("Name", func(t *testing.T) {
-		runner := NewFSMoveTaskRunner(nil, nil)
+		runner := NewFSMoveTaskRunner(nil, nil, nil)
 		assert.Equal(t, "fs-move", runner.Name())
 	})
 
 	t.Run("RunArg success", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		runner := NewFSMoveTaskRunner(inodesMock, foldersMock, schedulerMock)
 
 		newFile := ExampleAliceFile
 
 		require.True(t, ExampleAliceRoot.LastModifiedAt().Before(now))
-
-		runner := NewFSMoveTaskRunner(inodesMock, foldersMock)
 
 		foldersMock.On("GetByID", mock.Anything, folders.ExampleAlicePersonalFolder.ID()).
 			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
@@ -46,12 +46,16 @@ func TestFSMoveTask(t *testing.T) {
 			Folder: &folders.ExampleAlicePersonalFolder,
 			Path:   "/",
 		}).Return(&inodes.ExampleAliceRoot, nil).Once()
-		inodesMock.On("RegisterDeletion", mock.Anything, &inodes.ExampleAliceFile, uint64(42), now).
-			Return(nil).Once()
 		inodesMock.On("PatchMove", mock.Anything, &inodes.ExampleAliceFile, &inodes.ExampleAliceRoot, "bar.txt", now).
 			Return(&newFile, nil).Once()
-		inodesMock.On("RegisterWrite", mock.Anything, &newFile, uint64(42), now.Add(time.Microsecond)).
-			Return(nil).Once()
+		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
+			INode:      *inodes.ExampleAliceFile.Parent(),
+			ModifiedAt: now,
+		}).Return(nil).Once()
+		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
+			INode:      inodes.ExampleAliceRoot.ID(),
+			ModifiedAt: now,
+		}).Return(nil).Once()
 
 		err := runner.RunArgs(ctx, &scheduler.FSMoveArgs{
 			FolderID:    folders.ExampleAlicePersonalFolder.ID(),
@@ -65,12 +69,12 @@ func TestFSMoveTask(t *testing.T) {
 	t.Run("RunArg with an existing file at destination", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		runner := NewFSMoveTaskRunner(inodesMock, foldersMock, schedulerMock)
 
 		newFile := ExampleAliceFile
 
 		require.True(t, ExampleAliceRoot.LastModifiedAt().Before(now))
-
-		runner := NewFSMoveTaskRunner(inodesMock, foldersMock)
 
 		foldersMock.On("GetByID", mock.Anything, folders.ExampleAlicePersonalFolder.ID()).
 			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
@@ -84,13 +88,17 @@ func TestFSMoveTask(t *testing.T) {
 			Folder: &folders.ExampleAlicePersonalFolder,
 			Path:   "/",
 		}).Return(&inodes.ExampleAliceRoot, nil).Once()
-		inodesMock.On("RegisterDeletion", mock.Anything, &inodes.ExampleAliceFile, uint64(42), now).
-			Return(nil).Once()
 		inodesMock.On("PatchMove", mock.Anything, &inodes.ExampleAliceFile, &inodes.ExampleAliceRoot, "bar.txt", now).
 			Return(&newFile, nil).Once()
 		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceDir).Return(nil).Once()
-		inodesMock.On("RegisterWrite", mock.Anything, &newFile, uint64(42), now.Add(time.Microsecond)).
-			Return(nil).Once()
+		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
+			INode:      *inodes.ExampleAliceFile.Parent(),
+			ModifiedAt: now,
+		}).Return(nil).Once()
+		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
+			INode:      inodes.ExampleAliceRoot.ID(),
+			ModifiedAt: now,
+		}).Return(nil).Once()
 
 		err := runner.RunArgs(ctx, &scheduler.FSMoveArgs{
 			FolderID:    folders.ExampleAlicePersonalFolder.ID(),
@@ -104,8 +112,8 @@ func TestFSMoveTask(t *testing.T) {
 	t.Run("RunArg with an unknown folder", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
-
-		runner := NewFSMoveTaskRunner(inodesMock, foldersMock)
+		schedulerMock := scheduler.NewMockService(t)
+		runner := NewFSMoveTaskRunner(inodesMock, foldersMock, schedulerMock)
 
 		foldersMock.On("GetByID", mock.Anything, folders.ExampleAlicePersonalFolder.ID()).
 			Return(nil, errs.ErrNotFound).Once()
@@ -122,8 +130,8 @@ func TestFSMoveTask(t *testing.T) {
 	t.Run("RunArg with an unknown source inode", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
-
-		runner := NewFSMoveTaskRunner(inodesMock, foldersMock)
+		schedulerMock := scheduler.NewMockService(t)
+		runner := NewFSMoveTaskRunner(inodesMock, foldersMock, schedulerMock)
 
 		foldersMock.On("GetByID", mock.Anything, folders.ExampleAlicePersonalFolder.ID()).
 			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
@@ -146,8 +154,8 @@ func TestFSMoveTask(t *testing.T) {
 	t.Run("RunArg with a inodes.Get error", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
-
-		runner := NewFSMoveTaskRunner(inodesMock, foldersMock)
+		schedulerMock := scheduler.NewMockService(t)
+		runner := NewFSMoveTaskRunner(inodesMock, foldersMock, schedulerMock)
 
 		foldersMock.On("GetByID", mock.Anything, folders.ExampleAlicePersonalFolder.ID()).
 			Return(&folders.ExampleAlicePersonalFolder, nil).Once()
@@ -169,10 +177,10 @@ func TestFSMoveTask(t *testing.T) {
 	t.Run("RunArg with an MkdirAll error", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		foldersMock := folders.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		runner := NewFSMoveTaskRunner(inodesMock, foldersMock, schedulerMock)
 
 		require.True(t, ExampleAliceRoot.LastModifiedAt().Before(now))
-
-		runner := NewFSMoveTaskRunner(inodesMock, foldersMock)
 
 		foldersMock.On("GetByID", mock.Anything, folders.ExampleAlicePersonalFolder.ID()).
 			Return(&folders.ExampleAlicePersonalFolder, nil).Once()

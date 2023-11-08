@@ -65,3 +65,15 @@ func (a UserDeleteArgs) Validate() error {
 		v.Field(&a.UserID, v.Required, is.UUIDv4),
 	)
 }
+
+type FSRefreshSizeArg struct {
+	INode      uuid.UUID `json:"inode"`
+	ModifiedAt time.Time `json:"modified_at"`
+}
+
+func (a FSRefreshSizeArg) Validate() error {
+	return v.ValidateStruct(&a,
+		v.Field(&a.INode, v.Required, is.UUIDv4),
+		v.Field(&a.ModifiedAt, v.Required),
+	)
+}

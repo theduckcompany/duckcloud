@@ -146,6 +146,30 @@ func (_m *MockStorage) GetDeleted(ctx context.Context, id uuid.UUID) (*INode, er
 	return r0, r1
 }
 
+// GetSumChildsSize provides a mock function with given fields: ctx, parent
+func (_m *MockStorage) GetSumChildsSize(ctx context.Context, parent uuid.UUID) (uint64, error) {
+	ret := _m.Called(ctx, parent)
+
+	var r0 uint64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (uint64, error)); ok {
+		return rf(ctx, parent)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) uint64); ok {
+		r0 = rf(ctx, parent)
+	} else {
+		r0 = ret.Get(0).(uint64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, parent)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // HardDelete provides a mock function with given fields: ctx, id
 func (_m *MockStorage) HardDelete(ctx context.Context, id uuid.UUID) error {
 	ret := _m.Called(ctx, id)

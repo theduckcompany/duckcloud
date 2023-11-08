@@ -17,13 +17,14 @@ import (
 )
 
 type FileUploadTaskRunner struct {
-	folders folders.Service
-	files   files.Service
-	inodes  inodes.Service
+	folders   folders.Service
+	files     files.Service
+	inodes    inodes.Service
+	scheduler scheduler.Service
 }
 
-func NewFileUploadTaskRunner(folders folders.Service, files files.Service, inodes inodes.Service) *FileUploadTaskRunner {
-	return &FileUploadTaskRunner{folders, files, inodes}
+func NewFileUploadTaskRunner(folders folders.Service, files files.Service, inodes inodes.Service, scheduler scheduler.Service) *FileUploadTaskRunner {
+	return &FileUploadTaskRunner{folders, files, inodes, scheduler}
 }
 
 func (r *FileUploadTaskRunner) Name() string { return "file-upload" }
@@ -91,12 +92,13 @@ func (r *FileUploadTaskRunner) RunArgs(ctx context.Context, args *scheduler.File
 	}
 
 	// XXX:MULTI-WRITE
-	//
-	// This file have severa consecutive writes but they are all idempotent and the
-	// task is retried in case of error.
-	err = r.inodes.RegisterWrite(ctx, inode, uint64(written), inode.LastModifiedAt())
+	err = r.scheduler.RegisterFSRefreshSizeTask(context.WithoutCancel(ctx),
+		&scheduler.FSRefreshSizeArg{
+			INode:      *inode.Parent(),
+			ModifiedAt: args.UploadedAt,
+		})
 	if err != nil {
-		return fmt.Errorf("failed to RegisterWrite: %w", err)
+		return fmt.Errorf("failed to register the fs-refresh-size task: %w", err)
 	}
 
 	return nil

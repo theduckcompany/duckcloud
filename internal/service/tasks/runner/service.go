@@ -52,9 +52,11 @@ func (t *TasksRunner) Run(ctx context.Context) error {
 			return fmt.Errorf("failed to GetNext task: %w", err)
 		}
 
+		logger := t.log.With(slog.Any("task", task))
+
 		runner, ok := t.runners[task.Name]
 		if !ok {
-			t.log.Error(fmt.Sprintf("unhandled task name: %s", task.Name))
+			logger.Error(fmt.Sprintf("unhandled task name: %s", task.Name))
 
 			err := t.storage.Patch(ctx, task.ID, map[string]any{"status": model.Failed})
 			if err != nil {
@@ -68,13 +70,13 @@ func (t *TasksRunner) Run(ctx context.Context) error {
 		err = runner.Run(ctx, task.Args)
 		switch {
 		case err == nil:
-			t.log.DebugContext(ctx, "task succeed")
+			logger.DebugContext(ctx, "task succeed")
 
 			updateErr = t.storage.Delete(ctx, task.ID)
 
 		case task.Retries < defaultMaxRetries:
 			task.Retries++
-			t.log.With(slog.String("error", err.Error())).
+			logger.With(slog.String("error", err.Error())).
 				ErrorContext(ctx, fmt.Sprintf("task failed (#%d), retry later", task.Retries))
 
 			updateErr = t.storage.Patch(ctx, task.ID, map[string]any{
@@ -84,7 +86,7 @@ func (t *TasksRunner) Run(ctx context.Context) error {
 
 		default:
 			task.Status = model.Failed
-			t.log.With(slog.String("error", err.Error())).
+			logger.With(slog.String("error", err.Error())).
 				ErrorContext(ctx, "task failed, too many retries")
 
 			updateErr = t.storage.Patch(ctx, task.ID, map[string]any{"status": model.Failed})

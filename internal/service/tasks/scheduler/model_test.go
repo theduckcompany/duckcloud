@@ -44,4 +44,13 @@ func TestSchedulerModels(t *testing.T) {
 
 		assert.NoError(t, err)
 	})
+
+	t.Run("RemoveDuplcateFileArgs", func(t *testing.T) {
+		err := FSRefreshSizeArg{
+			INode:      uuid.UUID("some-invalid-id"),
+			ModifiedAt: time.Now().UTC(),
+		}.Validate()
+
+		assert.EqualError(t, err, "inode: must be a valid UUID v4.")
+	})
 }

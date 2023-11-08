@@ -278,12 +278,12 @@ func Test_DFS_Integration(t *testing.T) {
 		t.Run("Check new parents modtime and size", func(t *testing.T) {
 			root, err := folderFS.Get(ctx, "/")
 			require.NoError(t, err)
-			assert.Equal(t, newFile.LastModifiedAt().Add(time.Microsecond), root.LastModifiedAt())
+			assert.Equal(t, newFile.LastModifiedAt(), root.LastModifiedAt())
 			assert.Equal(t, newFile.Size(), root.Size())
 
 			dir, err := folderFS.Get(ctx, "/NewDocuments")
 			require.NoError(t, err)
-			assert.Equal(t, newFile.LastModifiedAt().Add(time.Microsecond), dir.LastModifiedAt())
+			assert.Equal(t, newFile.LastModifiedAt(), dir.LastModifiedAt())
 			assert.Equal(t, newFile.Size(), dir.Size())
 		})
 	})
