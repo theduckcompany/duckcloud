@@ -5,8 +5,8 @@ CREATE TABLE IF NOT EXISTS fs_inodes (
   "size" NUMERIC NOT NULL,
   "mimetype" TEXT DEFAULT NULL,
   "checksum" TEXT NOT NULL,
-  "last_modified_at" DATETIME NOT NULL,
   "file_id" TEXT DEFAULT NULL,
+  "last_modified_at" DATETIME NOT NULL,
   "created_at" DATETIME NOT NULL,
   "deleted_at" DATETIME DEFAULT NULL
 );
