@@ -124,8 +124,8 @@ func TestFileUploadTask(t *testing.T) {
 
 		storageMock.On("GetByChecksum", mock.Anything, "3_1gIbsr1bCvZ2KQgJ7DpTGR3YHH9wpLKGiKNiGCmG8=").Return(&ExampleFile1, nil).Once()
 		schedulerMock.On("RegisterFSRemoveDuplicateFile", mock.Anything, &scheduler.FSRemoveDuplicateFileArgs{
-			INode:        ExampleAliceUpload.INodeID,
-			TargetFileID: ExampleAliceUpload.FileID,
+			ExistingFileID:  ExampleFile1.ID(),
+			DuplicateFileID: ExampleAliceUpload.FileID,
 		}).Return(nil).Once()
 
 		job.RunArgs(ctx, &ExampleAliceUpload)

@@ -29,64 +29,56 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		runner := NewFSRemoveDuplicateFileRunner(inodesMock, filesMock, schedulerMock)
 
-		// The input will be changed by the "PatchFileID" method and we don't want to
-		// impact the other tests.
-		input := inodes.ExampleAliceFile
-
-		inodesMock.On("GetByID", mock.Anything, inodes.ExampleAliceFile.ID()).
-			Return(&input, nil).Once()
+		inodesMock.On("GetAllInodesWithFileID", mock.Anything, *inodes.ExampleAliceFile.FileID()).
+			Return([]INode{inodes.ExampleAliceFile}, nil).Once()
 
 		filesMock.On("GetMetadata", mock.Anything, files.ExampleFile1.ID()).
 			Return(&files.ExampleFile1, nil).Once()
 
 		inodesMock.On("PatchFileID", mock.Anything, &inodes.ExampleAliceFile, files.ExampleFile1.ID()).
-			Return(&input, nil).Once()
+			Return(&inodes.ExampleAliceFile, nil).Once()
 
 		filesMock.On("Delete", mock.Anything, *inodes.ExampleAliceFile.FileID()).Return(nil).Once()
 
 		err := runner.RunArgs(ctx, &scheduler.FSRemoveDuplicateFileArgs{
-			INode:        inodes.ExampleAliceFile.ID(),
-			TargetFileID: files.ExampleFile1.ID(),
+			DuplicateFileID: *inodes.ExampleAliceFile.FileID(),
+			ExistingFileID:  files.ExampleFile1.ID(),
 		})
 		assert.NoError(t, err)
 	})
 
-	t.Run("RunArgs with a GetByID error", func(t *testing.T) {
+	t.Run("RunArgs with a GetAllInodesWithFileID error", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		runner := NewFSRemoveDuplicateFileRunner(inodesMock, filesMock, schedulerMock)
 
-		inodesMock.On("GetByID", mock.Anything, inodes.ExampleAliceFile.ID()).
+		inodesMock.On("GetAllInodesWithFileID", mock.Anything, *inodes.ExampleAliceFile.FileID()).
 			Return(nil, errs.Internal(errors.New("some-error"))).Once()
 
 		err := runner.RunArgs(ctx, &scheduler.FSRemoveDuplicateFileArgs{
-			INode:        inodes.ExampleAliceFile.ID(),
-			TargetFileID: files.ExampleFile1.ID(),
+			DuplicateFileID: *inodes.ExampleAliceFile.FileID(),
+			ExistingFileID:  files.ExampleFile1.ID(),
 		})
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})
 
-	t.Run("RunArgs with a GetByID error", func(t *testing.T) {
+	t.Run("RunArgs with a GetMetadata error", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		runner := NewFSRemoveDuplicateFileRunner(inodesMock, filesMock, schedulerMock)
 
-		// The input will be changed by the "PatchFileID" method and we don't want to
-		// impact the other tests.
-		input := inodes.ExampleAliceFile
-
-		inodesMock.On("GetByID", mock.Anything, inodes.ExampleAliceFile.ID()).
-			Return(&input, nil).Once()
+		inodesMock.On("GetAllInodesWithFileID", mock.Anything, *inodes.ExampleAliceFile.FileID()).
+			Return([]INode{inodes.ExampleAliceFile}, nil).Once()
 
 		filesMock.On("GetMetadata", mock.Anything, files.ExampleFile1.ID()).
 			Return(nil, errs.Internal(errors.New("some-error"))).Once()
 
 		err := runner.RunArgs(ctx, &scheduler.FSRemoveDuplicateFileArgs{
-			INode:        inodes.ExampleAliceFile.ID(),
-			TargetFileID: files.ExampleFile1.ID(),
+			DuplicateFileID: *inodes.ExampleAliceFile.FileID(),
+			ExistingFileID:  files.ExampleFile1.ID(),
 		})
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
@@ -98,12 +90,8 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		runner := NewFSRemoveDuplicateFileRunner(inodesMock, filesMock, schedulerMock)
 
-		// The input will be changed by the "PatchFileID" method and we don't want to
-		// impact the other tests.
-		input := inodes.ExampleAliceFile
-
-		inodesMock.On("GetByID", mock.Anything, inodes.ExampleAliceFile.ID()).
-			Return(&input, nil).Once()
+		inodesMock.On("GetAllInodesWithFileID", mock.Anything, *inodes.ExampleAliceFile.FileID()).
+			Return([]INode{inodes.ExampleAliceFile}, nil).Once()
 
 		filesMock.On("GetMetadata", mock.Anything, files.ExampleFile1.ID()).
 			Return(&files.ExampleFile1, nil).Once()
@@ -112,8 +100,8 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 			Return(nil, errs.Internal(errors.New("some-error"))).Once()
 
 		err := runner.RunArgs(ctx, &scheduler.FSRemoveDuplicateFileArgs{
-			INode:        inodes.ExampleAliceFile.ID(),
-			TargetFileID: files.ExampleFile1.ID(),
+			ExistingFileID:  files.ExampleFile1.ID(),
+			DuplicateFileID: *inodes.ExampleAliceFile.FileID(),
 		})
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
@@ -125,24 +113,20 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		runner := NewFSRemoveDuplicateFileRunner(inodesMock, filesMock, schedulerMock)
 
-		// The input will be changed by the "PatchFileID" method and we don't want to
-		// impact the other tests.
-		input := inodes.ExampleAliceFile
+		inodesMock.On("GetAllInodesWithFileID", mock.Anything, *inodes.ExampleAliceFile.FileID()).
+			Return([]INode{inodes.ExampleAliceFile}, nil).Once()
 
-		inodesMock.On("GetByID", mock.Anything, inodes.ExampleAliceFile.ID()).
-			Return(&input, nil).Once()
-
-		filesMock.On("GetMetadata", mock.Anything, files.ExampleFile1.ID()).
+		filesMock.On("GetMetadata", mock.Anything, files.ExampleFile2.ID()).
 			Return(&files.ExampleFile1, nil).Once()
 
 		inodesMock.On("PatchFileID", mock.Anything, &inodes.ExampleAliceFile, files.ExampleFile1.ID()).
-			Return(&input, nil).Once()
+			Return(&inodes.ExampleAliceFile, nil).Once()
 
 		filesMock.On("Delete", mock.Anything, *inodes.ExampleAliceFile.FileID()).Return(nil).Once()
 
 		err := runner.Run(ctx, json.RawMessage(`{
-			"inode": "f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f",
-			"target-file-id": "abf05a02-8af9-4184-a46d-847f7d951c6b"
+			"existing-file-id": "66278d2b-7a4f-4764-ac8a-fc08f224eb66",
+			"duplicate-file-id": "abf05a02-8af9-4184-a46d-847f7d951c6b"
 		}`))
 		assert.NoError(t, err)
 	})

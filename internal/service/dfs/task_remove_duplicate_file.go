@@ -34,28 +34,26 @@ func (r *FSRemoveDuplicateFilesRunner) Run(ctx context.Context, rawArgs json.Raw
 }
 
 func (r *FSRemoveDuplicateFilesRunner) RunArgs(ctx context.Context, args *scheduler.FSRemoveDuplicateFileArgs) error {
-	inode, err := r.inodes.GetByID(ctx, args.INode)
+	duplicates, err := r.inodes.GetAllInodesWithFileID(ctx, args.DuplicateFileID)
 	if err != nil {
-		return fmt.Errorf("failed to get the inode: %w", err)
+		return fmt.Errorf("failed to GetAllInodesWithFileID: %w", err)
 	}
 
-	oldFileID := inode.FileID()
-
-	fileMeta, err := r.files.GetMetadata(ctx, args.TargetFileID)
+	existingFileMeta, err := r.files.GetMetadata(ctx, args.ExistingFileID)
 	if err != nil {
 		return fmt.Errorf("failed to get the file: %w", err)
 	}
 
-	inode, err = r.inodes.PatchFileID(ctx, inode, fileMeta.ID())
-	if err != nil {
-		return fmt.Errorf("failed to update the file id: %w", err)
+	for _, duplicate := range duplicates {
+		_, err := r.inodes.PatchFileID(ctx, &duplicate, existingFileMeta.ID())
+		if err != nil {
+			return fmt.Errorf("failed to update the file id: %w", err)
+		}
 	}
 
-	if oldFileID != nil {
-		err = r.files.Delete(ctx, *oldFileID)
-		if err != nil {
-			return fmt.Errorf("failed to Delete the old file id: %w", err)
-		}
+	err = r.files.Delete(ctx, args.DuplicateFileID)
+	if err != nil {
+		return fmt.Errorf("failed to Delete the old file id: %w", err)
 	}
 
 	return nil
