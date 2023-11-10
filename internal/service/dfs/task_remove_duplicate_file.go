@@ -51,14 +51,6 @@ func (r *FSRemoveDuplicateFilesRunner) RunArgs(ctx context.Context, args *schedu
 		return fmt.Errorf("failed to update the file id: %w", err)
 	}
 
-	err = r.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
-		INode:      inode.ID(),
-		ModifiedAt: inode.LastModifiedAt(),
-	})
-	if err != nil {
-		return fmt.Errorf("failed to scheduler the fs-refresh-size task: %w", err)
-	}
-
 	if oldFileID != nil {
 		err = r.files.Delete(ctx, *oldFileID)
 		if err != nil {

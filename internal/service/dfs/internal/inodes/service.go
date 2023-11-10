@@ -282,7 +282,16 @@ func (s *INodeService) PatchFileID(ctx context.Context, inode *INode, newFileID 
 		"file_id": *newFile.fileID,
 	})
 	if err != nil {
-		return nil, errs.Internal(fmt.Errorf("fialed to Patch the inode: %w", err))
+		return nil, errs.Internal(fmt.Errorf("failed to Patch the inode: %w", err))
+	}
+
+	// XXX:MULTI-WRITE
+	err = s.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
+		INode:      inode.ID(),
+		ModifiedAt: inode.LastModifiedAt(),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to scheduler the fs-refresh-size task: %w", err)
 	}
 
 	return &newFile, nil

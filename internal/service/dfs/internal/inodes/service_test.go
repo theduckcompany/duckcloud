@@ -643,7 +643,7 @@ func TestINodes(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("PatchFileID", func(t *testing.T) {
+	t.Run("PatchFileID success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
@@ -651,6 +651,11 @@ func TestINodes(t *testing.T) {
 
 		storageMock.On("Patch", mock.Anything, ExampleAliceFile.ID(), map[string]any{
 			"file_id": uuid.UUID("some-new-id"),
+		}).Return(nil).Once()
+
+		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
+			INode:      ExampleAliceFile.ID(),
+			ModifiedAt: ExampleAliceDir.LastModifiedAt(),
 		}).Return(nil).Once()
 
 		input := ExampleAliceFile

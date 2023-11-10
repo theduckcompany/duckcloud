@@ -42,11 +42,6 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 		inodesMock.On("PatchFileID", mock.Anything, &inodes.ExampleAliceFile, files.ExampleFile1.ID()).
 			Return(&input, nil).Once()
 
-		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
-			INode:      inodes.ExampleAliceFile.ID(),
-			ModifiedAt: inodes.ExampleAliceFile.LastModifiedAt(),
-		}).Return(nil).Once()
-
 		filesMock.On("Delete", mock.Anything, *inodes.ExampleAliceFile.FileID()).Return(nil).Once()
 
 		err := runner.RunArgs(ctx, &scheduler.FSRemoveDuplicateFileArgs{
@@ -142,11 +137,6 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 
 		inodesMock.On("PatchFileID", mock.Anything, &inodes.ExampleAliceFile, files.ExampleFile1.ID()).
 			Return(&input, nil).Once()
-
-		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
-			INode:      inodes.ExampleAliceFile.ID(),
-			ModifiedAt: inodes.ExampleAliceFile.LastModifiedAt(),
-		}).Return(nil).Once()
 
 		filesMock.On("Delete", mock.Anything, *inodes.ExampleAliceFile.FileID()).Return(nil).Once()
 
