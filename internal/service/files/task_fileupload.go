@@ -58,8 +58,8 @@ func (r *FileUploadTaskRunner) RunArgs(ctx context.Context, args *scheduler.File
 
 	if existingFile != nil {
 		err = r.scheduler.RegisterFSRemoveDuplicateFile(ctx, &scheduler.FSRemoveDuplicateFileArgs{
-			INode:        args.INodeID,
-			TargetFileID: existingFile.ID(),
+			ExistingFileID:  existingFile.ID(),
+			DuplicateFileID: args.FileID,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to register the fs-remove-duplicate-files task: %w", err)

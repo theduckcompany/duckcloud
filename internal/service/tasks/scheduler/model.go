@@ -79,13 +79,13 @@ func (a FSRefreshSizeArg) Validate() error {
 }
 
 type FSRemoveDuplicateFileArgs struct {
-	INode        uuid.UUID `json:"inode"`
-	TargetFileID uuid.UUID `json:"target-file-id"`
+	DuplicateFileID uuid.UUID `json:"duplicate-file-id"`
+	ExistingFileID  uuid.UUID `json:"existing-file-id"`
 }
 
 func (a FSRemoveDuplicateFileArgs) Validate() error {
 	return v.ValidateStruct(&a,
-		v.Field(&a.INode, v.Required, is.UUIDv4),
-		v.Field(&a.TargetFileID, v.Required, is.UUIDv4),
+		v.Field(&a.DuplicateFileID, v.Required, is.UUIDv4),
+		v.Field(&a.ExistingFileID, v.Required, is.UUIDv4),
 	)
 }

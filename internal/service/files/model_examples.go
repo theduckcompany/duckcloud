@@ -15,3 +15,11 @@ var ExampleFile1 = FileMeta{
 	checksum:   "3eWunOpspQ2soXv6HoPRiQ0HFoXeSMShH6SlEgIg1mM=",
 	uploadedAt: now,
 }
+
+var ExampleFile2 = FileMeta{
+	id:         uuid.UUID("66278d2b-7a4f-4764-ac8a-fc08f224eb66"),
+	size:       22,
+	mimetype:   "text/plain; charset=utf-8",
+	checksum:   "9NiDSp5zOcgEDl+j00MP/WkGVPOlPRLejGD8Ga6PJ7M=",
+	uploadedAt: now,
+}

@@ -47,11 +47,11 @@ func TestSchedulerModels(t *testing.T) {
 
 	t.Run("FSRemoveDuplicateFileArgs", func(t *testing.T) {
 		err := FSRemoveDuplicateFileArgs{
-			INode:        uuid.UUID("some-invalid-id"),
-			TargetFileID: uuid.UUID("a379fef3-ebc3-4069-b1ef-8c67948b3cff"),
+			ExistingFileID:  uuid.UUID("some-invalid-id"),
+			DuplicateFileID: uuid.UUID("a379fef3-ebc3-4069-b1ef-8c67948b3cff"),
 		}.Validate()
 
-		assert.EqualError(t, err, "inode: must be a valid UUID v4.")
+		assert.EqualError(t, err, "existing-file-id: must be a valid UUID v4.")
 	})
 
 	t.Run("FSRefreshSizeArg", func(t *testing.T) {
