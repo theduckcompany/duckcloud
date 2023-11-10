@@ -66,6 +66,15 @@ func (t *TasksService) RegisterFSRefreshSizeTask(ctx context.Context, args *FSRe
 	return t.registerTask(ctx, 2, "fs-refresh-size", args)
 }
 
+func (t *TasksService) RegisterFSRemoveDuplicateFile(ctx context.Context, args *FSRemoveDuplicateFileArgs) error {
+	err := args.Validate()
+	if err != nil {
+		return errs.Validation(err)
+	}
+
+	return t.registerTask(ctx, 2, "fs-remove-duplicate-file", args)
+}
+
 func (t *TasksService) RegisterFileUploadTask(ctx context.Context, args *FileUploadArgs) error {
 	err := args.Validate()
 	if err != nil {

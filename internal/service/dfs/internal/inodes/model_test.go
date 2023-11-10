@@ -17,6 +17,7 @@ func TestInodeGetter(t *testing.T) {
 	assert.Equal(t, ExampleAliceRoot.LastModifiedAt(), now2)
 	assert.True(t, ExampleAliceRoot.IsDir())
 
+	assert.Equal(t, ExampleAliceFile.Size(), uint64(42))
 	assert.False(t, ExampleAliceFile.IsDir())
 	assert.Equal(t, ExampleAliceFile.FileID(), ptr.To(uuid.UUID("abf05a02-8af9-4184-a46d-847f7d951c6b")))
 	assert.Equal(t, ExampleAliceFile.Parent(), ptr.To(uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")))

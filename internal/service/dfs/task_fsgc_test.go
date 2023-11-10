@@ -71,6 +71,7 @@ func TestFSGC(t *testing.T) {
 
 		// We remove the file content and inode
 		tools.ClockMock.On("Now").Return(now)
+		inodesMock.On("GetAllInodesWithFileID", mock.Anything, *inodes.ExampleAliceFile.FileID()).Return([]INode{}, nil).Once()
 		inodesMock.On("HardDelete", mock.Anything, &inodes.ExampleAliceFile).Return(nil).Once()
 		filesMock.On("Delete", mock.Anything, *inodes.ExampleAliceFile.FileID()).Return(nil).Once()
 

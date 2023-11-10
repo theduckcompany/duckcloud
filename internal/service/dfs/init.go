@@ -3,10 +3,8 @@ package dfs
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"io"
 
-	"github.com/spf13/afero"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
@@ -30,10 +28,6 @@ type FS interface {
 	Download(ctx context.Context, filePath string) (io.ReadSeekCloser, error)
 }
 
-type Config struct {
-	Path string
-}
-
 //go:generate mockery --name Service
 type Service interface {
 	GetFolderFS(folder *folders.Folder) FS
@@ -43,25 +37,21 @@ type Service interface {
 
 type Result struct {
 	fx.Out
-	Service           Service
-	FileUploadTask    runner.TaskRunner `group:"tasks"`
-	FSGCTask          runner.TaskRunner `group:"tasks"`
-	FSMoveTask        runner.TaskRunner `group:"tasks"`
-	FSRefreshSizeTask runner.TaskRunner `group:"tasks"`
+	Service                      Service
+	FSGCTask                     runner.TaskRunner `group:"tasks"`
+	FSMoveTask                   runner.TaskRunner `group:"tasks"`
+	FSRefreshSizeTask            runner.TaskRunner `group:"tasks"`
+	FSRemoveDuplicateFilesRunner runner.TaskRunner `group:"tasks"`
 }
 
-func Init(cfg Config, fs afero.Fs, db *sql.DB, folders folders.Service, scheduler scheduler.Service, tools tools.Tools) (Result, error) {
+func Init(db *sql.DB, folders folders.Service, files files.Service, scheduler scheduler.Service, tools tools.Tools) (Result, error) {
 	inodes := inodes.Init(scheduler, tools, db)
-	files, err := files.Init(cfg.Path, fs, tools)
-	if err != nil {
-		return Result{}, fmt.Errorf("failed to init files: %w", err)
-	}
 
 	return Result{
-		Service:           NewFSService(inodes, files, folders, scheduler, tools),
-		FileUploadTask:    NewFileUploadTaskRunner(folders, files, inodes, scheduler),
-		FSGCTask:          NewFSGGCTaskRunner(inodes, files, folders, tools),
-		FSMoveTask:        NewFSMoveTaskRunner(inodes, folders, scheduler),
-		FSRefreshSizeTask: NewFSRefreshSizeTaskRunner(inodes),
+		Service:                      NewFSService(inodes, files, folders, scheduler, tools),
+		FSGCTask:                     NewFSGGCTaskRunner(inodes, files, folders, tools),
+		FSMoveTask:                   NewFSMoveTaskRunner(inodes, folders, scheduler),
+		FSRefreshSizeTask:            NewFSRefreshSizeTaskRunner(inodes, files),
+		FSRemoveDuplicateFilesRunner: NewFSRemoveDuplicateFileRunner(inodes, files, scheduler),
 	}, nil
 }

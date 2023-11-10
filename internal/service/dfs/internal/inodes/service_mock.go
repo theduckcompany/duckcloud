@@ -148,6 +148,32 @@ func (_m *MockService) GetAllDeleted(ctx context.Context, limit int) ([]INode, e
 	return r0, r1
 }
 
+// GetAllInodesWithFileID provides a mock function with given fields: ctx, fileID
+func (_m *MockService) GetAllInodesWithFileID(ctx context.Context, fileID uuid.UUID) ([]INode, error) {
+	ret := _m.Called(ctx, fileID)
+
+	var r0 []INode
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]INode, error)); ok {
+		return rf(ctx, fileID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []INode); ok {
+		r0 = rf(ctx, fileID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]INode)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, fileID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByID provides a mock function with given fields: ctx, inodeID
 func (_m *MockService) GetByID(ctx context.Context, inodeID uuid.UUID) (*INode, error) {
 	ret := _m.Called(ctx, inodeID)
@@ -257,6 +283,32 @@ func (_m *MockService) MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, erro
 
 	if rf, ok := ret.Get(1).(func(context.Context, *PathCmd) error); ok {
 		r1 = rf(ctx, cmd)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PatchFileID provides a mock function with given fields: ctx, inode, newFileID
+func (_m *MockService) PatchFileID(ctx context.Context, inode *INode, newFileID uuid.UUID) (*INode, error) {
+	ret := _m.Called(ctx, inode, newFileID)
+
+	var r0 *INode
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *INode, uuid.UUID) (*INode, error)); ok {
+		return rf(ctx, inode, newFileID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *INode, uuid.UUID) *INode); ok {
+		r0 = rf(ctx, inode, newFileID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*INode)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *INode, uuid.UUID) error); ok {
+		r1 = rf(ctx, inode, newFileID)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -104,9 +104,17 @@ func (j *FSGGCTaskRunner) deleteINode(ctx context.Context, inode *inodes.INode, 
 		return fmt.Errorf("failed to HardDelete: %w", err)
 	}
 
-	err = j.files.Delete(ctx, *inode.FileID())
+	inodes, err := j.inodes.GetAllInodesWithFileID(ctx, *inode.FileID())
 	if err != nil {
-		return fmt.Errorf("failed to remove the file %q: %w", inode.ID(), err)
+		return fmt.Errorf("failed to GetAllINodesWithFileID: %w", err)
+	}
+
+	if len(inodes) == 0 {
+		// No more inodes target this file so it can be removed
+		err = j.files.Delete(ctx, *inode.FileID())
+		if err != nil {
+			return fmt.Errorf("failed to remove the file %q: %w", inode.ID(), err)
+		}
 	}
 
 	return nil

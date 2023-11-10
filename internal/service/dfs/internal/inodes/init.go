@@ -27,6 +27,8 @@ type Service interface {
 	PatchMove(ctx context.Context, source, parent *INode, newName string, modeTime time.Time) (*INode, error)
 	GetSumChildsSize(ctx context.Context, parent uuid.UUID) (uint64, error)
 	RegisterModification(ctx context.Context, inode *INode, newSize uint64, modeTime time.Time) error
+	PatchFileID(ctx context.Context, inode *INode, newFileID uuid.UUID) (*INode, error)
+	GetAllInodesWithFileID(ctx context.Context, fileID uuid.UUID) ([]INode, error)
 }
 
 func Init(scheduler scheduler.Service, tools tools.Tools, db *sql.DB) Service {

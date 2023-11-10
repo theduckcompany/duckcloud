@@ -7,16 +7,18 @@ import (
 	"fmt"
 
 	inodes "github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
+	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 )
 
 type FSRefreshSizeTaskRunner struct {
 	inodes inodes.Service
+	files  files.Service
 }
 
-func NewFSRefreshSizeTaskRunner(inodes inodes.Service) *FSRefreshSizeTaskRunner {
-	return &FSRefreshSizeTaskRunner{inodes}
+func NewFSRefreshSizeTaskRunner(inodes inodes.Service, files files.Service) *FSRefreshSizeTaskRunner {
+	return &FSRefreshSizeTaskRunner{inodes, files}
 }
 
 func (r *FSRefreshSizeTaskRunner) Name() string { return "fs-refresh-size" }
@@ -32,33 +34,41 @@ func (r *FSRefreshSizeTaskRunner) Run(ctx context.Context, rawArgs json.RawMessa
 }
 
 func (r *FSRefreshSizeTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSRefreshSizeArg) error {
-	parentID := &args.INode
+	inodeID := &args.INode
 
 	for {
-		if parentID == nil {
+		if inodeID == nil {
 			break
 		}
 
-		parent, err := r.inodes.GetByID(ctx, *parentID)
+		inode, err := r.inodes.GetByID(ctx, *inodeID)
 		if errors.Is(err, errs.ErrNotFound) {
 			return nil
 		}
 
-		if err != nil {
-			return fmt.Errorf("failed to GetByID the parent: %w", err)
+		var newSize uint64
+
+		switch inode.IsDir() {
+		case true:
+			newSize, err = r.inodes.GetSumChildsSize(ctx, inode.ID())
+			if err != nil {
+				return fmt.Errorf("failed to get the total size for inode %q: %w", *inodeID, err)
+			}
+
+		case false:
+			fileMeta, err := r.files.GetMetadata(ctx, *inode.FileID())
+			if err != nil {
+				return fmt.Errorf("failed to get the FileID for inode %q: %w", *inodeID, err)
+			}
+			newSize = fileMeta.Size()
 		}
 
-		parentSize, err := r.inodes.GetSumChildsSize(ctx, parent.ID())
-		if err != nil {
-			return fmt.Errorf("failed to get the total size for inode %q: %w", *parentID, err)
-		}
-
-		err = r.inodes.RegisterModification(ctx, parent, parentSize, args.ModifiedAt)
+		err = r.inodes.RegisterModification(ctx, inode, newSize, args.ModifiedAt)
 		if err != nil {
 			return fmt.Errorf("failed to register the size modification: %w", err)
 		}
 
-		parentID = parent.Parent()
+		inodeID = inode.Parent()
 	}
 
 	return nil

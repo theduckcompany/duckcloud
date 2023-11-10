@@ -35,6 +35,7 @@ func TestWebdavLitmus(t *testing.T) {
 		FileSystem: serv.DFSSvc,
 		Sessions:   serv.DavSessionsSvc,
 		Folders:    serv.FoldersSvc,
+		Files:      serv.Files,
 		Logger: func(r *http.Request, err error) {
 			litmus := r.Header.Get("X-Litmus")
 			if len(litmus) > 19 {

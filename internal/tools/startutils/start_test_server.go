@@ -10,6 +10,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
@@ -35,6 +36,7 @@ type Server struct {
 	OauthSessionsSvc oauthsessions.Service
 	OauthConsentsSvc oauthconsents.Service
 	DFSSvc           dfs.Service
+	Files            files.Service
 	UsersSvc         users.Service
 	RunnerSvc        runner.Service
 
@@ -55,7 +57,10 @@ func NewServer(t *testing.T) *Server {
 	oauthSessionsSvc := oauthsessions.Init(tools, db)
 	oauthConsentsSvc := oauthconsents.Init(tools, db)
 
-	dfsInit, err := dfs.Init(dfs.Config{Path: "/"}, afs, db, foldersSvc, schedulerSvc, tools)
+	filesInit, err := files.Init("/", afs, tools, db, schedulerSvc)
+	require.NoError(t, err)
+
+	dfsInit, err := dfs.Init(db, foldersSvc, filesInit.Service, schedulerSvc, tools)
 	require.NoError(t, err)
 
 	usersInit := users.Init(tools, db, schedulerSvc, foldersSvc, dfsInit.Service, webSessionsSvc,
@@ -65,10 +70,11 @@ func NewServer(t *testing.T) *Server {
 		[]runner.TaskRunner{
 			dfsInit.FSGCTask,
 			dfsInit.FSMoveTask,
-			dfsInit.FileUploadTask,
 			dfsInit.FSRefreshSizeTask,
+			dfsInit.FSRemoveDuplicateFilesRunner,
 			usersInit.UserCreateTask,
 			usersInit.UserDeleteTask,
+			filesInit.FileUploadTask,
 		}, tools, db)
 
 	return &Server{
@@ -84,6 +90,7 @@ func NewServer(t *testing.T) *Server {
 		OauthSessionsSvc: oauthSessionsSvc,
 		OauthConsentsSvc: oauthConsentsSvc,
 
+		Files:     filesInit.Service,
 		DFSSvc:    dfsInit.Service,
 		UsersSvc:  usersInit.Service,
 		RunnerSvc: runnerSvc,

@@ -71,6 +71,7 @@ func TestPrefix(t *testing.T) {
 			FileSystem: tc.FSService,
 			Sessions:   tc.DavSessionsSvc,
 			Folders:    tc.FoldersSvc,
+			Files:      tc.Files,
 			Logger: func(_ *http.Request, err error) {
 				if err != nil {
 					t.Fatalf("error from the webdav: %q", err)
@@ -328,6 +329,7 @@ func TestFilenameEscape(t *testing.T) {
 	srv := httptest.NewServer(&Handler{
 		FileSystem: tc.FSService,
 		Sessions:   tc.DavSessionsSvc,
+		Files:      tc.Files,
 		Folders:    tc.FoldersSvc,
 		Logger: func(_ *http.Request, err error) {
 			if err != nil {

@@ -5,11 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"path"
 
 	"github.com/theduckcompany/duckcloud/assets"
 	"github.com/theduckcompany/duckcloud/internal/service/config"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/response"
@@ -25,7 +23,6 @@ type Config struct {
 	Listeners []router.Config
 	Assets    assets.Config
 	Storage   storage.Config
-	FS        dfs.Config
 	Tools     tools.Config
 	Web       web.Config
 }
@@ -63,9 +60,6 @@ func NewConfigFromDB(ctx context.Context, configSvc config.Service, folderPath s
 		},
 		Assets: assets.Config{
 			HotReload: devModeEnabled,
-		},
-		FS: dfs.Config{
-			Path: path.Join(folderPath, "files"),
 		},
 		Tools: tools.Config{
 			Response: response.Config{

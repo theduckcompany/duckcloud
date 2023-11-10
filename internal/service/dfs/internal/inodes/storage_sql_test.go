@@ -121,9 +121,9 @@ func TestINodeSqlstore(t *testing.T) {
 		require.NoError(t, err)
 
 		modifiedINode := ExampleAliceFile
-		modifiedINode.checksum = "some-new-checksum"
+		modifiedINode.name = "new-name"
 
-		err = store.Patch(ctx, ExampleAliceFile.id, map[string]any{"checksum": "some-new-checksum"})
+		err = store.Patch(ctx, ExampleAliceFile.id, map[string]any{"name": "new-name"})
 		assert.NoError(t, err)
 
 		res, err := store.GetByID(ctx, ExampleAliceFile.ID())
@@ -176,5 +176,14 @@ func TestINodeSqlstore(t *testing.T) {
 		res, err := store.GetAllDeleted(ctx, 10)
 		assert.NoError(t, err)
 		assert.Len(t, res, 0)
+	})
+
+	t.Run("GetAllInodesWithFileID success", func(t *testing.T) {
+		err := store.Save(ctx, &ExampleAliceFile2)
+		assert.NoError(t, err)
+
+		res, err := store.GetAllInodesWithFileID(ctx, *ExampleAliceFile2.fileID)
+		assert.NoError(t, err)
+		assert.Equal(t, []INode{ExampleAliceFile2}, res)
 	})
 }
