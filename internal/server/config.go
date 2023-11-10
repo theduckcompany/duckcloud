@@ -27,7 +27,7 @@ type Config struct {
 	Web       web.Config
 }
 
-func NewConfigFromDB(ctx context.Context, configSvc config.Service, folderPath string) (Config, error) {
+func NewConfigFromDB(ctx context.Context, configSvc config.Service) (Config, error) {
 	devModeEnabled, err := configSvc.IsDevModeEnabled(ctx)
 	if err != nil {
 		return Config{}, fmt.Errorf("failed to check the dev mode: %w", err)
