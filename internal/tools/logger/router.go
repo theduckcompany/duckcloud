@@ -36,10 +36,7 @@ func (l *structuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 		scheme = "https"
 	}
 
-	reqID := r.Context().Value(middleware.RequestIDKey).(string)
-
 	handler := l.logger.WithGroup("http").WithAttrs(append(logFields,
-		slog.String("reqID", reqID),
 		slog.String("scheme", scheme),
 		slog.String("proto", r.Proto),
 		slog.String("method", r.Method),
