@@ -57,7 +57,7 @@ func NewServer(t *testing.T) *Server {
 	oauthSessionsSvc := oauthsessions.Init(tools, db)
 	oauthConsentsSvc := oauthconsents.Init(tools, db)
 
-	filesInit, err := files.Init("/", afs, tools, db, schedulerSvc)
+	filesInit, err := files.Init("/", afs, tools, db)
 	require.NoError(t, err)
 
 	dfsInit, err := dfs.Init(db, foldersSvc, filesInit.Service, schedulerSvc, tools)
@@ -74,7 +74,6 @@ func NewServer(t *testing.T) *Server {
 			dfsInit.FSRemoveDuplicateFilesRunner,
 			usersInit.UserCreateTask,
 			usersInit.UserDeleteTask,
-			filesInit.FileUploadTask,
 		}, tools, db)
 
 	return &Server{

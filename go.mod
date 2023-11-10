@@ -26,6 +26,7 @@ require (
 	github.com/unrolled/render v1.6.0
 	go.uber.org/fx v1.20.0
 	golang.org/x/crypto v0.14.0
+	golang.org/x/sync v0.2.0
 )
 
 require (
