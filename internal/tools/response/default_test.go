@@ -112,3 +112,19 @@ func TestWriteUnhandledError(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
 	assert.JSONEq(t, `{ "message": "internal error" }`, string(body))
 }
+
+func TestWriteJSON(t *testing.T) {
+	resWriter := New(render.New())
+
+	r := httptest.NewRequest(http.MethodGet, "/foo", nil)
+	w := httptest.NewRecorder()
+
+	resWriter.WriteJSON(w, r, http.StatusTeapot, map[string]string{"message": "Hello, World!"})
+
+	res := w.Result()
+	defer res.Body.Close()
+	body, _ := io.ReadAll(res.Body)
+
+	assert.Equal(t, http.StatusTeapot, res.StatusCode)
+	assert.JSONEq(t, `{ "message": "Hello, World!" }`, string(body))
+}
