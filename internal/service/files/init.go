@@ -10,8 +10,6 @@ import (
 	"path"
 
 	"github.com/spf13/afero"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"go.uber.org/fx"
@@ -27,8 +25,7 @@ type Service interface {
 
 type Result struct {
 	fx.Out
-	Service        Service
-	FileUploadTask runner.TaskRunner `group:"tasks"`
+	Service Service
 }
 
 func Init(
@@ -36,7 +33,6 @@ func Init(
 	fs afero.Fs,
 	tools tools.Tools,
 	db *sql.DB,
-	scheduler scheduler.Service,
 ) (Result, error) {
 	storage := newSqlStorage(db)
 
@@ -55,8 +51,7 @@ func Init(
 	service := NewFileService(storage, rootFS, tools)
 
 	return Result{
-		Service:        service,
-		FileUploadTask: NewFileUploadTaskRunner(service, storage, scheduler),
+		Service: service,
 	}, nil
 }
 

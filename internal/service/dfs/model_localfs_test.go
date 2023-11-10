@@ -164,11 +164,9 @@ func Test_LocalFS(t *testing.T) {
 			UploadedAt: now,
 		}).Return(&ExampleAliceFile, nil).Once()
 
-		schedulerMock.On("RegisterFileUploadTask", mock.Anything, &scheduler.FileUploadArgs{
-			FolderID:   folders.ExampleAlicePersonalFolder.ID(),
-			INodeID:    ExampleAliceFile.ID(),
-			FileID:     uuid.UUID("some-file-id"),
-			UploadedAt: now,
+		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
+			INode:      ExampleAliceFile.ID(),
+			ModifiedAt: now,
 		}).Return(nil).Once()
 
 		err := folderFS.Upload(ctx, "foo/bar.txt", bytes.NewBufferString(content))

@@ -173,6 +173,8 @@ func (s *LocalFS) Upload(ctx context.Context, filePath string, w io.Reader) erro
 	ctx = context.WithoutCancel(ctx)
 	now := s.clock.Now()
 
+	// XXX:MULTI-WRITE
+	//
 	inode, err := s.inodes.CreateFile(ctx, &inodes.CreateFileCmd{
 		Parent:     dir.ID(),
 		Name:       fileName,
@@ -183,22 +185,12 @@ func (s *LocalFS) Upload(ctx context.Context, filePath string, w io.Reader) erro
 		return fmt.Errorf("failed to inodes.CreateFile: %w", err)
 	}
 
-	// XXX:MULTI-WRITE
-	//
-	// We make the file available only when it is successfully uploaded and the fileupload task
-	// is also successfully registered.
-	//
-	// In the worst case senario we end up with a file and no file metadata or a file with the
-	// metadatas but not linked to the dfs. In those two cases this have no impact and can be
-	// cleaned later by a background job.
-	err = s.scheduler.RegisterFileUploadTask(ctx, &scheduler.FileUploadArgs{
-		FolderID:   s.folder.ID(),
-		FileID:     fileID,
-		INodeID:    inode.ID(),
-		UploadedAt: now,
+	err = s.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
+		INode:      inode.ID(),
+		ModifiedAt: now,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to Register the upload: %w", err)
+		return fmt.Errorf("failed to register the fs-refresh-size task: %w", err)
 	}
 
 	return nil

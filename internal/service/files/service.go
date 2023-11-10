@@ -2,16 +2,21 @@ package files
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path"
 
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/spf13/afero"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
+	"golang.org/x/sync/errgroup"
 )
 
 var (
@@ -32,10 +37,11 @@ type FileService struct {
 	storage Storage
 	fs      afero.Fs
 	uuid    uuid.Service
+	clock   clock.Clock
 }
 
 func NewFileService(storage Storage, rootFS afero.Fs, tools tools.Tools) *FileService {
-	return &FileService{storage, rootFS, tools.UUID()}
+	return &FileService{storage, rootFS, tools.UUID(), tools.Clock()}
 }
 
 func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error) {
@@ -49,7 +55,29 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 		return "", errs.Internal(fmt.Errorf("failed to create the file: %w", err))
 	}
 
-	_, err = io.Copy(file, r)
+	g, ctx := errgroup.WithContext(ctx)
+
+	// Start the hasher job
+	hashReader, hashWriter := io.Pipe()
+	hasher := sha256.New()
+	g.Go(func() error {
+		_, err := io.Copy(hasher, hashReader)
+		return err
+	})
+
+	var mimeStr string
+	mimeReader, mimeWriter := io.Pipe()
+	g.Go(func() error {
+		mime, err := mimetype.DetectReader(mimeReader)
+
+		mimeStr = mime.String()
+
+		return err
+	})
+
+	multiWrite := io.MultiWriter(mimeWriter, hashWriter, file)
+
+	written, err := io.Copy(multiWrite, r)
 	if err != nil {
 		_ = file.Close()
 		_ = s.Delete(context.WithoutCancel(ctx), fileID)
@@ -60,6 +88,40 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 	if err != nil {
 		_ = s.Delete(context.WithoutCancel(ctx), fileID)
 		return "", errs.Internal(fmt.Errorf("failed to close the file: %w", err))
+	}
+
+	_ = mimeWriter.Close()
+	_ = hashWriter.Close()
+
+	err = g.Wait()
+	if err != nil {
+		return "", err
+	}
+
+	ctx = context.WithoutCancel(ctx)
+
+	checksum := base64.URLEncoding.EncodeToString(hasher.Sum(nil))
+
+	existingFile, err := s.storage.GetByChecksum(ctx, checksum)
+	if err != nil && !errors.Is(err, errNotFound) {
+		return "", fmt.Errorf("failed to GetByChecksum: %w", err)
+	}
+
+	if existingFile != nil {
+		_ = s.Delete(context.WithoutCancel(ctx), fileID)
+		return existingFile.ID(), nil
+	}
+
+	// XXX:MULTI-WRITE
+	err = s.storage.Save(ctx, &FileMeta{
+		id:         fileID,
+		size:       uint64(written),
+		mimetype:   mimeStr,
+		checksum:   checksum,
+		uploadedAt: s.clock.Now(),
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to save the file meta: %w", err)
 	}
 
 	return fileID, nil
