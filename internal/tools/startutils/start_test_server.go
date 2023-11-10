@@ -3,10 +3,12 @@ package startutils
 import (
 	"context"
 	"database/sql"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
+	"github.com/theduckcompany/duckcloud/internal/service/config"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
@@ -29,6 +31,7 @@ type Server struct {
 	FS    afero.Fs
 
 	// Services
+	ConfigSvc        config.Service
 	FoldersSvc       folders.Service
 	SchedulerSvc     scheduler.Service
 	DavSessionsSvc   davsessions.Service
@@ -50,6 +53,7 @@ func NewServer(t *testing.T) *Server {
 	db := storage.NewTestStorage(t)
 	afs := afero.NewMemMapFs()
 
+	configSvc := config.Init(db)
 	foldersSvc := folders.Init(tools, db)
 	schedulerSvc := scheduler.Init(db, tools)
 	webSessionsSvc := websessions.Init(tools, db)
@@ -82,6 +86,7 @@ func NewServer(t *testing.T) *Server {
 		FS:    afs,
 
 		// Services
+		ConfigSvc:        configSvc,
 		FoldersSvc:       foldersSvc,
 		SchedulerSvc:     schedulerSvc,
 		DavSessionsSvc:   davSessionsSvc,
@@ -98,6 +103,15 @@ func NewServer(t *testing.T) *Server {
 
 func (s *Server) Bootstrap(t *testing.T) {
 	ctx := context.Background()
+
+	err := s.ConfigSvc.EnableDevMode(ctx)
+	require.NoError(t, err)
+
+	err = s.ConfigSvc.SetAddrs(ctx, []string{httptest.DefaultRemoteAddr, "localhost"}, 6890)
+	require.NoError(t, err)
+
+	err = s.ConfigSvc.DisableTLS(ctx)
+	require.NoError(t, err)
 
 	user, err := s.UsersSvc.Create(ctx, &users.CreateCmd{
 		Username: "admin",
