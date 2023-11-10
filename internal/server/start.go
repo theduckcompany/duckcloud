@@ -43,16 +43,6 @@ func AsRoute(f any) any {
 	)
 }
 
-// AsTask annotates the given constructor to state that
-// it provides a task to the "tasks" group.
-func AsTask(f any) any {
-	return fx.Annotate(
-		f,
-		fx.As(new(runner.TaskRunner)),
-		fx.ResultTags(`group:"tasks"`),
-	)
-}
-
 func start(ctx context.Context, db *sql.DB, fs afero.Fs, folderPath string, invoke fx.Option) *fx.App {
 	app := fx.New(
 		fx.WithLogger(func(tools tools.Tools) fxevent.Logger { return logger.NewFxLogger(tools.Logger()) }),
