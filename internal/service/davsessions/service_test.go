@@ -11,6 +11,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -127,11 +128,11 @@ func TestDavSessionsService(t *testing.T) {
 		foldersMock := folders.NewMockService(t)
 		service := NewService(storageMock, foldersMock, tools)
 
-		hashedPasswd := "f0ce9d6e7315534d2f3603d11f496dafcda25f2f5bc2b4f8292a8ee34fe7735b" // sha256 of "some-password"
+		hashedPasswd := secret.NewText("f0ce9d6e7315534d2f3603d11f496dafcda25f2f5bc2b4f8292a8ee34fe7735b") // sha256 of "some-password"
 
 		storageMock.On("GetByUsernameAndPassHash", mock.Anything, "some-username", hashedPasswd).Return(&ExampleAliceSession, nil).Once()
 
-		res, err := service.Authenticate(ctx, "some-username", "some-password")
+		res, err := service.Authenticate(ctx, "some-username", secret.NewText("some-password"))
 		assert.NoError(t, err)
 		assert.Equal(t, &ExampleAliceSession, res)
 	})

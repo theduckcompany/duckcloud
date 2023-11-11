@@ -21,6 +21,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 )
 
 type webdavKeyCtx string
@@ -67,7 +68,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := h.Sessions.Authenticate(r.Context(), username, password)
+	session, err := h.Sessions.Authenticate(r.Context(), username, secret.NewText(password))
 	if errors.Is(err, davsessions.ErrInvalidCredentials) {
 		w.Header().Add("WWW-Authenticate", `Basic realm="fs"`)
 		w.WriteHeader(http.StatusUnauthorized)

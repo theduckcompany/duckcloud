@@ -9,6 +9,7 @@ import (
 
 	v "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -19,7 +20,7 @@ type DavSession struct {
 	userID    uuid.UUID
 	name      string
 	username  string
-	password  string
+	password  secret.Text
 	folders   Folders
 	createdAt time.Time
 }

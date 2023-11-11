@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -72,13 +73,13 @@ func (t *sqlStorage) RemoveByID(ctx context.Context, sessionID uuid.UUID) error 
 	return nil
 }
 
-func (t *sqlStorage) GetByUsernameAndPassHash(ctx context.Context, username, password string) (*DavSession, error) {
+func (t *sqlStorage) GetByUsernameAndPassHash(ctx context.Context, username string, password secret.Text) (*DavSession, error) {
 	res := DavSession{}
 
 	err := sq.
 		Select(allFields...).
 		From(tableName).
-		Where(sq.Eq{"username": username, "password": password}).
+		Where(sq.Eq{"username": username, "password": password.Raw()}).
 		RunWith(t.db).
 		ScanContext(ctx, &res.id, &res.username, &res.name, &res.password, &res.userID, &res.folders, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
