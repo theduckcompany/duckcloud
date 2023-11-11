@@ -6,6 +6,7 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/stretchr/testify/assert"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 )
 
 func Test_CreateCodeRequest_is_validatable(t *testing.T) {
@@ -14,7 +15,7 @@ func Test_CreateCodeRequest_is_validatable(t *testing.T) {
 
 func Test_CreateCodeRequest_Validate_success(t *testing.T) {
 	err := CreateCmd{
-		Code:      "some-code",
+		Code:      secret.NewText("some-code"),
 		ExpiresAt: time.Now(),
 		UserID:    "1b51ce74-2f89-47de-bfb4-ee9e12ca814e",
 		Scope:     "some-scope",

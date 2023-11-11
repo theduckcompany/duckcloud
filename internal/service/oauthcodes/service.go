@@ -8,6 +8,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 )
 
 var ErrInvalidExpirationDate = fmt.Errorf("invalid expiration date")
@@ -15,8 +16,8 @@ var ErrInvalidExpirationDate = fmt.Errorf("invalid expiration date")
 //go:generate mockery --name Storage
 type Storage interface {
 	Save(ctx context.Context, code *Code) error
-	RemoveByCode(ctx context.Context, code string) error
-	GetByCode(ctx context.Context, code string) (*Code, error)
+	RemoveByCode(ctx context.Context, code secret.Text) error
+	GetByCode(ctx context.Context, code secret.Text) (*Code, error)
 }
 
 // OauthCodeService handling all the logic.
@@ -62,7 +63,7 @@ func (t *OauthCodeService) Create(ctx context.Context, input *CreateCmd) error {
 }
 
 // delete the authorization code
-func (t *OauthCodeService) RemoveByCode(ctx context.Context, code string) error {
+func (t *OauthCodeService) RemoveByCode(ctx context.Context, code secret.Text) error {
 	err := t.storage.RemoveByCode(ctx, code)
 	if err != nil {
 		return errs.Internal(err)
@@ -72,7 +73,7 @@ func (t *OauthCodeService) RemoveByCode(ctx context.Context, code string) error 
 }
 
 // use the authorization code for code information data
-func (t *OauthCodeService) GetByCode(ctx context.Context, code string) (*Code, error) {
+func (t *OauthCodeService) GetByCode(ctx context.Context, code secret.Text) (*Code, error) {
 	res, err := t.storage.GetByCode(ctx, code)
 	if errors.Is(err, errNotFound) {
 		return nil, errs.NotFound(errNotFound)
