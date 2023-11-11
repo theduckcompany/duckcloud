@@ -8,6 +8,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -17,10 +18,10 @@ var ErrInvalidExpirationDate = fmt.Errorf("invalid expiration date")
 //go:generate mockery --name Storage
 type Storage interface {
 	Save(ctx context.Context, session *Session) error
-	RemoveByAccessToken(ctx context.Context, access string) error
-	RemoveByRefreshToken(ctx context.Context, refresh string) error
-	GetByAccessToken(ctx context.Context, access string) (*Session, error)
-	GetByRefreshToken(ctx context.Context, refresh string) (*Session, error)
+	RemoveByAccessToken(ctx context.Context, access secret.Text) error
+	RemoveByRefreshToken(ctx context.Context, refresh secret.Text) error
+	GetByAccessToken(ctx context.Context, access secret.Text) (*Session, error)
+	GetByRefreshToken(ctx context.Context, refresh secret.Text) (*Session, error)
 	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error)
 }
 
@@ -63,7 +64,7 @@ func (s *OauthSessionsService) Create(ctx context.Context, input *CreateCmd) (*S
 	return &session, nil
 }
 
-func (s *OauthSessionsService) RemoveByAccessToken(ctx context.Context, access string) error {
+func (s *OauthSessionsService) RemoveByAccessToken(ctx context.Context, access secret.Text) error {
 	err := s.storage.RemoveByAccessToken(ctx, access)
 	if err != nil {
 		return errs.Internal(err)
@@ -72,7 +73,7 @@ func (s *OauthSessionsService) RemoveByAccessToken(ctx context.Context, access s
 	return nil
 }
 
-func (s *OauthSessionsService) RemoveByRefreshToken(ctx context.Context, refresh string) error {
+func (s *OauthSessionsService) RemoveByRefreshToken(ctx context.Context, refresh secret.Text) error {
 	err := s.storage.RemoveByRefreshToken(ctx, refresh)
 	if err != nil {
 		return errs.Internal(err)
@@ -81,7 +82,7 @@ func (s *OauthSessionsService) RemoveByRefreshToken(ctx context.Context, refresh
 	return nil
 }
 
-func (s *OauthSessionsService) GetByAccessToken(ctx context.Context, access string) (*Session, error) {
+func (s *OauthSessionsService) GetByAccessToken(ctx context.Context, access secret.Text) (*Session, error) {
 	res, err := s.storage.GetByAccessToken(ctx, access)
 	if errors.Is(err, errNotFound) {
 		return nil, errs.NotFound(err)
@@ -94,7 +95,7 @@ func (s *OauthSessionsService) GetByAccessToken(ctx context.Context, access stri
 	return res, nil
 }
 
-func (s *OauthSessionsService) GetByRefreshToken(ctx context.Context, refresh string) (*Session, error) {
+func (s *OauthSessionsService) GetByRefreshToken(ctx context.Context, refresh secret.Text) (*Session, error) {
 	res, err := s.storage.GetByRefreshToken(ctx, refresh)
 	if errors.Is(err, errNotFound) {
 		return nil, errs.NotFound(err)

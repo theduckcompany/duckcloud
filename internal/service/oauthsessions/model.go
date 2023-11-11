@@ -6,14 +6,15 @@ import (
 
 	v "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 type Session struct {
-	accessToken      string
+	accessToken      secret.Text
 	accessCreatedAt  time.Time
 	accessExpiresAt  time.Time
-	refreshToken     string
+	refreshToken     secret.Text
 	refreshCreatedAt time.Time
 	refreshExpiresAt time.Time
 	clientID         string
@@ -21,10 +22,10 @@ type Session struct {
 	scope            string
 }
 
-func (s *Session) AccessToken() string         { return s.accessToken }
+func (s *Session) AccessToken() secret.Text    { return s.accessToken }
 func (s *Session) AccessCreatedAt() time.Time  { return s.accessCreatedAt }
 func (s *Session) AccessExpiresAt() time.Time  { return s.accessExpiresAt }
-func (s *Session) RefreshToken() string        { return s.refreshToken }
+func (s *Session) RefreshToken() secret.Text   { return s.refreshToken }
 func (s *Session) RefreshCreatedAt() time.Time { return s.refreshCreatedAt }
 func (s *Session) RefreshExpiresAt() time.Time { return s.refreshExpiresAt }
 func (s *Session) ClientID() string            { return s.clientID }
@@ -32,9 +33,9 @@ func (s *Session) UserID() uuid.UUID           { return s.userID }
 func (s *Session) Scope() string               { return s.scope }
 
 type CreateCmd struct {
-	AccessToken      string
+	AccessToken      secret.Text
 	AccessExpiresAt  time.Time
-	RefreshToken     string
+	RefreshToken     secret.Text
 	RefreshExpiresAt time.Time
 	ClientID         string
 	UserID           uuid.UUID

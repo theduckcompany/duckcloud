@@ -6,6 +6,8 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
+	secret "github.com/theduckcompany/duckcloud/internal/tools/secret"
+
 	storage "github.com/theduckcompany/duckcloud/internal/tools/storage"
 
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -43,15 +45,15 @@ func (_m *MockStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd 
 }
 
 // GetByAccessToken provides a mock function with given fields: ctx, access
-func (_m *MockStorage) GetByAccessToken(ctx context.Context, access string) (*Session, error) {
+func (_m *MockStorage) GetByAccessToken(ctx context.Context, access secret.Text) (*Session, error) {
 	ret := _m.Called(ctx, access)
 
 	var r0 *Session
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*Session, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, secret.Text) (*Session, error)); ok {
 		return rf(ctx, access)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *Session); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, secret.Text) *Session); ok {
 		r0 = rf(ctx, access)
 	} else {
 		if ret.Get(0) != nil {
@@ -59,7 +61,7 @@ func (_m *MockStorage) GetByAccessToken(ctx context.Context, access string) (*Se
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, secret.Text) error); ok {
 		r1 = rf(ctx, access)
 	} else {
 		r1 = ret.Error(1)
@@ -69,15 +71,15 @@ func (_m *MockStorage) GetByAccessToken(ctx context.Context, access string) (*Se
 }
 
 // GetByRefreshToken provides a mock function with given fields: ctx, refresh
-func (_m *MockStorage) GetByRefreshToken(ctx context.Context, refresh string) (*Session, error) {
+func (_m *MockStorage) GetByRefreshToken(ctx context.Context, refresh secret.Text) (*Session, error) {
 	ret := _m.Called(ctx, refresh)
 
 	var r0 *Session
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*Session, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, secret.Text) (*Session, error)); ok {
 		return rf(ctx, refresh)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *Session); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, secret.Text) *Session); ok {
 		r0 = rf(ctx, refresh)
 	} else {
 		if ret.Get(0) != nil {
@@ -85,7 +87,7 @@ func (_m *MockStorage) GetByRefreshToken(ctx context.Context, refresh string) (*
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, secret.Text) error); ok {
 		r1 = rf(ctx, refresh)
 	} else {
 		r1 = ret.Error(1)
@@ -95,11 +97,11 @@ func (_m *MockStorage) GetByRefreshToken(ctx context.Context, refresh string) (*
 }
 
 // RemoveByAccessToken provides a mock function with given fields: ctx, access
-func (_m *MockStorage) RemoveByAccessToken(ctx context.Context, access string) error {
+func (_m *MockStorage) RemoveByAccessToken(ctx context.Context, access secret.Text) error {
 	ret := _m.Called(ctx, access)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, secret.Text) error); ok {
 		r0 = rf(ctx, access)
 	} else {
 		r0 = ret.Error(0)
@@ -109,11 +111,11 @@ func (_m *MockStorage) RemoveByAccessToken(ctx context.Context, access string) e
 }
 
 // RemoveByRefreshToken provides a mock function with given fields: ctx, refresh
-func (_m *MockStorage) RemoveByRefreshToken(ctx context.Context, refresh string) error {
+func (_m *MockStorage) RemoveByRefreshToken(ctx context.Context, refresh secret.Text) error {
 	ret := _m.Called(ctx, refresh)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, secret.Text) error); ok {
 		r0 = rf(ctx, refresh)
 	} else {
 		r0 = ret.Error(0)

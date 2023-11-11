@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -41,7 +42,7 @@ func TestSessionStorageStorage(t *testing.T) {
 	})
 
 	t.Run("GetByAccessToken with an invalid access", func(t *testing.T) {
-		res, err := store.GetByAccessToken(ctx, "some-invalid-token")
+		res, err := store.GetByAccessToken(ctx, secret.NewText("some-invalid-token"))
 
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errNotFound)
@@ -54,7 +55,7 @@ func TestSessionStorageStorage(t *testing.T) {
 	})
 
 	t.Run("GetByRefreshToken with an invalid access", func(t *testing.T) {
-		res, err := store.GetByRefreshToken(ctx, "some-invalid-token")
+		res, err := store.GetByRefreshToken(ctx, secret.NewText("some-invalid-token"))
 
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errNotFound)
@@ -70,7 +71,7 @@ func TestSessionStorageStorage(t *testing.T) {
 	})
 
 	t.Run("RemoveByAccessToken with an invalid token", func(t *testing.T) {
-		err := store.RemoveByAccessToken(ctx, "some-invalid-token")
+		err := store.RemoveByAccessToken(ctx, secret.NewText("some-invalid-token"))
 
 		assert.NoError(t, err)
 	})
@@ -93,7 +94,7 @@ func TestSessionStorageStorage(t *testing.T) {
 	})
 
 	t.Run("RemoveByRefreshToken with an invalid token", func(t *testing.T) {
-		err := store.RemoveByRefreshToken(ctx, "some-invalid-token")
+		err := store.RemoveByRefreshToken(ctx, secret.NewText("some-invalid-token"))
 
 		assert.NoError(t, err)
 	})

@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
@@ -87,9 +88,9 @@ func Test_OauthSessions(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
 
-		storageMock.On("RemoveByAccessToken", mock.Anything, "some-access-token").Return(nil).Once()
+		storageMock.On("RemoveByAccessToken", mock.Anything, secret.NewText("some-access-token")).Return(nil).Once()
 
-		err := service.RemoveByAccessToken(ctx, "some-access-token")
+		err := service.RemoveByAccessToken(ctx, secret.NewText("some-access-token"))
 		assert.NoError(t, err)
 	})
 
@@ -98,9 +99,9 @@ func Test_OauthSessions(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(tools, storageMock)
 
-		storageMock.On("RemoveByRefreshToken", mock.Anything, "some-refresh-token").Return(nil).Once()
+		storageMock.On("RemoveByRefreshToken", mock.Anything, secret.NewText("some-refresh-token")).Return(nil).Once()
 
-		err := service.RemoveByRefreshToken(ctx, "some-refresh-token")
+		err := service.RemoveByRefreshToken(ctx, secret.NewText("some-refresh-token"))
 		assert.NoError(t, err)
 	})
 

@@ -6,6 +6,7 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/stretchr/testify/assert"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 )
 
 func TestSessionGetter(t *testing.T) {
@@ -27,9 +28,9 @@ func Test_CreateCmd_is_validatable(t *testing.T) {
 
 func Test_CreateCmd_Validate_success(t *testing.T) {
 	err := CreateCmd{
-		AccessToken:      "some-access-session",
+		AccessToken:      secret.NewText("some-access-session"),
 		AccessExpiresAt:  time.Now(),
-		RefreshToken:     "some-refresh-session",
+		RefreshToken:     secret.NewText("some-refresh-session"),
 		RefreshExpiresAt: time.Now(),
 		UserID:           "1b51ce74-2f89-47de-bfb4-ee9e12ca814e",
 		Scope:            "some-scope",
