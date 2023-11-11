@@ -299,7 +299,7 @@ func (h *settingsHandler) createUser(w http.ResponseWriter, r *http.Request) {
 
 	_, err := h.users.Create(r.Context(), &users.CreateCmd{
 		Username: r.FormValue("username"),
-		Password: r.FormValue("password"),
+		Password: secret.NewText(r.FormValue("password")),
 		IsAdmin:  r.FormValue("role") == "admin",
 	})
 	if errors.Is(err, errs.ErrValidation) {

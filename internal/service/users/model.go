@@ -6,6 +6,7 @@ import (
 	"time"
 
 	v "github.com/go-ozzo/ozzo-validation"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -31,7 +32,7 @@ type User struct {
 	username        string
 	isAdmin         bool
 	createdAt       time.Time
-	password        string
+	password        secret.Text
 	status          Status
 }
 
@@ -56,7 +57,7 @@ func (u *User) Status() Status           { return u.status }
 // CreateCmd represents an user creation request.
 type CreateCmd struct {
 	Username string
-	Password string
+	Password secret.Text
 	IsAdmin  bool
 }
 

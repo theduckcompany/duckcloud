@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -31,7 +32,7 @@ func NewArgon2IDPassword() *Argon2IDPassword {
 	return &Argon2IDPassword{}
 }
 
-func (p *Argon2IDPassword) Encrypt(ctx context.Context, password string) (string, error) {
+func (p *Argon2IDPassword) Encrypt(ctx context.Context, password secret.Text) (secret.Text, error) {
 	// Those values have been taken from https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#argon2id
 	params := &params{
 		saltLength:  16,
@@ -44,28 +45,28 @@ func (p *Argon2IDPassword) Encrypt(ctx context.Context, password string) (string
 	// Generate a cryptographically secure random salt.
 	salt, err := generateRandomBytes(params.saltLength)
 	if err != nil {
-		return "", err
+		return secret.NewText(""), err
 	}
-	hash := argon2.IDKey([]byte(password), salt, params.iterations, params.memory, params.parallelism, params.keyLength)
+	hash := argon2.IDKey([]byte(password.Raw()), salt, params.iterations, params.memory, params.parallelism, params.keyLength)
 
 	b64Salt := base64.RawStdEncoding.EncodeToString(salt)
 	b64Hash := base64.RawStdEncoding.EncodeToString(hash)
 
 	encodedHash := fmt.Sprintf("$argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s", argon2.Version, params.memory, params.iterations, params.parallelism, b64Salt, b64Hash)
 
-	return encodedHash, nil
+	return secret.NewText(encodedHash), nil
 }
 
-func (p *Argon2IDPassword) Compare(ctx context.Context, hashStr, password string) (bool, error) {
+func (p *Argon2IDPassword) Compare(ctx context.Context, hashStr, password secret.Text) (bool, error) {
 	// Extract the parameters, salt and derived key from the encoded password
 	// hash.
-	params, salt, hash, err := decodeHash(hashStr)
+	params, salt, hash, err := decodeHash(hashStr.Raw())
 	if err != nil {
 		return false, fmt.Errorf("failed to decode the hash: %w", err)
 	}
 
 	// Derive the key from the other password using the same parameters.
-	otherHash := argon2.IDKey([]byte(password), salt, params.iterations, params.memory, params.parallelism, params.keyLength)
+	otherHash := argon2.IDKey([]byte(password.Raw()), salt, params.iterations, params.memory, params.parallelism, params.keyLength)
 
 	// Check that the contents of the hashed passwords are identical. Note
 	// that we are using the subtle.ConstantTimeCompare() function for this

@@ -5,6 +5,7 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/stretchr/testify/assert"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 )
 
 func Test_User_Getters(t *testing.T) {
@@ -22,7 +23,7 @@ func Test_CreateUserRequest_is_validatable(t *testing.T) {
 func Test_CreateUserRequest_Validate_success(t *testing.T) {
 	err := CreateCmd{
 		Username: "some-username",
-		Password: "myLittleSecret",
+		Password: secret.NewText("myLittleSecret"),
 		IsAdmin:  true,
 	}.Validate()
 

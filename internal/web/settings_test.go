@@ -364,7 +364,7 @@ func Test_Settings(t *testing.T) {
 
 		usersMock.On("Create", mock.Anything, &users.CreateCmd{
 			Username: "some-username",
-			Password: "my-little-secret",
+			Password: secret.NewText("my-little-secret"),
 			IsAdmin:  true,
 		}).Return(&users.ExampleAlice, nil).Once()
 

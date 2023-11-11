@@ -15,6 +15,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 )
@@ -84,7 +85,7 @@ func (h *authHandler) applyLogin(w http.ResponseWriter, r *http.Request) {
 
 	inputs["username"] = r.FormValue("username")
 
-	user, err := h.users.Authenticate(r.Context(), r.FormValue("username"), r.FormValue("password"))
+	user, err := h.users.Authenticate(r.Context(), r.FormValue("username"), secret.NewText(r.FormValue("password")))
 	var status int
 	switch {
 	case err == nil:
