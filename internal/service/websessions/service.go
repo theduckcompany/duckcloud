@@ -11,6 +11,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -20,8 +21,8 @@ var ErrUserIDNotMatching = errors.New("user ids are not matching")
 //go:generate mockery --name Storage
 type Storage interface {
 	Save(ctx context.Context, session *Session) error
-	GetByToken(ctx context.Context, token string) (*Session, error)
-	RemoveByToken(ctx context.Context, token string) error
+	GetByToken(ctx context.Context, token secret.Text) (*Session, error)
+	RemoveByToken(ctx context.Context, token secret.Text) error
 	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error)
 }
 
@@ -48,7 +49,7 @@ func (s *WebSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*Sessi
 	uaRes := ua.Parse(cmd.Req.Header.Get("User-Agent"))
 
 	session := &Session{
-		token:     string(s.uuid.New()),
+		token:     secret.NewText(string(s.uuid.New())),
 		userID:    uuid.UUID(cmd.UserID),
 		ip:        cmd.Req.RemoteAddr,
 		device:    fmt.Sprintf("%s - %s", uaRes.OS, uaRes.Name),
@@ -90,7 +91,7 @@ func (s *WebSessionsService) Delete(ctx context.Context, cmd *DeleteCmd) error {
 	return nil
 }
 
-func (s *WebSessionsService) GetByToken(ctx context.Context, token string) (*Session, error) {
+func (s *WebSessionsService) GetByToken(ctx context.Context, token secret.Text) (*Session, error) {
 	session, err := s.storage.GetByToken(ctx, token)
 	if errors.Is(err, errNotFound) {
 		return nil, errs.NotFound(err)
@@ -111,7 +112,7 @@ func (s *WebSessionsService) GetFromReq(r *http.Request) (*Session, error) {
 		return nil, errs.BadRequest(ErrMissingSessionToken, "invalid_request")
 	}
 
-	session, err := s.GetByToken(r.Context(), c.Value)
+	session, err := s.GetByToken(r.Context(), secret.NewText(c.Value))
 	if errors.Is(err, errNotFound) {
 		return nil, errs.BadRequest(ErrSessionNotFound, "session not found")
 	}
@@ -130,7 +131,7 @@ func (s *WebSessionsService) Logout(r *http.Request, w http.ResponseWriter) erro
 		return nil
 	}
 
-	err = s.storage.RemoveByToken(r.Context(), c.Value)
+	err = s.storage.RemoveByToken(r.Context(), secret.NewText(c.Value))
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to remove the token: %w", err))
 	}

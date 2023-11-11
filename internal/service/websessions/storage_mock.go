@@ -6,6 +6,8 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
+	secret "github.com/theduckcompany/duckcloud/internal/tools/secret"
+
 	storage "github.com/theduckcompany/duckcloud/internal/tools/storage"
 
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -43,15 +45,15 @@ func (_m *MockStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd 
 }
 
 // GetByToken provides a mock function with given fields: ctx, token
-func (_m *MockStorage) GetByToken(ctx context.Context, token string) (*Session, error) {
+func (_m *MockStorage) GetByToken(ctx context.Context, token secret.Text) (*Session, error) {
 	ret := _m.Called(ctx, token)
 
 	var r0 *Session
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*Session, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, secret.Text) (*Session, error)); ok {
 		return rf(ctx, token)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *Session); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, secret.Text) *Session); ok {
 		r0 = rf(ctx, token)
 	} else {
 		if ret.Get(0) != nil {
@@ -59,7 +61,7 @@ func (_m *MockStorage) GetByToken(ctx context.Context, token string) (*Session, 
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, secret.Text) error); ok {
 		r1 = rf(ctx, token)
 	} else {
 		r1 = ret.Error(1)
@@ -69,11 +71,11 @@ func (_m *MockStorage) GetByToken(ctx context.Context, token string) (*Session, 
 }
 
 // RemoveByToken provides a mock function with given fields: ctx, token
-func (_m *MockStorage) RemoveByToken(ctx context.Context, token string) error {
+func (_m *MockStorage) RemoveByToken(ctx context.Context, token secret.Text) error {
 	ret := _m.Called(ctx, token)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, secret.Text) error); ok {
 		r0 = rf(ctx, token)
 	} else {
 		r0 = ret.Error(0)

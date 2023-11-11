@@ -84,7 +84,7 @@ func (s *Text) Equals(s2 Text) bool {
 	return s.v == s2.v
 }
 
-func (s *Text) Value() (driver.Value, error) {
+func (s Text) Value() (driver.Value, error) {
 	return s.v, nil
 }
 

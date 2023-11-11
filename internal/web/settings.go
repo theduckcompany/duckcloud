@@ -14,6 +14,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
@@ -206,7 +207,7 @@ func (h *settingsHandler) deleteWebSession(w http.ResponseWriter, r *http.Reques
 
 	err := h.webSessions.Delete(r.Context(), &websessions.DeleteCmd{
 		UserID: user.ID(),
-		Token:  chi.URLParam(r, "sessionToken"),
+		Token:  secret.NewText(chi.URLParam(r, "sessionToken")),
 	})
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to websession.Delete: %w", err))

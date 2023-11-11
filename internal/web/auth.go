@@ -120,7 +120,7 @@ func (h *authHandler) applyLogin(w http.ResponseWriter, r *http.Request) {
 	// TODO: Handle the expiration time with the "Remember me" option
 	c := http.Cookie{
 		Name:     "session_token",
-		Value:    session.Token(),
+		Value:    session.Token().Raw(),
 		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
@@ -182,7 +182,7 @@ func (h *authHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) 
 	if r.Method == http.MethodPost {
 		consent, err := h.oauthConsent.Create(r.Context(), &oauthconsents.CreateCmd{
 			UserID:       user.ID(),
-			SessionToken: session.Token(),
+			SessionToken: session.Token().Raw(),
 			ClientID:     client.GetID(),
 			Scopes:       strings.Split(r.FormValue("scope"), ","),
 		})

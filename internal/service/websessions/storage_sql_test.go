@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -15,7 +16,7 @@ func TestSessionSqlStorage(t *testing.T) {
 	nowData := time.Now().UTC()
 
 	sessionData := Session{
-		token:     "some-token",
+		token:     secret.NewText("some-token"),
 		userID:    uuid.UUID("some-user-id"),
 		device:    "IOS - Firefox",
 		createdAt: nowData,
@@ -31,7 +32,7 @@ func TestSessionSqlStorage(t *testing.T) {
 	})
 
 	t.Run("GetByToken success", func(t *testing.T) {
-		res, err := storage.GetByToken(context.Background(), "some-token")
+		res, err := storage.GetByToken(context.Background(), secret.NewText("some-token"))
 
 		require.NotNil(t, res)
 		res.createdAt = res.createdAt.UTC()
@@ -53,17 +54,17 @@ func TestSessionSqlStorage(t *testing.T) {
 	})
 
 	t.Run("GetByToken not found", func(t *testing.T) {
-		res, err := storage.GetByToken(context.Background(), "some-invalid-token")
+		res, err := storage.GetByToken(context.Background(), secret.NewText("some-invalid-token"))
 
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("RemoveByToken ", func(t *testing.T) {
-		err := storage.RemoveByToken(context.Background(), "some-token")
+		err := storage.RemoveByToken(context.Background(), secret.NewText("some-token"))
 		assert.NoError(t, err)
 
-		res, err := storage.GetByToken(context.Background(), "some-token")
+		res, err := storage.GetByToken(context.Background(), secret.NewText("some-token"))
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errNotFound)
 	})

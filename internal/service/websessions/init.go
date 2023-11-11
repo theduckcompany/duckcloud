@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -19,7 +20,7 @@ var (
 //go:generate mockery --name Service
 type Service interface {
 	Create(ctx context.Context, cmd *CreateCmd) (*Session, error)
-	GetByToken(ctx context.Context, token string) (*Session, error)
+	GetByToken(ctx context.Context, token secret.Text) (*Session, error)
 	GetFromReq(r *http.Request) (*Session, error)
 	Logout(r *http.Request, w http.ResponseWriter) error
 	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error)
