@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -49,12 +50,12 @@ func (s *sqlStorage) Save(ctx context.Context, session *Session) error {
 	return nil
 }
 
-func (s *sqlStorage) RemoveByAccessToken(ctx context.Context, access string) error {
-	return s.remove(ctx, sq.Eq{"access_token": access})
+func (s *sqlStorage) RemoveByAccessToken(ctx context.Context, access secret.Text) error {
+	return s.remove(ctx, sq.Eq{"access_token": access.Raw()})
 }
 
-func (s *sqlStorage) RemoveByRefreshToken(ctx context.Context, refresh string) error {
-	return s.remove(ctx, sq.Eq{"refresh_token": refresh})
+func (s *sqlStorage) RemoveByRefreshToken(ctx context.Context, refresh secret.Text) error {
+	return s.remove(ctx, sq.Eq{"refresh_token": refresh.Raw()})
 }
 
 func (s *sqlStorage) remove(ctx context.Context, conditions ...any) error {
@@ -75,12 +76,12 @@ func (s *sqlStorage) remove(ctx context.Context, conditions ...any) error {
 	return nil
 }
 
-func (s *sqlStorage) GetByAccessToken(ctx context.Context, access string) (*Session, error) {
-	return s.getWithKeys(ctx, sq.Eq{"access_token": access})
+func (s *sqlStorage) GetByAccessToken(ctx context.Context, access secret.Text) (*Session, error) {
+	return s.getWithKeys(ctx, sq.Eq{"access_token": access.Raw()})
 }
 
-func (s *sqlStorage) GetByRefreshToken(ctx context.Context, refresh string) (*Session, error) {
-	return s.getWithKeys(ctx, sq.Eq{"refresh_token": refresh})
+func (s *sqlStorage) GetByRefreshToken(ctx context.Context, refresh secret.Text) (*Session, error) {
+	return s.getWithKeys(ctx, sq.Eq{"refresh_token": refresh.Raw()})
 }
 
 func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {

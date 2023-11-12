@@ -11,6 +11,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
@@ -28,7 +29,7 @@ func Test_Users_Service(t *testing.T) {
 		tools.UUIDMock.On("New").Return(ExampleAlice.ID()).Once()
 
 		tools.ClockMock.On("Now").Return(now).Once()
-		tools.PasswordMock.On("Encrypt", ctx, "some-password").Return(ExampleAlice.password, nil).Once()
+		tools.PasswordMock.On("Encrypt", ctx, secret.NewText("some-password")).Return(ExampleAlice.password, nil).Once()
 
 		store.On("Save", ctx, &ExampleInitializingAlice).Return(nil)
 		schedulerMock.On("RegisterUserCreateTask", mock.Anything, &scheduler.UserCreateArgs{UserID: ExampleAlice.ID()}).
@@ -36,7 +37,7 @@ func Test_Users_Service(t *testing.T) {
 
 		res, err := service.Create(ctx, &CreateCmd{
 			Username: ExampleAlice.Username(),
-			Password: "some-password",
+			Password: secret.NewText("some-password"),
 			IsAdmin:  true,
 		})
 		assert.NoError(t, err)
@@ -88,9 +89,9 @@ func Test_Users_Service(t *testing.T) {
 
 		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(&ExampleAlice, nil).Once()
 
-		tools.PasswordMock.On("Compare", ctx, ExampleAlice.password, "some-password").Return(true, nil).Once()
+		tools.PasswordMock.On("Compare", ctx, ExampleAlice.password, secret.NewText("some-password")).Return(true, nil).Once()
 
-		res, err := service.Authenticate(ctx, ExampleAlice.Username(), "some-password")
+		res, err := service.Authenticate(ctx, ExampleAlice.Username(), secret.NewText("some-password"))
 		assert.NoError(t, err)
 		assert.Equal(t, &ExampleAlice, res)
 	})
@@ -116,10 +117,10 @@ func Test_Users_Service(t *testing.T) {
 		service := NewService(tools, store, schedulerMock)
 
 		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(&ExampleAlice, nil).Once()
-		tools.PasswordMock.On("Compare", ctx, ExampleAlice.password, "some-invalid-password").Return(false, nil).Once()
+		tools.PasswordMock.On("Compare", ctx, ExampleAlice.password, secret.NewText("some-invalid-password")).Return(false, nil).Once()
 
 		// Invalid password here
-		res, err := service.Authenticate(ctx, ExampleAlice.Username(), "some-invalid-password")
+		res, err := service.Authenticate(ctx, ExampleAlice.Username(), secret.NewText("some-invalid-password"))
 		assert.ErrorIs(t, err, ErrInvalidPassword)
 		assert.Nil(t, res)
 	})
@@ -131,9 +132,9 @@ func Test_Users_Service(t *testing.T) {
 		service := NewService(tools, store, schedulerMock)
 
 		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(&ExampleAlice, nil).Once()
-		tools.PasswordMock.On("Compare", ctx, ExampleAlice.password, "some-password").Return(false, fmt.Errorf("some-error")).Once()
+		tools.PasswordMock.On("Compare", ctx, ExampleAlice.password, secret.NewText("some-password")).Return(false, fmt.Errorf("some-error")).Once()
 
-		res, err := service.Authenticate(ctx, ExampleAlice.Username(), "some-password")
+		res, err := service.Authenticate(ctx, ExampleAlice.Username(), secret.NewText("some-password"))
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 		assert.Nil(t, res)

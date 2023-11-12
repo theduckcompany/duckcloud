@@ -13,6 +13,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"go.uber.org/fx"
@@ -22,7 +23,7 @@ import (
 type Service interface {
 	Create(ctx context.Context, user *CreateCmd) (*User, error)
 	GetByID(ctx context.Context, userID uuid.UUID) (*User, error)
-	Authenticate(ctx context.Context, username, password string) (*User, error)
+	Authenticate(ctx context.Context, username string, password secret.Text) (*User, error)
 	GetAll(ctx context.Context, paginateCmd *storage.PaginateCmd) ([]User, error)
 	AddToDeletion(ctx context.Context, userID uuid.UUID) error
 	HardDelete(ctx context.Context, userID uuid.UUID) error

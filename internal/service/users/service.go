@@ -12,6 +12,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/password"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -165,7 +166,7 @@ func (s *UserService) GetAllWithStatus(ctx context.Context, status Status, cmd *
 }
 
 // Authenticate return the user corresponding to the given username only if the password is correct.
-func (s *UserService) Authenticate(ctx context.Context, username, userPassword string) (*User, error) {
+func (s *UserService) Authenticate(ctx context.Context, username string, userPassword secret.Text) (*User, error) {
 	user, err := s.storage.GetByUsername(ctx, username)
 	if errors.Is(err, errNotFound) {
 		return nil, errs.BadRequest(ErrInvalidUsername)

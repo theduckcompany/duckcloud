@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 )
 
 func TestOauthCodeService(t *testing.T) {
@@ -26,25 +27,25 @@ func TestOauthCodeService(t *testing.T) {
 		tools.ClockMock.On("Now").Return(now).Once()
 
 		storage.On("Save", mock.Anything, &Code{
-			code:            "some-code",
+			code:            secret.NewText("some-code"),
 			createdAt:       now,
 			expiresAt:       expiresAt,
 			clientID:        "dcca1ba7-6fa1-4684-8602-85adcb6a03a2",
 			userID:          "767c0845-db3d-49df-9b14-bd4dab4dacd8",
 			redirectURI:     "http://some-redirect",
 			scope:           "foo,bar",
-			challenge:       "some-secret",
+			challenge:       secret.NewText("some-secret"),
 			challengeMethod: "S256",
 		}).Return(nil).Once()
 
 		err := svc.Create(ctx, &CreateCmd{
-			Code:            "some-code",
+			Code:            secret.NewText("some-code"),
 			ExpiresAt:       expiresAt,
 			ClientID:        "dcca1ba7-6fa1-4684-8602-85adcb6a03a2",
 			UserID:          "767c0845-db3d-49df-9b14-bd4dab4dacd8",
 			RedirectURI:     "http://some-redirect",
 			Scope:           "foo,bar",
-			Challenge:       "some-secret",
+			Challenge:       secret.NewText("some-secret"),
 			ChallengeMethod: "S256",
 		})
 		assert.NoError(t, err)
@@ -63,13 +64,13 @@ func TestOauthCodeService(t *testing.T) {
 		storage.On("Save", mock.Anything, mock.Anything).Return(fmt.Errorf("some-error")).Once()
 
 		err := svc.Create(ctx, &CreateCmd{
-			Code:            "some-code",
+			Code:            secret.NewText("some-code"),
 			ExpiresAt:       expiresAt,
 			ClientID:        "dcca1ba7-6fa1-4684-8602-85adcb6a03a2",
 			UserID:          "767c0845-db3d-49df-9b14-bd4dab4dacd8",
 			RedirectURI:     "http://some-redirect",
 			Scope:           "foo,bar",
-			Challenge:       "some-secret",
+			Challenge:       secret.NewText("some-secret"),
 			ChallengeMethod: "S256",
 		})
 
@@ -82,9 +83,9 @@ func TestOauthCodeService(t *testing.T) {
 		storage := NewMockStorage(t)
 		svc := NewService(tools, storage)
 
-		storage.On("RemoveByCode", mock.Anything, "some-code").Return(nil).Once()
+		storage.On("RemoveByCode", mock.Anything, secret.NewText("some-code")).Return(nil).Once()
 
-		err := svc.RemoveByCode(ctx, "some-code")
+		err := svc.RemoveByCode(ctx, secret.NewText("some-code"))
 		assert.NoError(t, err)
 	})
 
@@ -93,9 +94,9 @@ func TestOauthCodeService(t *testing.T) {
 		storage := NewMockStorage(t)
 		svc := NewService(tools, storage)
 
-		storage.On("RemoveByCode", mock.Anything, "some-code").Return(fmt.Errorf("some-error")).Once()
+		storage.On("RemoveByCode", mock.Anything, secret.NewText("some-code")).Return(fmt.Errorf("some-error")).Once()
 
-		err := svc.RemoveByCode(ctx, "some-code")
+		err := svc.RemoveByCode(ctx, secret.NewText("some-code"))
 
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
@@ -107,19 +108,19 @@ func TestOauthCodeService(t *testing.T) {
 		svc := NewService(tools, storage)
 
 		code := Code{
-			code:            "some-code",
+			code:            secret.NewText("some-code"),
 			expiresAt:       time.Now(),
 			clientID:        "dcca1ba7-6fa1-4684-8602-85adcb6a03a2",
 			userID:          "767c0845-db3d-49df-9b14-bd4dab4dacd8",
 			redirectURI:     "http://some-redirect",
 			scope:           "foo,bar",
-			challenge:       "some-secret",
+			challenge:       secret.NewText("some-secret"),
 			challengeMethod: "S256",
 		}
 
-		storage.On("GetByCode", mock.Anything, "some-code").Return(&code, nil).Once()
+		storage.On("GetByCode", mock.Anything, secret.NewText("some-code")).Return(&code, nil).Once()
 
-		res, err := svc.GetByCode(ctx, "some-code")
+		res, err := svc.GetByCode(ctx, secret.NewText("some-code"))
 		assert.EqualValues(t, &code, res)
 		assert.NoError(t, err)
 	})
@@ -129,9 +130,9 @@ func TestOauthCodeService(t *testing.T) {
 		storage := NewMockStorage(t)
 		svc := NewService(tools, storage)
 
-		storage.On("GetByCode", mock.Anything, "some-code").Return(nil, fmt.Errorf("some-error")).Once()
+		storage.On("GetByCode", mock.Anything, secret.NewText("some-code")).Return(nil, fmt.Errorf("some-error")).Once()
 
-		code, err := svc.GetByCode(ctx, "some-code")
+		code, err := svc.GetByCode(ctx, secret.NewText("some-code"))
 
 		assert.Nil(t, code)
 		assert.ErrorIs(t, err, errs.ErrInternal)

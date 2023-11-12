@@ -6,6 +6,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
@@ -48,7 +49,7 @@ func setupAdmin(cmd *cobra.Command, userSvc users.Service) {
 
 	user, err := userSvc.Create(cmd.Context(), &users.CreateCmd{
 		Username: answers.Username,
-		Password: answers.Password,
+		Password: secret.NewText(answers.Password),
 		IsAdmin:  true,
 	})
 	if err != nil {

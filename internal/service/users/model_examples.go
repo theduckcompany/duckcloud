@@ -3,6 +3,7 @@ package users
 import (
 	"time"
 
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -14,7 +15,7 @@ var ExampleAlice = User{
 	defaultFolderID: uuid.UUID("e97b60f7-add2-43e1-a9bd-e2dac9ce69ec"),
 	isAdmin:         true,
 	status:          Active,
-	password:        "alice-encrypted-password",
+	password:        secret.NewText("alice-encrypted-password"),
 	createdAt:       now,
 }
 
@@ -24,7 +25,7 @@ var ExampleBob = User{
 	defaultFolderID: uuid.UUID("e97b60f7-add2-43e1-a9bd-e2dac9ce69ec"),
 	isAdmin:         false,
 	status:          Active,
-	password:        "bob-encrypted-password",
+	password:        secret.NewText("bob-encrypted-password"),
 	createdAt:       now,
 }
 
@@ -34,7 +35,7 @@ var ExampleInitializingAlice = User{
 	defaultFolderID: "",
 	isAdmin:         true,
 	status:          Initializing,
-	password:        "alice-encrypted-password",
+	password:        secret.NewText("alice-encrypted-password"),
 	createdAt:       now,
 }
 
@@ -44,6 +45,6 @@ var ExampleDeletingAlice = User{
 	defaultFolderID: uuid.UUID("e97b60f7-add2-43e1-a9bd-e2dac9ce69ec"),
 	isAdmin:         true,
 	status:          Deleting,
-	password:        "alice-encrypted-password",
+	password:        secret.NewText("alice-encrypted-password"),
 	createdAt:       now,
 }

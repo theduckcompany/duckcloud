@@ -6,6 +6,7 @@ import (
 
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -14,7 +15,7 @@ import (
 type Service interface {
 	GetAllForUser(ctx context.Context, userID uuid.UUID, paginateCmd *storage.PaginateCmd) ([]DavSession, error)
 	Create(ctx context.Context, cmd *CreateCmd) (*DavSession, string, error)
-	Authenticate(ctx context.Context, username, password string) (*DavSession, error)
+	Authenticate(ctx context.Context, username string, password secret.Text) (*DavSession, error)
 	Delete(ctx context.Context, cmd *DeleteCmd) error
 	DeleteAll(ctx context.Context, userID uuid.UUID) error
 }

@@ -79,7 +79,7 @@ func (s *OauthConsentsService) Check(r *http.Request, client *oauthclients.Clien
 		return errs.BadRequest(errors.New("consent clientID doesn't match with the given client"), "invalid request")
 	}
 
-	if consent.SessionToken() != session.Token() {
+	if consent.SessionToken() != session.Token().Raw() {
 		return errs.BadRequest(errors.New("consent session token doesn't match with the given session"), "invalid request")
 	}
 

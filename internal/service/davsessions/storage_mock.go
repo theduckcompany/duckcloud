@@ -6,6 +6,8 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
+	secret "github.com/theduckcompany/duckcloud/internal/tools/secret"
+
 	storage "github.com/theduckcompany/duckcloud/internal/tools/storage"
 
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -69,15 +71,15 @@ func (_m *MockStorage) GetByID(ctx context.Context, sessionID uuid.UUID) (*DavSe
 }
 
 // GetByUsernameAndPassHash provides a mock function with given fields: ctx, username, password
-func (_m *MockStorage) GetByUsernameAndPassHash(ctx context.Context, username string, password string) (*DavSession, error) {
+func (_m *MockStorage) GetByUsernameAndPassHash(ctx context.Context, username string, password secret.Text) (*DavSession, error) {
 	ret := _m.Called(ctx, username, password)
 
 	var r0 *DavSession
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*DavSession, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, secret.Text) (*DavSession, error)); ok {
 		return rf(ctx, username, password)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *DavSession); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, secret.Text) *DavSession); ok {
 		r0 = rf(ctx, username, password)
 	} else {
 		if ret.Get(0) != nil {
@@ -85,7 +87,7 @@ func (_m *MockStorage) GetByUsernameAndPassHash(ctx context.Context, username st
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string, secret.Text) error); ok {
 		r1 = rf(ctx, username, password)
 	} else {
 		r1 = ret.Error(1)

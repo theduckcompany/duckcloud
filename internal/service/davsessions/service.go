@@ -12,6 +12,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -25,7 +26,7 @@ var (
 //go:generate mockery --name Storage
 type Storage interface {
 	Save(ctx context.Context, session *DavSession) error
-	GetByUsernameAndPassHash(ctx context.Context, username, password string) (*DavSession, error)
+	GetByUsernameAndPassHash(ctx context.Context, username string, password secret.Text) (*DavSession, error)
 	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]DavSession, error)
 	GetByID(ctx context.Context, sessionID uuid.UUID) (*DavSession, error)
 	RemoveByID(ctx context.Context, sessionID uuid.UUID) error
@@ -70,7 +71,7 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 		userID:    cmd.UserID,
 		name:      cmd.Name,
 		username:  cmd.Username,
-		password:  hex.EncodeToString(rawSha[:]),
+		password:  secret.NewText(hex.EncodeToString(rawSha[:])),
 		folders:   cmd.Folders,
 		createdAt: s.clock.Now(),
 	}
@@ -83,10 +84,10 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 	return &session, password, nil
 }
 
-func (s *DavSessionsService) Authenticate(ctx context.Context, username, password string) (*DavSession, error) {
-	rawSha := sha256.Sum256([]byte(password))
+func (s *DavSessionsService) Authenticate(ctx context.Context, username string, password secret.Text) (*DavSession, error) {
+	rawSha := sha256.Sum256([]byte(password.Raw()))
 
-	res, err := s.storage.GetByUsernameAndPassHash(ctx, username, hex.EncodeToString(rawSha[:]))
+	res, err := s.storage.GetByUsernameAndPassHash(ctx, username, secret.NewText(hex.EncodeToString(rawSha[:])))
 	if errors.Is(err, errNotFound) {
 		return nil, errs.BadRequest(ErrInvalidCredentials, "invalid credentials")
 	}

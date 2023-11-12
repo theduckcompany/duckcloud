@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -22,7 +23,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	ctx := context.Background()
 
 	session := Session{
-		token:     "some-token",
+		token:     secret.NewText("some-token"),
 		userID:    uuid.UUID("3a708fc5-dc10-4655-8fc2-33b08a4b33a5"),
 		ip:        "192.168.1.1",
 		device:    "Android - Chrome",
@@ -107,9 +108,9 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
-		storageMock.On("GetByToken", mock.Anything, "some-token").Return(&session, nil).Once()
+		storageMock.On("GetByToken", mock.Anything, secret.NewText("some-token")).Return(&session, nil).Once()
 
-		res, err := service.GetByToken(ctx, "some-token")
+		res, err := service.GetByToken(ctx, secret.NewText("some-token"))
 		assert.NoError(t, err)
 		assert.EqualValues(t, &session, res)
 	})
@@ -125,7 +126,7 @@ func Test_WebSessions_Service(t *testing.T) {
 			Value: "some-token",
 		})
 
-		storageMock.On("GetByToken", mock.Anything, "some-token").Return(&session, nil).Once()
+		storageMock.On("GetByToken", mock.Anything, secret.NewText("some-token")).Return(&session, nil).Once()
 
 		res, err := service.GetFromReq(req)
 		assert.NoError(t, err)
@@ -156,7 +157,7 @@ func Test_WebSessions_Service(t *testing.T) {
 			Value: "some-token",
 		})
 
-		storageMock.On("GetByToken", mock.Anything, "some-token").Return(nil, errNotFound).Once()
+		storageMock.On("GetByToken", mock.Anything, secret.NewText("some-token")).Return(nil, errNotFound).Once()
 
 		res, err := service.GetFromReq(req)
 		assert.Nil(t, res)
@@ -175,7 +176,7 @@ func Test_WebSessions_Service(t *testing.T) {
 			Value: "some-token",
 		})
 
-		storageMock.On("GetByToken", mock.Anything, "some-token").Return(nil, errors.New("some-error")).Once()
+		storageMock.On("GetByToken", mock.Anything, secret.NewText("some-token")).Return(nil, errors.New("some-error")).Once()
 
 		res, err := service.GetFromReq(req)
 		assert.Nil(t, res)
@@ -196,7 +197,7 @@ func Test_WebSessions_Service(t *testing.T) {
 			Value: "some-token",
 		})
 
-		storageMock.On("RemoveByToken", mock.Anything, "some-token").Return(nil).Once()
+		storageMock.On("RemoveByToken", mock.Anything, secret.NewText("some-token")).Return(nil).Once()
 
 		err := service.Logout(req, w)
 		assert.NoError(t, err)
@@ -238,7 +239,7 @@ func Test_WebSessions_Service(t *testing.T) {
 			Value: "some-token",
 		})
 
-		storageMock.On("RemoveByToken", mock.Anything, "some-token").Return(errors.New("some-error")).Once()
+		storageMock.On("RemoveByToken", mock.Anything, secret.NewText("some-token")).Return(errors.New("some-error")).Once()
 
 		err := service.Logout(req, w)
 		assert.ErrorIs(t, err, errs.ErrInternal)

@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -39,7 +40,7 @@ func (s *sqlStorage) Save(ctx context.Context, session *Session) error {
 	return nil
 }
 
-func (s *sqlStorage) GetByToken(ctx context.Context, token string) (*Session, error) {
+func (s *sqlStorage) GetByToken(ctx context.Context, token secret.Text) (*Session, error) {
 	res := Session{}
 
 	err := sq.
@@ -59,7 +60,7 @@ func (s *sqlStorage) GetByToken(ctx context.Context, token string) (*Session, er
 	return &res, nil
 }
 
-func (s *sqlStorage) RemoveByToken(ctx context.Context, token string) error {
+func (s *sqlStorage) RemoveByToken(ctx context.Context, token secret.Text) error {
 	_, err := sq.
 		Delete(tableName).
 		Where(sq.Eq{"token": token}).

@@ -15,6 +15,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
@@ -206,7 +207,7 @@ func Test_Settings(t *testing.T) {
 
 		webSessionsMock.On("Delete", mock.Anything, &websessions.DeleteCmd{
 			UserID: users.ExampleAlice.ID(),
-			Token:  "some-token",
+			Token:  secret.NewText("some-token"),
 		}).Return(nil).Once()
 
 		webSessionsMock.On("GetAllForUser", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]websessions.Session{websessions.AliceWebSessionExample}, nil).Once()
@@ -363,7 +364,7 @@ func Test_Settings(t *testing.T) {
 
 		usersMock.On("Create", mock.Anything, &users.CreateCmd{
 			Username: "some-username",
-			Password: "my-little-secret",
+			Password: secret.NewText("my-little-secret"),
 			IsAdmin:  true,
 		}).Return(&users.ExampleAlice, nil).Once()
 

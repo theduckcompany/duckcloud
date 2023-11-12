@@ -21,6 +21,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
@@ -115,7 +116,7 @@ func (s *Server) Bootstrap(t *testing.T) {
 
 	user, err := s.UsersSvc.Create(ctx, &users.CreateCmd{
 		Username: "admin",
-		Password: "my little secret",
+		Password: secret.NewText("my little secret"),
 		IsAdmin:  true,
 	})
 	require.NoError(t, err)

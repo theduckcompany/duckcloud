@@ -8,6 +8,8 @@ import (
 	mock "github.com/stretchr/testify/mock"
 	folders "github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 
+	secret "github.com/theduckcompany/duckcloud/internal/tools/secret"
+
 	storage "github.com/theduckcompany/duckcloud/internal/tools/storage"
 
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -33,15 +35,15 @@ func (_m *MockService) AddToDeletion(ctx context.Context, userID uuid.UUID) erro
 }
 
 // Authenticate provides a mock function with given fields: ctx, username, password
-func (_m *MockService) Authenticate(ctx context.Context, username string, password string) (*User, error) {
+func (_m *MockService) Authenticate(ctx context.Context, username string, password secret.Text) (*User, error) {
 	ret := _m.Called(ctx, username, password)
 
 	var r0 *User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*User, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, secret.Text) (*User, error)); ok {
 		return rf(ctx, username, password)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *User); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, secret.Text) *User); ok {
 		r0 = rf(ctx, username, password)
 	} else {
 		if ret.Get(0) != nil {
@@ -49,7 +51,7 @@ func (_m *MockService) Authenticate(ctx context.Context, username string, passwo
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string, secret.Text) error); ok {
 		r1 = rf(ctx, username, password)
 	} else {
 		r1 = ret.Error(1)

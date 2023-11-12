@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -27,7 +28,7 @@ func TestDavSessionSqlStorage(t *testing.T) {
 	})
 
 	t.Run("GetByUsernameAndPassHash not found", func(t *testing.T) {
-		res, err := store.GetByUsernameAndPassHash(context.Background(), "some-invalid-username", "some-hashed-password")
+		res, err := store.GetByUsernameAndPassHash(context.Background(), "some-invalid-username", secret.NewText("some-hashed-password"))
 
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errNotFound)

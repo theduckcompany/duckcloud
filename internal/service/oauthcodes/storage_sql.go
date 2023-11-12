@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 )
 
 const tableName = "oauth_codes"
@@ -47,10 +48,10 @@ func (t *sqlStorage) Save(ctx context.Context, code *Code) error {
 	return nil
 }
 
-func (t *sqlStorage) RemoveByCode(ctx context.Context, code string) error {
+func (t *sqlStorage) RemoveByCode(ctx context.Context, code secret.Text) error {
 	_, err := sq.
 		Delete(tableName).
-		Where(sq.Eq{"code": code}).
+		Where(sq.Eq{"code": code.Raw()}).
 		RunWith(t.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -60,13 +61,13 @@ func (t *sqlStorage) RemoveByCode(ctx context.Context, code string) error {
 	return nil
 }
 
-func (t *sqlStorage) GetByCode(ctx context.Context, code string) (*Code, error) {
+func (t *sqlStorage) GetByCode(ctx context.Context, code secret.Text) (*Code, error) {
 	res := Code{}
 
 	err := sq.
 		Select(allFields...).
 		From(tableName).
-		Where(sq.Eq{"code": code}).
+		Where(sq.Eq{"code": code.Raw()}).
 		RunWith(t.db).
 		ScanContext(ctx,
 			&res.code,
