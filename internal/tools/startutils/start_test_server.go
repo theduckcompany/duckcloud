@@ -3,7 +3,6 @@ package startutils
 import (
 	"context"
 	"database/sql"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -50,6 +49,8 @@ type Server struct {
 func NewServer(t *testing.T) *Server {
 	t.Helper()
 
+	ctx := context.Background()
+
 	tools := tools.NewToolbox(tools.Config{Log: logger.Config{}})
 	db := storage.NewTestStorage(t)
 	afs := afero.NewMemMapFs()
@@ -68,8 +69,9 @@ func NewServer(t *testing.T) *Server {
 	dfsInit, err := dfs.Init(db, foldersSvc, filesInit.Service, schedulerSvc, tools)
 	require.NoError(t, err)
 
-	usersInit := users.Init(tools, db, schedulerSvc, foldersSvc, dfsInit.Service, webSessionsSvc,
+	usersInit, err := users.Init(tools, db, schedulerSvc, foldersSvc, dfsInit.Service, webSessionsSvc,
 		davSessionsSvc, oauthSessionsSvc, oauthConsentsSvc)
+	require.NoError(t, err)
 
 	runnerSvc := runner.Init(
 		[]runner.TaskRunner{
@@ -80,6 +82,12 @@ func NewServer(t *testing.T) *Server {
 			usersInit.UserCreateTask,
 			usersInit.UserDeleteTask,
 		}, tools, db)
+
+	err = runnerSvc.Run(ctx)
+	require.NoError(t, err)
+
+	user, err := usersInit.Service.Authenticate(ctx, users.BoostrapUsername, secret.NewText(users.BoostrapPassword))
+	require.NoError(t, err)
 
 	return &Server{
 		Tools: tools,
@@ -99,35 +107,6 @@ func NewServer(t *testing.T) *Server {
 		DFSSvc:    dfsInit.Service,
 		UsersSvc:  usersInit.Service,
 		RunnerSvc: runnerSvc,
+		User:      user,
 	}
-}
-
-func (s *Server) Bootstrap(t *testing.T) {
-	ctx := context.Background()
-
-	err := s.ConfigSvc.EnableDevMode(ctx)
-	require.NoError(t, err)
-
-	err = s.ConfigSvc.SetAddrs(ctx, []string{httptest.DefaultRemoteAddr, "localhost"}, 6890)
-	require.NoError(t, err)
-
-	err = s.ConfigSvc.DisableTLS(ctx)
-	require.NoError(t, err)
-
-	user, err := s.UsersSvc.Create(ctx, &users.CreateCmd{
-		Username: "admin",
-		Password: secret.NewText("my little secret"),
-		IsAdmin:  true,
-	})
-	require.NoError(t, err)
-
-	err = s.RunnerSvc.Run(ctx)
-	require.NoError(t, err)
-
-	// Fetch again the user in order to have the values changed by
-	// the runner jobs.
-	user, err = s.UsersSvc.GetByID(ctx, user.ID())
-	require.NoError(t, err)
-
-	s.User = user
 }

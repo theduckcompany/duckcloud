@@ -17,7 +17,6 @@ func Test_Walk(t *testing.T) {
 	ctx := context.Background()
 
 	serv := startutils.NewServer(t)
-	serv.Bootstrap(t)
 
 	userFolders, err := serv.FoldersSvc.GetAllUserFolders(ctx, serv.User.ID(), nil)
 	require.NoError(t, err)

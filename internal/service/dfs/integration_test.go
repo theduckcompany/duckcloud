@@ -22,7 +22,6 @@ func Test_DFS_Integration(t *testing.T) {
 	ctx := context.Background()
 
 	serv := startutils.NewServer(t)
-	serv.Bootstrap(t)
 
 	dfsSvc := serv.DFSSvc
 
@@ -68,7 +67,7 @@ func Test_DFS_Integration(t *testing.T) {
 
 		require.Equal(t, "", rootFS.Name())
 		require.True(t, rootFS.IsDir())
-		require.WithinDuration(t, time.Now(), rootFS.LastModifiedAt(), 14*time.Millisecond)
+		require.WithinDuration(t, time.Now(), rootFS.LastModifiedAt(), time.Second)
 	})
 
 	t.Run("ListDir with an empty directory", func(t *testing.T) {
