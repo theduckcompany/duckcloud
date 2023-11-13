@@ -3,6 +3,7 @@ package users
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
@@ -17,6 +18,11 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"go.uber.org/fx"
+)
+
+const (
+	BoostrapUsername = "admin"
+	BoostrapPassword = "duckcloud"
 )
 
 //go:generate mockery --name Service
@@ -49,14 +55,30 @@ func Init(
 	davSessions davsessions.Service,
 	oauthSessions oauthsessions.Service,
 	oauthConsents oauthconsents.Service,
-) Result {
-	storage := newSqlStorage(db, tools)
+) (Result, error) {
+	store := newSqlStorage(db, tools)
 
-	svc := NewService(tools, storage, scheduler)
+	svc := NewService(tools, store, scheduler)
+
+	res, err := svc.GetAll(context.Background(), &storage.PaginateCmd{Limit: 4})
+	if err != nil {
+		return Result{}, fmt.Errorf("failed to GetAll users: %w", err)
+	}
+
+	if len(res) == 0 {
+		_, err = svc.Create(context.Background(), &CreateCmd{
+			Username: BoostrapUsername,
+			Password: secret.NewText(BoostrapPassword),
+			IsAdmin:  true,
+		})
+		if err != nil {
+			return Result{}, fmt.Errorf("failed to create the first user: %w", err)
+		}
+	}
 
 	return Result{
 		Service:        svc,
 		UserCreateTask: NewUserCreateTaskRunner(svc, folders, fs),
 		UserDeleteTask: NewUserDeleteTaskRunner(svc, webSessions, davSessions, oauthSessions, oauthConsents, folders, fs),
-	}
+	}, nil
 }

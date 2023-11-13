@@ -1,79 +1,60 @@
 package commands
 
 import (
-	"errors"
-	"fmt"
-	"io/fs"
+	"net"
 	"os"
 	"path"
-	"path/filepath"
 
 	"github.com/adrg/xdg"
-	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/theduckcompany/duckcloud/internal/server"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
 var configDirs = append([]string{xdg.DataHome}, xdg.DataDirs...)
 
-func NewRunCmd(binaryName string) *cobra.Command {
-	var debug bool
-	var dev bool
+func NewRunCmd(_ string) *cobra.Command {
+	var defaultFolder string
 
-	afs := afero.NewOsFs()
+	for _, dir := range configDirs {
+		_, err := os.Stat(path.Join(dir, "duckcloud"))
+		if err == nil {
+			defaultFolder = path.Join(dir, "duckcloud")
+			break
+		}
+	}
 
 	cmd := cobra.Command{
 		Short: "Run your server",
 		Args:  cobra.NoArgs,
 		Use:   "run",
-		Run: func(cmd *cobra.Command, _ []string) {
-			folderPath, err := cmd.Flags().GetString("dir")
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			cfg, err := NewConfigFromCmd(cmd)
 			if err != nil {
-				cmd.PrintErrln(err)
-				os.Exit(1)
+				return err
 			}
 
-			if folderPath == "" {
-				for _, dir := range configDirs {
-					_, err := os.Stat(path.Join(dir, "duckcloud"))
-					if err == nil {
-						folderPath = path.Join(dir, "duckcloud")
-						break
-					}
+			server.Run(cmd.Context(), cfg)
 
-					if !errors.Is(err, fs.ErrNotExist) {
-						cmd.PrintErrln(err)
-						os.Exit(1)
-					}
-				}
-
-				if folderPath == "" {
-					cmd.PrintErrln(fmt.Sprintf(`No data directory found, have you run "%s server bootstrap"?`, binaryName))
-					os.Exit(1)
-				}
-			}
-
-			folderPath, err = filepath.Abs(folderPath)
-			if err != nil {
-				cmd.PrintErrln(fmt.Sprintf(`invalid path %q: %s`, folderPath, err))
-				os.Exit(1)
-			}
-
-			cmd.Printf("start server from: %s\n", folderPath)
-
-			db, err := storage.NewSQliteClient(&storage.Config{Path: path.Join(folderPath, "db.sqlite")})
-			if err != nil {
-				cmd.PrintErrln(err)
-				os.Exit(1)
-			}
-
-			server.Run(cmd.Context(), db, afs, folderPath)
+			return nil
 		},
 	}
 
-	cmd.Flags().BoolVar(&dev, "dev", false, "Run in dev mode and make json prettier")
-	cmd.Flags().BoolVar(&debug, "debug", false, "Force the debug level")
+	flags := cmd.Flags()
+
+	flags.Bool("dev", false, "Run in dev mode and make json prettier")
+	flags.Bool("debug", false, "Force the debug level")
+	flags.String("log-level", "warn", "Log message verbosity LEVEL (debug, info, warning, error)")
+
+	flags.String("folder", defaultFolder, "Specified you data directory location")
+	flags.Bool("memory-fs", false, "Replace the OS filesystem by a in-memory stub. *Every data will disapear after each restart*.")
+
+	flags.String("tls-cert", "", "Public HTTPS certificate FILE (.crt)")
+	flags.String("tls-key", "", "Private HTTPS key FILE (.key)")
+	flags.Bool("self-signed-cert", false, "Generate and use a self-signed HTTPS/TLS certificate ")
+
+	flags.Int("http-port", 5764, "Web server port NUMBER, ignored for Unix domain sockets")
+	flags.IP("http-host", net.IPv4(0, 0, 0, 0), "Web server IP address or Unix domain socket, e.g. unix:/var/run/photoprism.sock")
+	flags.StringSlice("http-hostname", []string{}, "Serve requests for this HOSTNAME only plus")
 
 	return &cmd
 }

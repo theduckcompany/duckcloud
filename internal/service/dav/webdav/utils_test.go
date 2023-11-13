@@ -38,7 +38,6 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 	ctx := context.Background()
 
 	serv := startutils.NewServer(t)
-	serv.Bootstrap(t)
 
 	folder, err := serv.FoldersSvc.GetByID(ctx, serv.User.DefaultFolder())
 	require.NoError(t, err, "failed to get the user default folder")

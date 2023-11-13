@@ -2,7 +2,10 @@ package server
 
 import (
 	"context"
-	"database/sql"
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/afero"
@@ -33,6 +36,20 @@ import (
 	"go.uber.org/fx/fxevent"
 )
 
+type Folder string
+
+type Config struct {
+	fx.Out
+
+	FS       afero.Fs
+	Listener router.Config
+	Assets   assets.Config
+	Storage  storage.Config
+	Tools    tools.Config
+	Web      web.Config
+	Folder   Folder
+}
+
 // AsRoute annotates the given constructor to state that
 // it provides a route to the "routes" group.
 func AsRoute(f any) any {
@@ -43,18 +60,29 @@ func AsRoute(f any) any {
 	)
 }
 
-func start(ctx context.Context, db *sql.DB, fs afero.Fs, folderPath string, invoke fx.Option) *fx.App {
+func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 	app := fx.New(
 		fx.WithLogger(func(tools tools.Tools) fxevent.Logger { return logger.NewFxLogger(tools.Logger()) }),
 		fx.Provide(
-			func() string { return folderPath },
 			func() context.Context { return ctx },
-			func() afero.Fs { return fs },
-			func() *sql.DB { return db },
-			NewConfigFromDB,
+			func() Config { return cfg },
+
+			func(folder Folder, fs afero.Fs) (string, error) {
+				folderPath, err := filepath.Abs(string(folder))
+				if err != nil {
+					return "", fmt.Errorf("invalid path: %q: %w", folderPath, err)
+				}
+
+				err = fs.MkdirAll(string(folder), 0o755)
+				if err != nil && !errors.Is(err, os.ErrExist) {
+					return "", fmt.Errorf("failed to create the %s: %w", folderPath, err)
+				}
+				return folderPath, nil
+			},
 
 			// Tools
 			fx.Annotate(tools.NewToolbox, fx.As(new(tools.Tools))),
+			storage.Init,
 
 			// Services
 			users.Init,
@@ -86,9 +114,6 @@ func start(ctx context.Context, db *sql.DB, fs afero.Fs, folderPath string, invo
 			fx.Annotate(runner.Init, fx.ParamTags(`group:"tasks"`), fx.As(new(runner.Service))),
 		),
 
-		// Run the migration
-		fx.Invoke(storage.RunMigrations),
-
 		// Start the tasks-runner
 		fx.Invoke(func(svc runner.Service, lc fx.Lifecycle, tools tools.Tools) {
 			cronSvc := cron.New("tasks-runner", 500*time.Millisecond, tools, svc)
@@ -100,6 +125,11 @@ func start(ctx context.Context, db *sql.DB, fs afero.Fs, folderPath string, invo
 			cronSvc := cron.New("tasks-scheduler", 10*time.Second, tools, svc)
 			cronSvc.FXRegister(lc)
 		}),
+
+		fx.Invoke(func(ctx context.Context, runner runner.Service) error {
+			return runner.Run(ctx)
+		}),
+
 		invoke,
 	)
 

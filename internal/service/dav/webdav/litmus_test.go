@@ -21,7 +21,6 @@ func TestWebdavLitmus(t *testing.T) {
 	ctx := context.Background()
 
 	serv := startutils.NewServer(t)
-	serv.Bootstrap(t)
 
 	session, secret, err := serv.DavSessionsSvc.Create(ctx, &davsessions.CreateCmd{
 		Name:     "litmus",

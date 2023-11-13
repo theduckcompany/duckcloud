@@ -1,16 +1,17 @@
 package logger
 
 import (
+	"io"
 	"log/slog"
-	"os"
 )
 
 type Config struct {
-	Level slog.Level `mapstructure:"level"`
+	Level  slog.Level `mapstructure:"level"`
+	Output io.Writer
 }
 
 func NewSLogger(cfg Config) *slog.Logger {
-	return slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
+	return slog.New(slog.NewJSONHandler(cfg.Output, &slog.HandlerOptions{
 		Level: cfg.Level,
 		// Remove default time slog.Attr. It will be replaced by the one
 		// from the router middleware.
