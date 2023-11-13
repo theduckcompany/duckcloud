@@ -43,7 +43,7 @@ func NewRunCmd(_ string) *cobra.Command {
 
 	flags.Bool("dev", false, "Run in dev mode and make json prettier")
 	flags.Bool("debug", false, "Force the debug level")
-	flags.String("log-level", "warn", "Log message verbosity LEVEL (debug, info, warning, error)")
+	flags.String("log-level", "info", "Log message verbosity LEVEL (debug, info, warning, error)")
 
 	flags.String("folder", defaultFolder, "Specified you data directory location")
 	flags.Bool("memory-fs", false, "Replace the OS filesystem by a in-memory stub. *Every data will disapear after each restart*.")
