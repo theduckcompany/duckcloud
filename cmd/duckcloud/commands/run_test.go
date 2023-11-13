@@ -68,7 +68,7 @@ func Test_NewRunCmd(t *testing.T) {
 		t.Setenv("DUCKCLOUD_LOG-LEVEL", "info")
 		t.Setenv("DUCKCLOUD_FOLDER", "duckloud-test")
 
-		cmd.SetArgs([]string{})
+		cmd.SetArgs([]string{"--memory-fs"})
 		var cmdErr error
 		var wg sync.WaitGroup
 		go func() {

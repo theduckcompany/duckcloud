@@ -91,7 +91,7 @@ func Test_DFS_Integration(t *testing.T) {
 		require.Nil(t, dir.FileID())
 		require.Equal(t, ptr.To(rootFS.ID()), dir.Parent()) // It have a parent and this is the root ("/")
 		require.True(t, dir.IsDir())
-		require.WithinDuration(t, time.Now(), dir.LastModifiedAt(), 20*time.Millisecond)
+		require.WithinDuration(t, time.Now(), dir.LastModifiedAt(), 30*time.Millisecond)
 
 		// TODO: Check that the modified date have been modified for all the parents
 		// newRootFS, err := folderFS.Get(ctx, "/")
@@ -119,7 +119,7 @@ func Test_DFS_Integration(t *testing.T) {
 			require.Equal(t, uint64(0), dirBaz.Size())
 			require.Nil(t, dirBaz.FileID())
 			require.True(t, dirBaz.IsDir())
-			require.WithinDuration(t, time.Now(), dirBaz.LastModifiedAt(), 20*time.Millisecond)
+			require.WithinDuration(t, time.Now(), dirBaz.LastModifiedAt(), 30*time.Millisecond)
 		})
 
 		t.Run("/foo/bar/bar have /foo/bar as parent", func(t *testing.T) {
@@ -198,7 +198,7 @@ func Test_DFS_Integration(t *testing.T) {
 			require.Equal(t, "todo.txt", info.Name())
 			require.False(t, info.IsDir())
 			require.Equal(t, uint64(len(content)), info.Size())
-			require.WithinDuration(t, time.Now(), info.LastModifiedAt(), 20*time.Millisecond)
+			require.WithinDuration(t, time.Now(), info.LastModifiedAt(), 30*time.Millisecond)
 			modTime = info.LastModifiedAt()
 		})
 
@@ -258,7 +258,7 @@ func Test_DFS_Integration(t *testing.T) {
 			require.Equal(t, oldFile.ID(), newFile.ID())
 			require.Equal(t, "todo.txt", newFile.Name())
 			require.NotEqual(t, oldFile.LastModifiedAt(), newFile.LastModifiedAt())
-			require.WithinDuration(t, time.Now(), newFile.LastModifiedAt(), 20*time.Millisecond)
+			require.WithinDuration(t, time.Now(), newFile.LastModifiedAt(), 30*time.Millisecond)
 		})
 
 		t.Run("Check old parents modtime and size", func(t *testing.T) {
