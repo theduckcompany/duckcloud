@@ -67,7 +67,7 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 			func() context.Context { return ctx },
 			func() Config { return cfg },
 
-			func(folder Folder, fs afero.Fs) (string, error) {
+			func(folder Folder, fs afero.Fs, tools tools.Tools) (string, error) {
 				folderPath, err := filepath.Abs(string(folder))
 				if err != nil {
 					return "", fmt.Errorf("invalid path: %q: %w", folderPath, err)
@@ -77,6 +77,9 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 				if err != nil && !errors.Is(err, os.ErrExist) {
 					return "", fmt.Errorf("failed to create the %s: %w", folderPath, err)
 				}
+
+				tools.Logger().Info(fmt.Sprintf("Load data from %s\n", folder))
+
 				return folderPath, nil
 			},
 
