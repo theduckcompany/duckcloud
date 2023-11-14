@@ -103,18 +103,18 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 	multiWrite := io.MultiWriter(mimeWriter, hashWriter, encryptWriter)
 
 	written, err := io.Copy(multiWrite, r)
+	if err != nil {
+		_ = s.Delete(context.WithoutCancel(ctx), fileID)
+		return "", errs.Internal(fmt.Errorf("upload error: %w", err))
+	}
 
 	_ = mimeWriter.Close()
 	_ = hashWriter.Close()
 
 	err = encryptWriter.Close()
 	if err != nil {
-		return "", fmt.Errorf("failed to end the file encryption: %w", err)
-	}
-
-	if err != nil {
 		_ = s.Delete(context.WithoutCancel(ctx), fileID)
-		return "", fmt.Errorf("upload error: %w", err)
+		return "", errs.Internal(fmt.Errorf("failed to end the file encryption: %w", err))
 	}
 
 	err = g.Wait()
@@ -128,7 +128,7 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 
 	existingFile, err := s.storage.GetByChecksum(ctx, checksum)
 	if err != nil && !errors.Is(err, errNotFound) {
-		return "", fmt.Errorf("failed to GetByChecksum: %w", err)
+		return "", errs.Internal(fmt.Errorf("failed to GetByChecksum: %w", err))
 	}
 
 	if existingFile != nil {
@@ -146,7 +146,7 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 		uploadedAt: s.clock.Now(),
 	})
 	if err != nil {
-		return "", fmt.Errorf("failed to save the file meta: %w", err)
+		return "", errs.Internal(fmt.Errorf("failed to save the file meta: %w", err))
 	}
 
 	return fileID, nil
@@ -172,7 +172,7 @@ func (s *FileService) GetMetadata(ctx context.Context, fileID uuid.UUID) (*FileM
 
 func (s *FileService) Download(ctx context.Context, fileMeta *FileMeta) (io.ReadSeekCloser, error) {
 	idStr := string(fileMeta.id)
-	filePath := path.Join(idStr[:2], string(idStr))
+	filePath := path.Join(idStr[:2], idStr)
 
 	file, err := s.fs.OpenFile(filePath, os.O_RDONLY, 0o600)
 	if errors.Is(err, os.ErrNotExist) {

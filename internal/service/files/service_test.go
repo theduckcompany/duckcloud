@@ -31,7 +31,10 @@ func TestFileService(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, fileID)
 
-		reader, err := svc.Download(ctx, fileID)
+		fileMeta, err := svc.GetMetadata(ctx, fileID)
+		assert.NoError(t, err)
+
+		reader, err := svc.Download(ctx, fileMeta)
 		assert.NoError(t, err)
 		res, err := io.ReadAll(reader)
 		assert.NoError(t, err)
@@ -66,12 +69,15 @@ func TestFileService(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotEmpty(t, fileID)
 
+		fileMeta, err := svc.GetMetadata(ctx, fileID)
+		assert.NoError(t, err)
+
 		// Delete it
 		err = svc.Delete(ctx, fileID)
 		assert.NoError(t, err)
 
 		// Check it doesn't exists
-		res, err := svc.Download(ctx, fileID)
+		res, err := svc.Download(ctx, fileMeta)
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, ErrNotExist)
 	})
@@ -86,7 +92,7 @@ func TestFileService(t *testing.T) {
 		// Create a file
 		fileID, err := svc.Upload(ctx, iotest.ErrReader(fmt.Errorf("some-error")))
 		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "failed to write the file")
+		assert.ErrorContains(t, err, "upload error")
 		assert.ErrorContains(t, err, "some-error")
 		assert.Empty(t, fileID)
 	})

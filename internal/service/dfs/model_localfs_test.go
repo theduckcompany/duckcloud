@@ -133,8 +133,9 @@ func Test_LocalFS(t *testing.T) {
 			Path:   "/foo/bar.txt",
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
-		filesMock.On("Download", mock.Anything, *inodes.ExampleAliceFile.FileID()).
-			Return(file, nil).Once()
+		filesMock.On("GetMetadata", mock.Anything, *inodes.ExampleAliceFile.FileID()).Return(&files.ExampleFile1, nil).Once()
+
+		filesMock.On("Download", mock.Anything, &files.ExampleFile1).Return(file, nil).Once()
 
 		res, err := folderFS.Download(ctx, "/foo/bar.txt")
 		assert.NoError(t, err)
