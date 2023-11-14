@@ -2,6 +2,7 @@ package files
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"errors"
@@ -11,6 +12,7 @@ import (
 	"path"
 
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/minio/sio"
 	"github.com/spf13/afero"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
@@ -55,7 +57,21 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 		return "", errs.Internal(fmt.Errorf("failed to create the file: %w", err))
 	}
 
+	var key [32]byte
+	if _, err := io.ReadFull(rand.Reader, key[:]); err != nil {
+		return "", fmt.Errorf("Failed to read random data: %v", err) // add error handling
+	}
+
 	g, ctx := errgroup.WithContext(ctx)
+
+	encryptReader, encryptWriter := io.Pipe()
+	g.Go(func() error {
+		if _, err = sio.Encrypt(file, encryptReader, sio.Config{Key: key[:]}); err != nil {
+			return fmt.Errorf("failed to encrypt data: %v", err)
+		}
+
+		return nil
+	})
 
 	// Start the hasher job
 	hashReader, hashWriter := io.Pipe()
@@ -75,7 +91,7 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 		return err
 	})
 
-	multiWrite := io.MultiWriter(mimeWriter, hashWriter, file)
+	multiWrite := io.MultiWriter(mimeWriter, hashWriter, encryptWriter)
 
 	written, err := io.Copy(multiWrite, r)
 	if err != nil {
@@ -92,6 +108,7 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 
 	_ = mimeWriter.Close()
 	_ = hashWriter.Close()
+	_ = encryptWriter.Close()
 
 	err = g.Wait()
 	if err != nil {
