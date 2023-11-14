@@ -64,10 +64,12 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 
 	g, ctx := errgroup.WithContext(ctx)
 
+	// Start the file encryption
 	encryptReader, encryptWriter := io.Pipe()
 	g.Go(func() error {
-		if _, err = sio.Encrypt(file, encryptReader, sio.Config{Key: key[:]}); err != nil {
-			return fmt.Errorf("failed to encrypt data: %v", err)
+		_, err := sio.Encrypt(file, encryptReader, sio.Config{Key: key[:]})
+		if err != nil {
+			encryptReader.CloseWithError(fmt.Errorf("failed to encrypt the file: %w", err))
 		}
 
 		return nil
@@ -78,41 +80,52 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 	hasher := sha256.New()
 	g.Go(func() error {
 		_, err := io.Copy(hasher, hashReader)
-		return err
+		if err != nil {
+			hashReader.CloseWithError(fmt.Errorf("failed to calculate the file hash: %w", err))
+		}
+
+		return nil
 	})
 
+	// Start the mime type detection
 	var mimeStr string
 	mimeReader, mimeWriter := io.Pipe()
 	g.Go(func() error {
 		mime, err := mimetype.DetectReader(mimeReader)
+		if err != nil {
+			mimeReader.CloseWithError(fmt.Errorf("failed to detect the mime type: %w", err))
+			return nil
+		}
 
 		mimeStr = mime.String()
 
-		return err
+		io.Copy(io.Discard, mimeReader)
+
+		return nil
 	})
 
 	multiWrite := io.MultiWriter(mimeWriter, hashWriter, encryptWriter)
 
 	written, err := io.Copy(multiWrite, r)
+
+	_ = mimeWriter.Close()
+	_ = hashWriter.Close()
+	_ = encryptReader.Close()
+
 	if err != nil {
-		_ = file.Close()
 		_ = s.Delete(context.WithoutCancel(ctx), fileID)
-		return "", errs.Internal(fmt.Errorf("failed to write the file: %w", err))
+		return "", fmt.Errorf("upload error: %w", err)
+	}
+
+	err = g.Wait()
+	if err != nil {
+		return "", err
 	}
 
 	err = file.Close()
 	if err != nil {
 		_ = s.Delete(context.WithoutCancel(ctx), fileID)
 		return "", errs.Internal(fmt.Errorf("failed to close the file: %w", err))
-	}
-
-	_ = mimeWriter.Close()
-	_ = hashWriter.Close()
-	_ = encryptWriter.Close()
-
-	err = g.Wait()
-	if err != nil {
-		return "", err
 	}
 
 	ctx = context.WithoutCancel(ctx)
