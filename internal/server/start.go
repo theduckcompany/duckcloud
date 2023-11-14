@@ -78,7 +78,11 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 					return "", fmt.Errorf("failed to create the %s: %w", folderPath, err)
 				}
 
-				tools.Logger().Info(fmt.Sprintf("Load data from %s\n", folder))
+				if fs.Name() == afero.NewMemMapFs().Name() {
+					tools.Logger().Info(fmt.Sprintf("Load data from memory"))
+				} else {
+					tools.Logger().Info(fmt.Sprintf("Load data from %s", folder))
+				}
 
 				return folderPath, nil
 			},
