@@ -67,7 +67,7 @@
 <script type="module">
   import {Uppy, XHRUpload, StatusBar} from "/assets/js/uppy.min.mjs"
   let client = new Uppy().use(XHRUpload, {
-    endpoint: 'https://{{.host}}/browser/upload',
+    endpoint: '/browser/upload',
     allowMultipleUploadBatches: true
   })
 
