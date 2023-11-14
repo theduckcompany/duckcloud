@@ -66,15 +66,10 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 	g, ctx := errgroup.WithContext(ctx)
 
 	// Start the file encryption
-	encryptReader, encryptWriter := io.Pipe()
-	g.Go(func() error {
-		_, err := sio.Encrypt(file, encryptReader, sio.Config{Key: key[:]})
-		if err != nil {
-			encryptReader.CloseWithError(fmt.Errorf("failed to encrypt the file: %w", err))
-		}
-
-		return nil
-	})
+	encryptWriter, err := sio.EncryptWriter(file, sio.Config{Key: key[:]})
+	if err != nil {
+		return "", fmt.Errorf("failed to create the file encryption: %w", err)
+	}
 
 	// Start the hasher job
 	hashReader, hashWriter := io.Pipe()
@@ -111,7 +106,11 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 
 	_ = mimeWriter.Close()
 	_ = hashWriter.Close()
-	_ = encryptReader.Close()
+
+	err = encryptWriter.Close()
+	if err != nil {
+		return "", fmt.Errorf("failed to end the file encryption: %w", err)
+	}
 
 	if err != nil {
 		_ = s.Delete(context.WithoutCancel(ctx), fileID)
@@ -123,15 +122,9 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 		return "", err
 	}
 
-	err = file.Close()
-	if err != nil {
-		_ = s.Delete(context.WithoutCancel(ctx), fileID)
-		return "", errs.Internal(fmt.Errorf("failed to close the file: %w", err))
-	}
-
 	ctx = context.WithoutCancel(ctx)
 
-	checksum := base64.URLEncoding.EncodeToString(hasher.Sum(nil))
+	checksum := base64.RawStdEncoding.Strict().EncodeToString(hasher.Sum(nil))
 
 	existingFile, err := s.storage.GetByChecksum(ctx, checksum)
 	if err != nil && !errors.Is(err, errNotFound) {
@@ -149,7 +142,7 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 		size:       uint64(written),
 		mimetype:   mimeStr,
 		checksum:   checksum,
-		key:        secret.NewText(base64.URLEncoding.EncodeToString(key[:])),
+		key:        secret.NewText(base64.RawStdEncoding.Strict().EncodeToString(key[:])),
 		uploadedAt: s.clock.Now(),
 	})
 	if err != nil {
@@ -177,9 +170,9 @@ func (s *FileService) GetMetadata(ctx context.Context, fileID uuid.UUID) (*FileM
 	return res, err
 }
 
-func (s *FileService) Download(ctx context.Context, fileID uuid.UUID) (io.ReadSeekCloser, error) {
-	idStr := string(fileID)
-	filePath := path.Join(idStr[:2], idStr)
+func (s *FileService) Download(ctx context.Context, fileMeta *FileMeta) (io.ReadSeekCloser, error) {
+	idStr := string(fileMeta.id)
+	filePath := path.Join(idStr[:2], string(idStr))
 
 	file, err := s.fs.OpenFile(filePath, os.O_RDONLY, 0o600)
 	if errors.Is(err, os.ErrNotExist) {
@@ -190,7 +183,22 @@ func (s *FileService) Download(ctx context.Context, fileID uuid.UUID) (io.ReadSe
 		return nil, errs.Internal(fmt.Errorf("failed to open the file: %w", err))
 	}
 
-	return file, nil
+	keyBytes, err := base64.RawStdEncoding.Strict().DecodeString(fileMeta.key.Raw())
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode the file key: %w", err)
+	}
+
+	reader, err := sio.DecryptReaderAt(file, sio.Config{Key: keyBytes})
+	if err != nil {
+		sioErr := sio.Error{}
+		if errors.As(err, &sioErr) {
+			return nil, fmt.Errorf("malformed encrypted data: %w", sioErr)
+		}
+
+		return nil, fmt.Errorf("failed to decrypt data: %w", err)
+	}
+
+	return newDecReadSeeker(reader, int64(fileMeta.size), file), nil
 }
 
 func (s *FileService) Delete(ctx context.Context, fileID uuid.UUID) error {
@@ -208,4 +216,54 @@ func (s *FileService) Delete(ctx context.Context, fileID uuid.UUID) error {
 	}
 
 	return nil
+}
+
+type decReadSeeker struct {
+	r      io.ReaderAt
+	off    int64
+	size   int64
+	closer io.Closer
+}
+
+func newDecReadSeeker(r io.ReaderAt, size int64, closer io.Closer) *decReadSeeker {
+	return &decReadSeeker{r, 0, size, closer}
+}
+
+func (s *decReadSeeker) Read(p []byte) (int, error) {
+	if s.off >= s.size {
+		return 0, io.EOF
+	}
+
+	n, err := s.r.ReadAt(p, s.off)
+
+	s.off += int64(n)
+
+	return n, err
+}
+
+func (s *decReadSeeker) Seek(offset int64, whence int) (int64, error) {
+	var abs int64
+
+	switch whence {
+	case io.SeekStart:
+		abs = offset
+	case io.SeekCurrent:
+		abs = s.off + offset
+	case io.SeekEnd:
+		abs = s.size + offset
+	default:
+		return 0, errors.New("bytes.Reader.Seek: invalid whence")
+	}
+
+	if abs < 0 {
+		return 0, errors.New("bytes.Reader.Seek: negative position")
+	}
+
+	s.off = abs
+
+	return abs, nil
+}
+
+func (s *decReadSeeker) Close() error {
+	return s.closer.Close()
 }
