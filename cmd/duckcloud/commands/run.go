@@ -10,7 +10,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/server"
 )
 
-var configDirs = append([]string{xdg.DataHome}, xdg.DataDirs...)
+var configDirs = append(xdg.DataDirs, xdg.DataHome)
 
 func NewRunCmd(_ string) *cobra.Command {
 	var defaultFolder string
@@ -21,6 +21,10 @@ func NewRunCmd(_ string) *cobra.Command {
 			defaultFolder = path.Join(dir, "duckcloud")
 			break
 		}
+	}
+
+	if defaultFolder == "" {
+		defaultFolder = path.Join(xdg.DataHome, "duckcloud")
 	}
 
 	cmd := cobra.Command{
@@ -53,7 +57,7 @@ func NewRunCmd(_ string) *cobra.Command {
 	flags.Bool("self-signed-cert", false, "Generate and use a self-signed HTTPS/TLS certificate ")
 
 	flags.Int("http-port", 5764, "Web server port NUMBER, ignored for Unix domain sockets")
-	flags.IP("http-host", net.IPv4(0, 0, 0, 0), "Web server IP address")
+	flags.IP("http-host", net.IPv4(0, 0, 0, 0), "Web server IP address or Unix domain socket, e.g. unix:/var/run/photoprism.sock")
 	flags.StringSlice("http-hostname", []string{}, "Serve requests for this HOSTNAME only plus")
 
 	return &cmd
