@@ -176,7 +176,7 @@ func (s *FileService) Download(ctx context.Context, fileMeta *FileMeta) (io.Read
 
 	file, err := s.fs.OpenFile(filePath, os.O_RDONLY, 0o600)
 	if errors.Is(err, os.ErrNotExist) {
-		return nil, errs.BadRequest(ErrNotExist)
+		return nil, errs.BadRequest(fmt.Errorf("%s: %w", filePath, ErrNotExist))
 	}
 
 	if err != nil {
