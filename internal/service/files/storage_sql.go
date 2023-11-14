@@ -14,7 +14,7 @@ const tableName = "files"
 
 var errNotFound = errors.New("not found")
 
-var allFields = []string{"id", "size", "mimetype", "checksum", "uploaded_at"}
+var allFields = []string{"id", "size", "mimetype", "checksum", "key", "uploaded_at"}
 
 // sqlStorage use to save/retrieve files metadatas
 type sqlStorage struct {
@@ -30,7 +30,7 @@ func (s *sqlStorage) Save(ctx context.Context, meta *FileMeta) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(allFields...).
-		Values(meta.id, meta.size, meta.mimetype, meta.checksum, meta.uploadedAt).
+		Values(meta.id, meta.size, meta.mimetype, meta.checksum, meta.key, meta.uploadedAt).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -74,7 +74,7 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*FileMeta, e
 
 	err := query.
 		RunWith(s.db).
-		ScanContext(ctx, &res.id, &res.size, &res.mimetype, &res.checksum, &res.uploadedAt)
+		ScanContext(ctx, &res.id, &res.size, &res.mimetype, &res.checksum, &res.key, &res.uploadedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errNotFound
 	}

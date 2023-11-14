@@ -6,6 +6,7 @@ import (
 	v "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -29,6 +30,7 @@ type CreateFileCmd struct {
 	Name       string
 	FileID     uuid.UUID
 	UploadedAt time.Time
+	Key        secret.Text
 }
 
 // Validate the fields.

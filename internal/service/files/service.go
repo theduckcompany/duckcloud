@@ -17,6 +17,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"golang.org/x/sync/errgroup"
 )
@@ -148,6 +149,7 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 		size:       uint64(written),
 		mimetype:   mimeStr,
 		checksum:   checksum,
+		key:        secret.NewText(base64.URLEncoding.EncodeToString(key[:])),
 		uploadedAt: s.clock.Now(),
 	})
 	if err != nil {

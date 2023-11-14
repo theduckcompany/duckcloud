@@ -14,6 +14,8 @@ import (
 // DefaultRedact is used by default if no other redact hint is given.
 const DefaultRedact string = "*****"
 
+var Empty = NewText("")
+
 // Text provides a way to safely store your secret value and a corresponding redact hint. This
 // redact hint what is used in operations like printing and serializing. The default
 // value of Text is usable.
