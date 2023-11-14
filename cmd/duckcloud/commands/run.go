@@ -53,7 +53,7 @@ func NewRunCmd(_ string) *cobra.Command {
 	flags.Bool("self-signed-cert", false, "Generate and use a self-signed HTTPS/TLS certificate ")
 
 	flags.Int("http-port", 5764, "Web server port NUMBER, ignored for Unix domain sockets")
-	flags.IP("http-host", net.IPv4(0, 0, 0, 0), "Web server IP address or Unix domain socket, e.g. unix:/var/run/photoprism.sock")
+	flags.IP("http-host", net.IPv4(0, 0, 0, 0), "Web server IP address")
 	flags.StringSlice("http-hostname", []string{}, "Serve requests for this HOSTNAME only plus")
 
 	return &cmd
