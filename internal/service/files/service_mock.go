@@ -30,25 +30,25 @@ func (_m *MockService) Delete(ctx context.Context, fileID uuid.UUID) error {
 	return r0
 }
 
-// Download provides a mock function with given fields: ctx, fileID
-func (_m *MockService) Download(ctx context.Context, fileID uuid.UUID) (io.ReadSeekCloser, error) {
-	ret := _m.Called(ctx, fileID)
+// Download provides a mock function with given fields: ctx, file
+func (_m *MockService) Download(ctx context.Context, file *FileMeta) (io.ReadSeekCloser, error) {
+	ret := _m.Called(ctx, file)
 
 	var r0 io.ReadSeekCloser
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (io.ReadSeekCloser, error)); ok {
-		return rf(ctx, fileID)
+	if rf, ok := ret.Get(0).(func(context.Context, *FileMeta) (io.ReadSeekCloser, error)); ok {
+		return rf(ctx, file)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) io.ReadSeekCloser); ok {
-		r0 = rf(ctx, fileID)
+	if rf, ok := ret.Get(0).(func(context.Context, *FileMeta) io.ReadSeekCloser); ok {
+		r0 = rf(ctx, file)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(io.ReadSeekCloser)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
-		r1 = rf(ctx, fileID)
+	if rf, ok := ret.Get(1).(func(context.Context, *FileMeta) error); ok {
+		r1 = rf(ctx, file)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -3,6 +3,7 @@ package files
 import (
 	"time"
 
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -11,6 +12,7 @@ type FileMeta struct {
 	size       uint64
 	mimetype   string
 	checksum   string
+	key        secret.Text
 	uploadedAt time.Time
 }
 

@@ -67,7 +67,7 @@
 <script type="module">
   import {Uppy, XHRUpload, StatusBar} from "/assets/js/uppy.min.mjs"
   let client = new Uppy().use(XHRUpload, {
-    endpoint: 'https://{{.host}}/browser/upload',
+    endpoint: '/browser/upload',
     allowMultipleUploadBatches: true
   })
 
@@ -77,8 +77,6 @@
 
   client.on('complete', (result) => {
     htmx.trigger("#content", "refresh-event");
-    // console.log('successful files:', result.successful);
-    // console.log('failed files:', result.failed);
   });
 
   document.getElementById('upload-file-btn').
@@ -109,8 +107,6 @@
 
       input.onchange = e => {
         for (const file of e.target.files) {
-          console.log(file)
-          console.log(file.webkitRelativePath)
           client.addFile({
 
             name: file.webkitRelativePath,

@@ -144,7 +144,12 @@ func (s *LocalFS) Download(ctx context.Context, filePath string) (io.ReadSeekClo
 		return nil, files.ErrInodeNotAFile
 	}
 
-	fileReader, err := s.files.Download(ctx, *fileID)
+	fileMeta, err := s.files.GetMetadata(ctx, *fileID)
+	if err != nil {
+		return nil, err
+	}
+
+	fileReader, err := s.files.Download(ctx, fileMeta)
 	if err != nil {
 		return nil, fmt.Errorf("failed to Open file %q: %w", inode.ID(), err)
 	}

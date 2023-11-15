@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS files (
   "size" NUMERIC NOT NULL,
   "mimetype" TEXT DEFAULT NULL,
   "checksum" TEXT NOT NULL,
+  "key" TEXT NOT NULL,
   "uploaded_at" DATETIME NOT NULL
 );
 
