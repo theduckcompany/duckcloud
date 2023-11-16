@@ -1,4 +1,4 @@
-package storage
+package migrations
 
 import (
 	"database/sql"
@@ -15,12 +15,12 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools"
 )
 
-//go:embed migration/*.sql
+//go:embed *.sql
 var fs embed.FS
 
-func RunMigrations(db *sql.DB, tools tools.Tools) error {
+func Run(db *sql.DB, tools tools.Tools) error {
 	// Error not possible
-	d, _ := iofs.New(fs, "migration")
+	d, _ := iofs.New(fs, ".")
 
 	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
 	if err != nil {

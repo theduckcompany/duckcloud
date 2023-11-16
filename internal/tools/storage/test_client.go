@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/theduckcompany/duckcloud/internal/migrations"
 )
 
 func NewTestStorage(t *testing.T) *sql.DB {
@@ -16,7 +17,7 @@ func NewTestStorage(t *testing.T) *sql.DB {
 	err = client.Ping()
 	require.NoError(t, err)
 
-	err = RunMigrations(client, nil)
+	err = migrations.Run(client, nil)
 	require.NoError(t, err)
 
 	return client

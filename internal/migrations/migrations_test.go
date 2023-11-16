@@ -1,6 +1,7 @@
-package storage
+package migrations
 
 import (
+	"database/sql"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -8,11 +9,21 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools"
 )
 
+func newTestStorage(t *testing.T) *sql.DB {
+	db, err := sql.Open("sqlite3", "file::memory:")
+	require.NoError(t, err)
+
+	err = db.Ping()
+	require.NoError(t, err)
+
+	return db
+}
+
 func TestRunMigration(t *testing.T) {
 	tools := tools.NewMock(t)
-	db := NewTestStorage(t)
+	db := newTestStorage(t)
 
-	err := RunMigrations(db, tools)
+	err := Run(db, tools)
 	require.NoError(t, err)
 
 	row := db.QueryRow(`SELECT COUNT(*) FROM sqlite_schema 
@@ -28,11 +39,11 @@ func TestRunMigration(t *testing.T) {
 
 func TestRunMigrationTwice(t *testing.T) {
 	tools := tools.NewMock(t)
-	db := NewTestStorage(t)
+	db := newTestStorage(t)
 
-	err := RunMigrations(db, tools)
+	err := Run(db, tools)
 	require.NoError(t, err)
 
-	err = RunMigrations(db, tools)
+	err = Run(db, tools)
 	require.NoError(t, err)
 }
