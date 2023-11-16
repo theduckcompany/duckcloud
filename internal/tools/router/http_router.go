@@ -19,11 +19,12 @@ import (
 type API struct{}
 
 type Config struct {
-	Addr     string
-	TLS      bool
-	CertFile string
-	KeyFile  string
-	Services []string
+	Addr      string
+	TLS       bool
+	CertFile  string
+	KeyFile   string
+	Services  []string
+	HostNames []string
 }
 
 type Registerer interface {

@@ -46,9 +46,9 @@ type Config struct {
 	TLSKey         string `mapstructure:"tls-key"`
 	SelfSignedCert bool   `mapstructure:"self-signed-cert"`
 
-	HTTPHost      string `mapstructure:"http-host"`
-	HTTPPort      int    `mapstructure:"http-port"`
-	HTTPHostnames []string
+	HTTPHost      string   `mapstructure:"http-host"`
+	HTTPPort      int      `mapstructure:"http-port"`
+	HTTPHostnames []string `mapstructure:"http-hosts"`
 }
 
 func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
@@ -114,11 +114,12 @@ func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
 	return server.Config{
 		FS: fs,
 		Listener: router.Config{
-			Addr:     net.JoinHostPort(cfg.HTTPHost, strconv.Itoa(cfg.HTTPPort)),
-			TLS:      isTLSEnabled,
-			CertFile: cfg.TLSCert,
-			KeyFile:  cfg.TLSKey,
-			Services: []string{"dav", "auth", "assets", "web"},
+			Addr:      net.JoinHostPort(cfg.HTTPHost, strconv.Itoa(cfg.HTTPPort)),
+			TLS:       isTLSEnabled,
+			CertFile:  cfg.TLSCert,
+			KeyFile:   cfg.TLSKey,
+			Services:  []string{"dav", "auth", "assets", "web"},
+			HostNames: cfg.HTTPHostnames,
 		},
 		Storage: storage.Config{
 			Path: storagePath,

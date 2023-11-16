@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/theduckcompany/duckcloud/internal/service/config"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 )
@@ -24,19 +23,14 @@ type Middlewares struct {
 	CORS         Middleware
 }
 
-func InitMiddlewares(tools tools.Tools, configSvc config.Service) *Middlewares {
+func InitMiddlewares(tools tools.Tools, cfg Config) *Middlewares {
 	return &Middlewares{
 		StripSlashed: middleware.StripSlashes,
 		Logger:       logger.NewRouterLogger(tools.Logger()),
 		OnlyJSON:     middleware.AllowContentType("application/json"),
 		RealIP:       middleware.RealIP,
 		CORS: cors.Handler(cors.Options{
-			AllowOriginFunc: func(r *http.Request, origin string) bool {
-				hosts, err := configSvc.GetTrustedHosts(r.Context())
-				if err != nil {
-					return false
-				}
-
+			AllowOriginFunc: func(_ *http.Request, origin string) bool {
 				url, err := url.ParseRequestURI(origin)
 				if err != nil {
 					log.Printf("failed to parse the request uri: %s", err)
@@ -48,7 +42,7 @@ func InitMiddlewares(tools tools.Tools, configSvc config.Service) *Middlewares {
 					host = url.Host
 				}
 
-				return slices.Contains[[]string, string](hosts, host)
+				return slices.Contains[[]string, string](cfg.HostNames, host)
 			},
 			AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 			AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
