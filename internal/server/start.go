@@ -10,6 +10,7 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/theduckcompany/duckcloud/assets"
+	"github.com/theduckcompany/duckcloud/internal/migrations"
 	"github.com/theduckcompany/duckcloud/internal/service/config"
 	"github.com/theduckcompany/duckcloud/internal/service/dav"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
@@ -120,6 +121,8 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 			// Task Runner
 			fx.Annotate(runner.Init, fx.ParamTags(`group:"tasks"`), fx.As(new(runner.Service))),
 		),
+
+		fx.Invoke(migrations.Run),
 
 		// Start the tasks-runner
 		fx.Invoke(func(svc runner.Service, lc fx.Lifecycle, tools tools.Tools) {
