@@ -10,6 +10,7 @@ import (
 	"path"
 
 	"github.com/spf13/afero"
+	"github.com/theduckcompany/duckcloud/internal/service/config"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"go.uber.org/fx"
@@ -29,6 +30,7 @@ type Result struct {
 }
 
 func Init(
+	config config.Service,
 	dirPath string,
 	fs afero.Fs,
 	tools tools.Tools,
@@ -48,7 +50,7 @@ func Init(
 		return Result{}, fmt.Errorf("failed to setup the file storage directory: %w", err)
 	}
 
-	service := NewFileService(storage, rootFS, tools)
+	service := NewFileService(storage, rootFS, tools, config)
 
 	return Result{
 		Service: service,

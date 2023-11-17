@@ -9,12 +9,21 @@ import (
 
 var now = time.Now().UTC()
 
+var ExampleSealedKey *secret.SealedKey
+
+func init() {
+	masterKey, _ := secret.NewKey()
+	key, _ := secret.NewKey()
+
+	ExampleSealedKey, _ = secret.SealKey(masterKey, key)
+}
+
 var ExampleFile1 = FileMeta{
 	id:         uuid.UUID("abf05a02-8af9-4184-a46d-847f7d951c6b"),
 	size:       42,
 	mimetype:   "text/plain; charset=utf-8",
 	checksum:   "wGKmdG7y2opGyALNvIp9pmFCJXgoaQ2-3EMdM03ADKQ=",
-	key:        secret.NewText("someencryptedkey"),
+	key:        ExampleSealedKey,
 	uploadedAt: now,
 }
 
@@ -22,7 +31,7 @@ var ExampleFile2 = FileMeta{
 	id:         uuid.UUID("66278d2b-7a4f-4764-ac8a-fc08f224eb66"),
 	size:       22,
 	mimetype:   "text/plain; charset=utf-8",
-	key:        secret.NewText("someencryptedkey"),
+	key:        ExampleSealedKey,
 	checksum:   "SDoHdxhNbtfFu9ZN9PGKKc6wW1Dk1P3YJbU3LK-gehY=",
 	uploadedAt: now,
 }
