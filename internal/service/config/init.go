@@ -16,18 +16,18 @@ type Service interface {
 	GetMasterKey(ctx context.Context) (*secret.Key, error)
 }
 
-func Init(db *sql.DB) (Service, error) {
+func Init(ctx context.Context, db *sql.DB) (Service, error) {
 	storage := newSqlStorage(db)
 
 	svc := NewService(storage)
 
-	masterKey, err := svc.GetMasterKey(context.Background())
+	masterKey, err := svc.GetMasterKey(ctx)
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		return nil, fmt.Errorf("failed to get the master key: %w", err)
 	}
 
 	if masterKey == nil {
-		err = svc.generateMasterKey(context.Background())
+		err = svc.generateMasterKey(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate a new master key: %w", err)
 		}

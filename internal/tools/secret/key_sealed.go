@@ -57,7 +57,7 @@ func (k *SealedKey) Open(masterKey *Key) (*Key, error) {
 
 	decrypted, ok := secretbox.Open(nil, k.v[nonceLength:], &decryptNonce, (*[KeyLength]byte)(masterKey.Raw()))
 	if !ok {
-		return nil, errors.New("failed to open sealed key")
+		return nil, errors.New("failed to open the sealed key")
 	}
 
 	if len(decrypted) != KeyLength {

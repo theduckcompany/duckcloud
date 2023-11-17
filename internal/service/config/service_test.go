@@ -2,7 +2,6 @@ package config
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,8 +28,6 @@ func TestConfig(t *testing.T) {
 	t.Run("GetMasterKey success", func(t *testing.T) {
 		res, err := svc.GetMasterKey(ctx)
 		require.NoError(t, err)
-
-		fmt.Printf("%q == %q\n", key.Base64(), res.Base64())
 
 		assert.True(t, res.Equals(key))
 	})
