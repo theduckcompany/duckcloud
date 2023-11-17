@@ -11,8 +11,8 @@ import (
 	"log/slog"
 )
 
-// DefaultRedact is used by default if no other redact hint is given.
-const DefaultRedact string = "*****"
+// RedactText is used by default if no other redact hint is given.
+const RedactText string = "*****"
 
 var Empty = NewText("")
 
@@ -37,7 +37,7 @@ func NewText(s string) Text {
 // String implements the fmt.Stringer interface and returns only the redact hint. This prevents the
 // secret value from being printed to std*, logs etc.
 func (s Text) String() string {
-	return DefaultRedact
+	return RedactText
 }
 
 // Raw gives you access to the actual secret value stored inside Text.
@@ -48,11 +48,11 @@ func (s Text) Raw() string {
 // MarshalText implements [encoding.TextMarshaler]. It marshals redact string into bytes rather than the actual
 // secret value.
 func (s Text) MarshalText() ([]byte, error) {
-	return []byte(DefaultRedact), nil
+	return []byte(RedactText), nil
 }
 
 // UnmarshalText implements [encoding.TextUnmarshaler]. It unmarshals b into receiver's new secret value.
-// If redact string is present then it is reused otherwise [DefaultRedact] is used.
+// If redact string is present then it is reused otherwise [RedactText] is used.
 func (s *Text) UnmarshalText(b []byte) error {
 	v := string(b)
 
@@ -64,10 +64,10 @@ func (s *Text) UnmarshalText(b []byte) error {
 // MarshalJSON allows Text to be serialized into a JSON string. Only the redact hint is part of the
 // the JSON string.
 func (s Text) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf(`"%s"`, DefaultRedact)), nil
+	return []byte(fmt.Sprintf(`"%s"`, RedactText)), nil
 }
 
-// UnmarshalJSON allows a JSON string to be deserialized into a Text value. DefaultRedact is set
+// UnmarshalJSON allows a JSON string to be deserialized into a Text value. RedactText is set
 // as the redact hint.
 func (s *Text) UnmarshalJSON(b []byte) error {
 	// Get the new secret value from unmarshalled data.
@@ -102,5 +102,5 @@ func (s *Text) Scan(src any) error {
 }
 
 func (s Text) LogValue() slog.Value {
-	return slog.StringValue(DefaultRedact)
+	return slog.StringValue(RedactText)
 }

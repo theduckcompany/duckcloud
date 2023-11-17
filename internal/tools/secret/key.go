@@ -1,6 +1,7 @@
 package secret
 
 import (
+	"bytes"
 	"crypto/rand"
 	"database/sql/driver"
 	"encoding/base64"
@@ -9,11 +10,11 @@ import (
 	"log/slog"
 )
 
-const DefaultKeyLength = 32
+const KeyLength = 32
 
 type Key struct {
 	// v is the actual secret values.
-	v [DefaultKeyLength]byte
+	v [KeyLength]byte
 }
 
 func NewKey() (*Key, error) {
@@ -27,7 +28,7 @@ func NewKey() (*Key, error) {
 	return &key, nil
 }
 
-func FromBase64(str string) (*Key, error) {
+func KeyFromBase64(str string) (*Key, error) {
 	key := Key{}
 
 	_, err := base64.RawStdEncoding.Strict().Decode(key.v[:], []byte(str))
@@ -40,69 +41,73 @@ func FromBase64(str string) (*Key, error) {
 
 // String implements the fmt.Stringer interface and returns only the redact hint. This prevents the
 // secret value from being printed to std*, logs etc.
-func (s Key) String() string {
-	return DefaultRedact
+func (k *Key) String() string {
+	return RedactText
 }
 
 // Raw gives you access to the actual secret value stored inside Key.
-func (s Key) Base64() string {
-	return base64.RawStdEncoding.Strict().EncodeToString(s.v[:])
+func (k *Key) Base64() string {
+	return base64.RawStdEncoding.Strict().EncodeToString(k.v[:])
+}
+
+func (k *Key) Raw() []byte {
+	return bytes.Clone(k.v[:])
 }
 
 // MarshalKey implements [encoding.KeyMarshaler]. It marshals redact string into bytes rather than the actual
 // secret value.
-func (s Key) MarshalText() ([]byte, error) {
-	return []byte(DefaultRedact), nil
+func (k *Key) MarshalText() ([]byte, error) {
+	return []byte(RedactText), nil
 }
 
 // UnmarshalKey implements [encoding.KeyUnmarshaler]. It unmarshals b into receiver's new secret value.
 // If redact string is present then it is reused otherwise [DefaultRedact] is used.
-func (s *Key) UnmarshalText(b []byte) error {
+func (k *Key) UnmarshalText(b []byte) error {
 	v := string(b)
 
 	// If the original redact is not nil then use it otherwise fallback to default.
-	res, err := FromBase64(v)
+	res, err := KeyFromBase64(v)
 	if err != nil {
 		return err
 	}
 
-	*s = *res
+	*k = *res
 
 	return nil
 }
 
 // MarshalJSON allows Key to be serialized into a JSON string. Only the redact hint is part of the
 // the JSON string.
-func (s Key) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf(`"%s"`, DefaultRedact)), nil
+func (k Key) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf(`"%s"`, RedactText)), nil
 }
 
 // UnmarshalJSON allows a JSON string to be deserialized into a Key value. DefaultRedact is set
 // as the redact hint.
-func (s *Key) UnmarshalJSON(b []byte) error {
+func (k *Key) UnmarshalJSON(b []byte) error {
 	// Get the new secret value from unmarshalled data.
 	var n string
 	if err := json.Unmarshal(b, &n); err != nil {
 		return err
 	}
 
-	res, err := FromBase64(n)
+	res, err := KeyFromBase64(n)
 	if err != nil {
 		return err
 	}
 
-	*s = *res
+	*k = *res
 
 	return nil
 }
 
 // Equals checks whether s2 has same secret string or not.
-func (s *Key) Equals(s2 *Key) bool {
-	return s.v == s2.v
+func (k *Key) Equals(s2 *Key) bool {
+	return k.v == s2.v
 }
 
-func (s Key) Value() (driver.Value, error) {
-	return s.v[:], nil
+func (k Key) Value() (driver.Value, error) {
+	return k.v[:], nil
 }
 
 func (s *Key) Scan(src any) error {
@@ -111,11 +116,11 @@ func (s *Key) Scan(src any) error {
 		return fmt.Errorf("expected a []byte")
 	}
 
-	s.v = [DefaultKeyLength]byte(v)
+	s.v = [KeyLength]byte(v)
 
 	return nil
 }
 
 func (s Key) LogValue() slog.Value {
-	return slog.StringValue(DefaultRedact)
+	return slog.StringValue(RedactText)
 }

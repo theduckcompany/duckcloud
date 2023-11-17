@@ -2,7 +2,6 @@ package files
 
 import (
 	"context"
-	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"errors"
@@ -14,6 +13,7 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/minio/sio"
 	"github.com/spf13/afero"
+	"github.com/theduckcompany/duckcloud/internal/service/config"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -37,14 +37,15 @@ type Storage interface {
 }
 
 type FileService struct {
+	config  config.Service
 	storage Storage
 	fs      afero.Fs
 	uuid    uuid.Service
 	clock   clock.Clock
 }
 
-func NewFileService(storage Storage, rootFS afero.Fs, tools tools.Tools) *FileService {
-	return &FileService{storage, rootFS, tools.UUID(), tools.Clock()}
+func NewFileService(storage Storage, rootFS afero.Fs, tools tools.Tools, config config.Service) *FileService {
+	return &FileService{config, storage, rootFS, tools.UUID(), tools.Clock()}
 }
 
 func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error) {
@@ -58,15 +59,15 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 		return "", errs.Internal(fmt.Errorf("failed to create the file: %w", err))
 	}
 
-	var key [32]byte
-	if _, err := io.ReadFull(rand.Reader, key[:]); err != nil {
-		return "", fmt.Errorf("Failed to read random data: %v", err) // add error handling
+	key, err := secret.NewKey()
+	if err != nil {
+		return "", fmt.Errorf("failed to create a new key: %w", err)
 	}
 
 	g, ctx := errgroup.WithContext(ctx)
 
 	// Start the file encryption
-	encryptWriter, err := sio.EncryptWriter(file, sio.Config{Key: key[:]})
+	encryptWriter, err := sio.EncryptWriter(file, sio.Config{Key: key.Raw()})
 	if err != nil {
 		return "", fmt.Errorf("failed to create the file encryption: %w", err)
 	}
@@ -96,6 +97,22 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 		mimeStr = mime.String()
 
 		io.Copy(io.Discard, mimeReader)
+
+		return nil
+	})
+
+	// Start the key sealing
+	var sealedKey *secret.SealedKey
+	g.Go(func() error {
+		masterKey, err := s.config.GetMasterKey(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get the master key: %w", err)
+		}
+
+		sealedKey, err = secret.SealKey(masterKey, key)
+		if err != nil {
+			return fmt.Errorf("failed to sealed the key: %w", err)
+		}
 
 		return nil
 	})
@@ -142,7 +159,7 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 		size:       uint64(written),
 		mimetype:   mimeStr,
 		checksum:   checksum,
-		key:        secret.NewText(base64.RawStdEncoding.Strict().EncodeToString(key[:])),
+		key:        sealedKey,
 		uploadedAt: s.clock.Now(),
 	})
 	if err != nil {
@@ -183,12 +200,17 @@ func (s *FileService) Download(ctx context.Context, fileMeta *FileMeta) (io.Read
 		return nil, errs.Internal(fmt.Errorf("failed to open the file: %w", err))
 	}
 
-	keyBytes, err := base64.RawStdEncoding.Strict().DecodeString(fileMeta.key.Raw())
+	masterKey, err := s.config.GetMasterKey(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode the file key: %w", err)
+		return nil, fmt.Errorf("failed to get the master key: %w", err)
 	}
 
-	reader, err := sio.DecryptReaderAt(file, sio.Config{Key: keyBytes})
+	rawKey, err := fileMeta.key.Open(masterKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open the sealed key: %w", err)
+	}
+
+	reader, err := sio.DecryptReaderAt(file, sio.Config{Key: rawKey.Raw()})
 	if err != nil {
 		sioErr := sio.Error{}
 		if errors.As(err, &sioErr) {

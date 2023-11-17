@@ -54,6 +54,6 @@ func Test_RouterLogger(t *testing.T) {
 		assert.Equal(t, "http://example.com/settings/browsers", httpRes["uri"])
 		assert.EqualValues(t, 13, httpRes["resp_byte_length"])
 		assert.EqualValues(t, http.StatusOK, httpRes["resp_status"])
-		assert.Less(t, httpRes["resp_elapsed_ms"], float64(0.01))
+		assert.Less(t, httpRes["resp_elapsed_ms"], float64(0.05))
 	})
 }

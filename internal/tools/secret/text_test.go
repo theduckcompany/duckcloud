@@ -72,7 +72,7 @@ func TestText(t *testing.T) {
 		assert.Implements(t, (*slog.LogValuer)(nil), s1)
 
 		res := s1.LogValue()
-		assert.Equal(t, slog.StringValue(DefaultRedact), res)
+		assert.Equal(t, slog.StringValue(RedactText), res)
 	})
 
 	t.Run("Scan", func(t *testing.T) {

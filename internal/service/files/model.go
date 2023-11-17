@@ -12,7 +12,7 @@ type FileMeta struct {
 	size       uint64
 	mimetype   string
 	checksum   string
-	key        secret.Text
+	key        *secret.SealedKey
 	uploadedAt time.Time
 }
 

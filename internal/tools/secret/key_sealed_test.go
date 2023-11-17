@@ -9,104 +9,127 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestKey(t *testing.T) {
+func TestSealedKey(t *testing.T) {
+	masterKey, err := NewKey()
+	require.NoError(t, err)
+
 	k1, err := NewKey()
 	require.NoError(t, err)
 
+	var sk1 *SealedKey
+
+	t.Run("SealKey", func(t *testing.T) {
+		var err error
+
+		sk1, err = SealKey(masterKey, k1)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, sk1)
+	})
+
+	t.Run("SealedKey != key", func(t *testing.T) {
+		assert.NotEqual(t, k1, sk1)
+	})
+
+	t.Run("Open key", func(t *testing.T) {
+		res, err := sk1.Open(masterKey)
+		assert.NoError(t, err)
+		assert.True(t, k1.Equals(res))
+	})
+
 	t.Run("MarshalJSON", func(t *testing.T) {
-		res, err := k1.MarshalJSON()
+		res, err := sk1.MarshalJSON()
 		assert.NoError(t, err)
 
 		assert.Equal(t, `"*****"`, string(res))
 	})
 
 	t.Run("MarshalText", func(t *testing.T) {
-		res, err := k1.MarshalText()
+		res, err := sk1.MarshalText()
 		assert.NoError(t, err)
 
 		assert.Equal(t, `*****`, string(res))
 	})
 
 	t.Run("String", func(t *testing.T) {
-		assert.Equal(t, `*****`, k1.String())
+		assert.Equal(t, `*****`, sk1.String())
 	})
 
 	t.Run("Base64", func(t *testing.T) {
-		res, err := base64.RawStdEncoding.Strict().DecodeString(k1.Base64())
+		res, err := base64.RawStdEncoding.Strict().DecodeString(sk1.Base64())
 		assert.NoError(t, err)
 
-		assert.Len(t, res, KeyLength)
+		assert.Len(t, res, SealedKeyLength)
 	})
 
 	t.Run("Equals", func(t *testing.T) {
-		k2, err := KeyFromBase64(k1.Base64())
+		sk2, err := SealedKeyFromBase64(sk1.Base64())
 		require.NoError(t, err)
 
-		assert.True(t, k1.Equals(k2))
-		assert.True(t, k2.Equals(k1))
+		assert.True(t, sk1.Equals(sk2))
+		assert.True(t, sk2.Equals(sk1))
 	})
 
 	t.Run("UnmarshalJSON", func(t *testing.T) {
-		var res Key
+		var res SealedKey
 
-		err := res.UnmarshalJSON([]byte(`"lVLJtxsIkQkaiNR0QXYGH7zK9sFM4/Mfw9GwQnYGIO8"`))
+		err := res.UnmarshalJSON([]byte(`"KU5eVc37f3377a99sQ/Q/xyBJ6anzn65exn1WYEgljoK1u3CVZwiGvPgNLEJQwMgHPWw+H0KiaK/yLEuEipceOKT9cswzVUm"`))
 		assert.NoError(t, err)
 
-		expected, err := KeyFromBase64("lVLJtxsIkQkaiNR0QXYGH7zK9sFM4/Mfw9GwQnYGIO8")
+		expected, err := SealedKeyFromBase64("KU5eVc37f3377a99sQ/Q/xyBJ6anzn65exn1WYEgljoK1u3CVZwiGvPgNLEJQwMgHPWw+H0KiaK/yLEuEipceOKT9cswzVUm")
 		require.NoError(t, err)
 
 		assert.True(t, res.Equals(expected))
 	})
 
 	t.Run("UnmarshalJSON with an encoding error", func(t *testing.T) {
-		var res Key
+		var res SealedKey
 
 		err := res.UnmarshalJSON([]byte(`"invalid"`))
 		assert.EqualError(t, err, "decoding error: illegal base64 data at input byte 6")
 	})
 
 	t.Run("UnmarshalJSON with an invalid type", func(t *testing.T) {
-		var res Key
+		var res SealedKey
 
 		err := res.UnmarshalJSON([]byte(`32`))
 		assert.EqualError(t, err, "json: cannot unmarshal number into Go value of type string")
 	})
 
 	t.Run("UnmarshalText", func(t *testing.T) {
-		var res Key
+		var res SealedKey
 
-		err := res.UnmarshalText([]byte(`nSHd8MGyRi6FLwjT82u4Tg7w2LGaVg3mwmYnEWmrzqM`))
+		err := res.UnmarshalText([]byte(`a7g0dYQdk7DexmG5Nsal1O9gMUPmxo5zfpyr6U4Mdvo/QQkyiJHmpRnYuI7IapGtlcvlbxbkySXYNlw2HZhRqQvLeAgjvbfd`))
 		assert.NoError(t, err)
 
 		assert.NotEmpty(t, res.v)
 	})
 
 	t.Run("UnmarshalText with an decoding error", func(t *testing.T) {
-		var res Key
+		var res SealedKey
 
 		err := res.UnmarshalText([]byte("invalid"))
 		assert.EqualError(t, err, "decoding error: illegal base64 data at input byte 6")
 	})
 
 	t.Run("Value", func(t *testing.T) {
-		v, err := k1.Value()
+		v, err := sk1.Value()
 		assert.NoError(t, err)
 
 		assert.IsType(t, []byte{}, v)
-		assert.Len(t, v, KeyLength)
+		assert.Len(t, v, SealedKeyLength)
 	})
 
 	t.Run("Logvalue", func(t *testing.T) {
-		assert.Implements(t, (*slog.LogValuer)(nil), k1)
+		assert.Implements(t, (*slog.LogValuer)(nil), sk1)
 
-		res := k1.LogValue()
+		res := sk1.LogValue()
 		assert.Equal(t, slog.StringValue(RedactText), res)
 	})
 
 	t.Run("Scan", func(t *testing.T) {
-		var res Key
+		var res SealedKey
 
-		expected, err := KeyFromBase64("lVLJtxsIkQkaiNR0QXYGH7zK9sFM4/Mfw9GwQnYGIO8")
+		expected, err := SealedKeyFromBase64("BKgSe9jPaIGQWn7EZd+44BduGVgvZyZ23rvAWSvEKJ02mwDzerGwlltpsVbDMWI2N+XimZLXKKX84TnIbF2XXKPU7V/tY4pz")
 		require.NoError(t, err)
 
 		err = res.Scan(expected.v[:])
@@ -116,9 +139,9 @@ func TestKey(t *testing.T) {
 	})
 
 	t.Run("Scan with an invalid type", func(t *testing.T) {
-		var res Key
+		var res SealedKey
 
-		err := res.Scan("lVLJtxsIkQkaiNR0QXYGH7zK9sFM4/Mfw9GwQnYGIO8")
+		err := res.Scan("BKgSe9jPaIGQWn7EZd+44BduGVgvZyZ23rvAWSvEKJ02mwDzerGwlltpsVbDMWI2N+XimZLXKKX84TnIbF2XXKPU7V/tY4pz")
 		assert.EqualError(t, err, "expected a []byte")
 	})
 }

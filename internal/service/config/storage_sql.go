@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 )
 
 const tableName = "config"
@@ -21,7 +22,7 @@ func newSqlStorage(db *sql.DB) *sqlStorage {
 	return &sqlStorage{db}
 }
 
-func (s *sqlStorage) Save(ctx context.Context, key ConfigKey, value string) error {
+func (s *sqlStorage) Save(ctx context.Context, key ConfigKey, value any) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns("key", "value").
@@ -36,22 +37,31 @@ func (s *sqlStorage) Save(ctx context.Context, key ConfigKey, value string) erro
 	return nil
 }
 
-func (s *sqlStorage) Get(ctx context.Context, key ConfigKey) (string, error) {
-	var res string
+func (s *sqlStorage) GetKey(ctx context.Context, key ConfigKey) (*secret.Key, error) {
+	var res secret.Key
 
+	err := s.get(ctx, key, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+func (s *sqlStorage) get(ctx context.Context, key ConfigKey, val any) error {
 	err := sq.
 		Select("value").
 		From(tableName).
 		Where(sq.Eq{"key": key}).
 		RunWith(s.db).
-		ScanContext(ctx, &res)
+		ScanContext(ctx, val)
 	if errors.Is(err, sql.ErrNoRows) {
-		return "", errNotfound
+		return errNotfound
 	}
 
 	if err != nil {
-		return "", fmt.Errorf("sql error: %w", err)
+		return fmt.Errorf("sql error: %w", err)
 	}
 
-	return res, nil
+	return nil
 }

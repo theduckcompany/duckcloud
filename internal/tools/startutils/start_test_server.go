@@ -55,7 +55,9 @@ func NewServer(t *testing.T) *Server {
 	db := storage.NewTestStorage(t)
 	afs := afero.NewMemMapFs()
 
-	configSvc := config.Init(db)
+	configSvc, err := config.Init(ctx, db)
+	require.NoError(t, err)
+
 	foldersSvc := folders.Init(tools, db)
 	schedulerSvc := scheduler.Init(db, tools)
 	webSessionsSvc := websessions.Init(tools, db)
@@ -63,7 +65,7 @@ func NewServer(t *testing.T) *Server {
 	oauthSessionsSvc := oauthsessions.Init(tools, db)
 	oauthConsentsSvc := oauthconsents.Init(tools, db)
 
-	filesInit, err := files.Init("/", afs, tools, db)
+	filesInit, err := files.Init(configSvc, "/", afs, tools, db)
 	require.NoError(t, err)
 
 	dfsInit, err := dfs.Init(db, foldersSvc, filesInit.Service, schedulerSvc, tools)
