@@ -32,12 +32,17 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 )
 
-var ErrConflictTLSConfig = errors.New("can't use --self-signed-cert and --tls-key at the same time")
+var (
+	ErrConflictTLSConfig = errors.New("can't use --self-signed-cert and --tls-key at the same time")
+	ErrDevFlagRequire    = errors.New("this flag require the --dev flag setup")
+)
 
 type Config struct {
 	LogLevel string `mapstructure:"log-level"`
 	Debug    bool   `mapstructure:"debug"`
-	Dev      bool   `mapstructure:"dev"`
+
+	Dev       bool `mapstructure:"dev"`
+	HotReload bool `mapstructure:"hot-reload"`
 
 	Folder   string `mapstructure:"folder"`
 	MemoryFS bool   `mapstructure:"memory-fs"`
@@ -62,6 +67,14 @@ func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
 	err := viper.Unmarshal(&cfg)
 	if err != nil {
 		return server.Config{}, fmt.Errorf("config error: %w", err)
+	}
+
+	if cfg.HotReload && !cfg.Dev {
+		return server.Config{}, fmt.Errorf("--hot-reload: %q", ErrDevFlagRequire)
+	}
+
+	if cfg.MemoryFS && !cfg.Dev {
+		return server.Config{}, fmt.Errorf("--memory-fs: %q", ErrDevFlagRequire)
 	}
 
 	var logLevel slog.Level
@@ -125,7 +138,7 @@ func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
 			Path: storagePath,
 		},
 		Assets: assets.Config{
-			HotReload: cfg.Dev,
+			HotReload: cfg.HotReload,
 		},
 		Tools: tools.Config{
 			Response: response.Config{
@@ -140,7 +153,7 @@ func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
 		Web: web.Config{
 			HTML: html.Config{
 				PrettyRender: cfg.Dev,
-				HotReload:    cfg.Dev,
+				HotReload:    cfg.HotReload,
 			},
 		},
 	}, nil

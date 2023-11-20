@@ -24,7 +24,7 @@ func Test_NewRunCmd(t *testing.T) {
 		defer cancel()
 
 		// --memory-fs is used to leave no trace to the host
-		cmd.SetArgs([]string{"--memory-fs", "--folder=/duckcloud-test"})
+		cmd.SetArgs([]string{"--dev", "--memory-fs", "--folder=/duckcloud-test"})
 		var cmdErr error
 		var wg sync.WaitGroup
 		go func() {
@@ -68,7 +68,7 @@ func Test_NewRunCmd(t *testing.T) {
 		t.Setenv("DUCKCLOUD_LOG-LEVEL", "info")
 		t.Setenv("DUCKCLOUD_FOLDER", "duckloud-test")
 
-		cmd.SetArgs([]string{"--memory-fs"})
+		cmd.SetArgs([]string{"--memory-fs", "--dev"})
 		var cmdErr error
 		var wg sync.WaitGroup
 		go func() {
@@ -108,7 +108,7 @@ func Test_NewRunCmd(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		cmd.SetArgs([]string{"--self-signed-cert", "--memory-fs", "--folder=/duckcloud-test", "--log-level=info"})
+		cmd.SetArgs([]string{"--self-signed-cert", "--memory-fs", "--dev", "--folder=/duckcloud-test", "--log-level=info"})
 		var cmdErr error
 		var wg sync.WaitGroup
 		go func() {
@@ -152,7 +152,7 @@ func Test_NewRunCmd(t *testing.T) {
 		cmd.SetErr(io.Discard)
 		cmd.SetOut(io.Discard)
 
-		cmd.SetArgs([]string{"--self-signed-cert", "--tls-key=/foo/bar", "--memory-fs", "--folder=/foobar"})
+		cmd.SetArgs([]string{"--self-signed-cert", "--tls-key=/foo/bar", "--memory-fs", "--dev", "--folder=/foobar"})
 		err := cmd.Execute()
 
 		assert.EqualError(t, err, ErrConflictTLSConfig.Error())
