@@ -344,7 +344,7 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 
 	dirPath := path.Dir(fullPath)
 	_, err = ffs.CreateDir(ctx, dirPath)
-	if err != nil && !errors.Is(err, fs.ErrExist) {
+	if err != nil && !errors.Is(err, dfs.ErrAlreadyExists) {
 		return fmt.Errorf("failed to create the directory %q: %w", dirPath, err)
 	}
 

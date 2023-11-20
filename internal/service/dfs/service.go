@@ -20,6 +20,7 @@ const DefaultFolderName = "My files"
 var (
 	ErrNotImplemented = errors.New("not implemented")
 	ErrInvalidPath    = inodes.ErrInvalidPath
+	ErrAlreadyExists  = inodes.ErrAlreadyExists
 )
 
 type FSService struct {
