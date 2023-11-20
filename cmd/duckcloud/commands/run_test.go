@@ -15,10 +15,12 @@ import (
 )
 
 func Test_NewRunCmd(t *testing.T) {
+	t.Setenv("DUCKCLOUD_DEV", "true")
+
 	t.Run("success with default args", func(t *testing.T) {
 		cmd := NewRunCmd("duckcloud-test")
 
-		t.Setenv("COUCHDB_DEBUG", "true")
+		t.Setenv("DUCKCLOUD_DEBUG", "true")
 
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()

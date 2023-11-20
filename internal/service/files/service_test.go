@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/config"
+	"github.com/theduckcompany/duckcloud/internal/service/masterkey"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
@@ -26,9 +27,10 @@ func TestFileService(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		db := storage.NewTestStorage(t)
 		storage := newSqlStorage(db)
-		cfgSvc, err := config.Init(ctx, db)
+		cfgSvc := config.Init(ctx, db)
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true})
 		require.NoError(t, err)
-		svc := NewFileService(storage, fs, tools, cfgSvc)
+		svc := NewFileService(storage, fs, tools, masterkeySvc)
 
 		fileID, err := svc.Upload(ctx, bytes.NewReader([]byte("Hello, World!")))
 		assert.NoError(t, err)
@@ -49,9 +51,10 @@ func TestFileService(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		db := storage.NewTestStorage(t)
 		storage := newSqlStorage(db)
-		cfgSvc, err := config.Init(ctx, db)
+		cfgSvc := config.Init(ctx, db)
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true})
 		require.NoError(t, err)
-		svc := NewFileService(storage, fs, tools, cfgSvc)
+		svc := NewFileService(storage, fs, tools, masterkeySvc)
 
 		// Create an fs error by removing the write permission
 		svc.fs = afero.NewReadOnlyFs(fs)
@@ -67,9 +70,10 @@ func TestFileService(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		db := storage.NewTestStorage(t)
 		storage := newSqlStorage(db)
-		cfgSvc, err := config.Init(ctx, db)
+		cfgSvc := config.Init(ctx, db)
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true})
 		require.NoError(t, err)
-		svc := NewFileService(storage, fs, tools, cfgSvc)
+		svc := NewFileService(storage, fs, tools, masterkeySvc)
 
 		// Create a file
 		fileID, err := svc.Upload(ctx, bytes.NewReader([]byte("Hello, World!")))
@@ -94,9 +98,10 @@ func TestFileService(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		db := storage.NewTestStorage(t)
 		storage := newSqlStorage(db)
-		cfgSvc, err := config.Init(ctx, db)
+		cfgSvc := config.Init(ctx, db)
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true})
 		require.NoError(t, err)
-		svc := NewFileService(storage, fs, tools, cfgSvc)
+		svc := NewFileService(storage, fs, tools, masterkeySvc)
 
 		// Create a file
 		fileID, err := svc.Upload(ctx, iotest.ErrReader(fmt.Errorf("some-error")))
@@ -111,9 +116,10 @@ func TestFileService(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		db := storage.NewTestStorage(t)
 		storageMock := NewMockStorage(t)
-		cfgSvc, err := config.Init(ctx, db)
+		cfgSvc := config.Init(ctx, db)
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true})
 		require.NoError(t, err)
-		svc := NewFileService(storageMock, fs, tools, cfgSvc)
+		svc := NewFileService(storageMock, fs, tools, masterkeySvc)
 
 		storageMock.On("GetByID", mock.Anything, ExampleFile1.ID()).Return(&ExampleFile1, nil).Once()
 
@@ -127,9 +133,10 @@ func TestFileService(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		db := storage.NewTestStorage(t)
 		storageMock := NewMockStorage(t)
-		cfgSvc, err := config.Init(ctx, db)
+		cfgSvc := config.Init(ctx, db)
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true})
 		require.NoError(t, err)
-		svc := NewFileService(storageMock, fs, tools, cfgSvc)
+		svc := NewFileService(storageMock, fs, tools, masterkeySvc)
 
 		storageMock.On("GetByChecksum", mock.Anything, "some-checksum").Return(&ExampleFile1, nil).Once()
 
@@ -142,17 +149,18 @@ func TestFileService(t *testing.T) {
 		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
 		db := storage.NewTestStorage(t)
-		storageMock := NewMockStorage(t)
-		cfgSvc, err := config.Init(ctx, db)
+		storage := newSqlStorage(db)
+		cfgSvc := config.Init(ctx, db)
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true})
 		require.NoError(t, err)
-		svc := NewFileService(storageMock, fs, tools, cfgSvc)
+		svc := NewFileService(storage, fs, tools, masterkeySvc)
 
 		err = afero.WriteFile(fs, "66/66278d2b-7a4f-4764-ac8a-fc08f224eb66", []byte("not encrypted"), 0o755)
 		require.NoError(t, err)
 
 		reader, err := svc.Download(ctx, &ExampleFile2)
 		assert.Nil(t, reader)
-		assert.EqualError(t, err, "failed to open the sealed key: failed to open the sealed key")
+		assert.EqualError(t, err, "failed to open the file key: failed to open the sealed key")
 	})
 }
 

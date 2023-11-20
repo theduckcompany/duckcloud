@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/assets"
+	"github.com/theduckcompany/duckcloud/internal/service/masterkey"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
@@ -22,13 +23,14 @@ import (
 )
 
 var testConfig = Config{
-	FS:       afero.NewMemMapFs(),
-	Listener: router.Config{},
-	Assets:   assets.Config{},
-	Storage:  storage.Config{Path: ":memory:"},
-	Tools:    tools.Config{Log: logger.Config{Output: io.Discard}},
-	Web:      web.Config{},
-	Folder:   "/foo",
+	FS:        afero.NewMemMapFs(),
+	Listener:  router.Config{},
+	Assets:    assets.Config{},
+	Storage:   storage.Config{Path: ":memory:"},
+	Tools:     tools.Config{Log: logger.Config{Output: io.Discard}},
+	Web:       web.Config{},
+	MasterKey: masterkey.Config{DevMode: true},
+	Folder:    "/foo",
 }
 
 func TestServerStart(t *testing.T) {

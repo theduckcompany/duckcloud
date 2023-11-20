@@ -37,8 +37,8 @@ func (s *sqlStorage) Save(ctx context.Context, key ConfigKey, value any) error {
 	return nil
 }
 
-func (s *sqlStorage) GetKey(ctx context.Context, key ConfigKey) (*secret.Key, error) {
-	var res secret.Key
+func (s *sqlStorage) GetKey(ctx context.Context, key ConfigKey) (*secret.SealedKey, error) {
+	var res secret.SealedKey
 
 	err := s.get(ctx, key, &res)
 	if err != nil {

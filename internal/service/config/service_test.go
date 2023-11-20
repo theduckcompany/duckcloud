@@ -17,11 +17,17 @@ func TestConfig(t *testing.T) {
 	store := newSqlStorage(db)
 	svc := NewService(store)
 
+	masterKey, err := secret.NewKey()
+	require.NoError(t, err)
+
 	key, err := secret.NewKey()
 	require.NoError(t, err)
 
+	sealedKey, err := secret.SealKey(masterKey, key)
+	require.NoError(t, err)
+
 	t.Run("SetMasterKey success", func(t *testing.T) {
-		err := svc.SetMasterKey(ctx, key)
+		err := svc.SetMasterKey(ctx, sealedKey)
 		require.NoError(t, err)
 	})
 
@@ -29,6 +35,6 @@ func TestConfig(t *testing.T) {
 		res, err := svc.GetMasterKey(ctx)
 		require.NoError(t, err)
 
-		assert.True(t, res.Equals(key))
+		assert.True(t, res.Equals(sealedKey))
 	})
 }

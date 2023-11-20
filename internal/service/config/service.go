@@ -12,7 +12,7 @@ import (
 //go:generate mockery --name Storage
 type Storage interface {
 	Save(ctx context.Context, key ConfigKey, value any) error
-	GetKey(ctx context.Context, key ConfigKey) (*secret.Key, error)
+	GetKey(ctx context.Context, key ConfigKey) (*secret.SealedKey, error)
 }
 
 type ConfigService struct {
@@ -23,7 +23,7 @@ func NewService(storage Storage) *ConfigService {
 	return &ConfigService{storage}
 }
 
-func (s *ConfigService) SetMasterKey(ctx context.Context, key *secret.Key) error {
+func (s *ConfigService) SetMasterKey(ctx context.Context, key *secret.SealedKey) error {
 	err := s.storage.Save(ctx, masterKey, key)
 	if err != nil {
 		return fmt.Errorf("failed to Save: %w", err)
@@ -32,7 +32,7 @@ func (s *ConfigService) SetMasterKey(ctx context.Context, key *secret.Key) error
 	return nil
 }
 
-func (s *ConfigService) GetMasterKey(ctx context.Context) (*secret.Key, error) {
+func (s *ConfigService) GetMasterKey(ctx context.Context) (*secret.SealedKey, error) {
 	key, err := s.storage.GetKey(ctx, masterKey)
 	if errors.Is(err, errNotfound) {
 		return nil, errs.ErrNotFound
@@ -43,18 +43,4 @@ func (s *ConfigService) GetMasterKey(ctx context.Context) (*secret.Key, error) {
 	}
 
 	return key, nil
-}
-
-func (s *ConfigService) generateMasterKey(ctx context.Context) error {
-	key, err := secret.NewKey()
-	if err != nil {
-		return fmt.Errorf("failed to generate a new key: %w", err)
-	}
-
-	err = s.storage.Save(ctx, masterKey, key)
-	if err != nil {
-		return fmt.Errorf("failed to save into the storage: %w", err)
-	}
-
-	return nil
 }

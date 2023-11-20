@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/theduckcompany/duckcloud/assets"
 	"github.com/theduckcompany/duckcloud/internal/server"
+	"github.com/theduckcompany/duckcloud/internal/service/masterkey"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/response"
@@ -154,6 +155,9 @@ func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
 				PrettyRender: cfg.Dev,
 				HotReload:    cfg.HotReload,
 			},
+		},
+		MasterKey: masterkey.Config{
+			DevMode: cfg.Dev,
 		},
 	}, nil
 }

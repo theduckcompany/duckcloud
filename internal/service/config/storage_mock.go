@@ -15,19 +15,19 @@ type MockStorage struct {
 }
 
 // GetKey provides a mock function with given fields: ctx, key
-func (_m *MockStorage) GetKey(ctx context.Context, key ConfigKey) (*secret.Key, error) {
+func (_m *MockStorage) GetKey(ctx context.Context, key ConfigKey) (*secret.SealedKey, error) {
 	ret := _m.Called(ctx, key)
 
-	var r0 *secret.Key
+	var r0 *secret.SealedKey
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, ConfigKey) (*secret.Key, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, ConfigKey) (*secret.SealedKey, error)); ok {
 		return rf(ctx, key)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, ConfigKey) *secret.Key); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, ConfigKey) *secret.SealedKey); ok {
 		r0 = rf(ctx, key)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*secret.Key)
+			r0 = ret.Get(0).(*secret.SealedKey)
 		}
 	}
 
