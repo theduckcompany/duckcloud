@@ -47,8 +47,9 @@ func NewRunCmd(_ string) *cobra.Command {
 	flags := cmd.Flags()
 
 	if !buildinfos.IsRelease() {
-		// The dev mode is only available outside the releases because it is too insecure.
+		// Those flags are  only available outside the releases for security reasons.
 		flags.Bool("dev", false, "Run in dev mode and make json prettier")
+		flags.Bool("hot-reload", false, "Enable the asset hot reload")
 	}
 
 	flags.Bool("debug", false, "Force the debug level")
