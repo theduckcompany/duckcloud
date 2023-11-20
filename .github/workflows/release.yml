@@ -33,6 +33,8 @@ jobs:
         goversion: 1.21.1
         project_path: "./cmd/duckcloud"
         binary_name: "duckcloud"
-        ldflags: "-X github.com/theduckcompany/duckcloud/internal/tools/buildinfos.Version=${{github.ref_name}} -X github.com/theduckcompany/duckcloud/internal/tools/buildinfos.BuildTime=${{ steps.date.outputs.date }}"
+        ldflags: "-X github.com/theduckcompany/duckcloud/internal/tools/buildinfos.version=${{github.ref_name}} \
+                  -X github.com/theduckcompany/duckcloud/internal/tools/buildinfos.buildTime=${{ steps.date.outputs.date }} \
+                  -X github.com/theduckcompany/duckcloud/internal/tools/buildinfos.isRelease=true"
         extra_files: LICENSE README.md
         overwrite: TRUE
