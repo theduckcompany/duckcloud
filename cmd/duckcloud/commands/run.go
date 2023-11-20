@@ -8,6 +8,7 @@ import (
 	"github.com/adrg/xdg"
 	"github.com/spf13/cobra"
 	"github.com/theduckcompany/duckcloud/internal/server"
+	"github.com/theduckcompany/duckcloud/internal/tools/buildinfos"
 )
 
 var configDirs = append(xdg.DataDirs, xdg.DataHome)
@@ -45,7 +46,11 @@ func NewRunCmd(_ string) *cobra.Command {
 
 	flags := cmd.Flags()
 
-	flags.Bool("dev", false, "Run in dev mode and make json prettier")
+	if !buildinfos.IsRelease() {
+		// The dev mode is only available outside the releases because it is too insecure.
+		flags.Bool("dev", false, "Run in dev mode and make json prettier")
+	}
+
 	flags.Bool("debug", false, "Force the debug level")
 	flags.String("log-level", "info", "Log message verbosity LEVEL (debug, info, warning, error)")
 
