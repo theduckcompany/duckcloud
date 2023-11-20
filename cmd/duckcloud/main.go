@@ -26,7 +26,7 @@ func mainRun() exitCode {
 	cmd := &cobra.Command{
 		Use:     binaryName,
 		Short:   "Manage your duckcloud instance in your terminal.",
-		Version: buildinfos.Version,
+		Version: buildinfos.Version(),
 	}
 
 	// Subcommands
