@@ -73,6 +73,10 @@ func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
 		return server.Config{}, fmt.Errorf("--hot-reload: %q", ErrDevFlagRequire)
 	}
 
+	if cfg.MemoryFS && !cfg.Dev {
+		return server.Config{}, fmt.Errorf("--memory-fs: %q", ErrDevFlagRequire)
+	}
+
 	var logLevel slog.Level
 	switch strings.ToLower(cfg.LogLevel) {
 	case "info":
