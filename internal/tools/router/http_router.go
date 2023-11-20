@@ -23,7 +23,6 @@ type Config struct {
 	TLS       bool
 	CertFile  string
 	KeyFile   string
-	Services  []string
 	HostNames []string
 }
 
@@ -135,19 +134,8 @@ func createHandler(cfg Config, routes []Registerer, mids *Middlewares) (chi.Rout
 	r.Use(mids.CORS)
 	r.Use(middleware.RequestID)
 
-	for _, svc := range cfg.Services {
-		svcIdx := -1
-		for idx, route := range routes {
-			if route.String() == svc {
-				svcIdx = idx
-				break
-			}
-		}
-		if svcIdx == -1 {
-			return nil, fmt.Errorf("unknown service %q", svc)
-		}
-
-		routes[svcIdx].Register(r, mids)
+	for _, svc := range routes {
+		svc.Register(r, mids)
 	}
 
 	return r, nil
