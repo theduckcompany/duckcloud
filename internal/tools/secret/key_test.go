@@ -121,4 +121,17 @@ func TestKey(t *testing.T) {
 		err := res.Scan("lVLJtxsIkQkaiNR0QXYGH7zK9sFM4/Mfw9GwQnYGIO8")
 		assert.EqualError(t, err, "expected a []byte")
 	})
+
+	t.Run("FromRaw success", func(t *testing.T) {
+		k2, err := KeyFromRaw(k1.Raw())
+		assert.NoError(t, err)
+		assert.True(t, k2.Equals(k1))
+	})
+
+	t.Run("FromRaw with an invalid size", func(t *testing.T) {
+		k2, err := KeyFromRaw([]byte("invalid key"))
+
+		assert.Nil(t, k2)
+		assert.ErrorContains(t, err, "invalid key size")
+	})
 }

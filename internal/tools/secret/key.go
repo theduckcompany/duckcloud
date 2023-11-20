@@ -28,6 +28,14 @@ func NewKey() (*Key, error) {
 	return &key, nil
 }
 
+func KeyFromRaw(in []byte) (*Key, error) {
+	if len(in) != KeyLength {
+		return nil, fmt.Errorf("invalid key size: expected %d have %d", KeyLength, len(in))
+	}
+
+	return &Key{v: [KeyLength]byte(in)}, nil
+}
+
 func KeyFromBase64(str string) (*Key, error) {
 	key := Key{}
 

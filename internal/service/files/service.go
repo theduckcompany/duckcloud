@@ -13,7 +13,7 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/minio/sio"
 	"github.com/spf13/afero"
-	"github.com/theduckcompany/duckcloud/internal/service/config"
+	"github.com/theduckcompany/duckcloud/internal/service/masterkey"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -37,15 +37,15 @@ type Storage interface {
 }
 
 type FileService struct {
-	config  config.Service
-	storage Storage
-	fs      afero.Fs
-	uuid    uuid.Service
-	clock   clock.Clock
+	masterkey masterkey.Service
+	storage   Storage
+	fs        afero.Fs
+	uuid      uuid.Service
+	clock     clock.Clock
 }
 
-func NewFileService(storage Storage, rootFS afero.Fs, tools tools.Tools, config config.Service) *FileService {
-	return &FileService{config, storage, rootFS, tools.UUID(), tools.Clock()}
+func NewFileService(storage Storage, rootFS afero.Fs, tools tools.Tools, masterkey masterkey.Service) *FileService {
+	return &FileService{masterkey, storage, rootFS, tools.UUID(), tools.Clock()}
 }
 
 func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error) {
@@ -101,22 +101,6 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 		return nil
 	})
 
-	// Start the key sealing
-	var sealedKey *secret.SealedKey
-	g.Go(func() error {
-		masterKey, err := s.config.GetMasterKey(ctx)
-		if err != nil {
-			return fmt.Errorf("failed to get the master key: %w", err)
-		}
-
-		sealedKey, err = secret.SealKey(masterKey, key)
-		if err != nil {
-			return fmt.Errorf("failed to sealed the key: %w", err)
-		}
-
-		return nil
-	})
-
 	multiWrite := io.MultiWriter(mimeWriter, hashWriter, encryptWriter)
 
 	written, err := io.Copy(multiWrite, r)
@@ -151,6 +135,13 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 	if existingFile != nil {
 		_ = s.Delete(context.WithoutCancel(ctx), fileID)
 		return existingFile.ID(), nil
+	}
+
+	// Start the key sealing
+	var sealedKey *secret.SealedKey
+	sealedKey, err = s.masterkey.SealKey(key)
+	if err != nil {
+		return "", fmt.Errorf("failed to sealed the key: %w", err)
 	}
 
 	// XXX:MULTI-WRITE
@@ -200,16 +191,11 @@ func (s *FileService) Download(ctx context.Context, fileMeta *FileMeta) (io.Read
 		return nil, errs.Internal(fmt.Errorf("failed to open the file: %w", err))
 	}
 
-	masterKey, err := s.config.GetMasterKey(ctx)
+	rawKey, err := s.masterkey.Open(fileMeta.key)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get the master key: %w", err)
+		return nil, fmt.Errorf("failed to open the file key: %w", err)
 	}
-
-	rawKey, err := fileMeta.key.Open(masterKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open the sealed key: %w", err)
-	}
-
+	// rawKey, er
 	reader, err := sio.DecryptReaderAt(file, sio.Config{Key: rawKey.Raw()})
 	if err != nil {
 		sioErr := sio.Error{}

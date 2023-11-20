@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/awnumar/memguard"
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
@@ -35,14 +36,27 @@ func SealedKeyFromBase64(str string) (*SealedKey, error) {
 	return &key, nil
 }
 
-func SealKey(masterKey *Key, input *Key) (*SealedKey, error) {
+func SealKey(encryptionKey *Key, input *Key) (*SealedKey, error) {
+	return sealKey(&encryptionKey.v, input)
+}
+
+func SealKeyWithEnclave(enclave *memguard.Enclave, input *Key) (*SealedKey, error) {
+	buff, err := enclave.Open()
+	if err != nil {
+		return nil, fmt.Errorf("failed to open the master key enclave: %w", err)
+	}
+
+	return sealKey(buff.ByteArray32(), input)
+}
+
+func sealKey(encryptionKey *[KeyLength]byte, input *Key) (*SealedKey, error) {
 	var nonce [nonceLength]byte
 	_, err := rand.Read(nonce[:])
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate random numbers: %w", err)
 	}
 
-	encrypted := secretbox.Seal(nonce[:], input.Raw(), &nonce, (*[KeyLength]byte)(masterKey.Raw()))
+	encrypted := secretbox.Seal(nonce[:], input.Raw(), &nonce, encryptionKey)
 
 	if len(encrypted) != SealedKeyLength {
 		return nil, fmt.Errorf("%w: have %d, expected %d", ErrInvalidKeySize, len(encrypted), SealedKeyLength)
@@ -51,11 +65,24 @@ func SealKey(masterKey *Key, input *Key) (*SealedKey, error) {
 	return &SealedKey{v: [SealedKeyLength]byte(encrypted)}, nil
 }
 
-func (k *SealedKey) Open(masterKey *Key) (*Key, error) {
+func (k *SealedKey) Open(encryptionKey *Key) (*Key, error) {
+	return k.open(&encryptionKey.v)
+}
+
+func (k *SealedKey) OpenWithEnclave(enclave *memguard.Enclave) (*Key, error) {
+	buff, err := enclave.Open()
+	if err != nil {
+		return nil, fmt.Errorf("failed to open the master key enclave: %w", err)
+	}
+
+	return k.open(buff.ByteArray32())
+}
+
+func (k *SealedKey) open(encryptionKey *[KeyLength]byte) (*Key, error) {
 	var decryptNonce [nonceLength]byte
 	copy(decryptNonce[:], k.v[:nonceLength])
 
-	decrypted, ok := secretbox.Open(nil, k.v[nonceLength:], &decryptNonce, (*[KeyLength]byte)(masterKey.Raw()))
+	decrypted, ok := secretbox.Open(nil, k.v[nonceLength:], &decryptNonce, encryptionKey)
 	if !ok {
 		return nil, errors.New("failed to open the sealed key")
 	}

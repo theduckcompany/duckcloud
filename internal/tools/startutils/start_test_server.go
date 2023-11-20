@@ -12,6 +12,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
+	"github.com/theduckcompany/duckcloud/internal/service/masterkey"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
@@ -42,6 +43,7 @@ type Server struct {
 	Files            files.Service
 	UsersSvc         users.Service
 	RunnerSvc        runner.Service
+	MasterKeySvc     masterkey.Service
 
 	User *users.User
 }
@@ -55,9 +57,7 @@ func NewServer(t *testing.T) *Server {
 	db := storage.NewTestStorage(t)
 	afs := afero.NewMemMapFs()
 
-	configSvc, err := config.Init(ctx, db)
-	require.NoError(t, err)
-
+	configSvc := config.Init(ctx, db)
 	foldersSvc := folders.Init(tools, db)
 	schedulerSvc := scheduler.Init(db, tools)
 	webSessionsSvc := websessions.Init(tools, db)
@@ -65,7 +65,10 @@ func NewServer(t *testing.T) *Server {
 	oauthSessionsSvc := oauthsessions.Init(tools, db)
 	oauthConsentsSvc := oauthconsents.Init(tools, db)
 
-	filesInit, err := files.Init(configSvc, "/", afs, tools, db)
+	masterKeySvc, err := masterkey.Init(ctx, configSvc, afs, masterkey.Config{DevMode: true})
+	require.NoError(t, err)
+
+	filesInit, err := files.Init(masterKeySvc, "/", afs, tools, db)
 	require.NoError(t, err)
 
 	dfsInit, err := dfs.Init(db, foldersSvc, filesInit.Service, schedulerSvc, tools)
@@ -104,6 +107,7 @@ func NewServer(t *testing.T) *Server {
 		WebSessionsSvc:   webSessionsSvc,
 		OauthSessionsSvc: oauthSessionsSvc,
 		OauthConsentsSvc: oauthConsentsSvc,
+		MasterKeySvc:     masterKeySvc,
 
 		Files:     filesInit.Service,
 		DFSSvc:    dfsInit.Service,

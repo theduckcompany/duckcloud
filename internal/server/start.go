@@ -18,6 +18,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
+	"github.com/theduckcompany/duckcloud/internal/service/masterkey"
 	"github.com/theduckcompany/duckcloud/internal/service/oauth2"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthclients"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthcodes"
@@ -42,13 +43,14 @@ type Folder string
 type Config struct {
 	fx.Out
 
-	FS       afero.Fs
-	Listener router.Config
-	Assets   assets.Config
-	Storage  storage.Config
-	Tools    tools.Config
-	Web      web.Config
-	Folder   Folder
+	FS        afero.Fs
+	Listener  router.Config
+	Assets    assets.Config
+	Storage   storage.Config
+	Tools     tools.Config
+	Web       web.Config
+	Folder    Folder
+	MasterKey masterkey.Config
 }
 
 // AsRoute annotates the given constructor to state that
@@ -106,6 +108,7 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 			fx.Annotate(davsessions.Init, fx.As(new(davsessions.Service))),
 			fx.Annotate(folders.Init, fx.As(new(folders.Service))),
 			fx.Annotate(scheduler.Init, fx.As(new(scheduler.Service))),
+			fx.Annotate(masterkey.Init, fx.As(new(masterkey.Service))),
 
 			// HTTP handlers
 			AsRoute(dav.NewHTTPHandler),

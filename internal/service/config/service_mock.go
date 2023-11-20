@@ -15,19 +15,19 @@ type MockService struct {
 }
 
 // GetMasterKey provides a mock function with given fields: ctx
-func (_m *MockService) GetMasterKey(ctx context.Context) (*secret.Key, error) {
+func (_m *MockService) GetMasterKey(ctx context.Context) (*secret.SealedKey, error) {
 	ret := _m.Called(ctx)
 
-	var r0 *secret.Key
+	var r0 *secret.SealedKey
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) (*secret.Key, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) (*secret.SealedKey, error)); ok {
 		return rf(ctx)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) *secret.Key); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) *secret.SealedKey); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*secret.Key)
+			r0 = ret.Get(0).(*secret.SealedKey)
 		}
 	}
 
@@ -41,11 +41,11 @@ func (_m *MockService) GetMasterKey(ctx context.Context) (*secret.Key, error) {
 }
 
 // SetMasterKey provides a mock function with given fields: ctx, key
-func (_m *MockService) SetMasterKey(ctx context.Context, key *secret.Key) error {
+func (_m *MockService) SetMasterKey(ctx context.Context, key *secret.SealedKey) error {
 	ret := _m.Called(ctx, key)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *secret.Key) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *secret.SealedKey) error); ok {
 		r0 = rf(ctx, key)
 	} else {
 		r0 = ret.Error(0)

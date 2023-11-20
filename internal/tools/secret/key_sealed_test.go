@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"testing"
 
+	"github.com/awnumar/memguard"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -143,5 +144,19 @@ func TestSealedKey(t *testing.T) {
 
 		err := res.Scan("BKgSe9jPaIGQWn7EZd+44BduGVgvZyZ23rvAWSvEKJ02mwDzerGwlltpsVbDMWI2N+XimZLXKKX84TnIbF2XXKPU7V/tY4pz")
 		assert.EqualError(t, err, "expected a []byte")
+	})
+
+	t.Run("SeaKeyWithEnclave and OpenKeyWithEnclave", func(t *testing.T) {
+		mk, err := NewKey()
+		require.NoError(t, err)
+
+		enclave := memguard.NewEnclave(mk.Raw())
+
+		seal, err := SealKeyWithEnclave(enclave, k1)
+		require.NoError(t, err)
+
+		res, err := seal.OpenWithEnclave(enclave)
+		assert.NoError(t, err)
+		assert.True(t, res.Equals(k1))
 	})
 }
