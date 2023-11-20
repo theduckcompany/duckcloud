@@ -131,7 +131,6 @@ func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
 			TLS:       isTLSEnabled,
 			CertFile:  cfg.TLSCert,
 			KeyFile:   cfg.TLSKey,
-			Services:  []string{"dav", "auth", "assets", "web"},
 			HostNames: cfg.HTTPHostnames,
 		},
 		Storage: storage.Config{
