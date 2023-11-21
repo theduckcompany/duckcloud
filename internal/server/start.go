@@ -38,7 +38,7 @@ import (
 	"go.uber.org/fx/fxevent"
 )
 
-type Space string
+type Folder string
 
 type Config struct {
 	fx.Out
@@ -49,7 +49,7 @@ type Config struct {
 	Storage   storage.Config
 	Tools     tools.Config
 	Web       web.Config
-	Space     Space
+	Folder    Folder
 	MasterKey masterkey.Config
 }
 
@@ -70,24 +70,24 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 			func() context.Context { return ctx },
 			func() Config { return cfg },
 
-			func(space Space, fs afero.Fs, tools tools.Tools) (string, error) {
-				spacePath, err := filepath.Abs(string(space))
+			func(folder Folder, fs afero.Fs, tools tools.Tools) (string, error) {
+				folderPath, err := filepath.Abs(string(folder))
 				if err != nil {
-					return "", fmt.Errorf("invalid path: %q: %w", spacePath, err)
+					return "", fmt.Errorf("invalid path: %q: %w", folderPath, err)
 				}
 
-				err = fs.MkdirAll(string(space), 0o755)
+				err = fs.MkdirAll(string(folder), 0o755)
 				if err != nil && !errors.Is(err, os.ErrExist) {
-					return "", fmt.Errorf("failed to create the %s: %w", spacePath, err)
+					return "", fmt.Errorf("failed to create the %s: %w", folderPath, err)
 				}
 
 				if fs.Name() == afero.NewMemMapFs().Name() {
 					tools.Logger().Info(fmt.Sprintf("Load data from memory"))
 				} else {
-					tools.Logger().Info(fmt.Sprintf("Load data from %s", space))
+					tools.Logger().Info(fmt.Sprintf("Load data from %s", folder))
 				}
 
-				return spacePath, nil
+				return folderPath, nil
 			},
 
 			// Tools
