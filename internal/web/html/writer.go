@@ -82,7 +82,7 @@ func NewRenderer(cfg Config) *Renderer {
 				},
 				"getInodeIconClass": func(_ string, isDir bool) string {
 					if isDir {
-						return "bi-space-fill text-primary"
+						return "bi-folder-fill text-primary"
 					}
 
 					return "bi-file-earmark-fill text-muted"
