@@ -1,4 +1,4 @@
-package folders
+package spaces
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
-func Test_FolderService(t *testing.T) {
+func Test_SpaceService(t *testing.T) {
 	ctx := context.Background()
 
 	// This AliceID is hardcoded in order to avoid dependency cycles
@@ -24,17 +24,17 @@ func Test_FolderService(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		svc := NewService(tools, storageMock)
 
-		tools.UUIDMock.On("New").Return(ExampleAlicePersonalFolder.ID()).Once()
+		tools.UUIDMock.On("New").Return(ExampleAlicePersonalSpace.ID()).Once()
 		tools.ClockMock.On("Now").Return(now).Once()
-		storageMock.On("Save", mock.Anything, &ExampleAlicePersonalFolder).Return(nil).Once()
+		storageMock.On("Save", mock.Anything, &ExampleAlicePersonalSpace).Return(nil).Once()
 
 		res, err := svc.Create(ctx, &CreateCmd{
-			Name:   ExampleAlicePersonalFolder.name,
+			Name:   ExampleAlicePersonalSpace.name,
 			Owners: []uuid.UUID{AliceID},
-			RootFS: ExampleAlicePersonalFolder.rootFS,
+			RootFS: ExampleAlicePersonalSpace.rootFS,
 		})
 		assert.NoError(t, err)
-		assert.EqualValues(t, &ExampleAlicePersonalFolder, res)
+		assert.EqualValues(t, &ExampleAlicePersonalSpace, res)
 	})
 
 	t.Run("Create with a validation error", func(t *testing.T) {
@@ -45,7 +45,7 @@ func Test_FolderService(t *testing.T) {
 		res, err := svc.Create(ctx, &CreateCmd{
 			Name:   "",
 			Owners: []uuid.UUID{AliceID},
-			RootFS: ExampleAlicePersonalFolder.rootFS,
+			RootFS: ExampleAlicePersonalSpace.rootFS,
 		})
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrValidation)
@@ -57,40 +57,40 @@ func Test_FolderService(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		svc := NewService(tools, storageMock)
 
-		tools.UUIDMock.On("New").Return(ExampleAlicePersonalFolder.ID()).Once()
+		tools.UUIDMock.On("New").Return(ExampleAlicePersonalSpace.ID()).Once()
 		tools.ClockMock.On("Now").Return(now).Once()
-		storageMock.On("Save", mock.Anything, &ExampleAlicePersonalFolder).Return(fmt.Errorf("some-error")).Once()
+		storageMock.On("Save", mock.Anything, &ExampleAlicePersonalSpace).Return(fmt.Errorf("some-error")).Once()
 
 		res, err := svc.Create(ctx, &CreateCmd{
-			Name:   "Alice's Folder",
+			Name:   "Alice's Space",
 			Owners: []uuid.UUID{AliceID},
-			RootFS: ExampleAlicePersonalFolder.rootFS,
+			RootFS: ExampleAlicePersonalSpace.rootFS,
 		})
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})
 
-	t.Run("GetAlluserFolders success", func(t *testing.T) {
+	t.Run("GetAlluserSpaces success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		svc := NewService(tools, storageMock)
 
-		storageMock.On("GetAllUserFolders", mock.Anything, AliceID, (*storage.PaginateCmd)(nil)).Return([]Folder{ExampleAlicePersonalFolder}, nil).Once()
+		storageMock.On("GetAllUserSpaces", mock.Anything, AliceID, (*storage.PaginateCmd)(nil)).Return([]Space{ExampleAlicePersonalSpace}, nil).Once()
 
-		res, err := svc.GetAllUserFolders(ctx, AliceID, nil)
+		res, err := svc.GetAllUserSpaces(ctx, AliceID, nil)
 		assert.NoError(t, err)
-		assert.EqualValues(t, []Folder{ExampleAlicePersonalFolder}, res)
+		assert.EqualValues(t, []Space{ExampleAlicePersonalSpace}, res)
 	})
 
-	t.Run("GetAlluserFolders with a storage error", func(t *testing.T) {
+	t.Run("GetAlluserSpaces with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		svc := NewService(tools, storageMock)
 
-		storageMock.On("GetAllUserFolders", mock.Anything, AliceID, (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
+		storageMock.On("GetAllUserSpaces", mock.Anything, AliceID, (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
 
-		res, err := svc.GetAllUserFolders(ctx, AliceID, nil)
+		res, err := svc.GetAllUserSpaces(ctx, AliceID, nil)
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
@@ -101,11 +101,11 @@ func Test_FolderService(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		svc := NewService(tools, storageMock)
 
-		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(&ExampleAlicePersonalFolder, nil).Once()
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(&ExampleAlicePersonalSpace, nil).Once()
 
-		res, err := svc.GetByID(ctx, ExampleAlicePersonalFolder.ID())
+		res, err := svc.GetByID(ctx, ExampleAlicePersonalSpace.ID())
 		assert.NoError(t, err)
-		assert.EqualValues(t, &ExampleAlicePersonalFolder, res)
+		assert.EqualValues(t, &ExampleAlicePersonalSpace, res)
 	})
 
 	t.Run("GetByID not found", func(t *testing.T) {
@@ -113,9 +113,9 @@ func Test_FolderService(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		svc := NewService(tools, storageMock)
 
-		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(nil, errNotFound).Once()
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil, errNotFound).Once()
 
-		res, err := svc.GetByID(ctx, ExampleAlicePersonalFolder.ID())
+		res, err := svc.GetByID(ctx, ExampleAlicePersonalSpace.ID())
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrNotFound)
 	})
@@ -125,9 +125,9 @@ func Test_FolderService(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		svc := NewService(tools, storageMock)
 
-		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(nil, fmt.Errorf("some-error")).Once()
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil, fmt.Errorf("some-error")).Once()
 
-		res, err := svc.GetByID(ctx, ExampleAlicePersonalFolder.ID())
+		res, err := svc.GetByID(ctx, ExampleAlicePersonalSpace.ID())
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
@@ -138,9 +138,9 @@ func Test_FolderService(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		svc := NewService(tools, storageMock)
 
-		storageMock.On("Delete", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(nil).Once()
+		storageMock.On("Delete", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil).Once()
 
-		err := svc.Delete(ctx, ExampleAlicePersonalFolder.ID())
+		err := svc.Delete(ctx, ExampleAlicePersonalSpace.ID())
 		assert.NoError(t, err)
 	})
 
@@ -149,60 +149,60 @@ func Test_FolderService(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		svc := NewService(tools, storageMock)
 
-		storageMock.On("Delete", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(fmt.Errorf("some-error"))
+		storageMock.On("Delete", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(fmt.Errorf("some-error"))
 
-		err := svc.Delete(ctx, ExampleAlicePersonalFolder.ID())
+		err := svc.Delete(ctx, ExampleAlicePersonalSpace.ID())
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})
 
-	t.Run("GetUserFolder success", func(t *testing.T) {
+	t.Run("GetUserSpace success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		svc := NewService(tools, storageMock)
 
-		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(&ExampleAlicePersonalFolder, nil).Once()
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(&ExampleAlicePersonalSpace, nil).Once()
 
-		res, err := svc.GetUserFolder(ctx, ExampleAlicePersonalFolder.Owners()[0], ExampleAlicePersonalFolder.ID())
+		res, err := svc.GetUserSpace(ctx, ExampleAlicePersonalSpace.Owners()[0], ExampleAlicePersonalSpace.ID())
 		assert.NoError(t, err)
-		assert.Equal(t, &ExampleAlicePersonalFolder, res)
+		assert.Equal(t, &ExampleAlicePersonalSpace, res)
 	})
 
-	t.Run("GetUserFolder not found", func(t *testing.T) {
+	t.Run("GetUserSpace not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		svc := NewService(tools, storageMock)
 
-		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(nil, errNotFound).Once()
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil, errNotFound).Once()
 
-		res, err := svc.GetUserFolder(ctx, ExampleAlicePersonalFolder.Owners()[0], ExampleAlicePersonalFolder.ID())
+		res, err := svc.GetUserSpace(ctx, ExampleAlicePersonalSpace.Owners()[0], ExampleAlicePersonalSpace.ID())
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrNotFound)
 	})
 
-	t.Run("GetUserFolder with an error", func(t *testing.T) {
+	t.Run("GetUserSpace with an error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		svc := NewService(tools, storageMock)
 
-		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(nil, fmt.Errorf("some-error")).Once()
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil, fmt.Errorf("some-error")).Once()
 
-		res, err := svc.GetUserFolder(ctx, ExampleAlicePersonalFolder.Owners()[0], ExampleAlicePersonalFolder.ID())
+		res, err := svc.GetUserSpace(ctx, ExampleAlicePersonalSpace.Owners()[0], ExampleAlicePersonalSpace.ID())
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})
 
-	t.Run("GetUserFolder with an existing folder but an invalid user id", func(t *testing.T) {
+	t.Run("GetUserSpace with an existing space but an invalid user id", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		svc := NewService(tools, storageMock)
 
-		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalFolder.ID()).Return(&ExampleAlicePersonalFolder, nil).Once()
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(&ExampleAlicePersonalSpace, nil).Once()
 
-		res, err := svc.GetUserFolder(ctx, uuid.UUID("some-invalid-user-id"), ExampleAlicePersonalFolder.ID())
+		res, err := svc.GetUserSpace(ctx, uuid.UUID("some-invalid-user-id"), ExampleAlicePersonalSpace.ID())
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrUnauthorized)
-		assert.ErrorIs(t, err, ErrInvalidFolderAccess)
+		assert.ErrorIs(t, err, ErrInvalidSpaceAccess)
 	})
 }

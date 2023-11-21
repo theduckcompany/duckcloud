@@ -30,7 +30,7 @@ var testConfig = Config{
 	Tools:     tools.Config{Log: logger.Config{Output: io.Discard}},
 	Web:       web.Config{},
 	MasterKey: masterkey.Config{DevMode: true},
-	Folder:    "/foo",
+	Space:     "/foo",
 }
 
 func TestServerStart(t *testing.T) {

@@ -10,11 +10,11 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/config"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/masterkey"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
@@ -33,7 +33,7 @@ type Server struct {
 
 	// Services
 	ConfigSvc        config.Service
-	FoldersSvc       folders.Service
+	SpacesSvc        spaces.Service
 	SchedulerSvc     scheduler.Service
 	DavSessionsSvc   davsessions.Service
 	WebSessionsSvc   websessions.Service
@@ -58,10 +58,10 @@ func NewServer(t *testing.T) *Server {
 	afs := afero.NewMemMapFs()
 
 	configSvc := config.Init(ctx, db)
-	foldersSvc := folders.Init(tools, db)
+	spacesSvc := spaces.Init(tools, db)
 	schedulerSvc := scheduler.Init(db, tools)
 	webSessionsSvc := websessions.Init(tools, db)
-	davSessionsSvc := davsessions.Init(db, foldersSvc, tools)
+	davSessionsSvc := davsessions.Init(db, spacesSvc, tools)
 	oauthSessionsSvc := oauthsessions.Init(tools, db)
 	oauthConsentsSvc := oauthconsents.Init(tools, db)
 
@@ -71,10 +71,10 @@ func NewServer(t *testing.T) *Server {
 	filesInit, err := files.Init(masterKeySvc, "/", afs, tools, db)
 	require.NoError(t, err)
 
-	dfsInit, err := dfs.Init(db, foldersSvc, filesInit.Service, schedulerSvc, tools)
+	dfsInit, err := dfs.Init(db, spacesSvc, filesInit.Service, schedulerSvc, tools)
 	require.NoError(t, err)
 
-	usersInit, err := users.Init(tools, db, schedulerSvc, foldersSvc, dfsInit.Service, webSessionsSvc,
+	usersInit, err := users.Init(tools, db, schedulerSvc, spacesSvc, dfsInit.Service, webSessionsSvc,
 		davSessionsSvc, oauthSessionsSvc, oauthConsentsSvc)
 	require.NoError(t, err)
 
@@ -101,7 +101,7 @@ func NewServer(t *testing.T) *Server {
 
 		// Services
 		ConfigSvc:        configSvc,
-		FoldersSvc:       foldersSvc,
+		SpacesSvc:        spacesSvc,
 		SchedulerSvc:     schedulerSvc,
 		DavSessionsSvc:   davSessionsSvc,
 		WebSessionsSvc:   webSessionsSvc,

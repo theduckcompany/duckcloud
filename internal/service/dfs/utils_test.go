@@ -18,14 +18,14 @@ func Test_Walk(t *testing.T) {
 
 	serv := startutils.NewServer(t)
 
-	userFolders, err := serv.FoldersSvc.GetAllUserFolders(ctx, serv.User.ID(), nil)
+	userSpaces, err := serv.SpacesSvc.GetAllUserSpaces(ctx, serv.User.ID(), nil)
 	require.NoError(t, err)
 
-	folder := &userFolders[0]
+	space := &userSpaces[0]
 
-	ffs := serv.DFSSvc.GetFolderFS(folder)
+	ffs := serv.DFSSvc.GetSpaceFS(space)
 
-	t.Run("with an empty folder", func(t *testing.T) {
+	t.Run("with an empty space", func(t *testing.T) {
 		res := []string{}
 
 		err = dfs.Walk(ctx, ffs, ".", func(_ context.Context, p string, _ *dfs.INode) error {
@@ -84,7 +84,7 @@ func Test_Walk(t *testing.T) {
 		assert.Equal(t, []string{".", "dir-a", "foo.txt"}, res)
 	})
 
-	t.Run("do all the sub folders", func(t *testing.T) {
+	t.Run("do all the sub spaces", func(t *testing.T) {
 		err := ffs.Upload(ctx, "/dir-a/file-a.txt", http.NoBody)
 		require.NoError(t, err)
 
@@ -101,12 +101,12 @@ func Test_Walk(t *testing.T) {
 		assert.Equal(t, []string{".", "dir-a", "dir-a/file-a.txt", "foo.txt"}, res)
 	})
 
-	t.Run("with a big folder and pagination", func(t *testing.T) {
-		_, err := ffs.CreateDir(ctx, "big-folder")
+	t.Run("with a big space and pagination", func(t *testing.T) {
+		_, err := ffs.CreateDir(ctx, "big-space")
 		require.NoError(t, err)
 
 		for i := 0; i < 100; i++ {
-			err := ffs.Upload(ctx, fmt.Sprintf("/big-folder/%d.txt", i), http.NoBody)
+			err := ffs.Upload(ctx, fmt.Sprintf("/big-space/%d.txt", i), http.NoBody)
 			require.NoError(t, err)
 		}
 
@@ -115,16 +115,16 @@ func Test_Walk(t *testing.T) {
 
 		res := []string{}
 
-		err = dfs.Walk(ctx, ffs, "big-folder", func(_ context.Context, p string, _ *dfs.INode) error {
+		err = dfs.Walk(ctx, ffs, "big-space", func(_ context.Context, p string, _ *dfs.INode) error {
 			res = append(res, p)
 			return nil
 		})
 
 		require.NoError(t, err)
 		assert.Len(t, res, 101) // 100 files + the dir itself
-		assert.Contains(t, res, "big-folder")
+		assert.Contains(t, res, "big-space")
 		for i := 0; i < 100; i++ {
-			assert.Contains(t, res, path.Join("big-folder", fmt.Sprintf("%d.txt", i)))
+			assert.Contains(t, res, path.Join("big-space", fmt.Sprintf("%d.txt", i)))
 		}
 	})
 }

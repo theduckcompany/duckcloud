@@ -1,10 +1,7 @@
 package davsessions
 
 import (
-	"database/sql/driver"
-	"fmt"
 	"regexp"
-	"strings"
 	"time"
 
 	v "github.com/go-ozzo/ozzo-validation"
@@ -21,7 +18,7 @@ type DavSession struct {
 	name      string
 	username  string
 	password  secret.Text
-	folders   Folders
+	spaceID   uuid.UUID
 	createdAt time.Time
 }
 
@@ -29,41 +26,14 @@ func (u *DavSession) ID() uuid.UUID        { return u.id }
 func (u *DavSession) UserID() uuid.UUID    { return u.userID }
 func (u *DavSession) Name() string         { return u.name }
 func (u *DavSession) Username() string     { return u.username }
-func (u *DavSession) FoldersIDs() Folders  { return u.folders }
+func (u *DavSession) SpacesID() uuid.UUID  { return u.spaceID }
 func (u *DavSession) CreatedAt() time.Time { return u.createdAt }
-
-type Folders []uuid.UUID
-
-func (t Folders) String() string {
-	rawIDs := make([]string, len(t))
-
-	for i, id := range t {
-		rawIDs[i] = string(id)
-	}
-
-	return strings.Join(rawIDs, ",")
-}
-func (t Folders) Value() (driver.Value, error) { return t.String(), nil }
-func (t *Folders) Scan(src any) error {
-	s, ok := src.(string)
-	if !ok {
-		return fmt.Errorf("not a string")
-	}
-
-	rawIDs := strings.Split(s, ",")
-
-	for _, id := range rawIDs {
-		*t = append(*t, uuid.UUID(id))
-	}
-
-	return nil
-}
 
 type CreateCmd struct {
 	Name     string
 	Username string
 	UserID   uuid.UUID
-	Folders  []uuid.UUID
+	SpaceID  uuid.UUID
 }
 
 func (t CreateCmd) Validate() error {
@@ -71,7 +41,7 @@ func (t CreateCmd) Validate() error {
 		v.Field(&t.Name, v.Required, v.Match(DavSessionRegexp)),
 		v.Field(&t.Username, v.Required, v.Length(1, 30)),
 		v.Field(&t.UserID, v.Required, is.UUIDv4),
-		v.Field(&t.Folders, v.Required, v.Each(is.UUIDv4)),
+		v.Field(&t.SpaceID, v.Required, is.UUIDv4),
 	)
 }
 

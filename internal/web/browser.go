@@ -15,8 +15,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -32,32 +32,32 @@ const (
 	PageSize       = 50
 )
 
-var ErrInvalidFolderID = errors.New("invalid folderID")
+var ErrInvalidSpaceID = errors.New("invalid spaceID")
 
 type browserHandler struct {
-	html    html.Writer
-	folders folders.Service
-	files   files.Service
-	uuid    uuid.Service
-	auth    *Authenticator
-	fs      dfs.Service
+	html   html.Writer
+	spaces spaces.Service
+	files  files.Service
+	uuid   uuid.Service
+	auth   *Authenticator
+	fs     dfs.Service
 }
 
 func newBrowserHandler(
 	tools tools.Tools,
 	html html.Writer,
-	folders folders.Service,
+	spaces spaces.Service,
 	files files.Service,
 	auth *Authenticator,
 	fs dfs.Service,
 ) *browserHandler {
 	return &browserHandler{
-		html:    html,
-		folders: folders,
-		files:   files,
-		uuid:    tools.UUID(),
-		auth:    auth,
-		fs:      fs,
+		html:   html,
+		spaces: spaces,
+		files:  files,
+		uuid:   tools.UUID(),
+		auth:   auth,
+		fs:     fs,
 	}
 }
 
@@ -93,15 +93,15 @@ func (h *browserHandler) getCreateDirModal(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	folderID := r.URL.Query().Get("folder")
-	if folderID == "" {
-		h.html.WriteHTMLErrorPage(w, r, errors.New("failed to get the folder id from the url query"))
+	spaceID := r.URL.Query().Get("space")
+	if spaceID == "" {
+		h.html.WriteHTMLErrorPage(w, r, errors.New("failed to get the space id from the url query"))
 		return
 	}
 
 	h.html.WriteHTML(w, r, http.StatusOK, "browser/create-dir.tmpl", map[string]interface{}{
 		"directory": dir,
-		"folderID":  folderID,
+		"spaceID":   spaceID,
 	})
 }
 
@@ -113,28 +113,28 @@ func (h *browserHandler) handleCreateDirReq(w http.ResponseWriter, r *http.Reque
 
 	dir := r.FormValue("dirPath")
 	name := r.FormValue("name")
-	folderID, err := h.uuid.Parse(r.FormValue("folderID"))
+	spaceID, err := h.uuid.Parse(r.FormValue("spaceID"))
 	if err != nil {
-		h.html.WriteHTMLErrorPage(w, r, errors.New("invalid folder id param"))
+		h.html.WriteHTMLErrorPage(w, r, errors.New("invalid space id param"))
 		return
 	}
 
 	if name == "" {
 		h.html.WriteHTML(w, r, http.StatusUnprocessableEntity, "browser/create-dir.tmpl", map[string]interface{}{
 			"directory": dir,
-			"folderID":  folderID,
+			"spaceID":   spaceID,
 			"error":     "Must not be empty",
 		})
 		return
 	}
 
-	folder, err := h.folders.GetUserFolder(r.Context(), user.ID(), folderID)
+	space, err := h.spaces.GetUserSpace(r.Context(), user.ID(), spaceID)
 	if err != nil {
-		h.html.WriteHTMLErrorPage(w, r, errs.BadRequest(fmt.Errorf("failed to GetUserFolder: %w", err)))
+		h.html.WriteHTMLErrorPage(w, r, errs.BadRequest(fmt.Errorf("failed to GetUserSpace: %w", err)))
 		return
 	}
 
-	fs := h.fs.GetFolderFS(folder)
+	fs := h.fs.GetSpaceFS(space)
 
 	existingDir, err := fs.Get(r.Context(), path.Join(dir, name))
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
@@ -145,7 +145,7 @@ func (h *browserHandler) handleCreateDirReq(w http.ResponseWriter, r *http.Reque
 	if existingDir != nil {
 		h.html.WriteHTML(w, r, http.StatusUnprocessableEntity, "browser/create-dir.tmpl", map[string]interface{}{
 			"directory": dir,
-			"folderID":  folderID,
+			"spaceID":   spaceID,
 			"error":     "Already exists",
 		})
 		return
@@ -166,7 +166,7 @@ func (h *browserHandler) redirectDefaultBrowser(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	w.Header().Set("Location", path.Join("/browser/", string(user.DefaultFolder())))
+	w.Header().Set("Location", path.Join("/browser/", string(user.DefaultSpace())))
 	w.WriteHeader(http.StatusFound)
 }
 
@@ -176,11 +176,11 @@ func (h *browserHandler) getBrowserContent(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	folder, fullPath, abort := h.getFolderAndPathFromURL(w, r, user)
+	space, fullPath, abort := h.getSpaceAndPathFromURL(w, r, user)
 	if abort {
 		return
 	}
-	fs := h.fs.GetFolderFS(folder)
+	fs := h.fs.GetSpaceFS(space)
 
 	lastElem := r.URL.Query().Get("last")
 	if lastElem == "" {
@@ -188,7 +188,7 @@ func (h *browserHandler) getBrowserContent(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	h.renderMoreDirContent(w, r, folder, fullPath, lastElem)
+	h.renderMoreDirContent(w, r, space, fullPath, lastElem)
 }
 
 func (h *browserHandler) upload(w http.ResponseWriter, r *http.Request) {
@@ -203,7 +203,7 @@ func (h *browserHandler) upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var name, rawFolderID, rootPath, relPath []byte
+	var name, rawSpaceID, rootPath, relPath []byte
 
 	for {
 		p, err := reader.NextPart()
@@ -212,16 +212,16 @@ func (h *browserHandler) upload(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if p.FileName() != "" {
-			folderID, err := h.uuid.Parse(string(rawFolderID))
+			spaceID, err := h.uuid.Parse(string(rawSpaceID))
 			if err != nil {
-				h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("invalid folder id %q", rawFolderID))
+				h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("invalid space id %q", rawSpaceID))
 				return
 			}
 
 			cmd := lauchUploadCmd{
 				user:       user,
 				name:       string(name),
-				folderID:   folderID,
+				spaceID:    spaceID,
 				relPath:    string(relPath),
 				rootPath:   string(rootPath),
 				fileReader: p,
@@ -246,8 +246,8 @@ func (h *browserHandler) upload(w http.ResponseWriter, r *http.Request) {
 		// 	ftype, err = io.ReadAll(p)
 		case "rootPath":
 			rootPath, err = io.ReadAll(p)
-		case "folderID":
-			rawFolderID, err = io.ReadAll(p)
+		case "spaceID":
+			rawSpaceID, err = io.ReadAll(p)
 		case "relativePath":
 			relPath, err = io.ReadAll(p)
 		}
@@ -264,12 +264,12 @@ func (h *browserHandler) deleteAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	folder, fullPath, abort := h.getFolderAndPathFromURL(w, r, user)
+	space, fullPath, abort := h.getSpaceAndPathFromURL(w, r, user)
 	if abort {
 		return
 	}
 
-	fs := h.fs.GetFolderFS(folder)
+	fs := h.fs.GetSpaceFS(space)
 	err := fs.Remove(r.Context(), fullPath)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Remove: %w", err))
@@ -285,11 +285,11 @@ type breadCrumbElement struct {
 	Current bool
 }
 
-func generateBreadCrumb(folder *folders.Folder, fullPath string) []breadCrumbElement {
-	basePath := path.Join("/browser/", string(folder.ID()))
+func generateBreadCrumb(space *spaces.Space, fullPath string) []breadCrumbElement {
+	basePath := path.Join("/browser/", string(space.ID()))
 
 	res := []breadCrumbElement{{
-		Name:    folder.Name(),
+		Name:    space.Name(),
 		Href:    basePath,
 		Current: false,
 	}}
@@ -317,19 +317,19 @@ func generateBreadCrumb(folder *folders.Folder, fullPath string) []breadCrumbEle
 type lauchUploadCmd struct {
 	user       *users.User
 	name       string
-	folderID   uuid.UUID
+	spaceID    uuid.UUID
 	rootPath   string
 	relPath    string
 	fileReader io.Reader
 }
 
 func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
-	folder, err := h.folders.GetUserFolder(ctx, cmd.user.ID(), cmd.folderID)
+	space, err := h.spaces.GetUserSpace(ctx, cmd.user.ID(), cmd.spaceID)
 	if err != nil {
 		return fmt.Errorf("failed to GetByID: %w", err)
 	}
 
-	ffs := h.fs.GetFolderFS(folder)
+	ffs := h.fs.GetSpaceFS(space)
 
 	var fullPath string
 	if cmd.relPath == "null" || cmd.relPath == "" {
@@ -356,26 +356,26 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 	return nil
 }
 
-func (h browserHandler) getFolderAndPathFromURL(w http.ResponseWriter, r *http.Request, user *users.User) (*folders.Folder, string, bool) {
-	// For the path "/browser/{{folderID}}/foo/bar/baz" the elems variable will have for content:
-	// []string{"", "browser", "{{folderID}}", "/foo/bar/baz"}
+func (h browserHandler) getSpaceAndPathFromURL(w http.ResponseWriter, r *http.Request, user *users.User) (*spaces.Space, string, bool) {
+	// For the path "/browser/{{spaceID}}/foo/bar/baz" the elems variable will have for content:
+	// []string{"", "browser", "{{spaceID}}", "/foo/bar/baz"}
 	elems := strings.SplitN(r.URL.Path, "/", 4)
 
 	// no need to check elems len as the url format force a len of 3 minimum
-	folderID, err := h.uuid.Parse(elems[2])
+	spaceID, err := h.uuid.Parse(elems[2])
 	if err != nil {
 		w.Header().Set("Location", "/browser")
 		w.WriteHeader(http.StatusFound)
 		return nil, "", true
 	}
 
-	folder, err := h.folders.GetUserFolder(r.Context(), user.ID(), folderID)
+	space, err := h.spaces.GetUserSpace(r.Context(), user.ID(), spaceID)
 	if err != nil {
-		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to folders.GetByID: %w", err))
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to spaces.GetByID: %w", err))
 		return nil, "", true
 	}
 
-	if folder == nil {
+	if space == nil {
 		w.Header().Set("Location", "/browser")
 		w.WriteHeader(http.StatusFound)
 		return nil, "", true
@@ -386,7 +386,7 @@ func (h browserHandler) getFolderAndPathFromURL(w http.ResponseWriter, r *http.R
 		fullPath = path.Clean(elems[3])
 	}
 
-	return folder, fullPath, false
+	return space, fullPath, false
 }
 
 func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, ffs dfs.FS, fullPath string) {
@@ -396,10 +396,10 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	folder := ffs.Folder()
+	space := ffs.Space()
 
 	if inode == nil {
-		w.Header().Set("Location", path.Join("/browser/", string(folder.ID())))
+		w.Header().Set("Location", path.Join("/browser/", string(space.ID())))
 		w.WriteHeader(http.StatusFound)
 		return
 	}
@@ -427,24 +427,24 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	folders, err := h.folders.GetAllUserFolders(r.Context(), user.ID(), nil)
+	spaces, err := h.spaces.GetAllUserSpaces(r.Context(), user.ID(), nil)
 	if err != nil {
-		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetallUserFolders: %w", err))
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetallUserSpaces: %w", err))
 		return
 	}
 
 	h.html.WriteHTML(w, r, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
 		"host":       r.Host,
 		"fullPath":   fullPath,
-		"folder":     folder,
-		"breadcrumb": generateBreadCrumb(folder, fullPath),
-		"folders":    folders,
+		"space":      space,
+		"breadcrumb": generateBreadCrumb(space, fullPath),
+		"spaces":     spaces,
 		"inodes":     dirContent,
 	})
 }
 
-func (h *browserHandler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, folder *folders.Folder, fullPath, lastElem string) {
-	ffs := h.fs.GetFolderFS(folder)
+func (h *browserHandler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, space *spaces.Space, fullPath, lastElem string) {
+	ffs := h.fs.GetSpaceFS(space)
 	dirContent, err := ffs.ListDir(r.Context(), fullPath, &storage.PaginateCmd{
 		StartAfter: map[string]string{"name": lastElem},
 		Limit:      PageSize,
@@ -457,7 +457,7 @@ func (h *browserHandler) renderMoreDirContent(w http.ResponseWriter, r *http.Req
 	h.html.WriteHTML(w, r, http.StatusOK, "browser/rows.tmpl", map[string]interface{}{
 		"host":     r.Host,
 		"fullPath": fullPath,
-		"folder":   folder,
+		"space":    space,
 		"inodes":   dirContent,
 	})
 }
@@ -468,12 +468,12 @@ func (h *browserHandler) download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	folder, fullPath, abort := h.getFolderAndPathFromURL(w, r, user)
+	space, fullPath, abort := h.getSpaceAndPathFromURL(w, r, user)
 	if abort {
 		return
 	}
 
-	ffs := h.fs.GetFolderFS(folder)
+	ffs := h.fs.GetSpaceFS(space)
 
 	inode, err := ffs.Get(r.Context(), fullPath)
 	if err != nil {
@@ -482,13 +482,13 @@ func (h *browserHandler) download(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if inode == nil {
-		w.Header().Set("Location", path.Join("/browser/", string(folder.ID())))
+		w.Header().Set("Location", path.Join("/browser/", string(space.ID())))
 		w.WriteHeader(http.StatusFound)
 		return
 	}
 
 	if inode.IsDir() {
-		h.serveFolderContent(w, r, ffs, fullPath)
+		h.serveSpaceContent(w, r, ffs, fullPath)
 	} else {
 		fileMeta, _ := h.files.GetMetadata(r.Context(), *inode.FileID())
 
@@ -504,7 +504,7 @@ func (h *browserHandler) download(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *browserHandler) serveFolderContent(w http.ResponseWriter, r *http.Request, ffs dfs.FS, root string) {
+func (h *browserHandler) serveSpaceContent(w http.ResponseWriter, r *http.Request, ffs dfs.FS, root string) {
 	var err error
 
 	_, dir := path.Split(root)

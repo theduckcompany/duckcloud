@@ -1,4 +1,4 @@
-{{ $url := pathJoin "/browser" $.folder.ID $.fullPath}}
+{{ $url := pathJoin "/browser" $.space.ID $.fullPath}}
 <section id="content" class="p-4" hx-get="{{$url}}" hx-swap="outerHTML" hx-trigger="refresh-event">
 
   <!-- Modal -->
@@ -30,7 +30,7 @@
           id="add-button" data-mdb-toggle="dropdown" aria-expanded="false"><i
             class="bi bi-plus me-1 fs-4"></i>Add</button>
         <ul class="dropdown-menu" aria-labelledby="add-button">
-          <li><a class="dropdown-item text-dark" hx-get="/browser/create-dir?folder={{$.folder.ID}}&dir={{$.fullPath}}"
+          <li><a class="dropdown-item text-dark" hx-get="/browser/create-dir?space={{$.space.ID}}&dir={{$.fullPath}}"
               hx-target="#modal-target" hx-trigger="click" data-mdb-toggle="modal" hx-swap="innerHTML"
               data-mdb-target="#modal-target"><i class="bi bi-folder-fill me-2"
                 style="font-size: 1.1rem; color: cornflowerblue;"></i>New folder</a></li>
@@ -72,7 +72,7 @@
   })
 
   client.setMeta({rootPath: {{$.fullPath}}})
-  client.setMeta({folderID: {{$.folder.ID}}})
+  client.setMeta({spaceID: {{$.space.ID}}})
   client.use(StatusBar, {target: '#status-bar'});
 
   client.on('complete', (result) => {

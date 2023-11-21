@@ -16,7 +16,6 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/debug"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/masterkey"
 	"github.com/theduckcompany/duckcloud/internal/service/oauth2"
@@ -24,6 +23,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/oauthcodes"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
@@ -38,7 +38,7 @@ import (
 	"go.uber.org/fx/fxevent"
 )
 
-type Folder string
+type Space string
 
 type Config struct {
 	fx.Out
@@ -49,7 +49,7 @@ type Config struct {
 	Storage   storage.Config
 	Tools     tools.Config
 	Web       web.Config
-	Folder    Folder
+	Space     Space
 	MasterKey masterkey.Config
 }
 
@@ -70,24 +70,24 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 			func() context.Context { return ctx },
 			func() Config { return cfg },
 
-			func(folder Folder, fs afero.Fs, tools tools.Tools) (string, error) {
-				folderPath, err := filepath.Abs(string(folder))
+			func(space Space, fs afero.Fs, tools tools.Tools) (string, error) {
+				spacePath, err := filepath.Abs(string(space))
 				if err != nil {
-					return "", fmt.Errorf("invalid path: %q: %w", folderPath, err)
+					return "", fmt.Errorf("invalid path: %q: %w", spacePath, err)
 				}
 
-				err = fs.MkdirAll(string(folder), 0o755)
+				err = fs.MkdirAll(string(space), 0o755)
 				if err != nil && !errors.Is(err, os.ErrExist) {
-					return "", fmt.Errorf("failed to create the %s: %w", folderPath, err)
+					return "", fmt.Errorf("failed to create the %s: %w", spacePath, err)
 				}
 
 				if fs.Name() == afero.NewMemMapFs().Name() {
 					tools.Logger().Info(fmt.Sprintf("Load data from memory"))
 				} else {
-					tools.Logger().Info(fmt.Sprintf("Load data from %s", folder))
+					tools.Logger().Info(fmt.Sprintf("Load data from %s", space))
 				}
 
-				return folderPath, nil
+				return spacePath, nil
 			},
 
 			// Tools
@@ -106,7 +106,7 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 			fx.Annotate(websessions.Init, fx.As(new(websessions.Service))),
 			fx.Annotate(oauth2.Init, fx.As(new(oauth2.Service))),
 			fx.Annotate(davsessions.Init, fx.As(new(davsessions.Service))),
-			fx.Annotate(folders.Init, fx.As(new(folders.Service))),
+			fx.Annotate(spaces.Init, fx.As(new(spaces.Service))),
 			fx.Annotate(scheduler.Init, fx.As(new(scheduler.Service))),
 			fx.Annotate(masterkey.Init, fx.As(new(masterkey.Service))),
 

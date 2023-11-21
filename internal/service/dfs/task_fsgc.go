@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
@@ -18,21 +18,21 @@ import (
 const gcBatchSize = 10
 
 type FSGGCTaskRunner struct {
-	inodes  inodes.Service
-	files   files.Service
-	folders folders.Service
-	cancel  context.CancelFunc
-	clock   clock.Clock
-	quit    chan struct{}
+	inodes inodes.Service
+	files  files.Service
+	spaces spaces.Service
+	cancel context.CancelFunc
+	clock  clock.Clock
+	quit   chan struct{}
 }
 
 func NewFSGGCTaskRunner(
 	inodes inodes.Service,
 	files files.Service,
-	folders folders.Service,
+	spaces spaces.Service,
 	tools tools.Tools,
 ) *FSGGCTaskRunner {
-	return &FSGGCTaskRunner{inodes, files, folders, nil, tools.Clock(), make(chan struct{})}
+	return &FSGGCTaskRunner{inodes, files, spaces, nil, tools.Clock(), make(chan struct{})}
 }
 
 func (r *FSGGCTaskRunner) Name() string { return "fs-gc" }

@@ -7,9 +7,9 @@ import (
 
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 )
@@ -20,7 +20,7 @@ type UserDeleteTaskRunner struct {
 	davSessions   davsessions.Service
 	oauthSessions oauthsessions.Service
 	oauthConsents oauthconsents.Service
-	folders       folders.Service
+	spaces        spaces.Service
 	fs            dfs.Service
 }
 
@@ -30,7 +30,7 @@ func NewUserDeleteTaskRunner(
 	davSessions davsessions.Service,
 	oauthSessions oauthsessions.Service,
 	oauthConsents oauthconsents.Service,
-	folders folders.Service,
+	spaces spaces.Service,
 	fs dfs.Service,
 ) *UserDeleteTaskRunner {
 	return &UserDeleteTaskRunner{
@@ -39,7 +39,7 @@ func NewUserDeleteTaskRunner(
 		davSessions,
 		oauthSessions,
 		oauthConsents,
-		folders,
+		spaces,
 		fs,
 	}
 }
@@ -73,17 +73,17 @@ func (r *UserDeleteTaskRunner) RunArgs(ctx context.Context, args *scheduler.User
 		return fmt.Errorf("failed to delete all oauth sessions: %w", err)
 	}
 
-	folders, err := r.folders.GetAllUserFolders(ctx, args.UserID, nil)
+	spaces, err := r.spaces.GetAllUserSpaces(ctx, args.UserID, nil)
 	if err != nil {
-		return fmt.Errorf("failed to GetAllUserFolders: %w", err)
+		return fmt.Errorf("failed to GetAllUserSpaces: %w", err)
 	}
 
-	for _, folder := range folders {
-		if folder.IsPublic() {
+	for _, space := range spaces {
+		if space.IsPublic() {
 			continue
 		}
 
-		err = r.fs.RemoveFS(ctx, &folder)
+		err = r.fs.RemoveFS(ctx, &space)
 		if err != nil {
 			return fmt.Errorf("failed to RemoveFS: %w", err)
 		}

@@ -98,7 +98,7 @@ func (s *INodeService) MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, erro
 		// XXX:MULTI-WRITE
 		//
 		// This function is idempotent so there isn't a real issue here. Worst case
-		// senario only some folders are recreated but a new call would create them.
+		// senario only some spaces are recreated but a new call would create them.
 		inode, err = s.CreateDir(ctx, dir, frag)
 		if err != nil {
 			return fmt.Errorf("failed to CreateDir %q: %w", path.Join(currentPath, frag), err)
@@ -387,9 +387,9 @@ func (s *INodeService) walk(ctx context.Context, cmd *PathCmd, op string, f func
 		fullname = fullname[1:]
 	}
 
-	dir, err := s.storage.GetByID(ctx, cmd.Folder.RootFS())
+	dir, err := s.storage.GetByID(ctx, cmd.Space.RootFS())
 	if errors.Is(err, errNotFound) {
-		return errs.NotFound(ErrInvalidRoot, "failed to fetch the root dir for folder %q", cmd.Folder.Name())
+		return errs.NotFound(ErrInvalidRoot, "failed to fetch the root dir for space %q", cmd.Space.Name())
 	}
 
 	if err != nil {
@@ -405,7 +405,7 @@ func (s *INodeService) walk(ctx context.Context, cmd *PathCmd, op string, f func
 			frag, remaining = fullname[:i], fullname[i+1:]
 		}
 
-		if frag == "" && dir.ID() != cmd.Folder.RootFS() {
+		if frag == "" && dir.ID() != cmd.Space.RootFS() {
 			panic("webdav: empty path fragment for a clean path")
 		}
 

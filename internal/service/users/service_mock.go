@@ -6,7 +6,7 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
-	folders "github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
+	spaces "github.com/theduckcompany/duckcloud/internal/service/spaces"
 
 	secret "github.com/theduckcompany/duckcloud/internal/tools/secret"
 
@@ -204,25 +204,25 @@ func (_m *MockService) MarkInitAsFinished(ctx context.Context, userID uuid.UUID)
 	return r0, r1
 }
 
-// SetDefaultFolder provides a mock function with given fields: ctx, user, folder
-func (_m *MockService) SetDefaultFolder(ctx context.Context, user User, folder *folders.Folder) (*User, error) {
-	ret := _m.Called(ctx, user, folder)
+// SetDefaultSpace provides a mock function with given fields: ctx, user, space
+func (_m *MockService) SetDefaultSpace(ctx context.Context, user User, space *spaces.Space) (*User, error) {
+	ret := _m.Called(ctx, user, space)
 
 	var r0 *User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, User, *folders.Folder) (*User, error)); ok {
-		return rf(ctx, user, folder)
+	if rf, ok := ret.Get(0).(func(context.Context, User, *spaces.Space) (*User, error)); ok {
+		return rf(ctx, user, space)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, User, *folders.Folder) *User); ok {
-		r0 = rf(ctx, user, folder)
+	if rf, ok := ret.Get(0).(func(context.Context, User, *spaces.Space) *User); ok {
+		r0 = rf(ctx, user, space)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*User)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, User, *folders.Folder) error); ok {
-		r1 = rf(ctx, user, folder)
+	if rf, ok := ret.Get(1).(func(context.Context, User, *spaces.Space) error); ok {
+		r1 = rf(ctx, user, space)
 	} else {
 		r1 = ret.Error(1)
 	}

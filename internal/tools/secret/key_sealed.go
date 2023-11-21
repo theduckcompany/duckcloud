@@ -36,7 +36,7 @@ func SealedKeyFromBase64(str string) (*SealedKey, error) {
 	return &key, nil
 }
 
-func SealKey(encryptionKey *Key, input *Key) (*SealedKey, error) {
+func SealKey(encryptionKey, input *Key) (*SealedKey, error) {
 	return sealKey(&encryptionKey.v, input)
 }
 

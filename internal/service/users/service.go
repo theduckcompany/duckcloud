@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
@@ -18,13 +18,13 @@ import (
 )
 
 var (
-	ErrAlreadyExists      = fmt.Errorf("user already exists")
-	ErrUsernameTaken      = fmt.Errorf("username taken")
-	ErrInvalidUsername    = fmt.Errorf("invalid username")
-	ErrInvalidPassword    = fmt.Errorf("invalid password")
-	ErrLastAdmin          = fmt.Errorf("can't remove the last admin")
-	ErrInvalidStatus      = fmt.Errorf("invalid status")
-	ErrUnauthorizedFolder = fmt.Errorf("unauthorized folder")
+	ErrAlreadyExists     = fmt.Errorf("user already exists")
+	ErrUsernameTaken     = fmt.Errorf("username taken")
+	ErrInvalidUsername   = fmt.Errorf("invalid username")
+	ErrInvalidPassword   = fmt.Errorf("invalid password")
+	ErrLastAdmin         = fmt.Errorf("can't remove the last admin")
+	ErrInvalidStatus     = fmt.Errorf("invalid status")
+	ErrUnauthorizedSpace = fmt.Errorf("unauthorized space")
 )
 
 // Storage encapsulates the logic to access user from the data source.
@@ -83,13 +83,13 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 	}
 
 	user := User{
-		id:              newUserID,
-		username:        cmd.Username,
-		defaultFolderID: "",
-		isAdmin:         cmd.IsAdmin,
-		password:        hashedPassword,
-		createdAt:       s.clock.Now(),
-		status:          Initializing,
+		id:             newUserID,
+		username:       cmd.Username,
+		defaultSpaceID: "",
+		isAdmin:        cmd.IsAdmin,
+		password:       hashedPassword,
+		createdAt:      s.clock.Now(),
+		status:         Initializing,
 	}
 
 	err = s.storage.Save(ctx, &user)
@@ -114,14 +114,14 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 	return &user, nil
 }
 
-func (s *UserService) SetDefaultFolder(ctx context.Context, user User, folder *folders.Folder) (*User, error) {
-	if !slices.Contains[[]uuid.UUID, uuid.UUID](folder.Owners(), user.ID()) {
-		return nil, errs.Unauthorized(ErrUnauthorizedFolder)
+func (s *UserService) SetDefaultSpace(ctx context.Context, user User, space *spaces.Space) (*User, error) {
+	if !slices.Contains[[]uuid.UUID, uuid.UUID](space.Owners(), user.ID()) {
+		return nil, errs.Unauthorized(ErrUnauthorizedSpace)
 	}
 
-	user.defaultFolderID = folder.ID()
+	user.defaultSpaceID = space.ID()
 
-	err := s.storage.Patch(ctx, user.ID(), map[string]any{"default_folder": folder.ID()})
+	err := s.storage.Patch(ctx, user.ID(), map[string]any{"space": space.ID()})
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to patch the user: %w", err))
 	}

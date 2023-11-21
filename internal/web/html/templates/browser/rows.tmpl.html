@@ -1,7 +1,7 @@
 {{range $idx, $val := .inodes}}
-{{ $currentURL := pathJoin "/browser" $.folder.ID $.fullPath}}
+{{ $currentURL := pathJoin "/browser" $.space.ID $.fullPath}}
 {{ $url := pathJoin $currentURL $val.Name}}
-{{ $downloadURL := pathJoin "/download" $.folder.ID $.fullPath $val.Name}}
+{{ $downloadURL := pathJoin "/download" $.space.ID $.fullPath $val.Name}}
 {{ $lastIdx := sub (len $.inodes) 1}}
 
 <div {{if (eq $idx $lastIdx)}}hx-get="{{$currentURL}}?last={{.Name}}" hx-trigger="revealed" hx-swap="afterend" {{end}}

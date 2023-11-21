@@ -1,4 +1,4 @@
-package folders
+package spaces
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 
 //go:generate mockery --name Service
 type Service interface {
-	Create(ctx context.Context, cmd *CreateCmd) (*Folder, error)
-	GetAllUserFolders(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error)
-	GetUserFolder(ctx context.Context, userID, folderID uuid.UUID) (*Folder, error)
-	GetByID(ctx context.Context, folderID uuid.UUID) (*Folder, error)
-	Delete(ctx context.Context, folderID uuid.UUID) error
+	Create(ctx context.Context, cmd *CreateCmd) (*Space, error)
+	GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Space, error)
+	GetUserSpace(ctx context.Context, userID, spaceID uuid.UUID) (*Space, error)
+	GetByID(ctx context.Context, spaceID uuid.UUID) (*Space, error)
+	Delete(ctx context.Context, spaceID uuid.UUID) error
 }
 
 func Init(tools tools.Tools, db *sql.DB) Service {
