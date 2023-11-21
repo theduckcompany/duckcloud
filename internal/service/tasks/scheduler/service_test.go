@@ -100,11 +100,11 @@ func TestSchdulerService(t *testing.T) {
 			Status:       model.Queuing,
 			Name:         "file-upload",
 			RegisteredAt: now,
-			Args:         json.RawMessage(`{"folder-id":"a379fef3-ebc3-4069-b1ef-8c67948b3cff","file-id":"0d76c071-2e8b-4873-92e9-d8be871ef636","inode-id":"c87ebbda-435b-43b7-bab6-e93ca8f3831a","uploaded-at":"2020-02-12T11:10:00Z"}`),
+			Args:         json.RawMessage(`{"space-id":"a379fef3-ebc3-4069-b1ef-8c67948b3cff","file-id":"0d76c071-2e8b-4873-92e9-d8be871ef636","inode-id":"c87ebbda-435b-43b7-bab6-e93ca8f3831a","uploaded-at":"2020-02-12T11:10:00Z"}`),
 		}).Return(nil).Once()
 
 		err := svc.RegisterFileUploadTask(ctx, &FileUploadArgs{
-			FolderID:   uuid.UUID("a379fef3-ebc3-4069-b1ef-8c67948b3cff"),
+			SpaceID:    uuid.UUID("a379fef3-ebc3-4069-b1ef-8c67948b3cff"),
 			FileID:     uuid.UUID("0d76c071-2e8b-4873-92e9-d8be871ef636"),
 			INodeID:    uuid.UUID("c87ebbda-435b-43b7-bab6-e93ca8f3831a"),
 			UploadedAt: now,
@@ -150,11 +150,11 @@ func TestSchdulerService(t *testing.T) {
 			Status:       model.Queuing,
 			Name:         "fs-move",
 			RegisteredAt: now,
-			Args:         json.RawMessage(`{"folder":"a379fef3-ebc3-4069-b1ef-8c67948b3cff","source-inode":"0d76c071-2e8b-4873-92e9-d8be871ef636","target-path":"/foo/bar.txt","moved-at":"2020-02-12T11:10:00Z"}`),
+			Args:         json.RawMessage(`{"space":"a379fef3-ebc3-4069-b1ef-8c67948b3cff","source-inode":"0d76c071-2e8b-4873-92e9-d8be871ef636","target-path":"/foo/bar.txt","moved-at":"2020-02-12T11:10:00Z"}`),
 		}).Return(nil).Once()
 
 		err := svc.RegisterFSMoveTask(ctx, &FSMoveArgs{
-			FolderID:    uuid.UUID("a379fef3-ebc3-4069-b1ef-8c67948b3cff"),
+			SpaceID:     uuid.UUID("a379fef3-ebc3-4069-b1ef-8c67948b3cff"),
 			SourceInode: uuid.UUID("0d76c071-2e8b-4873-92e9-d8be871ef636"),
 			TargetPath:  "/foo/bar.txt",
 			MovedAt:     now,

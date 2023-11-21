@@ -4,11 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
@@ -43,7 +42,7 @@ type settingsHandler struct {
 	html        html.Writer
 	webSessions websessions.Service
 	davSessions davsessions.Service
-	folders     folders.Service
+	spaces      spaces.Service
 	users       users.Service
 	uuid        uuid.Service
 	auth        *Authenticator
@@ -54,7 +53,7 @@ func newSettingsHandler(
 	html html.Writer,
 	webSessions websessions.Service,
 	davSessions davsessions.Service,
-	folders folders.Service,
+	spaces spaces.Service,
 	users users.Service,
 	authent *Authenticator,
 ) *settingsHandler {
@@ -62,7 +61,7 @@ func newSettingsHandler(
 		html:        html,
 		webSessions: webSessions,
 		davSessions: davSessions,
-		folders:     folders,
+		spaces:      spaces,
 		users:       users,
 		uuid:        tools.UUID(),
 		auth:        authent,
@@ -133,9 +132,9 @@ func (h *settingsHandler) renderDavSessions(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	folders, err := h.folders.GetAllUserFolders(ctx, cmd.User.ID(), nil)
+	spaces, err := h.spaces.GetAllUserSpaces(ctx, cmd.User.ID(), nil)
 	if err != nil {
-		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetAllUserFolders: %w", err))
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetAllUserSpaces: %w", err))
 		return
 	}
 
@@ -151,7 +150,7 @@ func (h *settingsHandler) renderDavSessions(w http.ResponseWriter, r *http.Reque
 		"isAdmin":     cmd.User.IsAdmin(),
 		"newSession":  cmd.NewSession,
 		"davSessions": davSessions,
-		"folders":     folders,
+		"spaces":      spaces,
 		"secret":      cmd.Secret,
 		"error":       cmd.Error,
 	})
@@ -163,22 +162,17 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	foldersIDs := []uuid.UUID{}
-	for _, rawUUID := range strings.Split(r.FormValue("folders"), ",") {
-		id, err := h.uuid.Parse(rawUUID)
-		if err != nil {
-			h.renderDavSessions(w, r, renderDavCmd{User: user, Session: session, Error: errors.New("invalid folder id")})
-			return
-		}
-
-		foldersIDs = append(foldersIDs, id)
+	spaceID, err := h.uuid.Parse(r.FormValue("space"))
+	if err != nil {
+		h.renderDavSessions(w, r, renderDavCmd{User: user, Session: session, Error: errors.New("invalid space id")})
+		return
 	}
 
 	newSession, secret, err := h.davSessions.Create(r.Context(), &davsessions.CreateCmd{
 		UserID:   user.ID(),
 		Name:     r.FormValue("name"),
 		Username: user.Username(),
-		Folders:  foldersIDs,
+		SpaceID:  spaceID,
 	})
 	if errors.Is(err, errs.ErrValidation) {
 		h.renderDavSessions(w, r, renderDavCmd{User: user, Session: session, Error: err})

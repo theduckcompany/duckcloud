@@ -1,4 +1,4 @@
-package folders
+package spaces
 
 import (
 	"database/sql/driver"
@@ -11,7 +11,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
-type Folder struct {
+type Space struct {
 	id        uuid.UUID
 	name      string
 	isPublic  bool
@@ -20,12 +20,12 @@ type Folder struct {
 	createdAt time.Time
 }
 
-func (f *Folder) ID() uuid.UUID        { return f.id }
-func (f *Folder) Name() string         { return f.name }
-func (f *Folder) IsPublic() bool       { return f.isPublic }
-func (f *Folder) Owners() Owners       { return f.owners }
-func (f *Folder) RootFS() uuid.UUID    { return f.rootFS }
-func (f *Folder) CreatedAt() time.Time { return f.createdAt }
+func (f *Space) ID() uuid.UUID        { return f.id }
+func (f *Space) Name() string         { return f.name }
+func (f *Space) IsPublic() bool       { return f.isPublic }
+func (f *Space) Owners() Owners       { return f.owners }
+func (f *Space) RootFS() uuid.UUID    { return f.rootFS }
+func (f *Space) CreatedAt() time.Time { return f.createdAt }
 
 type Owners []uuid.UUID
 

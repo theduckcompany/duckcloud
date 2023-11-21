@@ -1,4 +1,4 @@
-package folders
+package spaces
 
 import (
 	"testing"
@@ -9,19 +9,19 @@ import (
 
 func Test_CreateCmd_Validate(t *testing.T) {
 	assert.EqualError(t, CreateCmd{
-		Name:   "My folder",
+		Name:   "My space",
 		Owners: []uuid.UUID{"some-invalid-uuid"},
 		RootFS: uuid.UUID("49d16286-2a29-44c3-8dc5-3f7e53b49a0b"),
 	}.Validate(), "Owners: (0: must be a valid UUID v4.).")
 }
 
-func Test_Folder_Getters(t *testing.T) {
-	assert.Equal(t, ExampleAlicePersonalFolder.ID(), ExampleAlicePersonalFolder.id)
-	assert.Equal(t, ExampleAlicePersonalFolder.Name(), ExampleAlicePersonalFolder.name)
-	assert.Equal(t, ExampleAlicePersonalFolder.IsPublic(), ExampleAlicePersonalFolder.isPublic)
-	assert.Equal(t, ExampleAlicePersonalFolder.Owners(), ExampleAlicePersonalFolder.owners)
-	assert.Equal(t, ExampleAlicePersonalFolder.RootFS(), ExampleAlicePersonalFolder.rootFS)
-	assert.Equal(t, ExampleAlicePersonalFolder.CreatedAt(), ExampleAlicePersonalFolder.createdAt)
+func Test_Space_Getters(t *testing.T) {
+	assert.Equal(t, ExampleAlicePersonalSpace.ID(), ExampleAlicePersonalSpace.id)
+	assert.Equal(t, ExampleAlicePersonalSpace.Name(), ExampleAlicePersonalSpace.name)
+	assert.Equal(t, ExampleAlicePersonalSpace.IsPublic(), ExampleAlicePersonalSpace.isPublic)
+	assert.Equal(t, ExampleAlicePersonalSpace.Owners(), ExampleAlicePersonalSpace.owners)
+	assert.Equal(t, ExampleAlicePersonalSpace.RootFS(), ExampleAlicePersonalSpace.rootFS)
+	assert.Equal(t, ExampleAlicePersonalSpace.CreatedAt(), ExampleAlicePersonalSpace.createdAt)
 }
 
 func Test_Owners_Getters(t *testing.T) {

@@ -18,8 +18,8 @@ import (
 
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 )
@@ -35,7 +35,7 @@ type Handler struct {
 	FileSystem dfs.Service
 	// Sessions handle the users sessions used for authentification.
 	Sessions davsessions.Service
-	Folders  folders.Service
+	Spaces   spaces.Service
 	Files    files.Service
 	// Logger is an optional error logger. If non-nil, it will be called
 	// for all HTTP requests.
@@ -79,13 +79,13 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	folder, err := h.Folders.GetUserFolder(r.Context(), session.UserID(), session.FoldersIDs()[0])
+	space, err := h.Spaces.GetUserSpace(r.Context(), session.UserID(), session.SpacesID())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	fs := h.FileSystem.GetFolderFS(folder)
+	fs := h.FileSystem.GetSpaceFS(space)
 
 	status, err := http.StatusBadRequest, errUnsupportedMethod
 	switch {

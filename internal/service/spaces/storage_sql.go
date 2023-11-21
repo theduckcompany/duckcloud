@@ -1,4 +1,4 @@
-package folders
+package spaces
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
-const tableName = "fs_folders"
+const tableName = "spaces"
 
 var errNotFound = errors.New("not found")
 
@@ -28,11 +28,11 @@ func newSqlStorage(db *sql.DB, tools tools.Tools) *sqlStorage {
 	return &sqlStorage{db, tools.Clock()}
 }
 
-func (s *sqlStorage) Save(ctx context.Context, folder *Folder) error {
+func (s *sqlStorage) Save(ctx context.Context, space *Space) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(allFields...).
-		Values(folder.id, folder.name, folder.isPublic, folder.owners, folder.rootFS, folder.createdAt).
+		Values(space.id, space.name, space.isPublic, space.owners, space.rootFS, space.createdAt).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -42,18 +42,18 @@ func (s *sqlStorage) Save(ctx context.Context, folder *Folder) error {
 	return nil
 }
 
-func (s *sqlStorage) GetAllUserFolders(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Folder, error) {
+func (s *sqlStorage) GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Space, error) {
 	return s.getAllbyKeys(ctx, cmd, sq.Like{"owners": fmt.Sprintf("%%%s%%", userID)})
 }
 
-func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*Folder, error) {
+func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*Space, error) {
 	return s.getByKeys(ctx, sq.Eq{"id": id})
 }
 
-func (s *sqlStorage) Delete(ctx context.Context, folderID uuid.UUID) error {
+func (s *sqlStorage) Delete(ctx context.Context, spaceID uuid.UUID) error {
 	_, err := sq.
 		Delete(tableName).
-		Where(sq.Eq{"id": folderID}).
+		Where(sq.Eq{"id": spaceID}).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -63,10 +63,10 @@ func (s *sqlStorage) Delete(ctx context.Context, folderID uuid.UUID) error {
 	return nil
 }
 
-func (s *sqlStorage) Patch(ctx context.Context, folderID uuid.UUID, fields map[string]any) error {
+func (s *sqlStorage) Patch(ctx context.Context, spaceID uuid.UUID, fields map[string]any) error {
 	_, err := sq.Update(tableName).
 		SetMap(fields).
-		Where(sq.Eq{"id": folderID}).
+		Where(sq.Eq{"id": spaceID}).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -76,7 +76,7 @@ func (s *sqlStorage) Patch(ctx context.Context, folderID uuid.UUID, fields map[s
 	return nil
 }
 
-func (s *sqlStorage) getAllbyKeys(ctx context.Context, cmd *storage.PaginateCmd, wheres ...any) ([]Folder, error) {
+func (s *sqlStorage) getAllbyKeys(ctx context.Context, cmd *storage.PaginateCmd, wheres ...any) ([]Space, error) {
 	query := sq.
 		Select(allFields...).
 		From(tableName)
@@ -98,8 +98,8 @@ func (s *sqlStorage) getAllbyKeys(ctx context.Context, cmd *storage.PaginateCmd,
 	return s.scanRows(rows)
 }
 
-func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*Folder, error) {
-	res := Folder{}
+func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*Space, error) {
+	res := Space{}
 
 	query := sq.
 		Select(allFields...).
@@ -123,23 +123,23 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*Folder, err
 	return &res, nil
 }
 
-func (s *sqlStorage) scanRows(rows *sql.Rows) ([]Folder, error) {
-	folders := []Folder{}
+func (s *sqlStorage) scanRows(rows *sql.Rows) ([]Space, error) {
+	spaces := []Space{}
 
 	for rows.Next() {
-		var res Folder
+		var res Space
 
 		err := rows.Scan(&res.id, &res.name, &res.isPublic, &res.owners, &res.rootFS, &res.createdAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}
 
-		folders = append(folders, res)
+		spaces = append(spaces, res)
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("scan error: %w", err)
 	}
 
-	return folders, nil
+	return spaces, nil
 }

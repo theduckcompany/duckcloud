@@ -6,19 +6,19 @@ import (
 	"fmt"
 
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 type UserCreateTaskRunner struct {
-	users   Service
-	folders folders.Service
-	fs      dfs.Service
+	users  Service
+	spaces spaces.Service
+	fs     dfs.Service
 }
 
-func NewUserCreateTaskRunner(users Service, folders folders.Service, fs dfs.Service) *UserCreateTaskRunner {
-	return &UserCreateTaskRunner{users, folders, fs}
+func NewUserCreateTaskRunner(users Service, spaces spaces.Service, fs dfs.Service) *UserCreateTaskRunner {
+	return &UserCreateTaskRunner{users, spaces, fs}
 }
 
 func (r *UserCreateTaskRunner) Name() string { return "user-create" }
@@ -49,31 +49,31 @@ func (r *UserCreateTaskRunner) RunArgs(ctx context.Context, args *scheduler.User
 		return fmt.Errorf("unepected user status: %s", user.Status())
 	}
 
-	existingFolders, err := r.folders.GetAllUserFolders(ctx, user.ID(), nil)
+	existingSpaces, err := r.spaces.GetAllUserSpaces(ctx, user.ID(), nil)
 	if err != nil {
-		return fmt.Errorf("failed to GetAllUserFolders: %w", err)
+		return fmt.Errorf("failed to GetAllUserSpaces: %w", err)
 	}
 
-	var firstFolder *folders.Folder
-	switch len(existingFolders) {
+	var firstSpace *spaces.Space
+	switch len(existingSpaces) {
 	case 0:
-		firstFolder = nil
+		firstSpace = nil
 	case 1:
-		firstFolder = &existingFolders[0]
+		firstSpace = &existingSpaces[0]
 	default:
-		return fmt.Errorf("the new user already have several folder: %+v", existingFolders)
+		return fmt.Errorf("the new user already have several space: %+v", existingSpaces)
 	}
 
-	if firstFolder == nil {
-		firstFolder, err = r.fs.CreateFS(ctx, []uuid.UUID{user.ID()})
+	if firstSpace == nil {
+		firstSpace, err = r.fs.CreateFS(ctx, []uuid.UUID{user.ID()})
 		if err != nil {
 			return fmt.Errorf("failed to CreateFS: %w", err)
 		}
 	}
 
-	_, err = r.users.SetDefaultFolder(ctx, *user, firstFolder)
+	_, err = r.users.SetDefaultSpace(ctx, *user, firstSpace)
 	if err != nil {
-		return fmt.Errorf("failed to SetDefaultFolder: %w", err)
+		return fmt.Errorf("failed to SetDefaultSpace: %w", err)
 	}
 
 	_, err = r.users.MarkInitAsFinished(ctx, args.UserID)

@@ -17,7 +17,7 @@ const tableName = "users"
 
 var errNotFound = errors.New("not found")
 
-var allFields = []string{"id", "username", "admin", "status", "default_folder", "password", "created_at"}
+var allFields = []string{"id", "username", "admin", "status", "space", "password", "created_at"}
 
 // sqlStorage use to save/retrieve Users
 type sqlStorage struct {
@@ -35,7 +35,7 @@ func (s *sqlStorage) Save(ctx context.Context, user *User) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(allFields...).
-		Values(user.id, user.username, user.isAdmin, user.status, user.defaultFolderID, user.password, user.createdAt).
+		Values(user.id, user.username, user.isAdmin, user.status, user.defaultSpaceID, user.password, user.createdAt).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -105,7 +105,7 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*User, error
 
 	err := query.
 		RunWith(s.db).
-		ScanContext(ctx, &res.id, &res.username, &res.isAdmin, &res.status, &res.defaultFolderID, &res.password, &res.createdAt)
+		ScanContext(ctx, &res.id, &res.username, &res.isAdmin, &res.status, &res.defaultSpaceID, &res.password, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errNotFound
 	}
@@ -123,7 +123,7 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]User, error) {
 	for rows.Next() {
 		var res User
 
-		err := rows.Scan(&res.id, &res.username, &res.isAdmin, &res.status, &res.defaultFolderID, &res.password, &res.createdAt)
+		err := rows.Scan(&res.id, &res.username, &res.isAdmin, &res.status, &res.defaultSpaceID, &res.password, &res.createdAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}

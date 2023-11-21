@@ -3,7 +3,7 @@ package davsessions
 import (
 	"time"
 
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -16,7 +16,7 @@ var ExampleAliceSession = DavSession{
 	userID:    uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 	username:  "Alice",
 	password:  secret.NewText("f0ce9d6e7315534d2f3603d11f496dafcda25f2f5bc2b4f8292a8ee34fe7735b"), // sha256 of "some-password"
-	folders:   Folders{folders.ExampleAlicePersonalFolder.ID()},
+	spaceID:   spaces.ExampleAlicePersonalSpace.ID(),
 	createdAt: now,
 }
 
@@ -26,6 +26,6 @@ var ExampleAliceSession2 = DavSession{
 	userID:    uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 	username:  "Alice",
 	password:  secret.NewText("f0ce9d6e7315534d2f3603d11f496dafcda25f2f5bc2b4f8292a8ee34fe7735b"), // sha256 of "some-password"
-	folders:   Folders{folders.ExampleAlicePersonalFolder.ID()},
+	spaceID:   spaces.ExampleAlicePersonalSpace.ID(),
 	createdAt: now,
 }

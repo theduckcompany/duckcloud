@@ -82,7 +82,7 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.Equal(t, uint64(100), totalSize)
 	})
 
-	t.Run("GetSumChildsSize with an invalid folder", func(t *testing.T) {
+	t.Run("GetSumChildsSize with an invalid space", func(t *testing.T) {
 		totalSize, err := store.GetSumChildsSize(ctx, uuid.UUID("some-invalid-id"))
 		assert.Equal(t, uint64(0), totalSize)
 		assert.NoError(t, err)

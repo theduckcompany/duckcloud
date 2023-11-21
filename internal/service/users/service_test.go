@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -263,33 +263,33 @@ func Test_Users_Service(t *testing.T) {
 		assert.ErrorIs(t, err, ErrInvalidStatus)
 	})
 
-	t.Run("SetDefaultFolder success", func(t *testing.T) {
+	t.Run("SetDefaultSpace success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
 		store.On("Patch", mock.Anything, ExampleAlice.ID(), map[string]interface{}{
-			"default_folder": folders.ExampleAliceBobSharedFolder.ID(),
+			"space": spaces.ExampleAliceBobSharedSpace.ID(),
 		}).Return(nil).Once()
 
-		res, err := service.SetDefaultFolder(ctx, ExampleAlice, &folders.ExampleAliceBobSharedFolder)
+		res, err := service.SetDefaultSpace(ctx, ExampleAlice, &spaces.ExampleAliceBobSharedSpace)
 		assert.NoError(t, err)
 		expected := ExampleAlice
-		expected.defaultFolderID = folders.ExampleAliceBobSharedFolder.ID()
+		expected.defaultSpaceID = spaces.ExampleAliceBobSharedSpace.ID()
 		assert.Equal(t, &expected, res)
 	})
 
-	t.Run("SetDefaultFolder with a folder not owned by the user", func(t *testing.T) {
+	t.Run("SetDefaultSpace with a space not owned by the user", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		// BobPersonalFolder is not owned by Alice
-		res, err := service.SetDefaultFolder(ctx, ExampleAlice, &folders.ExampleBobPersonalFolder)
+		// BobPersonalSpace is not owned by Alice
+		res, err := service.SetDefaultSpace(ctx, ExampleAlice, &spaces.ExampleBobPersonalSpace)
 		assert.ErrorIs(t, err, errs.ErrUnauthorized)
-		assert.ErrorIs(t, err, ErrUnauthorizedFolder)
+		assert.ErrorIs(t, err, ErrUnauthorizedSpace)
 		assert.Nil(t, res)
 	})
 
@@ -300,7 +300,7 @@ func Test_Users_Service(t *testing.T) {
 		service := NewService(tools, store, schedulerMock)
 
 		initializingAlice := ExampleInitializingAlice
-		initializingAlice.defaultFolderID = folders.ExampleAlicePersonalFolder.ID()
+		initializingAlice.defaultSpaceID = spaces.ExampleAlicePersonalSpace.ID()
 
 		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&initializingAlice, nil).Once()
 		store.On("Patch", mock.Anything, ExampleAlice.ID(), map[string]any{"status": Active}).Return(nil).Once()

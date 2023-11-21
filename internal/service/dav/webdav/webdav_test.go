@@ -23,14 +23,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 // TODO: add tests to check XML responses with the expected prefix path
 func TestPrefix(t *testing.T) {
 	const dst, blah = "Destination", "blah blah blah"
 
-	do := func(username, token, method, urlStr string, body string, wantStatusCode int, headers ...string) (http.Header, error) {
+	do := func(username, token, method, urlStr, body string, wantStatusCode int, headers ...string) (http.Header, error) {
 		var bodyReader io.Reader
 		if body != "" {
 			bodyReader = strings.NewReader(body)
@@ -70,7 +69,7 @@ func TestPrefix(t *testing.T) {
 		h := &Handler{
 			FileSystem: tc.FSService,
 			Sessions:   tc.DavSessionsSvc,
-			Folders:    tc.FoldersSvc,
+			Spaces:     tc.SpacesSvc,
 			Files:      tc.Files,
 			Logger: func(_ *http.Request, err error) {
 				if err != nil {
@@ -91,7 +90,7 @@ func TestPrefix(t *testing.T) {
 			Name:     "test session",
 			Username: tc.User.Username(),
 			UserID:   tc.User.ID(),
-			Folders:  []uuid.UUID{tc.Folder.ID()},
+			SpaceID:  tc.Space.ID(),
 		})
 		require.NoError(t, err)
 
@@ -330,7 +329,7 @@ func TestFilenameEscape(t *testing.T) {
 		FileSystem: tc.FSService,
 		Sessions:   tc.DavSessionsSvc,
 		Files:      tc.Files,
-		Folders:    tc.FoldersSvc,
+		Spaces:     tc.SpacesSvc,
 		Logger: func(_ *http.Request, err error) {
 			if err != nil {
 				t.Fatalf("error from the webdav: %q", err)
@@ -344,7 +343,7 @@ func TestFilenameEscape(t *testing.T) {
 		Name:     "test session",
 		Username: username,
 		UserID:   tc.User.ID(),
-		Folders:  []uuid.UUID{tc.Folder.ID()},
+		SpaceID:  tc.User.DefaultSpace(),
 	})
 	require.NoError(t, err)
 

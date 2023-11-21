@@ -41,14 +41,14 @@
       <ul class="sidenav-menu px-2 pb-5" hx-boost="true">
 
         <li class="sidenav-item pt-3">
-          <span class="sidenav-subheading text-muted text-uppercase fw-bold">Folders</span>
+          <span class="sidenav-subheading text-muted text-uppercase fw-bold">Spaces</span>
         </li>
-        {{range .folders}}
+        {{range .spaces}}
         <li class="sidenav-item">
-          <a class="sidenav-link {{if (eq $.folder.ID .ID)}}text-primary bg-light{{end}}" href="/browser/{{.ID}}"
+          <a class="sidenav-link {{if (eq $.space.ID .ID)}}text-primary bg-light{{end}}" href="/browser/{{.ID}}"
             hx-target="#content" , hx-swap="outerHTML">
             <i
-              class="bi bi-folder-fill me-3 {{if (eq $.folder.ID .ID)}}text-primary{{end}}"></i><span>{{.Name}}</span></a>
+              class="bi bi-folder-fill me-3 {{if (eq $.space.ID .ID)}}text-primary{{end}}"></i><span>{{.Name}}</span></a>
         </li>
         {{end}}
 

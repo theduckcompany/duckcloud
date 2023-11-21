@@ -9,7 +9,7 @@ import (
 )
 
 type FileUploadArgs struct {
-	FolderID   uuid.UUID `json:"folder-id"`
+	SpaceID    uuid.UUID `json:"space-id"`
 	FileID     uuid.UUID `json:"file-id"`
 	INodeID    uuid.UUID `json:"inode-id"`
 	UploadedAt time.Time `json:"uploaded-at"`
@@ -17,7 +17,7 @@ type FileUploadArgs struct {
 
 func (a FileUploadArgs) Validate() error {
 	return v.ValidateStruct(&a,
-		v.Field(&a.FolderID, v.Required, is.UUIDv4),
+		v.Field(&a.SpaceID, v.Required, is.UUIDv4),
 		v.Field(&a.INodeID, v.Required, is.UUIDv4),
 		v.Field(&a.FileID, v.Required, is.UUIDv4),
 		v.Field(&a.UploadedAt, v.Required),
@@ -25,7 +25,7 @@ func (a FileUploadArgs) Validate() error {
 }
 
 type FSMoveArgs struct {
-	FolderID    uuid.UUID `json:"folder"`
+	SpaceID     uuid.UUID `json:"space"`
 	SourceInode uuid.UUID `json:"source-inode"`
 	TargetPath  string    `json:"target-path"`
 	MovedAt     time.Time `json:"moved-at"`
@@ -33,7 +33,7 @@ type FSMoveArgs struct {
 
 func (a FSMoveArgs) Validate() error {
 	return v.ValidateStruct(&a,
-		v.Field(&a.FolderID, v.Required, is.UUIDv4),
+		v.Field(&a.SpaceID, v.Required, is.UUIDv4),
 		v.Field(&a.SourceInode, v.Required, is.UUIDv4),
 		v.Field(&a.TargetPath, v.Required),
 		v.Field(&a.MovedAt, v.Required),

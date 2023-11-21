@@ -40,12 +40,12 @@
         </div>
 
         <div class="col-auto">
-          <select id="davSessionFolders" name="folders" class="select" multiple>
-            {{ range .folders}}
+          <select id="davSessionSpace" name="space" class="select">
+            {{ range .spaces}}
             <option value="{{.ID}}" selected>{{.Name}}</option>
             {{end}}
           </select>
-          <label for="davSessionFolders" class="form-label select-label">Folders</label>
+          <label for="davSessionSpace" class="form-label select-label">Space</label>
         </div>
 
         <div class="col-auto">

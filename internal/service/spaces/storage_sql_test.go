@@ -1,4 +1,4 @@
-package folders
+package spaces
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
-func TestFolderSqlstore(t *testing.T) {
+func TestSpaceSqlstore(t *testing.T) {
 	ctx := context.Background()
 
 	// This AliceID is hardcoded in order to avoid dependency cycles
@@ -22,15 +22,15 @@ func TestFolderSqlstore(t *testing.T) {
 	store := newSqlStorage(db, tools)
 
 	t.Run("Create success", func(t *testing.T) {
-		err := store.Save(ctx, &ExampleAlicePersonalFolder)
+		err := store.Save(ctx, &ExampleAlicePersonalSpace)
 
 		assert.NoError(t, err)
 	})
 
 	t.Run("GetByID success", func(t *testing.T) {
-		res, err := store.GetByID(ctx, ExampleAlicePersonalFolder.ID())
+		res, err := store.GetByID(ctx, ExampleAlicePersonalSpace.ID())
 		assert.NoError(t, err)
-		assert.EqualValues(t, &ExampleAlicePersonalFolder, res)
+		assert.EqualValues(t, &ExampleAlicePersonalSpace, res)
 	})
 
 	t.Run("GetByID not found", func(t *testing.T) {
@@ -40,19 +40,19 @@ func TestFolderSqlstore(t *testing.T) {
 		assert.ErrorIs(t, err, errNotFound)
 	})
 
-	t.Run("GetAllUserFolders with only personal success", func(t *testing.T) {
-		res, err := store.GetAllUserFolders(ctx, AliceID, nil)
+	t.Run("GetAllUserSpaces with only personal success", func(t *testing.T) {
+		res, err := store.GetAllUserSpaces(ctx, AliceID, nil)
 		assert.NoError(t, err)
-		assert.EqualValues(t, []Folder{ExampleAlicePersonalFolder}, res)
+		assert.EqualValues(t, []Space{ExampleAlicePersonalSpace}, res)
 	})
 
 	t.Run("Patch success", func(t *testing.T) {
-		err := store.Patch(ctx, ExampleAlicePersonalFolder.id, map[string]any{"name": "foo"})
+		err := store.Patch(ctx, ExampleAlicePersonalSpace.id, map[string]any{"name": "foo"})
 		require.NoError(t, err)
 
-		res, err := store.GetByID(ctx, ExampleAlicePersonalFolder.id)
+		res, err := store.GetByID(ctx, ExampleAlicePersonalSpace.id)
 
-		expected := ExampleAlicePersonalFolder
+		expected := ExampleAlicePersonalSpace
 		expected.name = "foo"
 
 		assert.NoError(t, err)
@@ -60,11 +60,11 @@ func TestFolderSqlstore(t *testing.T) {
 	})
 
 	t.Run("Delete success", func(t *testing.T) {
-		err := store.Delete(ctx, ExampleAlicePersonalFolder.ID())
+		err := store.Delete(ctx, ExampleAlicePersonalSpace.ID())
 		assert.NoError(t, err)
 
-		res, err := store.GetAllUserFolders(ctx, AliceID, nil)
+		res, err := store.GetAllUserSpaces(ctx, AliceID, nil)
 		assert.NoError(t, err)
-		assert.Equal(t, []Folder{}, res)
+		assert.Equal(t, []Space{}, res)
 	})
 }

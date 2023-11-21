@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -28,17 +28,17 @@ func Test_LocalFS(t *testing.T) {
 	t.Run("Get success", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
+		spaceFS := newLocalFS(inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Folder: &folders.ExampleAlicePersonalFolder,
-			Path:   "/foobar",
+			Space: &spaces.ExampleAlicePersonalSpace,
+			Path:  "/foobar",
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
-		res, err := folderFS.Get(ctx, "foobar")
+		res, err := spaceFS.Get(ctx, "foobar")
 		assert.NoError(t, err)
 		assert.Equal(t, &inodes.ExampleAliceFile, res)
 	})
@@ -46,17 +46,17 @@ func Test_LocalFS(t *testing.T) {
 	t.Run("Get on an unknown file", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
+		spaceFS := newLocalFS(inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Folder: &folders.ExampleAlicePersonalFolder,
-			Path:   "/unknown-file",
+			Space: &spaces.ExampleAlicePersonalSpace,
+			Path:  "/unknown-file",
 		}).Return(nil, errs.ErrNotFound).Once()
 
-		info, err := folderFS.Get(ctx, "unknown-file")
+		info, err := spaceFS.Get(ctx, "unknown-file")
 		assert.Nil(t, info)
 		assert.ErrorIs(t, err, errs.ErrNotFound)
 	})
@@ -64,17 +64,17 @@ func Test_LocalFS(t *testing.T) {
 	t.Run("CreateDir success", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
+		spaceFS := newLocalFS(inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
 
 		inodesMock.On("MkdirAll", mock.Anything, &inodes.PathCmd{
-			Folder: &folders.ExampleAlicePersonalFolder,
-			Path:   "/foo",
+			Space: &spaces.ExampleAlicePersonalSpace,
+			Path:  "/foo",
 		}).Return(&inodes.ExampleAliceRoot, nil).Once()
 
-		res, err := folderFS.CreateDir(ctx, "foo")
+		res, err := spaceFS.CreateDir(ctx, "foo")
 		require.NoError(t, err)
 		assert.Equal(t, &inodes.ExampleAliceRoot, res)
 	})
@@ -82,37 +82,37 @@ func Test_LocalFS(t *testing.T) {
 	t.Run("Remove success", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
+		spaceFS := newLocalFS(inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Folder: &folders.ExampleAlicePersonalFolder,
-			Path:   "/foo",
+			Space: &spaces.ExampleAlicePersonalSpace,
+			Path:  "/foo",
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceFile).Return(nil).Once()
 
-		err := folderFS.Remove(ctx, "foo")
+		err := spaceFS.Remove(ctx, "foo")
 		assert.NoError(t, err)
 	})
 
 	t.Run("ListDir success", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
+		spaceFS := newLocalFS(inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Folder: &folders.ExampleAlicePersonalFolder,
-			Path:   "/foo",
+			Space: &spaces.ExampleAlicePersonalSpace,
+			Path:  "/foo",
 		}).Return(&inodes.ExampleAliceDir, nil).Once()
 		inodesMock.On("Readdir", mock.Anything, &inodes.ExampleAliceDir, &storage.PaginateCmd{Limit: 2}).
 			Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
 
-		res, err := folderFS.ListDir(ctx, "foo", &storage.PaginateCmd{Limit: 2})
+		res, err := spaceFS.ListDir(ctx, "foo", &storage.PaginateCmd{Limit: 2})
 		assert.NoError(t, err)
 		assert.Equal(t, []inodes.INode{inodes.ExampleAliceFile}, res)
 	})
@@ -120,24 +120,24 @@ func Test_LocalFS(t *testing.T) {
 	t.Run("Download success", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
+		spaceFS := newLocalFS(inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
 
 		file, err := afero.TempFile(afero.NewMemMapFs(), "foo", "")
 		require.NoError(t, err)
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Folder: folderFS.folder,
-			Path:   "/foo/bar.txt",
+			Space: spaceFS.space,
+			Path:  "/foo/bar.txt",
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
 		filesMock.On("GetMetadata", mock.Anything, *inodes.ExampleAliceFile.FileID()).Return(&files.ExampleFile1, nil).Once()
 
 		filesMock.On("Download", mock.Anything, &files.ExampleFile1).Return(file, nil).Once()
 
-		res, err := folderFS.Download(ctx, "/foo/bar.txt")
+		res, err := spaceFS.Download(ctx, "/foo/bar.txt")
 		assert.NoError(t, err)
 		assert.Equal(t, file, res)
 	})
@@ -145,16 +145,16 @@ func Test_LocalFS(t *testing.T) {
 	t.Run("Upload success", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
+		spaceFS := newLocalFS(inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
 
 		content := "Hello, World!"
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Folder: &folders.ExampleAlicePersonalFolder,
-			Path:   "/foo/",
+			Space: &spaces.ExampleAlicePersonalSpace,
+			Path:  "/foo/",
 		}).Return(&ExampleAliceDir, nil).Once()
 		filesMock.On("Upload", mock.Anything, bytes.NewBufferString(content)).Return(uuid.UUID("some-file-id"), nil).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
@@ -170,74 +170,74 @@ func Test_LocalFS(t *testing.T) {
 			ModifiedAt: now,
 		}).Return(nil).Once()
 
-		err := folderFS.Upload(ctx, "foo/bar.txt", bytes.NewBufferString(content))
+		err := spaceFS.Upload(ctx, "foo/bar.txt", bytes.NewBufferString(content))
 		assert.NoError(t, err)
 	})
 
 	t.Run("Move success", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
+		spaceFS := newLocalFS(inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Folder: &folders.ExampleAlicePersonalFolder,
-			Path:   "/foo.txt",
+			Space: &spaces.ExampleAlicePersonalSpace,
+			Path:  "/foo.txt",
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 		schedulerMock.On("RegisterFSMoveTask", mock.Anything, &scheduler.FSMoveArgs{
-			FolderID:    folders.ExampleAlicePersonalFolder.ID(),
+			SpaceID:     spaces.ExampleAlicePersonalSpace.ID(),
 			SourceInode: inodes.ExampleAliceFile.ID(),
 			TargetPath:  "/bar.txt",
 			MovedAt:     now,
 		}).Return(nil).Once()
 
-		err := folderFS.Move(ctx, "/foo.txt", "/bar.txt")
+		err := spaceFS.Move(ctx, "/foo.txt", "/bar.txt")
 		assert.NoError(t, err)
 	})
 
 	t.Run("Move with a source not found", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
+		spaceFS := newLocalFS(inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Folder: &folders.ExampleAlicePersonalFolder,
-			Path:   "/foo.txt",
+			Space: &spaces.ExampleAlicePersonalSpace,
+			Path:  "/foo.txt",
 		}).Return(nil, errs.ErrNotFound).Once()
 
-		err := folderFS.Move(ctx, "/foo.txt", "/bar.txt")
+		err := spaceFS.Move(ctx, "/foo.txt", "/bar.txt")
 		assert.ErrorIs(t, err, errs.ErrNotFound)
 	})
 
 	t.Run("Move with a move error", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		folderFS := newLocalFS(inodesMock, filesMock, &folders.ExampleAlicePersonalFolder, foldersMock, schedulerMock, toolsMock)
+		spaceFS := newLocalFS(inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
 
 		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Folder: &folders.ExampleAlicePersonalFolder,
-			Path:   "/foo.txt",
+			Space: &spaces.ExampleAlicePersonalSpace,
+			Path:  "/foo.txt",
 		}).Return(&inodes.ExampleAliceFile, nil).Once()
 
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 		schedulerMock.On("RegisterFSMoveTask", mock.Anything, &scheduler.FSMoveArgs{
-			FolderID:    folders.ExampleAlicePersonalFolder.ID(),
+			SpaceID:     spaces.ExampleAlicePersonalSpace.ID(),
 			SourceInode: inodes.ExampleAliceFile.ID(),
 			TargetPath:  "/bar.txt",
 			MovedAt:     now,
 		}).Return(errs.Internal(fmt.Errorf("some-error"))).Once()
 
-		err := folderFS.Move(ctx, "/foo.txt", "/bar.txt")
+		err := spaceFS.Move(ctx, "/foo.txt", "/bar.txt")
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})

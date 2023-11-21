@@ -6,7 +6,7 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
-	folders "github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
+	spaces "github.com/theduckcompany/duckcloud/internal/service/spaces"
 
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -17,19 +17,19 @@ type MockService struct {
 }
 
 // CreateFS provides a mock function with given fields: ctx, owners
-func (_m *MockService) CreateFS(ctx context.Context, owners []uuid.UUID) (*folders.Folder, error) {
+func (_m *MockService) CreateFS(ctx context.Context, owners []uuid.UUID) (*spaces.Space, error) {
 	ret := _m.Called(ctx, owners)
 
-	var r0 *folders.Folder
+	var r0 *spaces.Space
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []uuid.UUID) (*folders.Folder, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []uuid.UUID) (*spaces.Space, error)); ok {
 		return rf(ctx, owners)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []uuid.UUID) *folders.Folder); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []uuid.UUID) *spaces.Space); ok {
 		r0 = rf(ctx, owners)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*folders.Folder)
+			r0 = ret.Get(0).(*spaces.Space)
 		}
 	}
 
@@ -42,13 +42,13 @@ func (_m *MockService) CreateFS(ctx context.Context, owners []uuid.UUID) (*folde
 	return r0, r1
 }
 
-// GetFolderFS provides a mock function with given fields: folder
-func (_m *MockService) GetFolderFS(folder *folders.Folder) FS {
-	ret := _m.Called(folder)
+// GetSpaceFS provides a mock function with given fields: space
+func (_m *MockService) GetSpaceFS(space *spaces.Space) FS {
+	ret := _m.Called(space)
 
 	var r0 FS
-	if rf, ok := ret.Get(0).(func(*folders.Folder) FS); ok {
-		r0 = rf(folder)
+	if rf, ok := ret.Get(0).(func(*spaces.Space) FS); ok {
+		r0 = rf(space)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(FS)
@@ -58,13 +58,13 @@ func (_m *MockService) GetFolderFS(folder *folders.Folder) FS {
 	return r0
 }
 
-// RemoveFS provides a mock function with given fields: ctx, folder
-func (_m *MockService) RemoveFS(ctx context.Context, folder *folders.Folder) error {
-	ret := _m.Called(ctx, folder)
+// RemoveFS provides a mock function with given fields: ctx, space
+func (_m *MockService) RemoveFS(ctx context.Context, space *spaces.Space) error {
+	ret := _m.Called(ctx, space)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *folders.Folder) error); ok {
-		r0 = rf(ctx, folder)
+	if rf, ok := ret.Get(0).(func(context.Context, *spaces.Space) error); ok {
+		r0 = rf(ctx, space)
 	} else {
 		r0 = ret.Error(0)
 	}

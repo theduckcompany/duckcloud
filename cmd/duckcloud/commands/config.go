@@ -45,7 +45,7 @@ type Config struct {
 	Dev       bool `mapstructure:"dev"`
 	HotReload bool `mapstructure:"hot-reload"`
 
-	Folder   string `mapstructure:"folder"`
+	Space    string `mapstructure:"space"`
 	MemoryFS bool   `mapstructure:"memory-fs"`
 
 	TLSCert        string `mapstructure:"tls-cert"`
@@ -101,12 +101,12 @@ func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
 		storagePath = ":memory:"
 	} else {
 		fs = afero.NewOsFs()
-		storagePath = path.Join(cfg.Folder, "db.sqlite")
+		storagePath = path.Join(cfg.Space, "db.sqlite")
 	}
 
-	err = fs.MkdirAll(cfg.Folder, 0o755)
+	err = fs.MkdirAll(cfg.Space, 0o755)
 	if err != nil && !errors.Is(err, os.ErrExist) {
-		return server.Config{}, fmt.Errorf("failed to create %q: %w", cfg.Folder, err)
+		return server.Config{}, fmt.Errorf("failed to create %q: %w", cfg.Space, err)
 	}
 
 	if cfg.SelfSignedCert {
@@ -114,7 +114,7 @@ func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
 			return server.Config{}, ErrConflictTLSConfig
 		}
 
-		cfg.TLSCert, cfg.TLSKey, err = generateSelfSignedCertificate(cfg.HTTPHostnames, cfg.Folder, fs)
+		cfg.TLSCert, cfg.TLSKey, err = generateSelfSignedCertificate(cfg.HTTPHostnames, cfg.Space, fs)
 		if err != nil {
 			return server.Config{}, fmt.Errorf("failed to generate the self-signed certificate: %w", err)
 		}
@@ -149,7 +149,7 @@ func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
 				Output: os.Stderr,
 			},
 		},
-		Folder: server.Folder(cfg.Folder),
+		Space: server.Space(cfg.Space),
 		Web: web.Config{
 			HTML: html.Config{
 				PrettyRender: cfg.Dev,
@@ -162,14 +162,14 @@ func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
 	}, nil
 }
 
-func generateSelfSignedCertificate(hostnames []string, folderPath string, fs afero.Fs) (string, string, error) {
-	sslFolder := path.Join(folderPath, "ssl")
-	certificatePath := path.Join(sslFolder, "cert.pem")
-	privateKeyPath := path.Join(sslFolder, "key.pem")
+func generateSelfSignedCertificate(hostnames []string, spacePath string, fs afero.Fs) (string, string, error) {
+	sslSpace := path.Join(spacePath, "ssl")
+	certificatePath := path.Join(sslSpace, "cert.pem")
+	privateKeyPath := path.Join(sslSpace, "key.pem")
 
-	err := fs.MkdirAll(sslFolder, 0o700)
+	err := fs.MkdirAll(sslSpace, 0o700)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to create the SSL folder: %w", err)
+		return "", "", fmt.Errorf("failed to create the SSL space: %w", err)
 	}
 
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -208,7 +208,7 @@ func generateSelfSignedCertificate(hostnames []string, folderPath string, fs afe
 	}
 
 	if err := afero.WriteFile(fs, certificatePath, pemCert, 0o644); err != nil {
-		return "", "", fmt.Errorf("failed to write the certificate into the data folder: %w", err)
+		return "", "", fmt.Errorf("failed to write the certificate into the data space: %w", err)
 	}
 
 	privBytes, err := x509.MarshalPKCS8PrivateKey(privateKey)
@@ -222,7 +222,7 @@ func generateSelfSignedCertificate(hostnames []string, folderPath string, fs afe
 	}
 
 	if err := afero.WriteFile(fs, privateKeyPath, pemKey, 0o600); err != nil {
-		return "", "", fmt.Errorf("failed to write the certificate into the data folder: %w", err)
+		return "", "", fmt.Errorf("failed to write the certificate into the data space: %w", err)
 	}
 
 	return certificatePath, privateKeyPath, nil

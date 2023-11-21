@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/tools/startutils"
-	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 func TestWebdavLitmus(t *testing.T) {
@@ -26,14 +25,14 @@ func TestWebdavLitmus(t *testing.T) {
 		Name:     "litmus",
 		Username: serv.User.Username(),
 		UserID:   serv.User.ID(),
-		Folders:  []uuid.UUID{serv.User.DefaultFolder()},
+		SpaceID:  serv.User.DefaultSpace(),
 	})
 	require.NoError(t, err)
 
 	h := &Handler{
 		FileSystem: serv.DFSSvc,
 		Sessions:   serv.DavSessionsSvc,
-		Folders:    serv.FoldersSvc,
+		Spaces:     serv.SpacesSvc,
 		Files:      serv.Files,
 		Logger: func(r *http.Request, err error) {
 			litmus := r.Header.Get("X-Litmus")

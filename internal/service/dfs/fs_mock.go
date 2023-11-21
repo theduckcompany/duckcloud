@@ -5,8 +5,8 @@ package dfs
 import (
 	context "context"
 
-	folders "github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	inodes "github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
+	spaces "github.com/theduckcompany/duckcloud/internal/service/spaces"
 
 	io "io"
 
@@ -72,16 +72,16 @@ func (_m *MockFS) Download(ctx context.Context, filePath string) (io.ReadSeekClo
 	return r0, r1
 }
 
-// Folder provides a mock function with given fields:
-func (_m *MockFS) Folder() *folders.Folder {
+// Space provides a mock function with given fields:
+func (_m *MockFS) Space() *spaces.Space {
 	ret := _m.Called()
 
-	var r0 *folders.Folder
-	if rf, ok := ret.Get(0).(func() *folders.Folder); ok {
+	var r0 *spaces.Space
+	if rf, ok := ret.Get(0).(func() *spaces.Space); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*folders.Folder)
+			r0 = ret.Get(0).(*spaces.Space)
 		}
 	}
 

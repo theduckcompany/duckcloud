@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
@@ -20,7 +20,7 @@ import (
 )
 
 type TestContext struct {
-	FoldersSvc     folders.Service
+	SpacesSvc      spaces.Service
 	UsersSvc       users.Service
 	DavSessionsSvc davsessions.Service
 
@@ -30,8 +30,8 @@ type TestContext struct {
 	Runner    runner.Service
 	FS        dfs.FS
 
-	User   *users.User
-	Folder *folders.Folder
+	User  *users.User
+	Space *spaces.Space
 }
 
 func buildTestFS(t *testing.T, buildfs []string) *TestContext {
@@ -39,10 +39,10 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 
 	serv := startutils.NewServer(t)
 
-	folder, err := serv.FoldersSvc.GetByID(ctx, serv.User.DefaultFolder())
-	require.NoError(t, err, "failed to get the user default folder")
+	space, err := serv.SpacesSvc.GetByID(ctx, serv.User.DefaultSpace())
+	require.NoError(t, err, "failed to get the user default space")
 
-	fs := serv.DFSSvc.GetFolderFS(folder)
+	fs := serv.DFSSvc.GetSpaceFS(space)
 
 	for _, b := range buildfs {
 		op := strings.Split(b, " ")
@@ -68,7 +68,7 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 	}
 
 	return &TestContext{
-		FoldersSvc:     serv.FoldersSvc,
+		SpacesSvc:      serv.SpacesSvc,
 		UsersSvc:       serv.UsersSvc,
 		DavSessionsSvc: serv.DavSessionsSvc,
 
@@ -78,8 +78,8 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 		Files:     serv.Files,
 		FS:        fs,
 
-		User:   serv.User,
-		Folder: folder,
+		User:  serv.User,
+		Space: space,
 	}
 }
 

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -20,7 +20,7 @@ import (
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrUserIDNotMatching  = errors.New("user ids are not matching")
-	ErrInvalidFolderID    = errors.New("invalid folderID")
+	ErrInvalidSpaceID     = errors.New("invalid spaceID")
 )
 
 //go:generate mockery --name Storage
@@ -34,16 +34,16 @@ type Storage interface {
 
 type DavSessionsService struct {
 	storage Storage
-	folders folders.Service
+	spaces  spaces.Service
 	uuid    uuid.Service
 	clock   clock.Clock
 }
 
 func NewService(storage Storage,
-	folders folders.Service,
+	spaces spaces.Service,
 	tools tools.Tools,
 ) *DavSessionsService {
-	return &DavSessionsService{storage, folders, tools.UUID(), tools.Clock()}
+	return &DavSessionsService{storage, spaces, tools.UUID(), tools.Clock()}
 }
 
 func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSession, string, error) {
@@ -52,15 +52,13 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 		return nil, "", errs.Validation(err)
 	}
 
-	for _, folderID := range cmd.Folders {
-		folder, err := s.folders.GetUserFolder(ctx, cmd.UserID, folderID)
-		if err != nil && !errors.Is(err, errs.ErrNotFound) {
-			return nil, "", errs.Internal(fmt.Errorf("failed to get the folder %q by id: %w", folderID, err))
-		}
+	space, err := s.spaces.GetUserSpace(ctx, cmd.UserID, cmd.SpaceID)
+	if err != nil && !errors.Is(err, errs.ErrNotFound) {
+		return nil, "", errs.Internal(fmt.Errorf("failed to get the space %q by id: %w", cmd.SpaceID, err))
+	}
 
-		if folder == nil || !slices.Contains(folder.Owners(), cmd.UserID) {
-			return nil, "", errs.BadRequest(ErrInvalidFolderID, "invalid folders")
-		}
+	if space == nil || !slices.Contains(space.Owners(), cmd.UserID) {
+		return nil, "", errs.BadRequest(ErrInvalidSpaceID, "invalid spaces")
 	}
 
 	password := string(s.uuid.New())
@@ -72,7 +70,7 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 		name:      cmd.Name,
 		username:  cmd.Username,
 		password:  secret.NewText(hex.EncodeToString(rawSha[:])),
-		folders:   cmd.Folders,
+		spaceID:   space.ID(),
 		createdAt: s.clock.Now(),
 	}
 

@@ -7,9 +7,9 @@ import (
 
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
@@ -35,7 +35,7 @@ type Service interface {
 	HardDelete(ctx context.Context, userID uuid.UUID) error
 	GetAllWithStatus(ctx context.Context, status Status, cmd *storage.PaginateCmd) ([]User, error)
 	MarkInitAsFinished(ctx context.Context, userID uuid.UUID) (*User, error)
-	SetDefaultFolder(ctx context.Context, user User, folder *folders.Folder) (*User, error)
+	SetDefaultSpace(ctx context.Context, user User, space *spaces.Space) (*User, error)
 }
 
 type Result struct {
@@ -49,7 +49,7 @@ func Init(
 	tools tools.Tools,
 	db *sql.DB,
 	scheduler scheduler.Service,
-	folders folders.Service,
+	spaces spaces.Service,
 	fs dfs.Service,
 	webSessions websessions.Service,
 	davSessions davsessions.Service,
@@ -78,7 +78,7 @@ func Init(
 
 	return Result{
 		Service:        svc,
-		UserCreateTask: NewUserCreateTaskRunner(svc, folders, fs),
-		UserDeleteTask: NewUserDeleteTaskRunner(svc, webSessions, davSessions, oauthSessions, oauthConsents, folders, fs),
+		UserCreateTask: NewUserCreateTaskRunner(svc, spaces, fs),
+		UserDeleteTask: NewUserDeleteTaskRunner(svc, webSessions, davSessions, oauthSessions, oauthConsents, spaces, fs),
 	}, nil
 }

@@ -14,18 +14,18 @@ import (
 var configDirs = append(xdg.DataDirs, xdg.DataHome)
 
 func NewRunCmd(_ string) *cobra.Command {
-	var defaultFolder string
+	var defaultSpace string
 
 	for _, dir := range configDirs {
 		_, err := os.Stat(path.Join(dir, "duckcloud"))
 		if err == nil {
-			defaultFolder = path.Join(dir, "duckcloud")
+			defaultSpace = path.Join(dir, "duckcloud")
 			break
 		}
 	}
 
-	if defaultFolder == "" {
-		defaultFolder = path.Join(xdg.DataHome, "duckcloud")
+	if defaultSpace == "" {
+		defaultSpace = path.Join(xdg.DataHome, "duckcloud")
 	}
 
 	cmd := cobra.Command{
@@ -55,7 +55,7 @@ func NewRunCmd(_ string) *cobra.Command {
 	flags.Bool("debug", false, "Force the debug level")
 	flags.String("log-level", "info", "Log message verbosity LEVEL (debug, info, warning, error)")
 
-	flags.String("folder", defaultFolder, "Specified you data directory location")
+	flags.String("space", defaultSpace, "Specified you data directory location")
 	flags.Bool("memory-fs", false, "Replace the OS filesystem by a in-memory stub. *Every data will disapear after each restart*.")
 
 	flags.String("tls-cert", "", "Public HTTPS certificate FILE (.crt)")

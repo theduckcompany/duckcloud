@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/folders"
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
@@ -26,11 +26,11 @@ func Test_Settings(t *testing.T) {
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		davSessionsMock := davsessions.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, foldersMock, usersMock, auth)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -59,11 +59,11 @@ func Test_Settings(t *testing.T) {
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		davSessionsMock := davsessions.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, foldersMock, usersMock, auth)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
@@ -84,24 +84,24 @@ func Test_Settings(t *testing.T) {
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		davSessionsMock := davsessions.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, foldersMock, usersMock, auth)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
 		davSessionsMock.On("GetAllForUser", mock.Anything, users.ExampleAlice.ID(), &storage.PaginateCmd{Limit: 10}).Return([]davsessions.DavSession{davsessions.ExampleAliceSession}, nil).Once()
-		foldersMock.On("GetAllUserFolders", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]folders.Folder{folders.ExampleAlicePersonalFolder}, nil).Once()
+		spacesMock.On("GetAllUserSpaces", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]spaces.Space{spaces.ExampleAlicePersonalSpace}, nil).Once()
 
 		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/webdav.tmpl", map[string]interface{}{
 			"isAdmin":     users.ExampleAlice.IsAdmin(),
 			"newSession":  (*davsessions.DavSession)(nil),
 			"davSessions": []davsessions.DavSession{davsessions.ExampleAliceSession},
-			"folders":     []folders.Folder{folders.ExampleAlicePersonalFolder},
+			"spaces":      []spaces.Space{spaces.ExampleAlicePersonalSpace},
 			"secret":      "",
 			"error":       nil,
 		}).Once()
@@ -121,11 +121,11 @@ func Test_Settings(t *testing.T) {
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		davSessionsMock := davsessions.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, foldersMock, usersMock, auth)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
@@ -146,34 +146,33 @@ func Test_Settings(t *testing.T) {
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		davSessionsMock := davsessions.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, foldersMock, usersMock, auth)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
-		tools.UUIDMock.On("Parse", "folder-id-1").Return(uuid.UUID("folder-id-1"), nil).Once()
-		tools.UUIDMock.On("Parse", "folder-id-2").Return(uuid.UUID("folder-id-2"), nil).Once()
+		tools.UUIDMock.On("Parse", "space-id-1").Return(uuid.UUID("space-id-1"), nil).Once()
 
 		davSessionsMock.On("Create", mock.Anything, &davsessions.CreateCmd{
 			UserID:   users.ExampleAlice.ID(),
 			Name:     "some dav-session name",
 			Username: users.ExampleAlice.Username(),
-			Folders:  []uuid.UUID{uuid.UUID("folder-id-1"), uuid.UUID("folder-id-2")},
+			SpaceID:  uuid.UUID("space-id-1"),
 		}).Return(&davsessions.ExampleAliceSession2, "some-session-secret", nil).Once()
 
 		davSessionsMock.On("GetAllForUser", mock.Anything, users.ExampleAlice.ID(), &storage.PaginateCmd{Limit: 10}).
 			Return([]davsessions.DavSession{davsessions.ExampleAliceSession, davsessions.ExampleAliceSession2}, nil).Once()
-		foldersMock.On("GetAllUserFolders", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]folders.Folder{folders.ExampleAlicePersonalFolder}, nil).Once()
+		spacesMock.On("GetAllUserSpaces", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]spaces.Space{spaces.ExampleAlicePersonalSpace}, nil).Once()
 
 		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusCreated, "settings/webdav.tmpl", map[string]interface{}{
 			"isAdmin":     users.ExampleAlice.IsAdmin(),
 			"davSessions": []davsessions.DavSession{davsessions.ExampleAliceSession, davsessions.ExampleAliceSession2},
-			"folders":     []folders.Folder{folders.ExampleAlicePersonalFolder},
+			"spaces":      []spaces.Space{spaces.ExampleAlicePersonalSpace},
 			"newSession":  &davsessions.ExampleAliceSession2,
 			"secret":      "some-session-secret",
 			"error":       nil,
@@ -181,8 +180,8 @@ func Test_Settings(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodPost, "/settings/webdav", strings.NewReader(url.Values{
-			"folders": []string{"folder-id-1,folder-id-2"},
-			"name":    []string{"some dav-session name"},
+			"space": []string{"space-id-1"},
+			"name":  []string{"some dav-session name"},
 		}.Encode()))
 		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
@@ -195,11 +194,11 @@ func Test_Settings(t *testing.T) {
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		davSessionsMock := davsessions.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, foldersMock, usersMock, auth)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -230,11 +229,11 @@ func Test_Settings(t *testing.T) {
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		davSessionsMock := davsessions.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, foldersMock, usersMock, auth)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -248,13 +247,13 @@ func Test_Settings(t *testing.T) {
 		}).Return(nil).Once()
 
 		davSessionsMock.On("GetAllForUser", mock.Anything, users.ExampleAlice.ID(), &storage.PaginateCmd{Limit: 10}).Return([]davsessions.DavSession{davsessions.ExampleAliceSession}, nil).Once()
-		foldersMock.On("GetAllUserFolders", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]folders.Folder{folders.ExampleAlicePersonalFolder}, nil).Once()
+		spacesMock.On("GetAllUserSpaces", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]spaces.Space{spaces.ExampleAlicePersonalSpace}, nil).Once()
 
 		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/webdav.tmpl", map[string]interface{}{
 			"isAdmin":     users.ExampleAlice.IsAdmin(),
 			"newSession":  (*davsessions.DavSession)(nil),
 			"davSessions": []davsessions.DavSession{davsessions.ExampleAliceSession},
-			"folders":     []folders.Folder{folders.ExampleAlicePersonalFolder},
+			"spaces":      []spaces.Space{spaces.ExampleAlicePersonalSpace},
 			"secret":      "",
 			"error":       nil,
 		}).Once()
@@ -274,11 +273,11 @@ func Test_Settings(t *testing.T) {
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		davSessionsMock := davsessions.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, foldersMock, usersMock, auth)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -311,11 +310,11 @@ func Test_Settings(t *testing.T) {
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		davSessionsMock := davsessions.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, foldersMock, usersMock, auth)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -352,11 +351,11 @@ func Test_Settings(t *testing.T) {
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		davSessionsMock := davsessions.NewMockService(t)
-		foldersMock := folders.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, foldersMock, usersMock, auth)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()

@@ -16,7 +16,7 @@ const tableName = "dav_sessions"
 
 var errNotFound = errors.New("not found")
 
-var allFields = []string{"id", "username", "name", "password", "user_id", "folders", "created_at"}
+var allFields = []string{"id", "username", "name", "password", "user_id", "space", "created_at"}
 
 type sqlStorage struct {
 	db *sql.DB
@@ -30,7 +30,7 @@ func (t *sqlStorage) Save(ctx context.Context, session *DavSession) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(allFields...).
-		Values(session.id, session.username, session.name, session.password, session.userID, session.folders, session.createdAt).
+		Values(session.id, session.username, session.name, session.password, session.userID, session.spaceID, session.createdAt).
 		RunWith(t.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -48,7 +48,7 @@ func (t *sqlStorage) GetByID(ctx context.Context, sessionID uuid.UUID) (*DavSess
 		From(tableName).
 		Where(sq.Eq{"id": sessionID}).
 		RunWith(t.db).
-		ScanContext(ctx, &res.id, &res.username, &res.name, &res.password, &res.userID, &res.folders, &res.createdAt)
+		ScanContext(ctx, &res.id, &res.username, &res.name, &res.password, &res.userID, &res.spaceID, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errNotFound
 	}
@@ -81,7 +81,7 @@ func (t *sqlStorage) GetByUsernameAndPassHash(ctx context.Context, username stri
 		From(tableName).
 		Where(sq.Eq{"username": username, "password": password.Raw()}).
 		RunWith(t.db).
-		ScanContext(ctx, &res.id, &res.username, &res.name, &res.password, &res.userID, &res.folders, &res.createdAt)
+		ScanContext(ctx, &res.id, &res.username, &res.name, &res.password, &res.userID, &res.spaceID, &res.createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errNotFound
 	}
@@ -115,7 +115,7 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]DavSession, error) {
 	for rows.Next() {
 		var res DavSession
 
-		err := rows.Scan(&res.id, &res.username, &res.name, &res.password, &res.userID, &res.folders, &res.createdAt)
+		err := rows.Scan(&res.id, &res.username, &res.name, &res.password, &res.userID, &res.spaceID, &res.createdAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}
