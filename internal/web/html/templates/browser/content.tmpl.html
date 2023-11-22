@@ -1,12 +1,6 @@
 {{ $url := pathJoin "/browser" $.space.ID $.fullPath}}
 <section id="content" class="p-4" hx-get="{{$url}}" hx-swap="outerHTML" hx-trigger="refresh-event">
 
-  <!-- Modal -->
-  <div id="modal-target" class="modal modal-blur fade" style="display: none" aria-hidden="false" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-      <div class="modal-content"></div>
-    </div>
-  </div>
 
 
   <div id="status-bar"></div>

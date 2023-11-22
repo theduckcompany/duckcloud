@@ -13,7 +13,7 @@ func TestDavSession_Getters(t *testing.T) {
 	assert.Equal(t, ExampleAliceSession.id, ExampleAliceSession.ID())
 	assert.Equal(t, ExampleAliceSession.userID, ExampleAliceSession.UserID())
 	assert.Equal(t, ExampleAliceSession.name, ExampleAliceSession.Name())
-	assert.Equal(t, ExampleAliceSession.spaceID, ExampleAliceSession.SpacesID())
+	assert.Equal(t, ExampleAliceSession.spaceID, ExampleAliceSession.SpaceID())
 	assert.Equal(t, ExampleAliceSession.username, ExampleAliceSession.Username())
 	assert.Equal(t, ExampleAliceSession.createdAt, ExampleAliceSession.CreatedAt())
 }

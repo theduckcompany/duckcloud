@@ -105,7 +105,21 @@ func (t *Renderer) WriteHTML(w http.ResponseWriter, r *http.Request, status int,
 	layout := ""
 
 	if r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == "" {
-		layout = path.Join(path.Dir(template), "layout.tmpl")
+		dir := path.Dir(template)
+
+		for {
+			layout = path.Join(dir, "layout.tmpl")
+			if t.render.TemplateLookup(layout) != nil {
+				break
+			}
+
+			dir = path.Dir(dir)
+
+			if dir == "." {
+				layout = ""
+				break
+			}
+		}
 	}
 
 	if err := t.render.HTML(w, status, template, args, render.HTMLOptions{Layout: layout}); err != nil {
