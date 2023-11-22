@@ -4,13 +4,13 @@ package dfs
 
 import (
 	context "context"
-
-	inodes "github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
-	spaces "github.com/theduckcompany/duckcloud/internal/service/spaces"
-
 	io "io"
 
+	inodes "github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
+
 	mock "github.com/stretchr/testify/mock"
+
+	spaces "github.com/theduckcompany/duckcloud/internal/service/spaces"
 
 	storage "github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
@@ -70,22 +70,6 @@ func (_m *MockFS) Download(ctx context.Context, filePath string) (io.ReadSeekClo
 	}
 
 	return r0, r1
-}
-
-// Space provides a mock function with given fields:
-func (_m *MockFS) Space() *spaces.Space {
-	ret := _m.Called()
-
-	var r0 *spaces.Space
-	if rf, ok := ret.Get(0).(func() *spaces.Space); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*spaces.Space)
-		}
-	}
-
-	return r0
 }
 
 // Get provides a mock function with given fields: ctx, path
@@ -163,6 +147,22 @@ func (_m *MockFS) Remove(ctx context.Context, path string) error {
 		r0 = rf(ctx, path)
 	} else {
 		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Space provides a mock function with given fields:
+func (_m *MockFS) Space() *spaces.Space {
+	ret := _m.Called()
+
+	var r0 *spaces.Space
+	if rf, ok := ret.Get(0).(func() *spaces.Space); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*spaces.Space)
+		}
 	}
 
 	return r0

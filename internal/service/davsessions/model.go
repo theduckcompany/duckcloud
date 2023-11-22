@@ -24,9 +24,9 @@ type DavSession struct {
 
 func (u *DavSession) ID() uuid.UUID        { return u.id }
 func (u *DavSession) UserID() uuid.UUID    { return u.userID }
-func (u *DavSession) Name() string         { return u.name }
+func (u DavSession) Name() string          { return u.name }
 func (u *DavSession) Username() string     { return u.username }
-func (u *DavSession) SpacesID() uuid.UUID  { return u.spaceID }
+func (u *DavSession) SpaceID() uuid.UUID   { return u.spaceID }
 func (u *DavSession) CreatedAt() time.Time { return u.createdAt }
 
 type CreateCmd struct {

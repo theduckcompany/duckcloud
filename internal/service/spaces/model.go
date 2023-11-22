@@ -20,12 +20,12 @@ type Space struct {
 	createdAt time.Time
 }
 
-func (f *Space) ID() uuid.UUID        { return f.id }
-func (f *Space) Name() string         { return f.name }
-func (f *Space) IsPublic() bool       { return f.isPublic }
-func (f *Space) Owners() Owners       { return f.owners }
-func (f *Space) RootFS() uuid.UUID    { return f.rootFS }
-func (f *Space) CreatedAt() time.Time { return f.createdAt }
+func (f Space) ID() uuid.UUID        { return f.id }
+func (f Space) Name() string         { return f.name }
+func (f Space) IsPublic() bool       { return f.isPublic }
+func (f Space) Owners() Owners       { return f.owners }
+func (f Space) RootFS() uuid.UUID    { return f.rootFS }
+func (f Space) CreatedAt() time.Time { return f.createdAt }
 
 type Owners []uuid.UUID
 

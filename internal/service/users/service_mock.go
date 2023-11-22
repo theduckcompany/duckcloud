@@ -6,9 +6,9 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
-	spaces "github.com/theduckcompany/duckcloud/internal/service/spaces"
-
 	secret "github.com/theduckcompany/duckcloud/internal/tools/secret"
+
+	spaces "github.com/theduckcompany/duckcloud/internal/service/spaces"
 
 	storage "github.com/theduckcompany/duckcloud/internal/tools/storage"
 

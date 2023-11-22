@@ -79,7 +79,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	space, err := h.Spaces.GetUserSpace(r.Context(), session.UserID(), session.SpacesID())
+	space, err := h.Spaces.GetUserSpace(r.Context(), session.UserID(), session.SpaceID())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

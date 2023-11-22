@@ -1,0 +1,96 @@
+<section id="content" hx-target-4*="this">
+  <div class="card shadow-0">
+    <div class="card-header py-4 mb-3">
+      <h4 class="mb-0">Security</h4>
+    </div>
+    <div class="card-body">
+      {{ if .error }}
+      <div class="alert alert-dismissible fade show" role="alert" data-mdb-color="danger">
+        {{.error.Error}}
+        <button type="button" class="btn-close" data-mdb-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {{end}}
+
+      <h5>Web browsers</h5>
+      <p class="text-muted">These browsers are currently logged in to your account.</p>
+
+      {{ $nbWebSessions := len .webSessions }}
+      <table class="table table-hover align-middle mt-4 border">
+        <thead class="bg-light">
+          <tr>
+            <th>Name</th>
+            <th>Last activity</th>
+            <th>IP</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody class="table-group-divider table-divider-color">
+          {{range .webSessions}}
+          <tr>
+            <td>
+              {{.Device}}
+              {{ if (eq .Token $.currentSession.Token) }}
+              <span class="badge text-bg-secondary">Current Session</span>
+              {{ end }}
+            </td>
+            <td> Seconds ago </td>
+            <td> {{.IP}} </td>
+            <td>
+
+              <form action="/settings/security/browsers/{{.Token.Raw}}/delete" method="post" target="_top"
+                hx-post="/settings/security/browsers/{{.Token.Raw}}/delete" hx-target="#content" hx-swap="outerHTML">
+                <button type="submit"
+                  class="btn btn-link btn-sm btn-rounded {{if (eq .Token $.currentSession.Token)}}disabled{{end}}">Disconnect</button>
+              </form>
+            </td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+
+      <hr class="mt-5 mb-5">
+
+      <h5>Devices & sessions</h5>
+      <p class="text-muted">Webdav or Oauth2 clients logged in to your account.</p>
+
+      <table class="table {{ if (gt (len .devices) 0)}}table-hover{{end}} align-middle mt-4 border">
+        <thead class="bg-light">
+          <tr>
+            <th>Name</th>
+            <th>Space</th>
+            <th>Last activity</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody class="table-group-divider table-divider-color">
+          {{ if (eq (len .devices) 0)}}
+          <tr>
+            <td class="text-center user-select-none" colspan="4">You haven’t linked any devices to your account yet.
+            </td>
+          </tr>
+          {{end}}
+          {{range .devices}}
+          <tr>
+            <td>{{.Name}}</td>
+            <td>{{with $space := index $.spaces .SpaceID}}{{ $space.Name }}{{end}}</td>
+            <td> Seconds ago </td>
+            <td>
+              <form action="/settings/security/webdav/{{.ID}}/delete" method="post" target="_top"
+                hx-post="/settings/security/webdav/{{.ID}}/delete" hx-target="#content" hx-swap="outerHTML">
+                <button type="submit" class="btn btn-link btn-sm btn-rounded">Disconnect</button>
+              </form>
+            </td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+
+      <button type="button" class="btn btn-rounded btn-outline-primary mb-3" data-mdb-target="#modal-target"
+        data-mdb-ripple-init data-mdb-modal-init data-mdb-toggle="modal" hx-get="/settings/security/webdav"
+        hx-target="#modal-target" hx-trigger="click" hx-swap="innerHTML"><i class="bi bi-folder-fill me-2"></i>Access
+        files via WebDAV</button>
+
+
+    </div>
+  </div>
+</section>
