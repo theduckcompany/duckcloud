@@ -32,33 +32,20 @@
 
       <br>
 
-      <form class="row g-3" action="/settings/webdav" method="post" target="_top" hx-post="/settings/webdav"
-        hx-target="#content" hx-swap="outerHTML">
-        <div class="col-auto">
-          <label for="inputDavSession" class="visually-hidden">Name</label>
-          <input type="text" name="name" class="form-control" id="davSessionName" placeholder="App name">
+      <!-- Modal -->
+      <div id="modal-target" class="modal modal-blur fade" style="display: none" aria-hidden="false" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+          <div class="modal-content"></div>
         </div>
+      </div>
 
-        <div class="col-auto">
-          <select id="davSessionSpace" name="space" class="select">
-            {{ range .spaces}}
-            <option value="{{.ID}}" selected>{{.Name}}</option>
-            {{end}}
-          </select>
-          <label for="davSessionSpace" class="form-label select-label">Space</label>
-        </div>
 
-        <div class="col-auto">
-          <button type="submit" class="btn btn-primary mb-3">Create new Dav credentials</button>
-        </div>
-        {{if .error}}
-        <div id="validation-alert" class="alert alert-danger role=">{{.error.Error}}</div>
-        {{end}}
-      </form>
-
+      <button class="btn btn-primary" data-mdb-modal-init href="/settings/webdav/form" hx-get="/settings/webdav/form"
+        hx-target="#modal-target" hx-trigger="click" data-mdb-toggle="modal" hx-swap="innerHTML"
+        data-mdb-target="#modal-target">Create new Dav credentials</button>
 
       {{ if .secret }}
-      <div class="alert alert-success" role="alert" data-mdb-color="success">
+      <div class="alert alert-success mt-4" role="alert" data-mdb-color="success">
         <p><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
             class="bi bi-check-circle-fill" viewBox="0 0 16 16">
             <path
@@ -99,3 +86,8 @@
 
 <script src="/assets/js/clipboard.min.js"
   integrity="sha384-ptFWW7bjswooaMTG3G8e7ZVjzIR4RCr49XGy7yyAN3H0BsoSKz7feyBYIyKUl7JJ" crossorigin="anonymous"></script>
+
+<script type="module">
+  document.body.classList.remove("modal-open")
+  document.querySelectorAll('.modal-backdrop').forEach(e => e.remove());
+</script>
