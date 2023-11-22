@@ -79,6 +79,7 @@ func (h *settingsHandler) Register(r chi.Router, mids *router.Middlewares) {
 	r.Post("/settings/browsers/{sessionToken}/delete", h.deleteWebSession)
 
 	r.Get("/settings/webdav", h.getDavSessions)
+	r.Get("/settings/webdav/form", h.getCreateWebdavForm)
 	r.Post("/settings/webdav", h.createDavSession)
 	r.Post("/settings/webdav/{sessionID}/delete", h.deleteDavSession)
 
@@ -89,6 +90,15 @@ func (h *settingsHandler) Register(r chi.Router, mids *router.Middlewares) {
 
 func (h *settingsHandler) String() string {
 	return "web.settings"
+}
+
+func (h *settingsHandler) getCreateWebdavForm(w http.ResponseWriter, r *http.Request) {
+	user, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	if abort {
+		return
+	}
+
+	h.renderDavForm(w, r, user.ID(), nil)
 }
 
 func (h *settingsHandler) getBrowsersSessions(w http.ResponseWriter, r *http.Request) {
@@ -121,6 +131,24 @@ func (h *settingsHandler) getDavSessions(w http.ResponseWriter, r *http.Request)
 	}
 
 	h.renderDavSessions(w, r, renderDavCmd{User: user, Session: session, NewSession: nil, Secret: "", Error: nil})
+}
+
+func (h *settingsHandler) renderDavForm(w http.ResponseWriter, r *http.Request, userID uuid.UUID, userErr error) {
+	spaces, err := h.spaces.GetAllUserSpaces(r.Context(), userID, nil)
+	if err != nil {
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetAllUserSpaces: %w", err))
+		return
+	}
+
+	status := http.StatusOK
+	if userErr != nil {
+		status = http.StatusUnprocessableEntity
+	}
+
+	h.html.WriteHTML(w, r, status, "settings/webdav-modal.tmpl", map[string]interface{}{
+		"spaces": spaces,
+		"error":  userErr,
+	})
 }
 
 func (h *settingsHandler) renderDavSessions(w http.ResponseWriter, r *http.Request, cmd renderDavCmd) {
@@ -164,7 +192,7 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 
 	spaceID, err := h.uuid.Parse(r.FormValue("space"))
 	if err != nil {
-		h.renderDavSessions(w, r, renderDavCmd{User: user, Session: session, Error: errors.New("invalid space id")})
+		h.renderDavForm(w, r, user.ID(), err)
 		return
 	}
 
@@ -175,7 +203,7 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 		SpaceID:  spaceID,
 	})
 	if errors.Is(err, errs.ErrValidation) {
-		h.renderDavSessions(w, r, renderDavCmd{User: user, Session: session, Error: err})
+		h.renderDavForm(w, r, user.ID(), err)
 		return
 	}
 

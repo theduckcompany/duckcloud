@@ -1,0 +1,46 @@
+<div class="modal-dialog modal-dialog-centered" hx-target-4*="this">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" id="exampleModalLabel">Create a new webdav session</h5>
+      <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+    </div>
+
+    <form action="/settings/webdav" method="post" target="_top" hx-post="/settings/webdav" hx-target="#content"
+      hx-swap="outerHTML">
+      <div class="modal-body">
+
+        <div data-mdb-input-init class="form-outline mb-4">
+          <input type="text" name="name" id="davSessionName" class="form-control" />
+          <label class="form-label" for="davSessionName">Device Name</label>
+        </div>
+
+        <div data-mdb-select-init class="form-outline mb-4">
+          <select id="davSessionSpace" name="space" class="select">
+            {{ range .spaces}}
+            <option value="{{.ID}}" selected>{{.Name}}</option>
+            {{end}}
+          </select>
+          <label for="davSessionSpace" class="form-label select-label">Space</label>
+        </div>
+
+        {{if .error}}
+        <div id="validation-alert" class="alert alert-danger role=">{{.error.Error}}</div>
+        {{end}}
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Close</button>
+        <button type="submit" type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  var myModal = document.getElementById('modal-target');
+  var myInput = document.getElementById('davSessionName');
+
+  myModal.addEventListener('shown.mdb.modal', () => {
+    myInput.focus();
+  });
+</script>
