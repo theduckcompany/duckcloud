@@ -36,6 +36,7 @@ type Service interface {
 	GetAllWithStatus(ctx context.Context, status Status, cmd *storage.PaginateCmd) ([]User, error)
 	MarkInitAsFinished(ctx context.Context, userID uuid.UUID) (*User, error)
 	SetDefaultSpace(ctx context.Context, user User, space *spaces.Space) (*User, error)
+	UpdateUserPassword(ctx context.Context, cmd *UpdatePasswordCmd) error
 }
 
 type Result struct {

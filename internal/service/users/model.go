@@ -6,6 +6,7 @@ import (
 	"time"
 
 	v "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -67,5 +68,17 @@ func (t CreateCmd) Validate() error {
 		v.Field(&t.Username, v.Required, v.Length(1, 20), v.Match(UsernameRegexp)),
 		v.Field(&t.Password, v.Required, v.Length(SecretMinLength, SecretMaxLength)),
 		v.Field(&t.IsAdmin),
+	)
+}
+
+type UpdatePasswordCmd struct {
+	UserID      uuid.UUID
+	NewPassword secret.Text
+}
+
+func (t UpdatePasswordCmd) Validate() error {
+	return v.ValidateStruct(&t,
+		v.Field(&t.UserID, v.Required, is.UUIDv4),
+		v.Field(&t.NewPassword, v.Required, v.Length(SecretMinLength, SecretMaxLength)),
 	)
 }

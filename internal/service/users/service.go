@@ -129,6 +129,27 @@ func (s *UserService) SetDefaultSpace(ctx context.Context, user User, space *spa
 	return &user, nil
 }
 
+func (s *UserService) UpdateUserPassword(ctx context.Context, cmd *UpdatePasswordCmd) error {
+	user, err := s.GetByID(ctx, cmd.UserID)
+	if err != nil {
+		return fmt.Errorf("failed to GetByID: %w", err)
+	}
+
+	hashedPassword, err := s.password.Encrypt(ctx, cmd.NewPassword)
+	if err != nil {
+		return errs.Internal(fmt.Errorf("failed to hash the password: %w", err))
+	}
+
+	err = s.storage.Patch(ctx, user.ID(), map[string]any{
+		"password": hashedPassword,
+	})
+	if err != nil {
+		return errs.Internal(fmt.Errorf("failed to patch the user: %w", err))
+	}
+
+	return nil
+}
+
 func (s *UserService) MarkInitAsFinished(ctx context.Context, userID uuid.UUID) (*User, error) {
 	user, err := s.GetByID(ctx, userID)
 	if err != nil {

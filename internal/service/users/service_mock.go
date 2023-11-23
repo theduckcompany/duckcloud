@@ -230,6 +230,20 @@ func (_m *MockService) SetDefaultSpace(ctx context.Context, user User, space *sp
 	return r0, r1
 }
 
+// UpdateUserPassword provides a mock function with given fields: ctx, cmd
+func (_m *MockService) UpdateUserPassword(ctx context.Context, cmd *UpdatePasswordCmd) error {
+	ret := _m.Called(ctx, cmd)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *UpdatePasswordCmd) error); ok {
+		r0 = rf(ctx, cmd)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewMockService creates a new instance of MockService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockService(t interface {

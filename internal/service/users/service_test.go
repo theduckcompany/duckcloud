@@ -323,4 +323,65 @@ func Test_Users_Service(t *testing.T) {
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, ErrInvalidStatus)
 	})
+
+	t.Run("UpdatePassword success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		store := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		service := NewService(tools, store, schedulerMock)
+
+		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
+
+		tools.PasswordMock.On("Encrypt", mock.Anything, secret.NewText("some-password")).
+			Return(secret.NewText("some-encrypted-password"), nil).Once()
+
+		store.On("Patch", mock.Anything, ExampleAlice.ID(), map[string]any{
+			"password": secret.NewText("some-encrypted-password"),
+		}).Return(nil).Once()
+
+		err := service.UpdateUserPassword(ctx, &UpdatePasswordCmd{
+			UserID:      ExampleAlice.ID(),
+			NewPassword: secret.NewText("some-password"),
+		})
+		assert.NoError(t, err)
+	})
+
+	t.Run("UpdatePassword with a user not found", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		store := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		service := NewService(tools, store, schedulerMock)
+
+		store.On("GetByID", mock.Anything, ExampleAlice.ID()).
+			Return(nil, errs.ErrNotFound).Once()
+
+		err := service.UpdateUserPassword(ctx, &UpdatePasswordCmd{
+			UserID:      ExampleAlice.ID(),
+			NewPassword: secret.NewText("some-password"),
+		})
+		assert.ErrorIs(t, err, errs.ErrNotFound)
+	})
+
+	t.Run("UpdatePassword with a patch error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		store := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		service := NewService(tools, store, schedulerMock)
+
+		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
+
+		tools.PasswordMock.On("Encrypt", mock.Anything, secret.NewText("some-password")).
+			Return(secret.NewText("some-encrypted-password"), nil).Once()
+
+		store.On("Patch", mock.Anything, ExampleAlice.ID(), map[string]any{
+			"password": secret.NewText("some-encrypted-password"),
+		}).Return(fmt.Errorf("some-error")).Once()
+
+		err := service.UpdateUserPassword(ctx, &UpdatePasswordCmd{
+			UserID:      ExampleAlice.ID(),
+			NewPassword: secret.NewText("some-password"),
+		})
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
+	})
 }

@@ -1,6 +1,8 @@
 package web
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -15,6 +17,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -339,5 +342,270 @@ func Test_Settings(t *testing.T) {
 		res := w.Result()
 		defer res.Body.Close()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
+	})
+
+	t.Run("updatePassword success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		davSessionsMock := davsessions.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		usersMock.On("Authenticate", mock.Anything, users.ExampleAlice.Username(), secret.NewText("old-password")).
+			Return(&users.ExampleAlice, nil).Once()
+
+		usersMock.On("UpdateUserPassword", mock.Anything, &users.UpdatePasswordCmd{
+			UserID:      users.ExampleAlice.ID(),
+			NewPassword: secret.NewText("new-password"),
+		}).Return(nil).Once()
+
+		// Print the security page
+		webSessionsMock.On("GetAllForUser", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]websessions.Session{websessions.AliceWebSessionExample}, nil).Once()
+		davSessionsMock.On("GetAllForUser", mock.Anything, users.ExampleAlice.ID(), &storage.PaginateCmd{Limit: 20}).Return([]davsessions.DavSession{davsessions.ExampleAliceSession}, nil).Once()
+		spacesMock.On("GetAllUserSpaces", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]spaces.Space{spaces.ExampleAlicePersonalSpace}, nil).Once()
+		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/security/content.tmpl", map[string]interface{}{
+			"isAdmin":        users.ExampleAlice.IsAdmin(),
+			"currentSession": &websessions.AliceWebSessionExample,
+			"webSessions":    []websessions.Session{websessions.AliceWebSessionExample},
+			"devices":        []davsessions.DavSession{davsessions.ExampleAliceSession},
+			"spaces": map[uuid.UUID]spaces.Space{
+				spaces.ExampleAlicePersonalSpace.ID(): spaces.ExampleAlicePersonalSpace,
+			},
+		}).Once()
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodPost, "/settings/security/password", strings.NewReader(url.Values{
+			"current": []string{"old-password"},
+			"new":     []string{"new-password"},
+			"confirm": []string{"new-password"},
+		}.Encode()))
+		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+	})
+
+	t.Run("updatePassword with an invalid current password", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		davSessionsMock := davsessions.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		usersMock.On("Authenticate", mock.Anything, users.ExampleAlice.Username(), secret.NewText("old-password")).
+			Return(nil, users.ErrInvalidPassword).Once()
+
+		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusUnprocessableEntity,
+			"settings/security/password-form.tmpl",
+			map[string]any{
+				"error": "invalid current password",
+			}).Once()
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodPost, "/settings/security/password", strings.NewReader(url.Values{
+			"current": []string{"old-password"},
+			"new":     []string{"new-password"},
+			"confirm": []string{"new-password"},
+		}.Encode()))
+		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+	})
+
+	t.Run("updatePassword with an invalid confirmation password", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		davSessionsMock := davsessions.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		usersMock.On("Authenticate", mock.Anything, users.ExampleAlice.Username(), secret.NewText("old-password")).
+			Return(&users.ExampleAlice, nil).Once()
+
+		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusUnprocessableEntity,
+			"settings/security/password-form.tmpl",
+			map[string]any{
+				"error": "the new password and the confirmation are different",
+			}).Once()
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodPost, "/settings/security/password", strings.NewReader(url.Values{
+			"current": []string{"old-password"},
+			"new":     []string{"new-password"},
+			"confirm": []string{"different"}, // <<<<<<<<<< Should be equal "new-password"
+		}.Encode()))
+		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+	})
+
+	t.Run("updatePassword with an authentication error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		davSessionsMock := davsessions.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		usersMock.On("Authenticate", mock.Anything, users.ExampleAlice.Username(), secret.NewText("old-password")).
+			Return(nil, errs.Internal(errors.New("some-error"))).Once()
+
+		htmlMock.On("WriteHTMLErrorPage", mock.Anything, mock.Anything, fmt.Errorf("failed to Authenticate the user: %w", errs.Internal(errors.New("some-error")))).Once()
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodPost, "/settings/security/password", strings.NewReader(url.Values{
+			"current": []string{"old-password"},
+			"new":     []string{"new-password"},
+			"confirm": []string{"new-password"},
+		}.Encode()))
+		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+	})
+
+	t.Run("updatePassword with an update password error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		davSessionsMock := davsessions.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		usersMock.On("Authenticate", mock.Anything, users.ExampleAlice.Username(), secret.NewText("old-password")).
+			Return(&users.ExampleAlice, nil).Once()
+
+		usersMock.On("UpdateUserPassword", mock.Anything, &users.UpdatePasswordCmd{
+			UserID:      users.ExampleAlice.ID(),
+			NewPassword: secret.NewText("new-password"),
+		}).Return(errs.Validation(fmt.Errorf("some-error"))).Once()
+
+		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusUnprocessableEntity,
+			"settings/security/password-form.tmpl",
+			map[string]any{
+				"error": "validation: some-error",
+			}).Once()
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodPost, "/settings/security/password", strings.NewReader(url.Values{
+			"current": []string{"old-password"},
+			"new":     []string{"new-password"},
+			"confirm": []string{"new-password"},
+		}.Encode()))
+		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+	})
+
+	t.Run("getPasswordForm success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		davSessionsMock := davsessions.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK,
+			"settings/security/password-form.tmpl",
+			map[string]any{
+				"error": "",
+			}).Once()
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/settings/security/password", nil)
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+	})
+
+	t.Run("getPasswordForm redirect to login if not authenticated", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		davSessionsMock := davsessions.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/settings/security/password", nil)
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusFound, res.StatusCode)
+		assert.Equal(t, "/login", res.Header.Get("Location"))
 	})
 }
