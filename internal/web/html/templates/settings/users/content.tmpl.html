@@ -4,8 +4,8 @@
       <h4 class="mb-0">User management</h4>
     </div>
     <div class="card-body">
-      <table class="table align-middle mb-0">
-        <thead>
+      <table class="table table-hover align-middle mt-4 border">
+        <thead class="bg-light">
           <tr>
             <th>UserName</th>
             <th>Admin</th>
@@ -13,11 +13,13 @@
             <th>Actions</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody class="table-group-divider table-divider-color">
           {{range .users}}
           {{$badgeStatus := ""}}
+          {{$isActive := false}}
           {{ if (eq .Status "active") }}
           {{$badgeStatus = "badge-success"}}
+          {{$isActive = true}}
           {{else}}
           {{$badgeStatus = "badge-warning"}}
           {{end}}
@@ -37,7 +39,7 @@
                 hx-confirm="Are you sure you wish to delete the account '{{.Username}}' ? All its data and files will be definitively removed."
                 hx-delete="/settings/users/{{.ID}}">
                 <button type="submit"
-                  class="btn btn-link btn-sm btn-rounded {{if (eq .ID $.current.ID)}}disabled{{end}}">Delete</button>
+                  class="btn btn-link btn-sm btn-rounded {{if or (eq .ID $.current.ID) (not $isActive)}}disabled{{end}}">Delete</button>
               </form>
             </td>
           </tr>
@@ -45,33 +47,16 @@
         </tbody>
       </table>
 
-      <br>
-
-      <form class="row g-3" action="/settings/users" method="post" target="_top" hx-post="/settings/users"
-        hx-target="#content" hx-swap="outerHTML">
-        <div class="col-auto">
-          <label for="username" class="form-label visually-hidden">Username</label>
-          <input type="text" name="username" class="form-control" id="username" placeholder="Username">
-        </div>
-        <div class="col-auto">
-          <label for="password" class="form-label visually-hidden">Username</label>
-          <input type="password" name="password" class="form-control" id="password" placeholder="Password">
-        </div>
-        <div class="col-auto">
-          <select name="role" class="select" id="role">
-            <option value="user">User</option>
-            <option value="admin">Admin</option>
-          </select>
-          <label class="form-label select-label visually-hidden">Role</label>
-        </div>
-        <div class="col-auto">
-          <button type="submit" class="btn btn-primary mb-3">Create new user</button>
-        </div>
-      </form>
-      {{if .error}}
-      <div id="validation-alert" class="alert alert-danger role=">{{.error.Error}}</div>
-      {{end}}
+      <button type="button" class="btn btn-rounded btn-outline-primary mb-3" data-mdb-target="#modal-target"
+        data-mdb-modal-init data-mdb-toggle="modal" hx-get="/settings/users/new" hx-target="#modal-target"
+        hx-trigger="click" hx-swap="innerHTML"></i>Register
+        a new user</button>
 
     </div>
   </div>
 </section>
+
+<script>
+  document.body.classList.remove("modal-open")
+  document.querySelectorAll('.modal-backdrop').forEach(e => e.remove());
+</script>

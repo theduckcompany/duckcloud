@@ -1,0 +1,53 @@
+<div class="modal-dialog modal-dialog-centered" hx-target-4*="this">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" id="exampleModalLabel">Register a new user</h5>
+      <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+    </div>
+
+    <form action="/settings/users" method="post" target="_top" hx-post="/settings/users" hx-target="#content"
+      hx-on::after-request="document.getElementById('closeBtn').click()" hx-swap="outerHTML">
+
+      <div class="row-auto mx-2 mb-4">
+        <div class="input-group input-group-lg">
+          <span class="input-group-text bg-light">Username</span>
+          <input type="text" id="username-input" name="username" class="form-control" aria-label="Username" />
+        </div>
+      </div>
+
+      <div class="row-auto mx-2 mb-4">
+        <div class="input-group input-group-lg">
+          <span class="input-group-text bg-light">Password</span>
+          <input type="password" name="password" class="form-control" aria-label="Password" />
+        </div>
+      </div>
+
+      <div class="row-auto mx-2 mb-4">
+        <select name="role" class="select" id="role">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+        <label class="form-label select-label">Role</label>
+      </div>
+
+      {{if .error}}
+      <div id="validation-alert" class="alert alert-danger role=">{{.error.Error}}</div>
+      {{end}}
+
+      <div class="modal-footer">
+        <button type="button" id="closeBtn" class="btn btn-secondary" data-mdb-dismiss="modal">Cancel</button>
+        <button type="submit" type="button" class="btn btn-primary">Register user</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  var myModal = document.getElementById('modal-target');
+  var myInput = document.getElementById('username-input');
+
+  myModal.addEventListener('shown.mdb.modal', () => {
+    myInput.focus();
+    myInput.select();
+  });
+</script>

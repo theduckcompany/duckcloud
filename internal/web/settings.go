@@ -72,6 +72,7 @@ func (h *settingsHandler) Register(r chi.Router, mids *router.Middlewares) {
 
 	r.Get("/settings/users", h.getUsers)
 	r.Post("/settings/users", h.createUser)
+	r.Get("/settings/users/new", h.getUsersRegistrationForm)
 	r.Post("/settings/users/{userID}/delete", h.deleteUser)
 }
 
@@ -248,18 +249,38 @@ func (h *settingsHandler) renderUsers(w http.ResponseWriter, r *http.Request, cm
 
 	users, err := h.users.GetAll(ctx, &storage.PaginateCmd{
 		StartAfter: map[string]string{"username": ""},
-		Limit:      10,
+		Limit:      20,
 	})
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to users.GetAll: %w", err))
 		return
 	}
 
-	h.html.WriteHTML(w, r, http.StatusOK, "settings/users.tmpl", map[string]interface{}{
+	status := http.StatusOK
+	if cmd.Error != nil {
+		status = http.StatusUnprocessableEntity
+	}
+
+	h.html.WriteHTML(w, r, status, "settings/users/content.tmpl", map[string]interface{}{
 		"isAdmin": cmd.User.IsAdmin(),
 		"current": cmd.User,
 		"users":   users,
 		"error":   cmd.Error,
+	})
+}
+
+func (h *settingsHandler) getUsersRegistrationForm(w http.ResponseWriter, r *http.Request) {
+	h.renderUsersRegistrationForm(w, r, nil)
+}
+
+func (h *settingsHandler) renderUsersRegistrationForm(w http.ResponseWriter, r *http.Request, err error) {
+	status := http.StatusOK
+	if err != nil {
+		status = http.StatusUnprocessableEntity
+	}
+
+	h.html.WriteHTML(w, r, status, "settings/users/registration-form.tmpl", map[string]interface{}{
+		"error": err,
 	})
 }
 
@@ -296,7 +317,11 @@ func (h *settingsHandler) createUser(w http.ResponseWriter, r *http.Request) {
 		IsAdmin:  r.FormValue("role") == "admin",
 	})
 	if errors.Is(err, errs.ErrValidation) {
-		h.renderUsers(w, r, renderUsersCmd{User: user, Session: session, Error: err})
+		h.renderUsersRegistrationForm(w, r, err)
+		return
+	}
+	if errors.Is(err, users.ErrUsernameTaken) {
+		h.renderUsersRegistrationForm(w, r, errors.New("username already taken"))
 		return
 	}
 	if err != nil {
