@@ -101,6 +101,16 @@
 
   <!--Main layout-->
   <main id="main" class="container-fluid">
+    <!-- Modal -->
+    <div id="modal-target" class="modal modal-blur fade" style="display: none" aria-hidden="false">
+      <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content"></div>
+      </div>
+    </div>
+
+    <script src="/assets/js/mdb.min.js"
+      integrity="sha384-jpB2wBnaVr2DL2gW6vwW6a7dhvwUr34KRXgoCzlU2aM0EJ0ePpKAnVIgyvDBP3Rx"
+      crossorigin="anonymous"> </script>
     {{ yield }}
   </main>
 
@@ -129,9 +139,6 @@
   </style>
 
   <footer></footer>
-  <script src="/assets/js/mdb.min.js"
-    integrity="sha384-jpB2wBnaVr2DL2gW6vwW6a7dhvwUr34KRXgoCzlU2aM0EJ0ePpKAnVIgyvDBP3Rx"
-    crossorigin="anonymous"> </script>
   <script src="/assets/js/htmx.min.js"
     integrity="sha384-UA0tebWwml7YAJLaVDuzHObJRsmBMTLreFpmSf5x8bNLyEekjwDKMgyPF1epRXNh"
     crossorigin="anonymous"></script>

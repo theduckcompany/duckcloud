@@ -6,7 +6,7 @@
     </div>
 
     <form action="/browser/create-dir" method="post" target="_top" hx-post="/browser/create-dir" hx-target="#content"
-      hx-swap="outerHTML">
+      hx-on::after-request="document.getElementById('closeBtn').click()" hx-swap="outerHTML">
       <div class="modal-body">
 
         <div class="input-group input-group-lg">
@@ -24,7 +24,7 @@
 
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Close</button>
+        <button type="button" id="closeBtn" class="btn btn-secondary" data-mdb-dismiss="modal">Close</button>
         <button type="submit" type="button" class="btn btn-primary">Save changes</button>
       </div>
     </form>
