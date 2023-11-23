@@ -17,7 +17,7 @@ func NewSQliteClient(cfg *Config) (*sql.DB, error) {
 
 	db, err = sql.Open("sqlite3", dsn)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create the sqlite db: %w", err)
+		return nil, fmt.Errorf("failed to open %q: %w", dsn, err)
 	}
 
 	db.SetMaxOpenConns(1)
