@@ -165,16 +165,24 @@ func (h *settingsHandler) renderWebDAVForm(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *settingsHandler) getGeneralPage(w http.ResponseWriter, r *http.Request) {
-	_, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	user, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
 	if abort {
 		return
 	}
 
-	h.renderGeneralPage(w, r)
+	h.renderGeneralPage(w, r, &generalPageCmd{
+		User: user,
+	})
 }
 
-func (h *settingsHandler) renderGeneralPage(w http.ResponseWriter, r *http.Request) {
-	h.html.WriteHTML(w, r, http.StatusOK, "settings/general/content.tmpl", map[string]interface{}{})
+type generalPageCmd struct {
+	User *users.User
+}
+
+func (h *settingsHandler) renderGeneralPage(w http.ResponseWriter, r *http.Request, cmd *generalPageCmd) {
+	h.html.WriteHTML(w, r, http.StatusOK, "settings/general/content.tmpl", map[string]interface{}{
+		"isAdmin": cmd.User.IsAdmin(),
+	})
 }
 
 func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Request) {
