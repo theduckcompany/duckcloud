@@ -8,7 +8,7 @@ import (
 func Init(cfg Config) (*sql.DB, error) {
 	db, err := NewSQliteClient(&cfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create the sqlite client: %w", err)
+		return nil, fmt.Errorf("sqlite error: %w", err)
 	}
 
 	return db, nil
