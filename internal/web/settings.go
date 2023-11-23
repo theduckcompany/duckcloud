@@ -67,6 +67,8 @@ func (h *settingsHandler) Register(r chi.Router, mids *router.Middlewares) {
 	r.Post("/settings/security/webdav", h.createDavSession)
 	r.Post("/settings/security/webdav/{sessionID}/delete", h.deleteDavSession)
 	r.Post("/settings/security/browsers/{sessionToken}/delete", h.deleteWebSession)
+	r.Get("/settings/security/password", h.getPasswordForm)
+	r.Post("/settings/security/password", h.updatePassword)
 
 	r.Get("/settings/general", h.getGeneralPage)
 
@@ -162,6 +164,79 @@ func (h *settingsHandler) renderWebDAVForm(w http.ResponseWriter, r *http.Reques
 		"error":  cmd.Error,
 		"spaces": spaces,
 	})
+}
+
+type passwordFormCmd struct {
+	Error error
+}
+
+func (h *settingsHandler) getPasswordForm(w http.ResponseWriter, r *http.Request) {
+	_, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	if abort {
+		return
+	}
+
+	h.renderPasswordForm(w, r, &passwordFormCmd{Error: nil})
+}
+
+func (h *settingsHandler) renderPasswordForm(w http.ResponseWriter, r *http.Request, cmd *passwordFormCmd) {
+	status := http.StatusOK
+
+	var errStr string
+	if cmd.Error != nil {
+		status = http.StatusUnprocessableEntity
+		errStr = cmd.Error.Error()
+	}
+
+	h.html.WriteHTML(w, r, status, "settings/security/password-form.tmpl", map[string]interface{}{
+		"error": errStr,
+	})
+}
+
+func (h *settingsHandler) updatePassword(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	user, session, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	if abort {
+		return
+	}
+
+	currentPassword := secret.NewText(r.FormValue("current"))
+
+	_, err := h.users.Authenticate(ctx, user.Username(), currentPassword)
+	if errors.Is(err, users.ErrInvalidPassword) {
+		h.renderPasswordForm(w, r, &passwordFormCmd{Error: errors.New("invalid current password")})
+		return
+	}
+
+	if err != nil {
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Authenticate the user: %w", err))
+		return
+	}
+
+	newPassword := secret.NewText(r.FormValue("new"))
+	confirmPassword := secret.NewText(r.FormValue("confirm"))
+
+	if !confirmPassword.Equals(newPassword) {
+		h.renderPasswordForm(w, r, &passwordFormCmd{Error: errors.New("the new password and the confirmation are different")})
+		return
+	}
+
+	err = h.users.UpdateUserPassword(ctx, &users.UpdatePasswordCmd{
+		UserID:      user.ID(),
+		NewPassword: newPassword,
+	})
+	if errors.Is(err, errs.ErrValidation) {
+		h.renderPasswordForm(w, r, &passwordFormCmd{Error: err})
+		return
+	}
+
+	if err != nil {
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to UpdateUserPassword: %w", err))
+		return
+	}
+
+	h.renderSecurityPage(w, r, &securityCmd{User: user, Session: session})
 }
 
 func (h *settingsHandler) getGeneralPage(w http.ResponseWriter, r *http.Request) {

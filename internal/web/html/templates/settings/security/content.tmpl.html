@@ -4,12 +4,16 @@
       <h4 class="mb-0">Security</h4>
     </div>
     <div class="card-body">
-      {{ if .error }}
-      <div class="alert alert-dismissible fade show" role="alert" data-mdb-color="danger">
-        {{.error.Error}}
-        <button type="button" class="btn-close" data-mdb-dismiss="alert" aria-label="Close"></button>
-      </div>
-      {{end}}
+
+      <h5>Password</h5>
+      <p class="text-muted">Update your password to protect your personal account.</p>
+
+      <button type="button" class="btn btn-rounded btn-outline-primary mb-3" data-mdb-target="#modal-target"
+        data-mdb-ripple-init data-mdb-modal-init data-mdb-toggle="modal" hx-get="/settings/security/password"
+        href="/settings/security/password" hx-target="#modal-target" hx-trigger="click" hx-swap="innerHTML"></i>Update
+        your password</button>
+
+      <hr class="mt-5 mb-5">
 
       <h5>Web browsers</h5>
       <p class="text-muted">These browsers are currently logged in to your account.</p>
