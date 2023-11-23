@@ -231,10 +231,10 @@ func Test_Settings(t *testing.T) {
 
 		usersMock.On("GetAll", mock.Anything, &storage.PaginateCmd{
 			StartAfter: map[string]string{"username": ""},
-			Limit:      10,
+			Limit:      20,
 		}).Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
 
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/users.tmpl", map[string]interface{}{
+		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/users/content.tmpl", map[string]interface{}{
 			"isAdmin": users.ExampleAlice.IsAdmin(),
 			"current": &users.ExampleAlice,
 			"users":   []users.User{users.ExampleAlice, users.ExampleBob},
@@ -272,10 +272,10 @@ func Test_Settings(t *testing.T) {
 
 		usersMock.On("GetAll", mock.Anything, &storage.PaginateCmd{
 			StartAfter: map[string]string{"username": ""},
-			Limit:      10,
+			Limit:      20,
 		}).Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
 
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/users.tmpl", map[string]interface{}{
+		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/users/content.tmpl", map[string]interface{}{
 			"isAdmin": users.ExampleAlice.IsAdmin(),
 			"current": &users.ExampleAlice,
 			"users":   []users.User{users.ExampleAlice, users.ExampleBob},
@@ -315,10 +315,10 @@ func Test_Settings(t *testing.T) {
 
 		usersMock.On("GetAll", mock.Anything, &storage.PaginateCmd{
 			StartAfter: map[string]string{"username": ""},
-			Limit:      10,
+			Limit:      20,
 		}).Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
 
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/users.tmpl", map[string]interface{}{
+		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/users/content.tmpl", map[string]interface{}{
 			"isAdmin": users.ExampleAlice.IsAdmin(),
 			"current": &users.ExampleAlice,
 			"users":   []users.User{users.ExampleAlice, users.ExampleBob},
