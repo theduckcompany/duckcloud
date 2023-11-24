@@ -83,9 +83,9 @@ func (s *FSService) CreateFS(ctx context.Context, owners []uuid.UUID) (*spaces.S
 	return space, nil
 }
 
-// cleanPath is equivalent to but slightly more efficient than
+// CleanPath is equivalent to but slightly more efficient than
 // path.Clean("/" + name).
-func cleanPath(name string) string {
+func CleanPath(name string) string {
 	if name == "" || name[0] != '/' {
 		name = "/" + name
 	}
