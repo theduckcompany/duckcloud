@@ -17,6 +17,7 @@ var ExampleAlice = User{
 	status:         Active,
 	password:       secret.NewText("alice-encrypted-password"),
 	createdAt:      now,
+	createdBy:      uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 }
 
 var ExampleBob = User{
@@ -27,16 +28,18 @@ var ExampleBob = User{
 	status:         Active,
 	password:       secret.NewText("bob-encrypted-password"),
 	createdAt:      now,
+	createdBy:      ExampleAlice.id,
 }
 
-var ExampleInitializingAlice = User{
-	id:             uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
-	username:       "Alice",
+var ExampleInitializingBob = User{
+	id:             uuid.UUID("0923c86c-24b6-4b9d-9050-e82b8408edf4"),
+	username:       "Bob",
 	defaultSpaceID: "",
-	isAdmin:        true,
+	isAdmin:        false,
 	status:         Initializing,
-	password:       secret.NewText("alice-encrypted-password"),
+	password:       secret.NewText("bob-encrypted-password"),
 	createdAt:      now,
+	createdBy:      ExampleAlice.id,
 }
 
 var ExampleDeletingAlice = User{
@@ -47,4 +50,5 @@ var ExampleDeletingAlice = User{
 	status:         Deleting,
 	password:       secret.NewText("alice-encrypted-password"),
 	createdAt:      now,
+	createdBy:      uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3"),
 }

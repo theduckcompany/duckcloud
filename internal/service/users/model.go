@@ -32,9 +32,10 @@ type User struct {
 	defaultSpaceID uuid.UUID
 	username       string
 	isAdmin        bool
-	createdAt      time.Time
 	password       secret.Text
 	status         Status
+	createdAt      time.Time
+	createdBy      uuid.UUID
 }
 
 func (u *User) MarshalJSON() ([]byte, error) {
@@ -52,11 +53,13 @@ func (u *User) ID() uuid.UUID           { return u.id }
 func (u *User) Username() string        { return u.username }
 func (u *User) IsAdmin() bool           { return u.isAdmin }
 func (u *User) DefaultSpace() uuid.UUID { return u.defaultSpaceID }
-func (u *User) CreatedAt() time.Time    { return u.createdAt }
 func (u *User) Status() Status          { return u.status }
+func (u *User) CreatedAt() time.Time    { return u.createdAt }
+func (u *User) CreatedBy() uuid.UUID    { return u.createdBy }
 
 // CreateCmd represents an user creation request.
 type CreateCmd struct {
+	User     *User
 	Username string
 	Password secret.Text
 	IsAdmin  bool
@@ -65,6 +68,7 @@ type CreateCmd struct {
 // Validate the CreateUserRequest fields.
 func (t CreateCmd) Validate() error {
 	return v.ValidateStruct(&t,
+		v.Field(&t.User, v.Required),
 		v.Field(&t.Username, v.Required, v.Length(1, 20), v.Match(UsernameRegexp)),
 		v.Field(&t.Password, v.Required, v.Length(SecretMinLength, SecretMaxLength)),
 		v.Field(&t.IsAdmin),

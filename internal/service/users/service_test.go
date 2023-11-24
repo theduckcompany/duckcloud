@@ -24,25 +24,26 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(nil, errNotFound).Once()
+		store.On("GetByUsername", ctx, ExampleBob.Username()).Return(nil, errNotFound).Once()
 
-		tools.UUIDMock.On("New").Return(ExampleAlice.ID()).Once()
+		tools.UUIDMock.On("New").Return(ExampleBob.ID()).Once()
 
 		tools.ClockMock.On("Now").Return(now).Once()
-		tools.PasswordMock.On("Encrypt", ctx, secret.NewText("some-password")).Return(ExampleAlice.password, nil).Once()
+		tools.PasswordMock.On("Encrypt", ctx, secret.NewText("some-password")).Return(ExampleBob.password, nil).Once()
 
-		store.On("Save", ctx, &ExampleInitializingAlice).Return(nil)
-		schedulerMock.On("RegisterUserCreateTask", mock.Anything, &scheduler.UserCreateArgs{UserID: ExampleAlice.ID()}).
+		store.On("Save", ctx, &ExampleInitializingBob).Return(nil)
+		schedulerMock.On("RegisterUserCreateTask", mock.Anything, &scheduler.UserCreateArgs{UserID: ExampleBob.ID()}).
 			Return(nil).Once()
 
 		res, err := service.Create(ctx, &CreateCmd{
-			Username: ExampleAlice.Username(),
+			User:     &ExampleAlice,
+			Username: ExampleBob.Username(),
 			Password: secret.NewText("some-password"),
-			IsAdmin:  true,
+			IsAdmin:  false,
 		})
 		assert.NoError(t, err)
 
-		assert.Equal(t, &ExampleInitializingAlice, res)
+		assert.Equal(t, &ExampleInitializingBob, res)
 	})
 
 	t.Run("Create with a taken username", func(t *testing.T) {
@@ -51,11 +52,12 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(&User{}, nil).Once()
+		store.On("GetByUsername", ctx, ExampleBob.Username()).Return(&User{}, nil).Once()
 
 		res, err := service.Create(ctx, &CreateCmd{
-			Username: ExampleAlice.Username(),
-			Password: ExampleAlice.password,
+			User:     &ExampleAlice,
+			Username: ExampleBob.Username(),
+			Password: ExampleBob.password,
 			IsAdmin:  false,
 		})
 		assert.ErrorIs(t, err, ErrUsernameTaken)
@@ -69,11 +71,12 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(nil, fmt.Errorf("some-error")).Once()
+		store.On("GetByUsername", ctx, ExampleBob.Username()).Return(nil, fmt.Errorf("some-error")).Once()
 
 		res, err := service.Create(ctx, &CreateCmd{
-			Username: ExampleAlice.Username(),
-			Password: ExampleAlice.password,
+			User:     &ExampleAlice,
+			Username: ExampleBob.Username(),
+			Password: ExampleBob.password,
 			IsAdmin:  false,
 		})
 		assert.ErrorIs(t, err, errs.ErrInternal)
@@ -87,13 +90,13 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(&ExampleAlice, nil).Once()
+		store.On("GetByUsername", ctx, ExampleBob.Username()).Return(&ExampleBob, nil).Once()
 
-		tools.PasswordMock.On("Compare", ctx, ExampleAlice.password, secret.NewText("some-password")).Return(true, nil).Once()
+		tools.PasswordMock.On("Compare", ctx, ExampleBob.password, secret.NewText("some-password")).Return(true, nil).Once()
 
-		res, err := service.Authenticate(ctx, ExampleAlice.Username(), secret.NewText("some-password"))
+		res, err := service.Authenticate(ctx, ExampleBob.Username(), secret.NewText("some-password"))
 		assert.NoError(t, err)
-		assert.Equal(t, &ExampleAlice, res)
+		assert.Equal(t, &ExampleBob, res)
 	})
 
 	t.Run("Authenticate with an invalid username", func(t *testing.T) {
@@ -102,9 +105,9 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(nil, errNotFound).Once()
+		store.On("GetByUsername", ctx, ExampleBob.Username()).Return(nil, errNotFound).Once()
 
-		res, err := service.Authenticate(ctx, ExampleAlice.Username(), ExampleAlice.password)
+		res, err := service.Authenticate(ctx, ExampleBob.Username(), ExampleBob.password)
 		assert.ErrorIs(t, err, errs.ErrBadRequest)
 		assert.ErrorIs(t, err, ErrInvalidUsername)
 		assert.Nil(t, res)
@@ -116,11 +119,11 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(&ExampleAlice, nil).Once()
-		tools.PasswordMock.On("Compare", ctx, ExampleAlice.password, secret.NewText("some-invalid-password")).Return(false, nil).Once()
+		store.On("GetByUsername", ctx, ExampleBob.Username()).Return(&ExampleBob, nil).Once()
+		tools.PasswordMock.On("Compare", ctx, ExampleBob.password, secret.NewText("some-invalid-password")).Return(false, nil).Once()
 
 		// Invalid password here
-		res, err := service.Authenticate(ctx, ExampleAlice.Username(), secret.NewText("some-invalid-password"))
+		res, err := service.Authenticate(ctx, ExampleBob.Username(), secret.NewText("some-invalid-password"))
 		assert.ErrorIs(t, err, ErrInvalidPassword)
 		assert.Nil(t, res)
 	})
@@ -131,10 +134,10 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		store.On("GetByUsername", ctx, ExampleAlice.Username()).Return(&ExampleAlice, nil).Once()
-		tools.PasswordMock.On("Compare", ctx, ExampleAlice.password, secret.NewText("some-password")).Return(false, fmt.Errorf("some-error")).Once()
+		store.On("GetByUsername", ctx, ExampleBob.Username()).Return(&ExampleBob, nil).Once()
+		tools.PasswordMock.On("Compare", ctx, ExampleBob.password, secret.NewText("some-password")).Return(false, fmt.Errorf("some-error")).Once()
 
-		res, err := service.Authenticate(ctx, ExampleAlice.Username(), secret.NewText("some-password"))
+		res, err := service.Authenticate(ctx, ExampleBob.Username(), secret.NewText("some-password"))
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 		assert.Nil(t, res)
@@ -146,11 +149,11 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		store.On("GetByID", ctx, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
+		store.On("GetByID", ctx, ExampleBob.ID()).Return(&ExampleBob, nil).Once()
 
-		res, err := service.GetByID(ctx, ExampleAlice.ID())
+		res, err := service.GetByID(ctx, ExampleBob.ID())
 		assert.NoError(t, err)
-		assert.Equal(t, &ExampleAlice, res)
+		assert.Equal(t, &ExampleBob, res)
 	})
 
 	t.Run("GetAll success", func(t *testing.T) {
@@ -159,11 +162,11 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		store.On("GetAll", ctx, &storage.PaginateCmd{Limit: 10}).Return([]User{ExampleAlice}, nil).Once()
+		store.On("GetAll", ctx, &storage.PaginateCmd{Limit: 10}).Return([]User{ExampleBob}, nil).Once()
 
 		res, err := service.GetAll(ctx, &storage.PaginateCmd{Limit: 10})
 		assert.NoError(t, err)
-		assert.Equal(t, []User{ExampleAlice}, res)
+		assert.Equal(t, []User{ExampleBob}, res)
 	})
 
 	t.Run("GetAllWithStatus success", func(t *testing.T) {
@@ -172,11 +175,11 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		store.On("GetAll", ctx, &storage.PaginateCmd{Limit: 10}).Return([]User{ExampleAlice}, nil).Once()
+		store.On("GetAll", ctx, &storage.PaginateCmd{Limit: 10}).Return([]User{ExampleBob}, nil).Once()
 
 		res, err := service.GetAllWithStatus(ctx, Active, &storage.PaginateCmd{Limit: 10})
 		assert.NoError(t, err)
-		assert.Equal(t, []User{ExampleAlice}, res)
+		assert.Equal(t, []User{ExampleBob}, res)
 	})
 
 	t.Run("AddToDeletion success", func(t *testing.T) {
@@ -185,7 +188,7 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		anAnotherAdmin := ExampleBob
+		anAnotherAdmin := ExampleAlice
 		anAnotherAdmin.isAdmin = true
 
 		store.On("GetByID", ctx, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
@@ -230,10 +233,10 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&ExampleDeletingAlice, nil).Once()
-		store.On("HardDelete", mock.Anything, ExampleAlice.ID()).Return(nil).Once()
+		store.On("GetByID", mock.Anything, ExampleBob.ID()).Return(&ExampleDeletingAlice, nil).Once()
+		store.On("HardDelete", mock.Anything, ExampleBob.ID()).Return(nil).Once()
 
-		err := service.HardDelete(ctx, ExampleAlice.ID())
+		err := service.HardDelete(ctx, ExampleBob.ID())
 		assert.NoError(t, err)
 	})
 
@@ -243,10 +246,10 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		// It doesn't return ExampleDeletingAlice so the status is Active
-		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(nil, errNotFound).Once()
+		// It doesn't return ExampleDeletingBob so the status is Active
+		store.On("GetByID", mock.Anything, ExampleBob.ID()).Return(nil, errNotFound).Once()
 
-		err := service.HardDelete(ctx, ExampleAlice.ID())
+		err := service.HardDelete(ctx, ExampleBob.ID())
 		assert.NoError(t, err)
 	})
 
@@ -256,10 +259,10 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		// It doesn't return ExampleDeletingAlice so the status is Active
-		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
+		// It doesn't return ExampleDeletingBob so the status is Active
+		store.On("GetByID", mock.Anything, ExampleBob.ID()).Return(&ExampleBob, nil).Once()
 
-		err := service.HardDelete(ctx, ExampleAlice.ID())
+		err := service.HardDelete(ctx, ExampleBob.ID())
 		assert.ErrorIs(t, err, ErrInvalidStatus)
 	})
 
@@ -269,13 +272,13 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		store.On("Patch", mock.Anything, ExampleAlice.ID(), map[string]interface{}{
+		store.On("Patch", mock.Anything, ExampleBob.ID(), map[string]interface{}{
 			"space": spaces.ExampleAliceBobSharedSpace.ID(),
 		}).Return(nil).Once()
 
-		res, err := service.SetDefaultSpace(ctx, ExampleAlice, &spaces.ExampleAliceBobSharedSpace)
+		res, err := service.SetDefaultSpace(ctx, ExampleBob, &spaces.ExampleAliceBobSharedSpace)
 		assert.NoError(t, err)
-		expected := ExampleAlice
+		expected := ExampleBob
 		expected.defaultSpaceID = spaces.ExampleAliceBobSharedSpace.ID()
 		assert.Equal(t, &expected, res)
 	})
@@ -286,7 +289,7 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		// BobPersonalSpace is not owned by Alice
+		// BobPersonalSpace is not owned by Bob
 		res, err := service.SetDefaultSpace(ctx, ExampleAlice, &spaces.ExampleBobPersonalSpace)
 		assert.ErrorIs(t, err, errs.ErrUnauthorized)
 		assert.ErrorIs(t, err, ErrUnauthorizedSpace)
@@ -299,15 +302,15 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		initializingAlice := ExampleInitializingAlice
-		initializingAlice.defaultSpaceID = spaces.ExampleAlicePersonalSpace.ID()
+		initializingBob := ExampleInitializingBob
+		initializingBob.defaultSpaceID = spaces.ExampleBobPersonalSpace.ID()
 
-		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&initializingAlice, nil).Once()
-		store.On("Patch", mock.Anything, ExampleAlice.ID(), map[string]any{"status": Active}).Return(nil).Once()
+		store.On("GetByID", mock.Anything, ExampleBob.ID()).Return(&initializingBob, nil).Once()
+		store.On("Patch", mock.Anything, ExampleBob.ID(), map[string]any{"status": Active}).Return(nil).Once()
 
-		res, err := service.MarkInitAsFinished(ctx, ExampleAlice.ID())
+		res, err := service.MarkInitAsFinished(ctx, ExampleBob.ID())
 		assert.NoError(t, err)
-		assert.EqualValues(t, &ExampleAlice, res)
+		assert.EqualValues(t, &ExampleBob, res)
 	})
 
 	t.Run("MarkInitAsFinished with a user with an invalid status", func(t *testing.T) {
@@ -316,10 +319,10 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		// ExampleAlice is already initialized.
-		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
+		// ExampleBob is already initialized.
+		store.On("GetByID", mock.Anything, ExampleBob.ID()).Return(&ExampleBob, nil).Once()
 
-		res, err := service.MarkInitAsFinished(ctx, ExampleAlice.ID())
+		res, err := service.MarkInitAsFinished(ctx, ExampleBob.ID())
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, ErrInvalidStatus)
 	})
@@ -330,17 +333,17 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
+		store.On("GetByID", mock.Anything, ExampleBob.ID()).Return(&ExampleBob, nil).Once()
 
 		tools.PasswordMock.On("Encrypt", mock.Anything, secret.NewText("some-password")).
 			Return(secret.NewText("some-encrypted-password"), nil).Once()
 
-		store.On("Patch", mock.Anything, ExampleAlice.ID(), map[string]any{
+		store.On("Patch", mock.Anything, ExampleBob.ID(), map[string]any{
 			"password": secret.NewText("some-encrypted-password"),
 		}).Return(nil).Once()
 
 		err := service.UpdateUserPassword(ctx, &UpdatePasswordCmd{
-			UserID:      ExampleAlice.ID(),
+			UserID:      ExampleBob.ID(),
 			NewPassword: secret.NewText("some-password"),
 		})
 		assert.NoError(t, err)
@@ -352,11 +355,11 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		store.On("GetByID", mock.Anything, ExampleAlice.ID()).
+		store.On("GetByID", mock.Anything, ExampleBob.ID()).
 			Return(nil, errs.ErrNotFound).Once()
 
 		err := service.UpdateUserPassword(ctx, &UpdatePasswordCmd{
-			UserID:      ExampleAlice.ID(),
+			UserID:      ExampleBob.ID(),
 			NewPassword: secret.NewText("some-password"),
 		})
 		assert.ErrorIs(t, err, errs.ErrNotFound)
@@ -368,17 +371,17 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(tools, store, schedulerMock)
 
-		store.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
+		store.On("GetByID", mock.Anything, ExampleBob.ID()).Return(&ExampleBob, nil).Once()
 
 		tools.PasswordMock.On("Encrypt", mock.Anything, secret.NewText("some-password")).
 			Return(secret.NewText("some-encrypted-password"), nil).Once()
 
-		store.On("Patch", mock.Anything, ExampleAlice.ID(), map[string]any{
+		store.On("Patch", mock.Anything, ExampleBob.ID(), map[string]any{
 			"password": secret.NewText("some-encrypted-password"),
 		}).Return(fmt.Errorf("some-error")).Once()
 
 		err := service.UpdateUserPassword(ctx, &UpdatePasswordCmd{
-			UserID:      ExampleAlice.ID(),
+			UserID:      ExampleBob.ID(),
 			NewPassword: secret.NewText("some-password"),
 		})
 		assert.ErrorIs(t, err, errs.ErrInternal)

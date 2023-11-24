@@ -74,7 +74,7 @@ func NewServer(t *testing.T) *Server {
 	dfsInit, err := dfs.Init(db, spacesSvc, filesInit.Service, schedulerSvc, tools)
 	require.NoError(t, err)
 
-	usersInit, err := users.Init(tools, db, schedulerSvc, spacesSvc, dfsInit.Service, webSessionsSvc,
+	usersInit, err := users.Init(ctx, tools, db, schedulerSvc, spacesSvc, dfsInit.Service, webSessionsSvc,
 		davSessionsSvc, oauthSessionsSvc, oauthConsentsSvc)
 	require.NoError(t, err)
 

@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS users (
   "password" TEXT NOT NULL,
   "space" TEXT NOT NULL,
   "status" TEXT NOT NULL,
-  "created_at" DATETIME NOT NULL
+  "created_at" DATETIME NOT NULL,
+  "created_by" STRING NOT NULL
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_id ON users(id);
