@@ -1,4 +1,4 @@
-package users
+package tasks
 
 import (
 	"context"
@@ -8,16 +8,17 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 type UserCreateTaskRunner struct {
-	users  Service
+	users  users.Service
 	spaces spaces.Service
 	fs     dfs.Service
 }
 
-func NewUserCreateTaskRunner(users Service, spaces spaces.Service, fs dfs.Service) *UserCreateTaskRunner {
+func NewUserCreateTaskRunner(users users.Service, spaces spaces.Service, fs dfs.Service) *UserCreateTaskRunner {
 	return &UserCreateTaskRunner{users, spaces, fs}
 }
 
@@ -40,9 +41,9 @@ func (r *UserCreateTaskRunner) RunArgs(ctx context.Context, args *scheduler.User
 	}
 
 	switch user.Status() {
-	case Initializing:
+	case users.Initializing:
 		// This is expected, continue
-	case Active, Deleting:
+	case users.Active, users.Deleting:
 		// Already initialized or inside the deletion process, do nothing
 		return nil
 	default:

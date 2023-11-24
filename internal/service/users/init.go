@@ -5,19 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
-	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
-	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
-	"github.com/theduckcompany/duckcloud/internal/service/spaces"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
-	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
-	"go.uber.org/fx"
 )
 
 const (
@@ -38,44 +30,27 @@ type Service interface {
 	UpdateUserPassword(ctx context.Context, cmd *UpdatePasswordCmd) error
 }
 
-type Result struct {
-	fx.Out
-	Service        Service
-	UserDeleteTask runner.TaskRunner `group:"tasks"`
-	UserCreateTask runner.TaskRunner `group:"tasks"`
-}
-
 func Init(
 	ctx context.Context,
 	tools tools.Tools,
 	db *sql.DB,
 	scheduler scheduler.Service,
-	spaces spaces.Service,
-	fs dfs.Service,
-	webSessions websessions.Service,
-	davSessions davsessions.Service,
-	oauthSessions oauthsessions.Service,
-	oauthConsents oauthconsents.Service,
-) (Result, error) {
+) (Service, error) {
 	store := newSqlStorage(db, tools)
 
 	svc := NewService(tools, store, scheduler)
 
 	res, err := svc.GetAll(ctx, &storage.PaginateCmd{Limit: 4})
 	if err != nil {
-		return Result{}, fmt.Errorf("failed to GetAll users: %w", err)
+		return nil, fmt.Errorf("failed to GetAll users: %w", err)
 	}
 
 	if len(res) == 0 {
 		_, err = svc.bootstrap(ctx)
 		if err != nil {
-			return Result{}, fmt.Errorf("failed to create the first user: %w", err)
+			return nil, fmt.Errorf("failed to create the first user: %w", err)
 		}
 	}
 
-	return Result{
-		Service:        svc,
-		UserCreateTask: NewUserCreateTaskRunner(svc, spaces, fs),
-		UserDeleteTask: NewUserDeleteTaskRunner(svc, webSessions, davSessions, oauthSessions, oauthConsents, spaces, fs),
-	}, nil
+	return svc, nil
 }
