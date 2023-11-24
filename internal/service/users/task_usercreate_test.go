@@ -28,12 +28,12 @@ func TestUserCreateTask(t *testing.T) {
 		fsMock := dfs.NewMockService(t)
 		job := NewUserCreateTaskRunner(usersMock, spacesMock, fsMock)
 
-		usersMock.On("GetByID", mock.Anything, uuid.UUID("059d78af-e675-498e-8b77-d4b2b4b9d4e7")).Return(&ExampleInitializingAlice, nil).Once()
-		spacesMock.On("GetAllUserSpaces", mock.Anything, ExampleInitializingAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]spaces.Space{}, nil).Once()
-		fsMock.On("CreateFS", mock.Anything, []uuid.UUID{ExampleInitializingAlice.ID()}).Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
-		usersMock.On("SetDefaultSpace", mock.Anything, ExampleInitializingAlice, &spaces.ExampleAlicePersonalSpace).Return(&ExampleAlice, nil).Once()
+		usersMock.On("GetByID", mock.Anything, uuid.UUID("059d78af-e675-498e-8b77-d4b2b4b9d4e7")).Return(&ExampleInitializingBob, nil).Once()
+		spacesMock.On("GetAllUserSpaces", mock.Anything, ExampleInitializingBob.ID(), (*storage.PaginateCmd)(nil)).Return([]spaces.Space{}, nil).Once()
+		fsMock.On("CreateFS", mock.Anything, []uuid.UUID{ExampleInitializingBob.ID()}).Return(&spaces.ExampleBobPersonalSpace, nil).Once()
+		usersMock.On("SetDefaultSpace", mock.Anything, ExampleInitializingBob, &spaces.ExampleBobPersonalSpace).Return(&ExampleBob, nil).Once()
 
-		usersMock.On("MarkInitAsFinished", mock.Anything, uuid.UUID("059d78af-e675-498e-8b77-d4b2b4b9d4e7")).Return(&ExampleAlice, nil).Once()
+		usersMock.On("MarkInitAsFinished", mock.Anything, uuid.UUID("059d78af-e675-498e-8b77-d4b2b4b9d4e7")).Return(&ExampleBob, nil).Once()
 
 		err := job.Run(ctx, json.RawMessage(`{"user-id": "059d78af-e675-498e-8b77-d4b2b4b9d4e7"}`))
 		assert.NoError(t, err)
@@ -55,13 +55,13 @@ func TestUserCreateTask(t *testing.T) {
 		fsMock := dfs.NewMockService(t)
 		job := NewUserCreateTaskRunner(usersMock, spacesMock, fsMock)
 
-		usersMock.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&ExampleInitializingAlice, nil).Once()
-		spacesMock.On("GetAllUserSpaces", mock.Anything, ExampleInitializingAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]spaces.Space{spaces.ExampleAlicePersonalSpace}, nil).Once()
-		usersMock.On("SetDefaultSpace", mock.Anything, ExampleInitializingAlice, &spaces.ExampleAlicePersonalSpace).Return(&ExampleAlice, nil).Once()
+		usersMock.On("GetByID", mock.Anything, ExampleBob.ID()).Return(&ExampleInitializingBob, nil).Once()
+		spacesMock.On("GetAllUserSpaces", mock.Anything, ExampleInitializingBob.ID(), (*storage.PaginateCmd)(nil)).Return([]spaces.Space{spaces.ExampleBobPersonalSpace}, nil).Once()
+		usersMock.On("SetDefaultSpace", mock.Anything, ExampleInitializingBob, &spaces.ExampleBobPersonalSpace).Return(&ExampleBob, nil).Once()
 
-		usersMock.On("MarkInitAsFinished", mock.Anything, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
+		usersMock.On("MarkInitAsFinished", mock.Anything, ExampleBob.ID()).Return(&ExampleBob, nil).Once()
 
-		err := job.RunArgs(ctx, &scheduler.UserCreateArgs{UserID: ExampleAlice.ID()})
+		err := job.RunArgs(ctx, &scheduler.UserCreateArgs{UserID: ExampleBob.ID()})
 		assert.NoError(t, err)
 	})
 
@@ -71,11 +71,11 @@ func TestUserCreateTask(t *testing.T) {
 		fsMock := dfs.NewMockService(t)
 		job := NewUserCreateTaskRunner(usersMock, spacesMock, fsMock)
 
-		usersMock.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&ExampleInitializingAlice, nil).Once()
-		spacesMock.On("GetAllUserSpaces", mock.Anything, ExampleInitializingAlice.ID(), (*storage.PaginateCmd)(nil)).
-			Return([]spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace}, nil).Once()
+		usersMock.On("GetByID", mock.Anything, ExampleBob.ID()).Return(&ExampleInitializingBob, nil).Once()
+		spacesMock.On("GetAllUserSpaces", mock.Anything, ExampleInitializingBob.ID(), (*storage.PaginateCmd)(nil)).
+			Return([]spaces.Space{spaces.ExampleBobPersonalSpace, spaces.ExampleAliceBobSharedSpace}, nil).Once()
 
-		err := job.RunArgs(ctx, &scheduler.UserCreateArgs{UserID: ExampleAlice.ID()})
+		err := job.RunArgs(ctx, &scheduler.UserCreateArgs{UserID: ExampleBob.ID()})
 		assert.ErrorContains(t, err, "the new user already have several space")
 	})
 
@@ -85,11 +85,11 @@ func TestUserCreateTask(t *testing.T) {
 		fsMock := dfs.NewMockService(t)
 		job := NewUserCreateTaskRunner(usersMock, spacesMock, fsMock)
 
-		usersMock.On("GetByID", mock.Anything, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
+		usersMock.On("GetByID", mock.Anything, ExampleBob.ID()).Return(&ExampleBob, nil).Once()
 
 		// Do nothing
 
-		err := job.RunArgs(ctx, &scheduler.UserCreateArgs{UserID: ExampleAlice.ID()})
+		err := job.RunArgs(ctx, &scheduler.UserCreateArgs{UserID: ExampleBob.ID()})
 		assert.NoError(t, err)
 	})
 }

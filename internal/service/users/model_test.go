@@ -23,6 +23,7 @@ func Test_CreateUserRequest_is_validatable(t *testing.T) {
 
 func Test_CreateUserRequest_Validate_success(t *testing.T) {
 	err := CreateCmd{
+		User:     &ExampleAlice,
 		Username: "some-username",
 		Password: secret.NewText("myLittleSecret"),
 		IsAdmin:  true,

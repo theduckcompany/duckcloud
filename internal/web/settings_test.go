@@ -311,6 +311,7 @@ func Test_Settings(t *testing.T) {
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
 		usersMock.On("Create", mock.Anything, &users.CreateCmd{
+			User:     &users.ExampleAlice,
 			Username: "some-username",
 			Password: secret.NewText("my-little-secret"),
 			IsAdmin:  true,

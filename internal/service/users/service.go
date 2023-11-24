@@ -59,6 +59,11 @@ func NewService(tools tools.Tools, storage Storage, scheduler scheduler.Service)
 	}
 }
 
+func (s *UserService) bootstrap(ctx context.Context) (*User, error) {
+	newUserID := s.uuid.New()
+	return s.createUser(ctx, newUserID, BoostrapUsername, secret.NewText(BoostrapPassword), true, newUserID)
+}
+
 // Create will create and register a new user.
 func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error) {
 	err := cmd.Validate()
@@ -76,20 +81,24 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 	}
 
 	newUserID := s.uuid.New()
+	return s.createUser(ctx, newUserID, cmd.Username, cmd.Password, cmd.IsAdmin, cmd.User.id)
+}
 
-	hashedPassword, err := s.password.Encrypt(ctx, cmd.Password)
+func (s *UserService) createUser(ctx context.Context, newUserID uuid.UUID, username string, password secret.Text, isAdmin bool, createdBy uuid.UUID) (*User, error) {
+	hashedPassword, err := s.password.Encrypt(ctx, password)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to hash the password: %w", err))
 	}
 
 	user := User{
 		id:             newUserID,
-		username:       cmd.Username,
+		username:       username,
 		defaultSpaceID: "",
-		isAdmin:        cmd.IsAdmin,
+		isAdmin:        isAdmin,
 		password:       hashedPassword,
-		createdAt:      s.clock.Now(),
 		status:         Initializing,
+		createdAt:      s.clock.Now(),
+		createdBy:      createdBy,
 	}
 
 	err = s.storage.Save(ctx, &user)

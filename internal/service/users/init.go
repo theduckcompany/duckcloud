@@ -47,6 +47,7 @@ type Result struct {
 }
 
 func Init(
+	ctx context.Context,
 	tools tools.Tools,
 	db *sql.DB,
 	scheduler scheduler.Service,
@@ -61,17 +62,13 @@ func Init(
 
 	svc := NewService(tools, store, scheduler)
 
-	res, err := svc.GetAll(context.Background(), &storage.PaginateCmd{Limit: 4})
+	res, err := svc.GetAll(ctx, &storage.PaginateCmd{Limit: 4})
 	if err != nil {
 		return Result{}, fmt.Errorf("failed to GetAll users: %w", err)
 	}
 
 	if len(res) == 0 {
-		_, err = svc.Create(context.Background(), &CreateCmd{
-			Username: BoostrapUsername,
-			Password: secret.NewText(BoostrapPassword),
-			IsAdmin:  true,
-		})
+		_, err = svc.bootstrap(ctx)
 		if err != nil {
 			return Result{}, fmt.Errorf("failed to create the first user: %w", err)
 		}

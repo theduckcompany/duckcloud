@@ -395,6 +395,7 @@ func (h *settingsHandler) createUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err := h.users.Create(r.Context(), &users.CreateCmd{
+		User:     user,
 		Username: r.FormValue("username"),
 		Password: secret.NewText(r.FormValue("password")),
 		IsAdmin:  r.FormValue("role") == "admin",
