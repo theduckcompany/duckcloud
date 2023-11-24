@@ -9,29 +9,18 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/files"
-	"github.com/theduckcompany/duckcloud/internal/service/spaces"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/startutils"
+	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 type TestContext struct {
-	SpacesSvc      spaces.Service
-	UsersSvc       users.Service
-	DavSessionsSvc davsessions.Service
+	Serv *startutils.Server
 
-	FSService dfs.Service
-	Scheduler scheduler.Service
-	Files     files.Service
-	Runner    runner.Service
-	FS        dfs.FS
-
-	User  *users.User
-	Space *spaces.Space
+	FS      dfs.FS
+	User    *users.User
+	SpaceID uuid.UUID
 }
 
 func buildTestFS(t *testing.T, buildfs []string) *TestContext {
@@ -43,7 +32,7 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 	require.NoError(t, err, "failed to get the user default space")
 	require.NotEmpty(t, spaces)
 
-	fs := serv.DFSSvc.GetSpaceFS(&spaces[0])
+	fs := serv.DFSSvc.GetSpaceFS(spaces[0].ID())
 
 	for _, b := range buildfs {
 		op := strings.Split(b, " ")
@@ -69,18 +58,11 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 	}
 
 	return &TestContext{
-		SpacesSvc:      serv.SpacesSvc,
-		UsersSvc:       serv.UsersSvc,
-		DavSessionsSvc: serv.DavSessionsSvc,
+		Serv: serv,
 
-		FSService: serv.DFSSvc,
-		Scheduler: serv.SchedulerSvc,
-		Runner:    serv.RunnerSvc,
-		Files:     serv.Files,
-		FS:        fs,
-
-		User:  serv.User,
-		Space: &spaces[0],
+		FS:      fs,
+		User:    serv.User,
+		SpaceID: spaces[0].ID(),
 	}
 }
 

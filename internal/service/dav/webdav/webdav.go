@@ -85,7 +85,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fs := h.FileSystem.GetSpaceFS(space)
+	fs := h.FileSystem.GetSpaceFS(space.ID())
 
 	status, err := http.StatusBadRequest, errUnsupportedMethod
 	switch {

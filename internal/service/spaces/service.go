@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -34,10 +35,11 @@ type SpaceService struct {
 	storage Storage
 	clock   clock.Clock
 	uuid    uuid.Service
+	dfs     dfs.Service
 }
 
-func NewService(tools tools.Tools, storage Storage) *SpaceService {
-	return &SpaceService{storage, tools.Clock(), tools.UUID()}
+func NewService(tools tools.Tools, storage Storage, dfs dfs.Service) *SpaceService {
+	return &SpaceService{storage, tools.Clock(), tools.UUID(), dfs}
 }
 
 func (s *SpaceService) Create(ctx context.Context, cmd *CreateCmd) (*Space, error) {
@@ -46,18 +48,26 @@ func (s *SpaceService) Create(ctx context.Context, cmd *CreateCmd) (*Space, erro
 		return nil, errs.Validation(err)
 	}
 
+	newSpaceID := s.uuid.New()
+
+	rootFS, err := s.dfs.CreateSpaceFS(ctx, newSpaceID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create the root fs: %w", err)
+	}
+
 	now := s.clock.Now()
 	space := Space{
-		id:        s.uuid.New(),
+		id:        newSpaceID,
 		name:      cmd.Name,
 		isPublic:  len(cmd.Owners) > 1,
 		owners:    cmd.Owners,
-		rootFS:    cmd.RootFS,
+		rootFS:    rootFS.ID(),
 		createdAt: now,
 	}
 
 	err = s.storage.Save(context.WithoutCancel(ctx), &space)
 	if err != nil {
+		_ = s.dfs.RemoveSpaceFS(context.WithoutCancel(ctx), newSpaceID)
 		return nil, errs.Internal(fmt.Errorf("failed to Save the space: %w", err))
 	}
 
@@ -65,7 +75,20 @@ func (s *SpaceService) Create(ctx context.Context, cmd *CreateCmd) (*Space, erro
 }
 
 func (s *SpaceService) Delete(ctx context.Context, spaceID uuid.UUID) error {
-	err := s.storage.Delete(ctx, spaceID)
+	space, err := s.storage.GetByID(ctx, spaceID)
+	if errors.Is(err, errNotFound) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("failed to GetByID: %w", err)
+	}
+
+	err = s.dfs.RemoveSpaceFS(ctx, spaceID)
+	if err != nil {
+		return fmt.Errorf("failed to remove the root fs for space %q: %w", space.name, err)
+	}
+
+	err = s.storage.Delete(ctx, spaceID)
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to Delete: %w", err))
 	}

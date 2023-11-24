@@ -11,6 +11,8 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
+const DefaultSpaceName = "My files"
+
 type Space struct {
 	id        uuid.UUID
 	name      string
@@ -58,7 +60,6 @@ func (t *Owners) Scan(src any) error {
 type CreateCmd struct {
 	Name   string
 	Owners []uuid.UUID
-	RootFS uuid.UUID
 }
 
 // Validate the fields.
@@ -66,6 +67,5 @@ func (t CreateCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.Name, v.Required, v.Length(1, 30)),
 		v.Field(&t.Owners, v.Required, v.Each(is.UUIDv4)),
-		v.Field(&t.RootFS, v.Required, is.UUIDv4),
 	)
 }

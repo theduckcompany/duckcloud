@@ -59,21 +59,18 @@ func NewServer(t *testing.T) *Server {
 	afs := afero.NewMemMapFs()
 
 	configSvc := config.Init(ctx, db)
-	spacesSvc := spaces.Init(tools, db)
 	schedulerSvc := scheduler.Init(db, tools)
 	webSessionsSvc := websessions.Init(tools, db)
-	davSessionsSvc := davsessions.Init(db, spacesSvc, tools)
 	oauthSessionsSvc := oauthsessions.Init(tools, db)
 	oauthConsentsSvc := oauthconsents.Init(tools, db)
-
 	masterKeySvc, err := masterkey.Init(ctx, configSvc, afs, masterkey.Config{DevMode: true})
 	require.NoError(t, err)
-
 	filesInit, err := files.Init(masterKeySvc, "/", afs, tools, db)
 	require.NoError(t, err)
-
-	dfsInit, err := dfs.Init(db, spacesSvc, filesInit.Service, schedulerSvc, tools)
+	dfsInit, err := dfs.Init(db, filesInit.Service, schedulerSvc, tools)
 	require.NoError(t, err)
+	spacesSvc := spaces.Init(tools, db, dfsInit.Service)
+	davSessionsSvc := davsessions.Init(db, spacesSvc, tools)
 
 	usersSvc, err := users.Init(ctx, tools, db, schedulerSvc)
 	require.NoError(t, err)

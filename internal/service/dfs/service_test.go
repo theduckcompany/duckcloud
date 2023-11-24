@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
-	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -20,149 +19,61 @@ import (
 func TestDFSService(t *testing.T) {
 	ctx := context.Background()
 
-	// Copy the id to avoid a dependency cycle
-	AliceUserID := uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3")
-
-	t.Run("CreateFS success", func(t *testing.T) {
+	t.Run("CreateSpaceFS success", func(t *testing.T) {
 		toolsMock := tools.NewMock(t)
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
+		svc := NewFSService(inodesMock, filesMock, schedulerMock, toolsMock)
 
-		inodesMock.On("CreateRootDir", mock.Anything).Return(&inodes.ExampleAliceRoot, nil).Once()
-		spacesMock.On("Create", mock.Anything, &spaces.CreateCmd{
-			Name:   DefaultSpaceName,
-			Owners: []uuid.UUID{AliceUserID},
-			RootFS: inodes.ExampleAliceRoot.ID(),
-		}).Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
+		inodesMock.On("CreateSpaceRootDir", mock.Anything, uuid.UUID("some-space-id")).Return(&inodes.ExampleAliceRoot, nil).Once()
 
-		res, err := svc.CreateFS(ctx, []uuid.UUID{AliceUserID})
+		res, err := svc.CreateSpaceFS(ctx, uuid.UUID("some-space-id"))
 		assert.NoError(t, err)
-		assert.Equal(t, &spaces.ExampleAlicePersonalSpace, res)
+		assert.Equal(t, &inodes.ExampleAliceRoot, res)
 	})
 
-	t.Run("CreateFS with a create RootDirError", func(t *testing.T) {
+	t.Run("CreateSpaceFS with a create RootDirError", func(t *testing.T) {
 		toolsMock := tools.NewMock(t)
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
+		svc := NewFSService(inodesMock, filesMock, schedulerMock, toolsMock)
 
-		inodesMock.On("CreateRootDir", mock.Anything).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
+		inodesMock.On("CreateSpaceRootDir", mock.Anything, uuid.UUID("some-space-id")).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
 
-		res, err := svc.CreateFS(ctx, []uuid.UUID{AliceUserID})
+		res, err := svc.CreateSpaceFS(ctx, uuid.UUID("some-space-id"))
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})
 
-	t.Run("CreateFS with a space create error", func(t *testing.T) {
+	t.Run("RemoveSpaceFS success", func(t *testing.T) {
 		toolsMock := tools.NewMock(t)
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
+		svc := NewFSService(inodesMock, filesMock, schedulerMock, toolsMock)
 
-		inodesMock.On("CreateRootDir", mock.Anything).Return(&inodes.ExampleAliceRoot, nil).Once()
-		spacesMock.On("Create", mock.Anything, &spaces.CreateCmd{
-			Name:   DefaultSpaceName,
-			Owners: []uuid.UUID{AliceUserID},
-			RootFS: inodes.ExampleAliceRoot.ID(),
-		}).Return(nil, errs.Internal(errors.New("some-error"))).Once()
-		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceRoot).Return(nil).Once()
+		inodesMock.On("GetSpaceRoot", mock.Anything, uuid.UUID("some-space-id")).Return(&ExampleAliceRoot, nil).Once()
+		inodesMock.On("Remove", mock.Anything, &ExampleAliceRoot).Return(nil).Once()
 
-		res, err := svc.CreateFS(ctx, []uuid.UUID{AliceUserID})
-		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
-	})
-
-	t.Run("RemoveFS success", func(t *testing.T) {
-		toolsMock := tools.NewMock(t)
-		inodesMock := inodes.NewMockService(t)
-		filesMock := files.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		schedulerMock := scheduler.NewMockService(t)
-		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
-
-		inodesMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.RootFS()).
-			Return(&inodes.ExampleAliceRoot, nil).Once()
-		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceRoot).Return(nil).Once()
-		spacesMock.On("Delete", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(nil).Once()
-
-		err := svc.RemoveFS(ctx, &spaces.ExampleAlicePersonalSpace)
+		err := svc.RemoveSpaceFS(ctx, uuid.UUID("some-space-id"))
 		assert.NoError(t, err)
 	})
 
-	t.Run("RemoveFS with a rootfs not found", func(t *testing.T) {
+	t.Run("RemoveSpaceFS with an Remove error", func(t *testing.T) {
 		toolsMock := tools.NewMock(t)
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
+		svc := NewFSService(inodesMock, filesMock, schedulerMock, toolsMock)
 
-		inodesMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.RootFS()).
-			Return(nil, errs.ErrNotFound).Once()
-		spacesMock.On("Delete", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(nil).Once()
-
-		err := svc.RemoveFS(ctx, &spaces.ExampleAlicePersonalSpace)
-		assert.NoError(t, err)
-	})
-
-	t.Run("RemoveFS with a GetByID error", func(t *testing.T) {
-		toolsMock := tools.NewMock(t)
-		inodesMock := inodes.NewMockService(t)
-		filesMock := files.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		schedulerMock := scheduler.NewMockService(t)
-		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
-
-		inodesMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.RootFS()).
-			Return(nil, errs.Internal(errors.New("some-error"))).Once()
-
-		err := svc.RemoveFS(ctx, &spaces.ExampleAlicePersonalSpace)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
-	})
-
-	t.Run("RemoveFS with an GetByID", func(t *testing.T) {
-		toolsMock := tools.NewMock(t)
-		inodesMock := inodes.NewMockService(t)
-		filesMock := files.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		schedulerMock := scheduler.NewMockService(t)
-		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
-
-		inodesMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.RootFS()).
-			Return(&inodes.ExampleAliceRoot, nil).Once()
-		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceRoot).
+		inodesMock.On("GetSpaceRoot", mock.Anything, uuid.UUID("some-space-id")).Return(&ExampleAliceRoot, nil).Once()
+		inodesMock.On("Remove", mock.Anything, &ExampleAliceRoot).
 			Return(errs.Internal(errors.New("some-error"))).Once()
 
-		err := svc.RemoveFS(ctx, &spaces.ExampleAlicePersonalSpace)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
-	})
-
-	t.Run("RemoveFS with an GetByID", func(t *testing.T) {
-		toolsMock := tools.NewMock(t)
-		inodesMock := inodes.NewMockService(t)
-		filesMock := files.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		schedulerMock := scheduler.NewMockService(t)
-		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
-
-		inodesMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.RootFS()).
-			Return(&inodes.ExampleAliceRoot, nil).Once()
-		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceRoot).Return(nil).Once()
-		spacesMock.On("Delete", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).
-			Return(errs.Internal(errors.New("some-error"))).Once()
-
-		err := svc.RemoveFS(ctx, &spaces.ExampleAlicePersonalSpace)
+		err := svc.RemoveSpaceFS(ctx, uuid.UUID("some-space-id"))
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})

@@ -84,9 +84,9 @@ func (r *UserDeleteTaskRunner) RunArgs(ctx context.Context, args *scheduler.User
 			continue
 		}
 
-		err = r.fs.RemoveFS(ctx, &space)
+		err = r.spaces.Delete(ctx, space.ID())
 		if err != nil {
-			return fmt.Errorf("failed to RemoveFS: %w", err)
+			return fmt.Errorf("failed to delete the space %q: %w", space.ID(), err)
 		}
 	}
 

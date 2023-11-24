@@ -8,19 +8,17 @@ import (
 	"path"
 
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
-	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 )
 
 type FSMoveTaskRunner struct {
 	inodes    inodes.Service
-	spaces    spaces.Service
 	scheduler scheduler.Service
 }
 
-func NewFSMoveTaskRunner(inodes inodes.Service, spaces spaces.Service, scheduler scheduler.Service) *FSMoveTaskRunner {
-	return &FSMoveTaskRunner{inodes, spaces, scheduler}
+func NewFSMoveTaskRunner(inodes inodes.Service, scheduler scheduler.Service) *FSMoveTaskRunner {
+	return &FSMoveTaskRunner{inodes, scheduler}
 }
 
 func (r *FSMoveTaskRunner) Name() string { return "fs-move" }
@@ -36,14 +34,9 @@ func (r *FSMoveTaskRunner) Run(ctx context.Context, rawArgs json.RawMessage) err
 }
 
 func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveArgs) error {
-	space, err := r.spaces.GetByID(ctx, args.SpaceID)
-	if err != nil {
-		return fmt.Errorf("failed to Get the space: %w", err)
-	}
-
 	existingFile, err := r.inodes.Get(ctx, &inodes.PathCmd{
-		Space: space,
-		Path:  args.TargetPath,
+		SpaceID: args.SpaceID,
+		Path:    args.TargetPath,
 	})
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		return fmt.Errorf("failed to check if a file already existed: %w", err)
@@ -57,8 +50,8 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 	dir, filename := path.Split(args.TargetPath)
 
 	targetDir, err := r.inodes.MkdirAll(ctx, &inodes.PathCmd{
-		Space: space,
-		Path:  dir,
+		SpaceID: args.SpaceID,
+		Path:    dir,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to fetch the source: %w", err)

@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
@@ -22,16 +23,18 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("Create success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		dfsMock := dfs.NewMockService(t)
+		svc := NewService(tools, storageMock, dfsMock)
 
 		tools.UUIDMock.On("New").Return(ExampleAlicePersonalSpace.ID()).Once()
+		dfsMock.On("CreateSpaceFS", mock.Anything, ExampleAlicePersonalSpace.ID()).
+			Return(&dfs.ExampleAliceRoot, nil).Once()
 		tools.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Save", mock.Anything, &ExampleAlicePersonalSpace).Return(nil).Once()
 
 		res, err := svc.Create(ctx, &CreateCmd{
 			Name:   ExampleAlicePersonalSpace.name,
 			Owners: []uuid.UUID{AliceID},
-			RootFS: ExampleAlicePersonalSpace.rootFS,
 		})
 		assert.NoError(t, err)
 		assert.EqualValues(t, &ExampleAlicePersonalSpace, res)
@@ -40,31 +43,55 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("Create with a validation error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		dfsMock := dfs.NewMockService(t)
+		svc := NewService(tools, storageMock, dfsMock)
 
 		res, err := svc.Create(ctx, &CreateCmd{
 			Name:   "",
 			Owners: []uuid.UUID{AliceID},
-			RootFS: ExampleAlicePersonalSpace.rootFS,
 		})
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrValidation)
 		assert.ErrorContains(t, err, "Name: cannot be blank.")
 	})
 
-	t.Run("Create with a Save error", func(t *testing.T) {
+	t.Run("Create with a root fs creation error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		dfsMock := dfs.NewMockService(t)
+		svc := NewService(tools, storageMock, dfsMock)
 
 		tools.UUIDMock.On("New").Return(ExampleAlicePersonalSpace.ID()).Once()
-		tools.ClockMock.On("Now").Return(now).Once()
-		storageMock.On("Save", mock.Anything, &ExampleAlicePersonalSpace).Return(fmt.Errorf("some-error")).Once()
+		dfsMock.On("CreateSpaceFS", mock.Anything, ExampleAlicePersonalSpace.ID()).
+			Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
 
 		res, err := svc.Create(ctx, &CreateCmd{
 			Name:   "Alice's Space",
 			Owners: []uuid.UUID{AliceID},
-			RootFS: ExampleAlicePersonalSpace.rootFS,
+		})
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
+	})
+
+	t.Run("Create with a Save error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		dfsMock := dfs.NewMockService(t)
+		svc := NewService(tools, storageMock, dfsMock)
+
+		tools.UUIDMock.On("New").Return(ExampleAlicePersonalSpace.ID()).Once()
+		dfsMock.On("CreateSpaceFS", mock.Anything, ExampleAlicePersonalSpace.ID()).
+			Return(&dfs.ExampleAliceRoot, nil).Once()
+		tools.ClockMock.On("Now").Return(now).Once()
+		storageMock.On("Save", mock.Anything, &ExampleAlicePersonalSpace).Return(fmt.Errorf("some-error")).Once()
+
+		// Rollback the root fs creation
+		dfsMock.On("RemoveSpaceFS", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil).Once()
+
+		res, err := svc.Create(ctx, &CreateCmd{
+			Name:   "Alice's Space",
+			Owners: []uuid.UUID{AliceID},
 		})
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)
@@ -74,7 +101,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetAlluserSpaces success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		dfsMock := dfs.NewMockService(t)
+		svc := NewService(tools, storageMock, dfsMock)
 
 		storageMock.On("GetAllUserSpaces", mock.Anything, AliceID, (*storage.PaginateCmd)(nil)).Return([]Space{ExampleAlicePersonalSpace}, nil).Once()
 
@@ -86,7 +114,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetAlluserSpaces with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		dfsMock := dfs.NewMockService(t)
+		svc := NewService(tools, storageMock, dfsMock)
 
 		storageMock.On("GetAllUserSpaces", mock.Anything, AliceID, (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
 
@@ -99,7 +128,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetByID success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		dfsMock := dfs.NewMockService(t)
+		svc := NewService(tools, storageMock, dfsMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(&ExampleAlicePersonalSpace, nil).Once()
 
@@ -111,7 +141,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetByID not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		dfsMock := dfs.NewMockService(t)
+		svc := NewService(tools, storageMock, dfsMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil, errNotFound).Once()
 
@@ -123,7 +154,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetByID with an error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		dfsMock := dfs.NewMockService(t)
+		svc := NewService(tools, storageMock, dfsMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil, fmt.Errorf("some-error")).Once()
 
@@ -136,19 +168,51 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("Delete success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		dfsMock := dfs.NewMockService(t)
+		svc := NewService(tools, storageMock, dfsMock)
 
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(&ExampleAlicePersonalSpace, nil).Once()
+		dfsMock.On("RemoveSpaceFS", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil).Once()
 		storageMock.On("Delete", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil).Once()
 
 		err := svc.Delete(ctx, ExampleAlicePersonalSpace.ID())
 		assert.NoError(t, err)
 	})
 
+	t.Run("Delete an already deleted space", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		dfsMock := dfs.NewMockService(t)
+		svc := NewService(tools, storageMock, dfsMock)
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil, errNotFound).Once()
+
+		err := svc.Delete(ctx, ExampleAlicePersonalSpace.ID())
+		assert.NoError(t, err)
+	})
+
+	t.Run("Delete with a remove rootFS error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		dfsMock := dfs.NewMockService(t)
+		svc := NewService(tools, storageMock, dfsMock)
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(&ExampleAlicePersonalSpace, nil).Once()
+		dfsMock.On("RemoveSpaceFS", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(errs.Internal(fmt.Errorf("some-error"))).Once()
+
+		err := svc.Delete(ctx, ExampleAlicePersonalSpace.ID())
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
+	})
+
 	t.Run("Delete with an error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		dfsMock := dfs.NewMockService(t)
+		svc := NewService(tools, storageMock, dfsMock)
 
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(&ExampleAlicePersonalSpace, nil).Once()
+		dfsMock.On("RemoveSpaceFS", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil).Once()
 		storageMock.On("Delete", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(fmt.Errorf("some-error"))
 
 		err := svc.Delete(ctx, ExampleAlicePersonalSpace.ID())
@@ -159,7 +223,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetUserSpace success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		dfsMock := dfs.NewMockService(t)
+		svc := NewService(tools, storageMock, dfsMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(&ExampleAlicePersonalSpace, nil).Once()
 
@@ -171,7 +236,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetUserSpace not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		dfsMock := dfs.NewMockService(t)
+		svc := NewService(tools, storageMock, dfsMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil, errNotFound).Once()
 
@@ -183,7 +249,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetUserSpace with an error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		dfsMock := dfs.NewMockService(t)
+		svc := NewService(tools, storageMock, dfsMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil, fmt.Errorf("some-error")).Once()
 
@@ -196,7 +263,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetUserSpace with an existing space but an invalid user id", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		dfsMock := dfs.NewMockService(t)
+		svc := NewService(tools, storageMock, dfsMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(&ExampleAlicePersonalSpace, nil).Once()
 

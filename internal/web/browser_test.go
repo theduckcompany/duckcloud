@@ -110,9 +110,9 @@ func Test_Browser_Page(t *testing.T) {
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
+		fsMock.On("GetSpaceFS", spaces.ExampleAlicePersonalSpace.ID()).Return(spaceFSMock)
 
-		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace)
+		spaceFSMock.On("SpaceID").Return(spaces.ExampleAlicePersonalSpace.ID())
 
 		// Then look for the path inside this space
 		spaceFSMock.On("Get", mock.Anything, "/foo/bar").Return(&dfs.ExampleAliceRoot, nil).Once()
@@ -126,7 +126,7 @@ func Test_Browser_Page(t *testing.T) {
 		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
 			"host":     "example.com",
 			"fullPath": "/foo/bar",
-			"space":    &spaces.ExampleAlicePersonalSpace,
+			"spaceID":  spaces.ExampleAlicePersonalSpace.ID(),
 			"breadcrumb": []breadCrumbElement{
 				{Name: spaces.ExampleAlicePersonalSpace.Name(), Href: "/browser/" + spaceID, Current: false},
 				{Name: "foo", Href: "/browser/" + spaceID + "/foo", Current: false},
@@ -168,8 +168,8 @@ func Test_Browser_Page(t *testing.T) {
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace)
+		fsMock.On("GetSpaceFS", spaces.ExampleAlicePersonalSpace.ID()).Return(spaceFSMock)
+		spaceFSMock.On("SpaceID").Return(spaces.ExampleAlicePersonalSpace.ID())
 
 		// Then look for the path inside this space
 		spaceFSMock.On("Get", mock.Anything, "/foo/bar").Return(&dfs.ExampleAliceFile, nil).Once()
@@ -307,8 +307,8 @@ func Test_Browser_Page(t *testing.T) {
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace)
+		fsMock.On("GetSpaceFS", spaces.ExampleAlicePersonalSpace.ID()).Return(spaceFSMock)
+		spaceFSMock.On("SpaceID").Return(spaces.ExampleAlicePersonalSpace.ID())
 
 		// Then look for the path inside this space
 		spaceFSMock.On("Get", mock.Anything, "/invalid").Return(nil, nil).Once()
@@ -349,7 +349,7 @@ func Test_Browser_Page(t *testing.T) {
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
+		fsMock.On("GetSpaceFS", spaces.ExampleAlicePersonalSpace.ID()).Return(spaceFSMock)
 
 		spaceFSMock.On("CreateDir", mock.Anything, "foo/bar").Return(&dfs.ExampleAliceDir, nil).Once()
 		spaceFSMock.On("Upload", mock.Anything, "foo/bar/hello.txt", mock.Anything).
@@ -407,7 +407,7 @@ func Test_Browser_Page(t *testing.T) {
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
+		fsMock.On("GetSpaceFS", spaces.ExampleAlicePersonalSpace.ID()).Return(spaceFSMock)
 
 		spaceFSMock.On("CreateDir", mock.Anything, "foo/bar/baz").Return(&dfs.ExampleAliceDir, nil).Once()
 
@@ -465,8 +465,8 @@ func Test_Browser_Page(t *testing.T) {
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace)
+		fsMock.On("GetSpaceFS", spaces.ExampleAlicePersonalSpace.ID()).Return(spaceFSMock)
+		spaceFSMock.On("SpaceID").Return(spaces.ExampleAlicePersonalSpace.ID())
 
 		spaceFSMock.On("Remove", mock.Anything, "/foo/bar").Return(nil).Once()
 
@@ -485,7 +485,7 @@ func Test_Browser_Page(t *testing.T) {
 		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
 			"host":     "example.com",
 			"fullPath": "/foo",
-			"space":    &spaces.ExampleAlicePersonalSpace,
+			"spaceID":  spaces.ExampleAlicePersonalSpace.ID(),
 			"breadcrumb": []breadCrumbElement{
 				{Name: spaces.ExampleAlicePersonalSpace.Name(), Href: "/browser/" + spaceID, Current: false},
 				{Name: "foo", Href: "/browser/" + spaceID + "/foo", Current: true},
@@ -651,14 +651,14 @@ func Test_Browser_Page(t *testing.T) {
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
+		fsMock.On("GetSpaceFS", spaces.ExampleAlicePersonalSpace.ID()).Return(spaceFSMock)
 
 		spaceFSMock.On("Get", mock.Anything, "/foo/New Dir").Return(nil, errs.ErrNotFound).Once()
 		spaceFSMock.On("CreateDir", mock.Anything, "/foo/New Dir").Return(&dfs.ExampleAliceDir, nil).Once()
 
 		// Render
 		spaceFSMock.On("Get", mock.Anything, "/foo").Return(&dfs.ExampleAliceRoot, nil).Once()
-		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace).Once()
+		spaceFSMock.On("SpaceID").Return(spaces.ExampleAlicePersonalSpace.ID()).Once()
 		spaceFSMock.On("ListDir", mock.Anything, "/foo", &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
 			Limit:      PageSize,
@@ -678,7 +678,7 @@ func Test_Browser_Page(t *testing.T) {
 					Current: true,
 				},
 			},
-			"space":    &spaces.ExampleAlicePersonalSpace,
+			"spaceID":  spaces.ExampleAlicePersonalSpace.ID(),
 			"spaces":   []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
 			"fullPath": "/foo",
 			"host":     "example.com",
@@ -816,7 +816,7 @@ func Test_Browser_Page(t *testing.T) {
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
+		fsMock.On("GetSpaceFS", spaces.ExampleAlicePersonalSpace.ID()).Return(spaceFSMock)
 
 		spaceFSMock.On("Get", mock.Anything, "/foo/New Dir").Return(&dfs.ExampleAliceDir, nil).Once()
 
@@ -860,7 +860,7 @@ func Test_Browser_Page(t *testing.T) {
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
+		fsMock.On("GetSpaceFS", spaces.ExampleAlicePersonalSpace.ID()).Return(spaceFSMock)
 
 		err := fmt.Errorf("some-error")
 		spaceFSMock.On("Get", mock.Anything, "/foo/New Dir").Return(nil, errs.ErrNotFound).Once()

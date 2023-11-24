@@ -40,6 +40,7 @@ type Storage interface {
 	Patch(ctx context.Context, inode uuid.UUID, fields map[string]any) error
 	GetSumChildsSize(ctx context.Context, parent uuid.UUID) (uint64, error)
 	GetAllInodesWithFileID(ctx context.Context, fileID uuid.UUID) ([]INode, error)
+	GetSpaceRoot(ctx context.Context, spaceID uuid.UUID) (*INode, error)
 }
 
 type INodeService struct {
@@ -51,6 +52,18 @@ type INodeService struct {
 
 func NewService(scheduler scheduler.Service, tools tools.Tools, storage Storage) *INodeService {
 	return &INodeService{scheduler, storage, tools.Clock(), tools.UUID()}
+}
+
+func (s *INodeService) GetSpaceRoot(ctx context.Context, spaceID uuid.UUID) (*INode, error) {
+	res, err := s.storage.GetSpaceRoot(ctx, spaceID)
+	if errors.Is(err, errNotFound) {
+		return nil, errs.NotFound(ErrNotFound)
+	}
+	if err != nil {
+		return nil, errs.Internal(fmt.Errorf("failed to GetSpaceRoot: %w", err))
+	}
+
+	return res, nil
 }
 
 func (s *INodeService) GetByID(ctx context.Context, inodeID uuid.UUID) (*INode, error) {
@@ -113,18 +126,28 @@ func (s *INodeService) MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, erro
 	return inode, nil
 }
 
-func (s *INodeService) CreateRootDir(ctx context.Context) (*INode, error) {
+func (s *INodeService) CreateSpaceRootDir(ctx context.Context, spaceID uuid.UUID) (*INode, error) {
 	now := s.clock.Now()
+
+	res, err := s.storage.GetSpaceRoot(ctx, spaceID)
+	if err != nil && !errors.Is(err, errNotFound) {
+		return nil, fmt.Errorf("failed to GetSpaceRoot: %w", err)
+	}
+
+	if res != nil {
+		return nil, ErrAlreadyExists
+	}
 
 	node := INode{
 		id:             s.uuid.New(),
 		parent:         nil,
 		createdAt:      now,
+		spaceID:        spaceID,
 		lastModifiedAt: now,
 		fileID:         nil,
 	}
 
-	err := s.storage.Save(ctx, &node)
+	err = s.storage.Save(ctx, &node)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to Save: %w", err))
 	}
@@ -150,8 +173,9 @@ func (s *INodeService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INo
 	inode := INode{
 		id:             s.uuid.New(),
 		parent:         ptr.To(parent.ID()),
-		size:           0,
 		name:           cmd.Name,
+		size:           0,
+		spaceID:        cmd.SpaceID,
 		createdAt:      cmd.UploadedAt,
 		lastModifiedAt: cmd.UploadedAt,
 		fileID:         &cmd.FileID,
@@ -387,10 +411,12 @@ func (s *INodeService) walk(ctx context.Context, cmd *PathCmd, op string, f func
 		fullname = fullname[1:]
 	}
 
-	dir, err := s.storage.GetByID(ctx, cmd.Space.RootFS())
+	rootFS, err := s.storage.GetSpaceRoot(ctx, cmd.SpaceID)
 	if errors.Is(err, errNotFound) {
-		return errs.NotFound(ErrInvalidRoot, "failed to fetch the root dir for space %q", cmd.Space.Name())
+		return errs.NotFound(ErrInvalidRoot)
 	}
+
+	dir := rootFS
 
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to GetByID the root: %w", err))
@@ -405,7 +431,7 @@ func (s *INodeService) walk(ctx context.Context, cmd *PathCmd, op string, f func
 			frag, remaining = fullname[:i], fullname[i+1:]
 		}
 
-		if frag == "" && dir.ID() != cmd.Space.RootFS() {
+		if frag == "" && dir.ID() != rootFS.id {
 			panic("webdav: empty path fragment for a clean path")
 		}
 

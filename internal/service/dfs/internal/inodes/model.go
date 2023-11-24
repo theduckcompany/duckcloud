@@ -5,7 +5,6 @@ import (
 
 	v "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
-	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -13,19 +12,20 @@ import (
 const NoParent = uuid.UUID("00000000-0000-0000-0000-00000000000")
 
 type PathCmd struct {
-	Space *spaces.Space
-	Path  string
+	SpaceID uuid.UUID
+	Path    string
 }
 
 // Validate the fields.
 func (t PathCmd) Validate() error {
 	return v.ValidateStruct(&t,
-		v.Field(&t.Space, v.Required),
+		v.Field(&t.SpaceID, v.Required, is.UUIDv4),
 		v.Field(&t.Path, v.Required, v.Length(1, 1024)),
 	)
 }
 
 type CreateFileCmd struct {
+	SpaceID    uuid.UUID
 	Parent     uuid.UUID
 	Name       string
 	FileID     uuid.UUID
@@ -47,6 +47,7 @@ type INode struct {
 	parent         *uuid.UUID
 	name           string
 	size           uint64
+	spaceID        uuid.UUID
 	createdAt      time.Time
 	lastModifiedAt time.Time
 	fileID         *uuid.UUID
@@ -56,6 +57,7 @@ func (n *INode) ID() uuid.UUID             { return n.id }
 func (n *INode) Parent() *uuid.UUID        { return n.parent }
 func (n *INode) Name() string              { return n.name }
 func (n *INode) Size() uint64              { return n.size }
+func (n *INode) SpaceID() uuid.UUID        { return n.spaceID }
 func (n *INode) CreatedAt() time.Time      { return n.createdAt }
 func (n *INode) LastModifiedAt() time.Time { return n.lastModifiedAt }
 func (n *INode) FileID() *uuid.UUID        { return n.fileID }

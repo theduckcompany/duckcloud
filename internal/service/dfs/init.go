@@ -7,7 +7,6 @@ import (
 
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
-	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
@@ -18,7 +17,7 @@ import (
 
 //go:generate mockery --name FS
 type FS interface {
-	Space() *spaces.Space
+	SpaceID() uuid.UUID
 	CreateDir(ctx context.Context, dirPath string) (*INode, error)
 	ListDir(ctx context.Context, dirPath string, cmd *storage.PaginateCmd) ([]INode, error)
 	Remove(ctx context.Context, path string) error
@@ -30,9 +29,9 @@ type FS interface {
 
 //go:generate mockery --name Service
 type Service interface {
-	GetSpaceFS(space *spaces.Space) FS
-	CreateFS(ctx context.Context, owners []uuid.UUID) (*spaces.Space, error)
-	RemoveFS(ctx context.Context, space *spaces.Space) error
+	GetSpaceFS(spaceID uuid.UUID) FS
+	CreateSpaceFS(ctx context.Context, spaceID uuid.UUID) (*INode, error)
+	RemoveSpaceFS(ctx context.Context, spaceId uuid.UUID) error
 }
 
 type Result struct {
@@ -44,13 +43,13 @@ type Result struct {
 	FSRemoveDuplicateFilesRunner runner.TaskRunner `group:"tasks"`
 }
 
-func Init(db *sql.DB, spaces spaces.Service, files files.Service, scheduler scheduler.Service, tools tools.Tools) (Result, error) {
+func Init(db *sql.DB, files files.Service, scheduler scheduler.Service, tools tools.Tools) (Result, error) {
 	inodes := inodes.Init(scheduler, tools, db)
 
 	return Result{
-		Service:                      NewFSService(inodes, files, spaces, scheduler, tools),
-		FSGCTask:                     NewFSGGCTaskRunner(inodes, files, spaces, tools),
-		FSMoveTask:                   NewFSMoveTaskRunner(inodes, spaces, scheduler),
+		Service:                      NewFSService(inodes, files, scheduler, tools),
+		FSGCTask:                     NewFSGGCTaskRunner(inodes, files, tools),
+		FSMoveTask:                   NewFSMoveTaskRunner(inodes, scheduler),
 		FSRefreshSizeTask:            NewFSRefreshSizeTaskRunner(inodes, files),
 		FSRemoveDuplicateFilesRunner: NewFSRemoveDuplicateFileRunner(inodes, files, scheduler),
 	}, nil

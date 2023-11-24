@@ -6,7 +6,7 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
-	spaces "github.com/theduckcompany/duckcloud/internal/service/spaces"
+	inodes "github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -16,25 +16,25 @@ type MockService struct {
 	mock.Mock
 }
 
-// CreateFS provides a mock function with given fields: ctx, owners
-func (_m *MockService) CreateFS(ctx context.Context, owners []uuid.UUID) (*spaces.Space, error) {
-	ret := _m.Called(ctx, owners)
+// CreateSpaceFS provides a mock function with given fields: ctx, spaceID
+func (_m *MockService) CreateSpaceFS(ctx context.Context, spaceID uuid.UUID) (*inodes.INode, error) {
+	ret := _m.Called(ctx, spaceID)
 
-	var r0 *spaces.Space
+	var r0 *inodes.INode
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []uuid.UUID) (*spaces.Space, error)); ok {
-		return rf(ctx, owners)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (*inodes.INode, error)); ok {
+		return rf(ctx, spaceID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []uuid.UUID) *spaces.Space); ok {
-		r0 = rf(ctx, owners)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) *inodes.INode); ok {
+		r0 = rf(ctx, spaceID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*spaces.Space)
+			r0 = ret.Get(0).(*inodes.INode)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, []uuid.UUID) error); ok {
-		r1 = rf(ctx, owners)
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, spaceID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -42,13 +42,13 @@ func (_m *MockService) CreateFS(ctx context.Context, owners []uuid.UUID) (*space
 	return r0, r1
 }
 
-// GetSpaceFS provides a mock function with given fields: space
-func (_m *MockService) GetSpaceFS(space *spaces.Space) FS {
-	ret := _m.Called(space)
+// GetSpaceFS provides a mock function with given fields: spaceID
+func (_m *MockService) GetSpaceFS(spaceID uuid.UUID) FS {
+	ret := _m.Called(spaceID)
 
 	var r0 FS
-	if rf, ok := ret.Get(0).(func(*spaces.Space) FS); ok {
-		r0 = rf(space)
+	if rf, ok := ret.Get(0).(func(uuid.UUID) FS); ok {
+		r0 = rf(spaceID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(FS)
@@ -58,13 +58,13 @@ func (_m *MockService) GetSpaceFS(space *spaces.Space) FS {
 	return r0
 }
 
-// RemoveFS provides a mock function with given fields: ctx, space
-func (_m *MockService) RemoveFS(ctx context.Context, space *spaces.Space) error {
-	ret := _m.Called(ctx, space)
+// RemoveSpaceFS provides a mock function with given fields: ctx, spaceId
+func (_m *MockService) RemoveSpaceFS(ctx context.Context, spaceId uuid.UUID) error {
+	ret := _m.Called(ctx, spaceId)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *spaces.Space) error); ok {
-		r0 = rf(ctx, space)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, spaceId)
 	} else {
 		r0 = ret.Error(0)
 	}

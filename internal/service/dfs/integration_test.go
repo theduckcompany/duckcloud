@@ -29,23 +29,13 @@ func Test_DFS_Integration(t *testing.T) {
 	var spaceFS dfs.FS
 	var rootFS *dfs.INode
 
-	t.Run("CreateFS and RemoveFS success", func(t *testing.T) {
-		tmpSpace, err := dfsSvc.CreateFS(ctx, []uuid.UUID{serv.User.ID()})
+	t.Run("CreateSpaceFS and RemoveSpaceFS success", func(t *testing.T) {
+		tmpSpace, err := dfsSvc.CreateSpaceFS(ctx, uuid.UUID("some-space-id"))
 		require.NoError(t, err)
-
-		// Check that a new space have been created
-		spaces, err := serv.SpacesSvc.GetAllUserSpaces(ctx, serv.User.ID(), nil)
-		require.NoError(t, err)
-		require.Len(t, spaces, 2) // the default one + the new one
 
 		// Delete the new space
-		err = dfsSvc.RemoveFS(ctx, tmpSpace)
+		err = dfsSvc.RemoveSpaceFS(ctx, tmpSpace.ID())
 		require.NoError(t, err)
-
-		// Check that a new space have been created
-		spaces, err = serv.SpacesSvc.GetAllUserSpaces(ctx, serv.User.ID(), nil)
-		require.NoError(t, err)
-		require.Len(t, spaces, 1) // only the default one
 	})
 
 	t.Run("Retrieve the default user space", func(t *testing.T) {
@@ -54,7 +44,7 @@ func Test_DFS_Integration(t *testing.T) {
 		require.Len(t, spaces, 1)
 
 		space = spaces[0]
-		spaceFS = dfsSvc.GetSpaceFS(&space)
+		spaceFS = dfsSvc.GetSpaceFS(space.ID())
 	})
 
 	t.Run("Get the rootFS success", func(t *testing.T) {

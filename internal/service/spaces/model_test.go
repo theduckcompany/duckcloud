@@ -11,7 +11,6 @@ func Test_CreateCmd_Validate(t *testing.T) {
 	assert.EqualError(t, CreateCmd{
 		Name:   "My space",
 		Owners: []uuid.UUID{"some-invalid-uuid"},
-		RootFS: uuid.UUID("49d16286-2a29-44c3-8dc5-3f7e53b49a0b"),
 	}.Validate(), "Owners: (0: must be a valid UUID v4.).")
 }
 

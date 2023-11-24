@@ -9,19 +9,18 @@ import (
 
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
-	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 type LocalFS struct {
 	inodes    inodes.Service
 	files     files.Service
-	space     *spaces.Space
-	spaces    spaces.Service
+	spaceID   uuid.UUID
 	scheduler scheduler.Service
 	clock     clock.Clock
 }
@@ -29,24 +28,23 @@ type LocalFS struct {
 func newLocalFS(
 	inodes inodes.Service,
 	files files.Service,
-	space *spaces.Space,
-	spaces spaces.Service,
+	spaceID uuid.UUID,
 	tasks scheduler.Service,
 	tools tools.Tools,
 ) *LocalFS {
-	return &LocalFS{inodes, files, space, spaces, tasks, tools.Clock()}
+	return &LocalFS{inodes, files, spaceID, tasks, tools.Clock()}
 }
 
-func (s *LocalFS) Space() *spaces.Space {
-	return s.space
+func (s *LocalFS) SpaceID() uuid.UUID {
+	return s.spaceID
 }
 
 func (s *LocalFS) ListDir(ctx context.Context, path string, cmd *storage.PaginateCmd) ([]inodes.INode, error) {
 	path = CleanPath(path)
 
 	dir, err := s.inodes.Get(ctx, &inodes.PathCmd{
-		Space: s.space,
-		Path:  path,
+		SpaceID: s.spaceID,
+		Path:    path,
 	})
 	if errors.Is(err, errs.ErrNotFound) {
 		return nil, errs.NotFound(err)
@@ -62,8 +60,8 @@ func (s *LocalFS) CreateDir(ctx context.Context, dirPath string) (*INode, error)
 	dirPath = CleanPath(dirPath)
 
 	inode, err := s.inodes.MkdirAll(ctx, &inodes.PathCmd{
-		Space: s.space,
-		Path:  dirPath,
+		SpaceID: s.spaceID,
+		Path:    dirPath,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to MkdirAll: %w", err)
@@ -76,8 +74,8 @@ func (s *LocalFS) Remove(ctx context.Context, path string) error {
 	path = CleanPath(path)
 
 	res, err := s.inodes.Get(ctx, &inodes.PathCmd{
-		Space: s.space,
-		Path:  path,
+		SpaceID: s.spaceID,
+		Path:    path,
 	})
 	if errors.Is(err, errs.ErrNotFound) {
 		return nil
@@ -96,15 +94,15 @@ func (s *LocalFS) Remove(ctx context.Context, path string) error {
 
 func (s *LocalFS) Move(ctx context.Context, oldPath, newPath string) error {
 	sourceINode, err := s.inodes.Get(ctx, &inodes.PathCmd{
-		Space: s.space,
-		Path:  CleanPath(oldPath),
+		SpaceID: s.spaceID,
+		Path:    CleanPath(oldPath),
 	})
 	if err != nil {
 		return fmt.Errorf("invalid source: %w", err)
 	}
 
 	err = s.scheduler.RegisterFSMoveTask(ctx, &scheduler.FSMoveArgs{
-		SpaceID:     s.space.ID(),
+		SpaceID:     s.spaceID,
 		SourceInode: sourceINode.ID(),
 		TargetPath:  newPath,
 		MovedAt:     s.clock.Now(),
@@ -120,8 +118,8 @@ func (s *LocalFS) Get(ctx context.Context, path string) (*INode, error) {
 	path = CleanPath(path)
 
 	res, err := s.inodes.Get(ctx, &inodes.PathCmd{
-		Space: s.space,
-		Path:  path,
+		SpaceID: s.spaceID,
+		Path:    path,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to Get: %w", err)
@@ -132,8 +130,8 @@ func (s *LocalFS) Get(ctx context.Context, path string) (*INode, error) {
 
 func (s *LocalFS) Download(ctx context.Context, filePath string) (io.ReadSeekCloser, error) {
 	inode, err := s.inodes.Get(ctx, &inodes.PathCmd{
-		Space: s.space,
-		Path:  filePath,
+		SpaceID: s.spaceID,
+		Path:    filePath,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to Get: %w", err)
@@ -163,8 +161,8 @@ func (s *LocalFS) Upload(ctx context.Context, filePath string, w io.Reader) erro
 	dirPath, fileName := path.Split(filePath)
 
 	dir, err := s.inodes.Get(ctx, &inodes.PathCmd{
-		Space: s.space,
-		Path:  dirPath,
+		SpaceID: s.spaceID,
+		Path:    dirPath,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to get the dir: %w", err)

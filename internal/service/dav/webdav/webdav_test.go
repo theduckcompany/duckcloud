@@ -67,10 +67,10 @@ func TestPrefix(t *testing.T) {
 		fs := tc.FS
 
 		h := &Handler{
-			FileSystem: tc.FSService,
-			Sessions:   tc.DavSessionsSvc,
-			Spaces:     tc.SpacesSvc,
-			Files:      tc.Files,
+			FileSystem: tc.Serv.DFSSvc,
+			Sessions:   tc.Serv.DavSessionsSvc,
+			Spaces:     tc.Serv.SpacesSvc,
+			Files:      tc.Serv.Files,
 			Logger: func(_ *http.Request, err error) {
 				if err != nil {
 					t.Fatalf("error from the webdav: %q", err)
@@ -86,11 +86,11 @@ func TestPrefix(t *testing.T) {
 		defer srv.Close()
 
 		username := tc.User.Username()
-		_, token, err := tc.DavSessionsSvc.Create(ctx, &davsessions.CreateCmd{
+		_, token, err := tc.Serv.DavSessionsSvc.Create(ctx, &davsessions.CreateCmd{
 			Name:     "test session",
 			Username: tc.User.Username(),
 			UserID:   tc.User.ID(),
-			SpaceID:  tc.Space.ID(),
+			SpaceID:  tc.SpaceID,
 		})
 		require.NoError(t, err)
 
@@ -116,7 +116,7 @@ func TestPrefix(t *testing.T) {
 			continue
 		}
 
-		require.NoError(t, tc.Runner.Run(ctx))
+		require.NoError(t, tc.Serv.RunnerSvc.Run(ctx))
 
 		wantB := map[string]int{
 			"/":       http.StatusCreated,
@@ -129,7 +129,7 @@ func TestPrefix(t *testing.T) {
 			continue
 		}
 
-		require.NoError(t, tc.Runner.Run(ctx))
+		require.NoError(t, tc.Serv.RunnerSvc.Run(ctx))
 
 		wantC := map[string]int{
 			"/":       http.StatusCreated,
@@ -142,7 +142,7 @@ func TestPrefix(t *testing.T) {
 			continue
 		}
 
-		require.NoError(t, tc.Runner.Run(ctx))
+		require.NoError(t, tc.Serv.RunnerSvc.Run(ctx))
 
 		wantD := map[string]int{
 			"/":       http.StatusCreated,
@@ -155,7 +155,7 @@ func TestPrefix(t *testing.T) {
 			continue
 		}
 
-		require.NoError(t, tc.Runner.Run(ctx))
+		require.NoError(t, tc.Serv.RunnerSvc.Run(ctx))
 
 		wantE := map[string]int{
 			"/":       http.StatusCreated,
@@ -168,7 +168,7 @@ func TestPrefix(t *testing.T) {
 			continue
 		}
 
-		require.NoError(t, tc.Runner.Run(ctx))
+		require.NoError(t, tc.Serv.RunnerSvc.Run(ctx))
 
 		wantF := map[string]int{
 			"/":       http.StatusCreated,
@@ -181,7 +181,7 @@ func TestPrefix(t *testing.T) {
 			continue
 		}
 
-		require.NoError(t, tc.Runner.Run(ctx))
+		require.NoError(t, tc.Serv.RunnerSvc.Run(ctx))
 
 		got, err := find(ctx, nil, fs, "/")
 		if err != nil {
@@ -322,14 +322,14 @@ func TestFilenameEscape(t *testing.T) {
 		}
 	}
 
-	err := tc.Runner.Run(ctx)
+	err := tc.Serv.RunnerSvc.Run(ctx)
 	require.NoError(t, err)
 
 	srv := httptest.NewServer(&Handler{
-		FileSystem: tc.FSService,
-		Sessions:   tc.DavSessionsSvc,
-		Files:      tc.Files,
-		Spaces:     tc.SpacesSvc,
+		FileSystem: tc.Serv.DFSSvc,
+		Sessions:   tc.Serv.DavSessionsSvc,
+		Files:      tc.Serv.Files,
+		Spaces:     tc.Serv.SpacesSvc,
 		Logger: func(_ *http.Request, err error) {
 			if err != nil {
 				t.Fatalf("error from the webdav: %q", err)
@@ -338,12 +338,12 @@ func TestFilenameEscape(t *testing.T) {
 	})
 	defer srv.Close()
 
-	spaces, err := tc.SpacesSvc.GetAllUserSpaces(ctx, tc.User.ID(), nil)
+	spaces, err := tc.Serv.SpacesSvc.GetAllUserSpaces(ctx, tc.User.ID(), nil)
 	require.NoError(t, err, "failed to get the user default space")
 	require.NotEmpty(t, spaces)
 
 	username := tc.User.Username()
-	_, token, err := tc.DavSessionsSvc.Create(ctx, &davsessions.CreateCmd{
+	_, token, err := tc.Serv.DavSessionsSvc.Create(ctx, &davsessions.CreateCmd{
 		Name:     "test session",
 		Username: username,
 		UserID:   tc.User.ID(),

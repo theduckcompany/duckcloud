@@ -36,12 +36,26 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.Equal(t, &ExampleBobRoot, res)
 	})
 
+	t.Run("GetSpaceRoot success", func(t *testing.T) {
+		res, err := store.GetSpaceRoot(ctx, ExampleBobRoot.spaceID)
+		assert.NoError(t, err)
+		assert.Equal(t, &ExampleBobRoot, res)
+	})
+
+	t.Run("GetSpaceRoot not found", func(t *testing.T) {
+		// Alice root is not saved yet
+		res, err := store.GetSpaceRoot(ctx, uuid.UUID("some-unknown-id"))
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errNotFound)
+	})
+
 	t.Run("Create 10 childes", func(t *testing.T) {
 		for i := 0; i < 10; i++ {
 			err := store.Save(ctx, &INode{
 				id:             uuid.UUID(fmt.Sprintf("some-child-id-%d", i)),
 				parent:         ptr.To(ExampleBobRoot.ID()),
 				size:           10,
+				spaceID:        ExampleBobRoot.spaceID,
 				name:           fmt.Sprintf("child-%d", i),
 				lastModifiedAt: nowData,
 				createdAt:      nowData,
@@ -70,6 +84,7 @@ func TestINodeSqlstore(t *testing.T) {
 			name:           "child-5",
 			lastModifiedAt: nowData,
 			size:           10,
+			spaceID:        ExampleBobRoot.spaceID,
 			createdAt:      nowData,
 			fileID:         nil,
 		}, res)
@@ -104,6 +119,7 @@ func TestINodeSqlstore(t *testing.T) {
 			name:           "child-5",
 			lastModifiedAt: nowData,
 			size:           10,
+			spaceID:        ExampleBobRoot.spaceID,
 			createdAt:      nowData,
 			fileID:         nil,
 		}, res)
@@ -146,6 +162,7 @@ func TestINodeSqlstore(t *testing.T) {
 			parent:         ptr.To(ExampleBobRoot.ID()),
 			name:           "child-5",
 			size:           10,
+			spaceID:        ExampleBobRoot.spaceID,
 			lastModifiedAt: nowData,
 			createdAt:      nowData,
 			fileID:         nil,
@@ -162,6 +179,7 @@ func TestINodeSqlstore(t *testing.T) {
 			parent:         ptr.To(ExampleBobRoot.ID()),
 			name:           "child-5",
 			size:           10,
+			spaceID:        ExampleBobRoot.spaceID,
 			lastModifiedAt: nowData,
 			createdAt:      nowData,
 			fileID:         nil,

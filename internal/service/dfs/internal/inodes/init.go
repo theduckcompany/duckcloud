@@ -13,7 +13,7 @@ import (
 
 //go:generate mockery --name Service
 type Service interface {
-	CreateRootDir(ctx context.Context) (*INode, error)
+	CreateSpaceRootDir(ctx context.Context, spaceID uuid.UUID) (*INode, error)
 	Get(ctx context.Context, cmd *PathCmd) (*INode, error)
 	GetByID(ctx context.Context, inodeID uuid.UUID) (*INode, error)
 	Readdir(ctx context.Context, inode *INode, paginateCmd *storage.PaginateCmd) ([]INode, error)
@@ -29,6 +29,7 @@ type Service interface {
 	RegisterModification(ctx context.Context, inode *INode, newSize uint64, modeTime time.Time) error
 	PatchFileID(ctx context.Context, inode *INode, newFileID uuid.UUID) (*INode, error)
 	GetAllInodesWithFileID(ctx context.Context, fileID uuid.UUID) ([]INode, error)
+	GetSpaceRoot(ctx context.Context, spaceID uuid.UUID) (*INode, error)
 }
 
 func Init(scheduler scheduler.Service, tools tools.Tools, db *sql.DB) Service {

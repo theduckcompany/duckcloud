@@ -134,7 +134,7 @@ func (h *browserHandler) handleCreateDirReq(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	fs := h.fs.GetSpaceFS(space)
+	fs := h.fs.GetSpaceFS(space.ID())
 
 	existingDir, err := fs.Get(r.Context(), path.Join(dir, name))
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
@@ -194,7 +194,7 @@ func (h *browserHandler) getBrowserContent(w http.ResponseWriter, r *http.Reques
 	if abort {
 		return
 	}
-	fs := h.fs.GetSpaceFS(space)
+	fs := h.fs.GetSpaceFS(space.ID())
 
 	lastElem := r.URL.Query().Get("last")
 	if lastElem == "" {
@@ -283,7 +283,7 @@ func (h *browserHandler) deleteAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fs := h.fs.GetSpaceFS(space)
+	fs := h.fs.GetSpaceFS(space.ID())
 	err := fs.Remove(r.Context(), fullPath)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Remove: %w", err))
@@ -345,7 +345,7 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 		return fmt.Errorf("failed to GetByID: %w", err)
 	}
 
-	ffs := h.fs.GetSpaceFS(space)
+	ffs := h.fs.GetSpaceFS(space.ID())
 
 	var fullPath string
 	if cmd.relPath == "null" || cmd.relPath == "" {
@@ -412,10 +412,10 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	space := ffs.Space()
+	spaceID := ffs.SpaceID()
 
 	if inode == nil {
-		w.Header().Set("Location", path.Join("/browser/", string(space.ID())))
+		w.Header().Set("Location", path.Join("/browser/", string(spaceID)))
 		w.WriteHeader(http.StatusFound)
 		return
 	}
@@ -443,24 +443,32 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	spaces, err := h.spaces.GetAllUserSpaces(r.Context(), user.ID(), nil)
+	spaceList, err := h.spaces.GetAllUserSpaces(r.Context(), user.ID(), nil)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetallUserSpaces: %w", err))
 		return
 	}
 
+	var currentSpace spaces.Space
+	for _, space := range spaceList {
+		if space.ID() == spaceID {
+			currentSpace = space
+			break
+		}
+	}
+
 	h.html.WriteHTML(w, r, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
 		"host":       r.Host,
 		"fullPath":   fullPath,
-		"space":      space,
-		"breadcrumb": generateBreadCrumb(space, fullPath),
-		"spaces":     spaces,
+		"spaceID":    spaceID,
+		"breadcrumb": generateBreadCrumb(&currentSpace, fullPath),
+		"spaces":     spaceList,
 		"inodes":     dirContent,
 	})
 }
 
 func (h *browserHandler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, space *spaces.Space, fullPath, lastElem string) {
-	ffs := h.fs.GetSpaceFS(space)
+	ffs := h.fs.GetSpaceFS(space.ID())
 	dirContent, err := ffs.ListDir(r.Context(), fullPath, &storage.PaginateCmd{
 		StartAfter: map[string]string{"name": lastElem},
 		Limit:      PageSize,
@@ -489,7 +497,7 @@ func (h *browserHandler) download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ffs := h.fs.GetSpaceFS(space)
+	ffs := h.fs.GetSpaceFS(space.ID())
 
 	inode, err := ffs.Get(r.Context(), fullPath)
 	if err != nil {

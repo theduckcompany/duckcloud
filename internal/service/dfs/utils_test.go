@@ -23,7 +23,7 @@ func Test_Walk(t *testing.T) {
 
 	space := &userSpaces[0]
 
-	ffs := serv.DFSSvc.GetSpaceFS(space)
+	ffs := serv.DFSSvc.GetSpaceFS(space.ID())
 
 	t.Run("with an empty space", func(t *testing.T) {
 		res := []string{}

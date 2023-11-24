@@ -66,7 +66,10 @@ func (r *UserCreateTaskRunner) RunArgs(ctx context.Context, args *scheduler.User
 	}
 
 	if firstSpace == nil {
-		firstSpace, err = r.fs.CreateFS(ctx, []uuid.UUID{user.ID()})
+		firstSpace, err = r.spaces.Create(ctx, &spaces.CreateCmd{
+			Name:   spaces.DefaultSpaceName,
+			Owners: []uuid.UUID{user.ID()},
+		})
 		if err != nil {
 			return fmt.Errorf("failed to CreateFS: %w", err)
 		}

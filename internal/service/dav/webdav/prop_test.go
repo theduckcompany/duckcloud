@@ -517,7 +517,7 @@ func TestMemPS(t *testing.T) {
 	for _, tc := range testCases {
 		testContext := buildTestFS(t, tc.buildfs)
 		fs := testContext.FS
-		files := testContext.Files
+		files := testContext.Serv.Files
 
 		var err error
 		for _, op := range tc.propOp {
