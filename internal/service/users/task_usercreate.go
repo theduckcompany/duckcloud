@@ -71,11 +71,6 @@ func (r *UserCreateTaskRunner) RunArgs(ctx context.Context, args *scheduler.User
 		}
 	}
 
-	_, err = r.users.SetDefaultSpace(ctx, *user, firstSpace)
-	if err != nil {
-		return fmt.Errorf("failed to SetDefaultSpace: %w", err)
-	}
-
 	_, err = r.users.MarkInitAsFinished(ctx, args.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to MarkInitAsFinished: %w", err)

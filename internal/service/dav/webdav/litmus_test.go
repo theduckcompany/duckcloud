@@ -21,11 +21,15 @@ func TestWebdavLitmus(t *testing.T) {
 
 	serv := startutils.NewServer(t)
 
+	spaces, err := serv.SpacesSvc.GetAllUserSpaces(ctx, serv.User.ID(), nil)
+	require.NoError(t, err, "failed to get the user default space")
+	require.NotEmpty(t, spaces)
+
 	session, secret, err := serv.DavSessionsSvc.Create(ctx, &davsessions.CreateCmd{
 		Name:     "litmus",
 		Username: serv.User.Username(),
 		UserID:   serv.User.ID(),
-		SpaceID:  serv.User.DefaultSpace(),
+		SpaceID:  spaces[0].ID(),
 	})
 	require.NoError(t, err)
 
