@@ -294,7 +294,9 @@ func generateBreadCrumb(space *spaces.Space, fullPath string) []breadCrumbElemen
 		Current: false,
 	}}
 
-	if fullPath == "." {
+	fullPath = strings.TrimPrefix(fullPath, "/")
+
+	if fullPath == "" {
 		res[0].Current = true
 		return res
 	}
@@ -381,9 +383,9 @@ func (h browserHandler) getSpaceAndPathFromURL(w http.ResponseWriter, r *http.Re
 		return nil, "", true
 	}
 
-	fullPath := "."
+	fullPath := "/"
 	if len(elems) == 4 {
-		fullPath = path.Clean(elems[3])
+		fullPath = dfs.CleanPath(elems[3])
 	}
 
 	return space, fullPath, false

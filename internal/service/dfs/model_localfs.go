@@ -42,7 +42,7 @@ func (s *LocalFS) Space() *spaces.Space {
 }
 
 func (s *LocalFS) ListDir(ctx context.Context, path string, cmd *storage.PaginateCmd) ([]inodes.INode, error) {
-	path = cleanPath(path)
+	path = CleanPath(path)
 
 	dir, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Space: s.space,
@@ -59,7 +59,7 @@ func (s *LocalFS) ListDir(ctx context.Context, path string, cmd *storage.Paginat
 }
 
 func (s *LocalFS) CreateDir(ctx context.Context, dirPath string) (*INode, error) {
-	dirPath = cleanPath(dirPath)
+	dirPath = CleanPath(dirPath)
 
 	inode, err := s.inodes.MkdirAll(ctx, &inodes.PathCmd{
 		Space: s.space,
@@ -73,7 +73,7 @@ func (s *LocalFS) CreateDir(ctx context.Context, dirPath string) (*INode, error)
 }
 
 func (s *LocalFS) Remove(ctx context.Context, path string) error {
-	path = cleanPath(path)
+	path = CleanPath(path)
 
 	res, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Space: s.space,
@@ -97,7 +97,7 @@ func (s *LocalFS) Remove(ctx context.Context, path string) error {
 func (s *LocalFS) Move(ctx context.Context, oldPath, newPath string) error {
 	sourceINode, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Space: s.space,
-		Path:  cleanPath(oldPath),
+		Path:  CleanPath(oldPath),
 	})
 	if err != nil {
 		return fmt.Errorf("invalid source: %w", err)
@@ -117,7 +117,7 @@ func (s *LocalFS) Move(ctx context.Context, oldPath, newPath string) error {
 }
 
 func (s *LocalFS) Get(ctx context.Context, path string) (*INode, error) {
-	path = cleanPath(path)
+	path = CleanPath(path)
 
 	res, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Space: s.space,
@@ -158,7 +158,7 @@ func (s *LocalFS) Download(ctx context.Context, filePath string) (io.ReadSeekClo
 }
 
 func (s *LocalFS) Upload(ctx context.Context, filePath string, w io.Reader) error {
-	filePath = cleanPath(filePath)
+	filePath = CleanPath(filePath)
 
 	dirPath, fileName := path.Split(filePath)
 

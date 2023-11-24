@@ -112,9 +112,9 @@ func Test_Browser_Page(t *testing.T) {
 		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace)
 
 		// Then look for the path inside this space
-		spaceFSMock.On("Get", mock.Anything, "foo/bar").Return(&dfs.ExampleAliceRoot, nil).Once()
+		spaceFSMock.On("Get", mock.Anything, "/foo/bar").Return(&dfs.ExampleAliceRoot, nil).Once()
 
-		spaceFSMock.On("ListDir", mock.Anything, "foo/bar", &storage.PaginateCmd{
+		spaceFSMock.On("ListDir", mock.Anything, "/foo/bar", &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
 			Limit:      PageSize,
 		}).Return([]dfs.INode{dfs.ExampleAliceFile}, nil).Once()
@@ -122,7 +122,7 @@ func Test_Browser_Page(t *testing.T) {
 		spaceID := string(spaces.ExampleAlicePersonalSpace.ID())
 		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
 			"host":     "example.com",
-			"fullPath": "foo/bar",
+			"fullPath": "/foo/bar",
 			"space":    &spaces.ExampleAlicePersonalSpace,
 			"breadcrumb": []breadCrumbElement{
 				{Name: spaces.ExampleAlicePersonalSpace.Name(), Href: "/browser/" + spaceID, Current: false},
@@ -169,7 +169,7 @@ func Test_Browser_Page(t *testing.T) {
 		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace)
 
 		// Then look for the path inside this space
-		spaceFSMock.On("Get", mock.Anything, "foo/bar").Return(&dfs.ExampleAliceFile, nil).Once()
+		spaceFSMock.On("Get", mock.Anything, "/foo/bar").Return(&dfs.ExampleAliceFile, nil).Once()
 
 		filesMock.On("GetMetadata", mock.Anything, *dfs.ExampleAliceFile.FileID()).Return(&files.ExampleFile1, nil).Once()
 
@@ -177,7 +177,7 @@ func Test_Browser_Page(t *testing.T) {
 		file, err := afero.TempFile(afs, t.TempDir(), "")
 		require.NoError(t, err)
 
-		spaceFSMock.On("Download", mock.Anything, "foo/bar").Return(file, nil).Once()
+		spaceFSMock.On("Download", mock.Anything, "/foo/bar").Return(file, nil).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/browser/space-id/foo/bar", nil)
@@ -308,7 +308,7 @@ func Test_Browser_Page(t *testing.T) {
 		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace)
 
 		// Then look for the path inside this space
-		spaceFSMock.On("Get", mock.Anything, "invalid").Return(nil, nil).Once()
+		spaceFSMock.On("Get", mock.Anything, "/invalid").Return(nil, nil).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/browser/space-id/invalid", nil)
@@ -465,12 +465,12 @@ func Test_Browser_Page(t *testing.T) {
 		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
 		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace)
 
-		spaceFSMock.On("Remove", mock.Anything, "foo/bar").Return(nil).Once()
+		spaceFSMock.On("Remove", mock.Anything, "/foo/bar").Return(nil).Once()
 
 		// Then look for the path inside this space
-		spaceFSMock.On("Get", mock.Anything, "foo").Return(&dfs.ExampleAliceRoot, nil).Once()
+		spaceFSMock.On("Get", mock.Anything, "/foo").Return(&dfs.ExampleAliceRoot, nil).Once()
 
-		spaceFSMock.On("ListDir", mock.Anything, "foo", &storage.PaginateCmd{
+		spaceFSMock.On("ListDir", mock.Anything, "/foo", &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
 			Limit:      PageSize,
 		}).Return([]dfs.INode{dfs.ExampleAliceFile}, nil).Once()
@@ -481,7 +481,7 @@ func Test_Browser_Page(t *testing.T) {
 		spaceID := string(spaces.ExampleAlicePersonalSpace.ID())
 		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
 			"host":     "example.com",
-			"fullPath": "foo",
+			"fullPath": "/foo",
 			"space":    &spaces.ExampleAlicePersonalSpace,
 			"breadcrumb": []breadCrumbElement{
 				{Name: spaces.ExampleAlicePersonalSpace.Name(), Href: "/browser/" + spaceID, Current: false},
@@ -666,11 +666,6 @@ func Test_Browser_Page(t *testing.T) {
 			"breadcrumb": []breadCrumbElement{
 				{
 					Name:    "Alice's Space",
-					Href:    "/browser/e97b60f7-add2-43e1-a9bd-e2dac9ce69ec",
-					Current: false,
-				},
-				{
-					Name:    "",
 					Href:    "/browser/e97b60f7-add2-43e1-a9bd-e2dac9ce69ec",
 					Current: false,
 				},
