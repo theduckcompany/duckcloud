@@ -39,10 +39,11 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 
 	serv := startutils.NewServer(t)
 
-	space, err := serv.SpacesSvc.GetByID(ctx, serv.User.DefaultSpace())
+	spaces, err := serv.SpacesSvc.GetAllUserSpaces(ctx, serv.User.ID(), nil)
 	require.NoError(t, err, "failed to get the user default space")
+	require.NotEmpty(t, spaces)
 
-	fs := serv.DFSSvc.GetSpaceFS(space)
+	fs := serv.DFSSvc.GetSpaceFS(&spaces[0])
 
 	for _, b := range buildfs {
 		op := strings.Split(b, " ")
@@ -79,7 +80,7 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 		FS:        fs,
 
 		User:  serv.User,
-		Space: space,
+		Space: &spaces[0],
 	}
 }
 

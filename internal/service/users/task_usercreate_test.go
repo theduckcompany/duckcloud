@@ -31,7 +31,6 @@ func TestUserCreateTask(t *testing.T) {
 		usersMock.On("GetByID", mock.Anything, uuid.UUID("059d78af-e675-498e-8b77-d4b2b4b9d4e7")).Return(&ExampleInitializingBob, nil).Once()
 		spacesMock.On("GetAllUserSpaces", mock.Anything, ExampleInitializingBob.ID(), (*storage.PaginateCmd)(nil)).Return([]spaces.Space{}, nil).Once()
 		fsMock.On("CreateFS", mock.Anything, []uuid.UUID{ExampleInitializingBob.ID()}).Return(&spaces.ExampleBobPersonalSpace, nil).Once()
-		usersMock.On("SetDefaultSpace", mock.Anything, ExampleInitializingBob, &spaces.ExampleBobPersonalSpace).Return(&ExampleBob, nil).Once()
 
 		usersMock.On("MarkInitAsFinished", mock.Anything, uuid.UUID("059d78af-e675-498e-8b77-d4b2b4b9d4e7")).Return(&ExampleBob, nil).Once()
 
@@ -57,7 +56,6 @@ func TestUserCreateTask(t *testing.T) {
 
 		usersMock.On("GetByID", mock.Anything, ExampleBob.ID()).Return(&ExampleInitializingBob, nil).Once()
 		spacesMock.On("GetAllUserSpaces", mock.Anything, ExampleInitializingBob.ID(), (*storage.PaginateCmd)(nil)).Return([]spaces.Space{spaces.ExampleBobPersonalSpace}, nil).Once()
-		usersMock.On("SetDefaultSpace", mock.Anything, ExampleInitializingBob, &spaces.ExampleBobPersonalSpace).Return(&ExampleBob, nil).Once()
 
 		usersMock.On("MarkInitAsFinished", mock.Anything, ExampleBob.ID()).Return(&ExampleBob, nil).Once()
 

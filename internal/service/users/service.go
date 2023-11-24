@@ -4,9 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"slices"
 
-	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
@@ -91,14 +89,13 @@ func (s *UserService) createUser(ctx context.Context, newUserID uuid.UUID, usern
 	}
 
 	user := User{
-		id:             newUserID,
-		username:       username,
-		defaultSpaceID: "",
-		isAdmin:        isAdmin,
-		password:       hashedPassword,
-		status:         Initializing,
-		createdAt:      s.clock.Now(),
-		createdBy:      createdBy,
+		id:        newUserID,
+		username:  username,
+		isAdmin:   isAdmin,
+		password:  hashedPassword,
+		status:    Initializing,
+		createdAt: s.clock.Now(),
+		createdBy: createdBy,
 	}
 
 	err = s.storage.Save(ctx, &user)
@@ -118,21 +115,6 @@ func (s *UserService) createUser(ctx context.Context, newUserID uuid.UUID, usern
 		// Rollback the newly created user in order to avoid any invalid state.
 		_ = s.storage.HardDelete(ctx, newUserID)
 		return nil, fmt.Errorf("failed to RegisterUserCreateTask: %w", err)
-	}
-
-	return &user, nil
-}
-
-func (s *UserService) SetDefaultSpace(ctx context.Context, user User, space *spaces.Space) (*User, error) {
-	if !slices.Contains[[]uuid.UUID, uuid.UUID](space.Owners(), user.ID()) {
-		return nil, errs.Unauthorized(ErrUnauthorizedSpace)
-	}
-
-	user.defaultSpaceID = space.ID()
-
-	err := s.storage.Patch(ctx, user.ID(), map[string]any{"space": space.ID()})
-	if err != nil {
-		return nil, errs.Internal(fmt.Errorf("failed to patch the user: %w", err))
 	}
 
 	return &user, nil

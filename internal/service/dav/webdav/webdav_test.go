@@ -338,12 +338,16 @@ func TestFilenameEscape(t *testing.T) {
 	})
 	defer srv.Close()
 
+	spaces, err := tc.SpacesSvc.GetAllUserSpaces(ctx, tc.User.ID(), nil)
+	require.NoError(t, err, "failed to get the user default space")
+	require.NotEmpty(t, spaces)
+
 	username := tc.User.Username()
 	_, token, err := tc.DavSessionsSvc.Create(ctx, &davsessions.CreateCmd{
 		Name:     "test session",
 		Username: username,
 		UserID:   tc.User.ID(),
-		SpaceID:  tc.User.DefaultSpace(),
+		SpaceID:  spaces[0].ID(),
 	})
 	require.NoError(t, err)
 

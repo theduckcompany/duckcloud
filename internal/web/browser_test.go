@@ -45,6 +45,9 @@ func Test_Browser_Page(t *testing.T) {
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
+		spacesMock.On("GetAllUserSpaces", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).
+			Return([]spaces.Space{spaces.ExampleAlicePersonalSpace}, nil)
+
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/browser", nil)
 		srv := chi.NewRouter()

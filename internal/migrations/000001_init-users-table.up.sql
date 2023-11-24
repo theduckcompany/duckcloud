@@ -3,7 +3,6 @@ CREATE TABLE IF NOT EXISTS users (
   "username" TEXT NOT NULL,
   "admin" BOOL NOT NULL,
   "password" TEXT NOT NULL,
-  "space" TEXT NOT NULL,
   "status" TEXT NOT NULL,
   "created_at" DATETIME NOT NULL,
   "created_by" STRING NOT NULL

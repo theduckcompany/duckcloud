@@ -28,34 +28,31 @@ const (
 
 // User representation
 type User struct {
-	id             uuid.UUID
-	defaultSpaceID uuid.UUID
-	username       string
-	isAdmin        bool
-	password       secret.Text
-	status         Status
-	createdAt      time.Time
-	createdBy      uuid.UUID
+	id        uuid.UUID
+	username  string
+	isAdmin   bool
+	password  secret.Text
+	status    Status
+	createdAt time.Time
+	createdBy uuid.UUID
 }
 
 func (u *User) MarshalJSON() ([]byte, error) {
 	return json.Marshal(map[string]interface{}{
-		"id":           u.id,
-		"username":     u.username,
-		"defaultSpace": u.defaultSpaceID,
-		"admin":        u.isAdmin,
-		"createdAt":    u.createdAt,
-		"status":       u.status,
+		"id":        u.id,
+		"username":  u.username,
+		"admin":     u.isAdmin,
+		"createdAt": u.createdAt,
+		"status":    u.status,
 	})
 }
 
-func (u *User) ID() uuid.UUID           { return u.id }
-func (u *User) Username() string        { return u.username }
-func (u *User) IsAdmin() bool           { return u.isAdmin }
-func (u *User) DefaultSpace() uuid.UUID { return u.defaultSpaceID }
-func (u *User) Status() Status          { return u.status }
-func (u *User) CreatedAt() time.Time    { return u.createdAt }
-func (u *User) CreatedBy() uuid.UUID    { return u.createdBy }
+func (u *User) ID() uuid.UUID        { return u.id }
+func (u *User) Username() string     { return u.username }
+func (u *User) IsAdmin() bool        { return u.isAdmin }
+func (u *User) Status() Status       { return u.status }
+func (u *User) CreatedAt() time.Time { return u.createdAt }
+func (u *User) CreatedBy() uuid.UUID { return u.createdBy }
 
 // CreateCmd represents an user creation request.
 type CreateCmd struct {

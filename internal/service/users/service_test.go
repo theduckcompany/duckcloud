@@ -7,7 +7,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -266,36 +265,6 @@ func Test_Users_Service(t *testing.T) {
 		assert.ErrorIs(t, err, ErrInvalidStatus)
 	})
 
-	t.Run("SetDefaultSpace success", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
-		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
-
-		store.On("Patch", mock.Anything, ExampleBob.ID(), map[string]interface{}{
-			"space": spaces.ExampleAliceBobSharedSpace.ID(),
-		}).Return(nil).Once()
-
-		res, err := service.SetDefaultSpace(ctx, ExampleBob, &spaces.ExampleAliceBobSharedSpace)
-		assert.NoError(t, err)
-		expected := ExampleBob
-		expected.defaultSpaceID = spaces.ExampleAliceBobSharedSpace.ID()
-		assert.Equal(t, &expected, res)
-	})
-
-	t.Run("SetDefaultSpace with a space not owned by the user", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
-		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
-
-		// BobPersonalSpace is not owned by Bob
-		res, err := service.SetDefaultSpace(ctx, ExampleAlice, &spaces.ExampleBobPersonalSpace)
-		assert.ErrorIs(t, err, errs.ErrUnauthorized)
-		assert.ErrorIs(t, err, ErrUnauthorizedSpace)
-		assert.Nil(t, res)
-	})
-
 	t.Run("MarkInitAsFinished success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
@@ -303,7 +272,6 @@ func Test_Users_Service(t *testing.T) {
 		service := NewService(tools, store, schedulerMock)
 
 		initializingBob := ExampleInitializingBob
-		initializingBob.defaultSpaceID = spaces.ExampleBobPersonalSpace.ID()
 
 		store.On("GetByID", mock.Anything, ExampleBob.ID()).Return(&initializingBob, nil).Once()
 		store.On("Patch", mock.Anything, ExampleBob.ID(), map[string]any{"status": Active}).Return(nil).Once()

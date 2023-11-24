@@ -8,8 +8,6 @@ import (
 	mock "github.com/stretchr/testify/mock"
 	secret "github.com/theduckcompany/duckcloud/internal/tools/secret"
 
-	spaces "github.com/theduckcompany/duckcloud/internal/service/spaces"
-
 	storage "github.com/theduckcompany/duckcloud/internal/tools/storage"
 
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -197,32 +195,6 @@ func (_m *MockService) MarkInitAsFinished(ctx context.Context, userID uuid.UUID)
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
 		r1 = rf(ctx, userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// SetDefaultSpace provides a mock function with given fields: ctx, user, space
-func (_m *MockService) SetDefaultSpace(ctx context.Context, user User, space *spaces.Space) (*User, error) {
-	ret := _m.Called(ctx, user, space)
-
-	var r0 *User
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, User, *spaces.Space) (*User, error)); ok {
-		return rf(ctx, user, space)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, User, *spaces.Space) *User); ok {
-		r0 = rf(ctx, user, space)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*User)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, User, *spaces.Space) error); ok {
-		r1 = rf(ctx, user, space)
 	} else {
 		r1 = ret.Error(1)
 	}

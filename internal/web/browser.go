@@ -161,12 +161,26 @@ func (h *browserHandler) handleCreateDirReq(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *browserHandler) redirectDefaultBrowser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	user, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
 	if abort {
 		return
 	}
 
-	w.Header().Set("Location", path.Join("/browser/", string(user.DefaultSpace())))
+	spaces, err := h.spaces.GetAllUserSpaces(ctx, user.ID(), nil)
+	if err != nil {
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to get the user spaces: %w", err))
+	}
+
+	if len(spaces) == 0 {
+		h.html.WriteHTMLErrorPage(w, r, errors.New("user have zero spaces"))
+		return
+	}
+
+	spaceID := spaces[0].ID()
+
+	w.Header().Set("Location", path.Join("/browser/", string(spaceID)))
 	w.WriteHeader(http.StatusFound)
 }
 
