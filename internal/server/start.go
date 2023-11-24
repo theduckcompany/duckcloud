@@ -28,6 +28,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
+	"github.com/theduckcompany/duckcloud/internal/tasks"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/cron"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
@@ -109,6 +110,9 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 			fx.Annotate(spaces.Init, fx.As(new(spaces.Service))),
 			fx.Annotate(scheduler.Init, fx.As(new(scheduler.Service))),
 			fx.Annotate(masterkey.Init, fx.As(new(masterkey.Service))),
+
+			// Tasks
+			tasks.Init,
 
 			// HTTP handlers
 			AsRoute(dav.NewHTTPHandler),

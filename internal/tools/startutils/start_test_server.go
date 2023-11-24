@@ -19,6 +19,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
+	"github.com/theduckcompany/duckcloud/internal/tasks"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
@@ -74,9 +75,10 @@ func NewServer(t *testing.T) *Server {
 	dfsInit, err := dfs.Init(db, spacesSvc, filesInit.Service, schedulerSvc, tools)
 	require.NoError(t, err)
 
-	usersInit, err := users.Init(ctx, tools, db, schedulerSvc, spacesSvc, dfsInit.Service, webSessionsSvc,
-		davSessionsSvc, oauthSessionsSvc, oauthConsentsSvc)
+	usersSvc, err := users.Init(ctx, tools, db, schedulerSvc)
 	require.NoError(t, err)
+
+	tasks := tasks.Init(dfsInit.Service, spacesSvc, usersSvc, webSessionsSvc, davSessionsSvc, oauthSessionsSvc, oauthConsentsSvc)
 
 	runnerSvc := runner.Init(
 		[]runner.TaskRunner{
@@ -84,14 +86,14 @@ func NewServer(t *testing.T) *Server {
 			dfsInit.FSMoveTask,
 			dfsInit.FSRefreshSizeTask,
 			dfsInit.FSRemoveDuplicateFilesRunner,
-			usersInit.UserCreateTask,
-			usersInit.UserDeleteTask,
+			tasks.UserCreateTask,
+			tasks.UserDeleteTask,
 		}, tools, db)
 
 	err = runnerSvc.Run(ctx)
 	require.NoError(t, err)
 
-	user, err := usersInit.Service.Authenticate(ctx, users.BoostrapUsername, secret.NewText(users.BoostrapPassword))
+	user, err := usersSvc.Authenticate(ctx, users.BoostrapUsername, secret.NewText(users.BoostrapPassword))
 	require.NoError(t, err)
 
 	return &Server{
@@ -111,7 +113,7 @@ func NewServer(t *testing.T) *Server {
 
 		Files:     filesInit.Service,
 		DFSSvc:    dfsInit.Service,
-		UsersSvc:  usersInit.Service,
+		UsersSvc:  usersSvc,
 		RunnerSvc: runnerSvc,
 		User:      user,
 	}

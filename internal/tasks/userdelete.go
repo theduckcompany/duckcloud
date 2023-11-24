@@ -1,4 +1,4 @@
-package users
+package tasks
 
 import (
 	"context"
@@ -11,11 +11,12 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 )
 
 type UserDeleteTaskRunner struct {
-	users         Service
+	users         users.Service
 	webSessions   websessions.Service
 	davSessions   davsessions.Service
 	oauthSessions oauthsessions.Service
@@ -25,7 +26,7 @@ type UserDeleteTaskRunner struct {
 }
 
 func NewUserDeleteTaskRunner(
-	users Service,
+	users users.Service,
 	webSessions websessions.Service,
 	davSessions davsessions.Service,
 	oauthSessions oauthsessions.Service,
