@@ -23,6 +23,7 @@ type FS interface {
 	CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, error)
 	ListDir(ctx context.Context, dirPath string, cmd *storage.PaginateCmd) ([]INode, error)
 	Remove(ctx context.Context, path string) error
+	Rename(ctx context.Context, inode *INode, newName string) (*INode, error)
 	Move(ctx context.Context, cmd *MoveCmd) error
 	Get(ctx context.Context, path string) (*INode, error)
 	Upload(ctx context.Context, cmd *UploadCmd) error

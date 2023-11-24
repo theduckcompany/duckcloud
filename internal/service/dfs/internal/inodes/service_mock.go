@@ -372,6 +372,32 @@ func (_m *MockService) PatchMove(ctx context.Context, source *INode, parent *INo
 	return r0, r1
 }
 
+// PatchRename provides a mock function with given fields: ctx, inode, newName
+func (_m *MockService) PatchRename(ctx context.Context, inode *INode, newName string) (*INode, error) {
+	ret := _m.Called(ctx, inode, newName)
+
+	var r0 *INode
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *INode, string) (*INode, error)); ok {
+		return rf(ctx, inode, newName)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *INode, string) *INode); ok {
+		r0 = rf(ctx, inode, newName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*INode)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *INode, string) error); ok {
+		r1 = rf(ctx, inode, newName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Readdir provides a mock function with given fields: ctx, inode, paginateCmd
 func (_m *MockService) Readdir(ctx context.Context, inode *INode, paginateCmd *storage.PaginateCmd) ([]INode, error) {
 	ret := _m.Called(ctx, inode, paginateCmd)

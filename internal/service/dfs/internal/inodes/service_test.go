@@ -737,4 +737,25 @@ func TestINodes(t *testing.T) {
 		assert.ErrorContains(t, err, "some-error")
 		assert.Nil(t, res)
 	})
+
+	t.Run("PatchRename success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		service := NewService(schedulerMock, tools, storageMock)
+
+		tools.ClockMock.On("Now").Return(now).Once()
+		storageMock.On("Patch", mock.Anything, ExampleAliceFile.ID(), map[string]any{
+			"name":             "foobar",
+			"last_modified_at": now,
+		}).Return(nil).Once()
+
+		oldAliceFile := ExampleAliceFile
+
+		res, err := service.PatchRename(ctx, &ExampleAliceFile, "foobar")
+		assert.NoError(t, err)
+		assert.Equal(t, oldAliceFile, ExampleAliceFile)
+		assert.Equal(t, "foobar", res.Name())
+		assert.Equal(t, now, res.LastModifiedAt())
+	})
 }

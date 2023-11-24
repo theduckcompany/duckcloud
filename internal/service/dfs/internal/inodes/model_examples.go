@@ -52,7 +52,19 @@ var ExampleAliceFile2 INode = INode{
 
 var ExampleAliceFile INode = INode{
 	id:             uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
-	name:           "foo",
+	name:           "foo.pdf",
+	parent:         ptr.To(uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")),
+	spaceID:        spaces.ExampleAlicePersonalSpace.ID(),
+	size:           42,
+	createdAt:      now,
+	createdBy:      users.ExampleAlice.ID(),
+	lastModifiedAt: now2,
+	fileID:         ptr.To(files.ExampleFile1.ID()),
+}
+
+var ExampleAliceRenamedINode = INode{
+	id:             uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+	name:           "bar.pdf",
 	parent:         ptr.To(uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")),
 	spaceID:        spaces.ExampleAlicePersonalSpace.ID(),
 	size:           42,

@@ -193,6 +193,24 @@ func (s *INodeService) RegisterModification(ctx context.Context, inode *INode, n
 	return nil
 }
 
+func (s *INodeService) PatchRename(ctx context.Context, inode *INode, newName string) (*INode, error) {
+	now := s.clock.Now()
+
+	newINode := *inode
+	newINode.name = newName
+	newINode.lastModifiedAt = now
+
+	err := s.storage.Patch(ctx, inode.ID(), map[string]any{
+		"name":             newName,
+		"last_modified_at": now,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to Patch: %w", err)
+	}
+
+	return &newINode, nil
+}
+
 func (s *INodeService) Readdir(ctx context.Context, dir *INode, paginateCmd *storage.PaginateCmd) ([]INode, error) {
 	if !dir.IsDir() {
 		return nil, errs.BadRequest(ErrIsNotDir)

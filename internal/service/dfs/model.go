@@ -11,11 +11,12 @@ import (
 type INode = inodes.INode
 
 var (
-	ExampleAliceRoot  = inodes.ExampleAliceRoot
-	ExampleAliceDir   = inodes.ExampleAliceDir
-	ExampleAliceFile  = inodes.ExampleAliceFile
-	ExampleAliceFile2 = inodes.ExampleAliceFile2
-	ExampleBobRoot    = inodes.ExampleBobRoot
+	ExampleAliceRoot        = inodes.ExampleAliceRoot
+	ExampleAliceDir         = inodes.ExampleAliceDir
+	ExampleAliceFile        = inodes.ExampleAliceFile
+	ExampleAliceRenamedFile = inodes.ExampleAliceRenamedINode
+	ExampleAliceFile2       = inodes.ExampleAliceFile2
+	ExampleBobRoot          = inodes.ExampleBobRoot
 )
 
 type UploadCmd struct {
