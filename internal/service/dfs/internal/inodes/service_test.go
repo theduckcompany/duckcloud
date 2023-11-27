@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
@@ -325,10 +326,8 @@ func TestINodes(t *testing.T) {
 			createdAt:      now,
 			createdBy:      users.ExampleAlice.ID(),
 			lastModifiedAt: now,
-			fileID:         ptr.To(uuid.UUID("b30f1f80-d07a-4c17-a543-71503624fa3a")),
+			fileID:         ptr.To(files.ExampleFile1.ID()),
 		}
-
-		storageMock.On("GetByID", mock.Anything, ExampleAliceRoot.ID()).Return(&ExampleAliceRoot, nil).Once()
 
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-inode-id")).Once()
 
@@ -336,11 +335,11 @@ func TestINodes(t *testing.T) {
 
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
 			Space:      &spaces.ExampleAlicePersonalSpace,
-			Parent:     ExampleAliceRoot.ID(),
+			Parent:     &ExampleAliceRoot,
 			Name:       "foobar",
 			UploadedAt: now,
 			UploadedBy: &users.ExampleAlice,
-			FileID:     uuid.UUID("b30f1f80-d07a-4c17-a543-71503624fa3a"),
+			File:       &files.ExampleFile1,
 		})
 
 		assert.NoError(t, err)
@@ -355,38 +354,16 @@ func TestINodes(t *testing.T) {
 
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
 			Space:      &spaces.ExampleAlicePersonalSpace,
-			Parent:     "some-invalid-id",
+			Parent:     nil,
 			Name:       "foobar",
-			FileID:     *ExampleAliceFile.FileID(),
+			File:       &files.ExampleFile1,
 			UploadedAt: now,
 			UploadedBy: &users.ExampleAlice,
 		})
 
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrValidation)
-		assert.ErrorContains(t, err, "Parent: must be a valid UUID v4.")
-	})
-
-	t.Run("CreateFile with a non existing parent", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
-		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(schedulerMock, tools, storageMock)
-
-		storageMock.On("GetByID", mock.Anything, ExampleAliceRoot.ID()).Return(nil, errNotFound).Once()
-
-		res, err := service.CreateFile(ctx, &CreateFileCmd{
-			Space:      &spaces.ExampleAlicePersonalSpace,
-			Parent:     ExampleAliceRoot.ID(),
-			Name:       "foobar",
-			FileID:     *ExampleAliceFile.FileID(),
-			UploadedAt: now,
-			UploadedBy: &users.ExampleAlice,
-		})
-
-		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrBadRequest)
-		assert.ErrorContains(t, err, "invalid parent")
+		assert.ErrorContains(t, err, "Parent: cannot be blank.")
 	})
 
 	t.Run("Get with an invalid path", func(t *testing.T) {

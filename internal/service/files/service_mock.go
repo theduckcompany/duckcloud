@@ -83,18 +83,20 @@ func (_m *MockService) GetMetadata(ctx context.Context, fileID uuid.UUID) (*File
 }
 
 // Upload provides a mock function with given fields: ctx, r
-func (_m *MockService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error) {
+func (_m *MockService) Upload(ctx context.Context, r io.Reader) (*FileMeta, error) {
 	ret := _m.Called(ctx, r)
 
-	var r0 uuid.UUID
+	var r0 *FileMeta
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, io.Reader) (uuid.UUID, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, io.Reader) (*FileMeta, error)); ok {
 		return rf(ctx, r)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, io.Reader) uuid.UUID); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, io.Reader) *FileMeta); ok {
 		r0 = rf(ctx, r)
 	} else {
-		r0 = ret.Get(0).(uuid.UUID)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*FileMeta)
+		}
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, io.Reader) error); ok {

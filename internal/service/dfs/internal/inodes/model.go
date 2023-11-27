@@ -4,7 +4,7 @@ import (
 	"time"
 
 	v "github.com/go-ozzo/ozzo-validation"
-	"github.com/go-ozzo/ozzo-validation/v4/is"
+	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -27,9 +27,9 @@ func (t PathCmd) Validate() error {
 
 type CreateFileCmd struct {
 	Space      *spaces.Space
-	Parent     uuid.UUID
+	Parent     *INode
 	Name       string
-	FileID     uuid.UUID
+	File       *files.FileMeta
 	UploadedAt time.Time
 	UploadedBy *users.User
 }
@@ -38,9 +38,9 @@ type CreateFileCmd struct {
 func (t CreateFileCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.Space, v.Required, v.NotNil),
-		v.Field(&t.Parent, v.Required, is.UUIDv4),
+		v.Field(&t.Parent, v.Required, v.NotNil),
 		v.Field(&t.Name, v.Required, v.Length(1, 255)),
-		v.Field(&t.FileID, v.Required, is.UUIDv4),
+		v.Field(&t.File, v.Required, v.NotNil),
 		v.Field(&t.UploadedAt, v.Required),
 		v.Field(&t.UploadedBy, v.Required, v.NotNil),
 	)
