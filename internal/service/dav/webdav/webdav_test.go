@@ -70,6 +70,7 @@ func TestPrefix(t *testing.T) {
 			FileSystem: tc.FSService,
 			Sessions:   tc.DavSessionsSvc,
 			Spaces:     tc.SpacesSvc,
+			Users:      tc.UsersSvc,
 			Files:      tc.Files,
 			Logger: func(_ *http.Request, err error) {
 				if err != nil {
@@ -307,16 +308,23 @@ func TestFilenameEscape(t *testing.T) {
 	tc := buildTestFS(t, []string{})
 	fs := tc.FS
 
-	for _, tc := range testCases {
-		if tc.name != "/" {
-			if strings.HasSuffix(tc.name, "/") {
-				if _, err := fs.CreateDir(ctx, tc.name); err != nil {
-					t.Fatalf("name=%q: Mkdir: %v", tc.name, err)
+	for _, tt := range testCases {
+		if tt.name != "/" {
+			if strings.HasSuffix(tt.name, "/") {
+				if _, err := fs.CreateDir(ctx, &dfs.CreateDirCmd{
+					FilePath:  tt.name,
+					CreatedBy: tc.User,
+				}); err != nil {
+					t.Fatalf("name=%q: Mkdir: %v", tt.name, err)
 				}
 			} else {
-				err := fs.Upload(ctx, tc.name, http.NoBody)
+				err := fs.Upload(ctx, &dfs.UploadCmd{
+					FilePath:   tt.name,
+					Content:    http.NoBody,
+					UploadedBy: tc.User,
+				})
 				if err != nil {
-					t.Fatalf("name=%q: OpenFile: %v", tc.name, err)
+					t.Fatalf("name=%q: OpenFile: %v", tt.name, err)
 				}
 			}
 		}
@@ -329,6 +337,7 @@ func TestFilenameEscape(t *testing.T) {
 		FileSystem: tc.FSService,
 		Sessions:   tc.DavSessionsSvc,
 		Files:      tc.Files,
+		Users:      tc.UsersSvc,
 		Spaces:     tc.SpacesSvc,
 		Logger: func(_ *http.Request, err error) {
 			if err != nil {

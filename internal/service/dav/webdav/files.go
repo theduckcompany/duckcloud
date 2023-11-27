@@ -8,13 +8,14 @@ import (
 	"path"
 
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 )
 
 // copyFiles copies files and/or directories from src to dst.
 //
 // See section 9.8.5 for when various HTTP status codes apply.
-func copyFiles(ctx context.Context, fs dfs.FS, src, dst string, overwrite bool, depth, recursion int) (status int, err error) {
+func copyFiles(ctx context.Context, user *users.User, fs dfs.FS, src, dst string, overwrite bool, depth, recursion int) (status int, err error) {
 	if recursion == 1000 {
 		return http.StatusInternalServerError, errRecursionTooDeep
 	}
@@ -53,7 +54,10 @@ func copyFiles(ctx context.Context, fs dfs.FS, src, dst string, overwrite bool, 
 	}
 
 	if srcStat.IsDir() {
-		if _, err := fs.CreateDir(ctx, dst); err != nil {
+		if _, err := fs.CreateDir(ctx, &dfs.CreateDirCmd{
+			FilePath:  dst,
+			CreatedBy: user,
+		}); err != nil {
 			return http.StatusForbidden, err
 		}
 		if depth == infiniteDepth {
@@ -65,7 +69,7 @@ func copyFiles(ctx context.Context, fs dfs.FS, src, dst string, overwrite bool, 
 				name := c.Name()
 				s := path.Join(src, name)
 				d := path.Join(dst, name)
-				cStatus, cErr := copyFiles(ctx, fs, s, d, overwrite, depth, recursion)
+				cStatus, cErr := copyFiles(ctx, user, fs, s, d, overwrite, depth, recursion)
 				if cErr != nil {
 					// TODO: MultiStatus.
 					return cStatus, cErr
@@ -83,7 +87,11 @@ func copyFiles(ctx context.Context, fs dfs.FS, src, dst string, overwrite bool, 
 		}
 		defer reader.Close()
 
-		err = fs.Upload(ctx, dst, reader)
+		err = fs.Upload(ctx, &dfs.UploadCmd{
+			FilePath:   dst,
+			Content:    reader,
+			UploadedBy: user,
+		})
 		if err != nil {
 			return http.StatusForbidden, err
 		}

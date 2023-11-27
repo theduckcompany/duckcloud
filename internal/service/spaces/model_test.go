@@ -13,7 +13,6 @@ func Test_CreateCmd_Validate(t *testing.T) {
 		User:   &users.ExampleAlice,
 		Name:   "My space",
 		Owners: []uuid.UUID{"some-invalid-uuid"},
-		RootFS: uuid.UUID("49d16286-2a29-44c3-8dc5-3f7e53b49a0b"),
 	}.Validate(), "Owners: (0: must be a valid UUID v4.).")
 }
 
@@ -22,7 +21,6 @@ func Test_Space_Getters(t *testing.T) {
 	assert.Equal(t, ExampleAlicePersonalSpace.Name(), ExampleAlicePersonalSpace.name)
 	assert.Equal(t, ExampleAlicePersonalSpace.IsPublic(), ExampleAlicePersonalSpace.isPublic)
 	assert.Equal(t, ExampleAlicePersonalSpace.Owners(), ExampleAlicePersonalSpace.owners)
-	assert.Equal(t, ExampleAlicePersonalSpace.RootFS(), ExampleAlicePersonalSpace.rootFS)
 	assert.Equal(t, ExampleAlicePersonalSpace.CreatedAt(), ExampleAlicePersonalSpace.createdAt)
 	assert.Equal(t, ExampleAlicePersonalSpace.CreatedBy(), ExampleAlicePersonalSpace.createdBy)
 }

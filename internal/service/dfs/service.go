@@ -41,7 +41,7 @@ func (s *FSService) GetSpaceFS(space *spaces.Space) FS {
 }
 
 func (s *FSService) RemoveFS(ctx context.Context, space *spaces.Space) error {
-	rootFS, err := s.inodes.GetByID(ctx, space.RootFS())
+	rootFS, err := s.inodes.GetSpaceRoot(ctx, space)
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		return fmt.Errorf("failed to Get the rootFS for %q: %w", space.Name(), err)
 	}
@@ -64,22 +64,22 @@ func (s *FSService) RemoveFS(ctx context.Context, space *spaces.Space) error {
 }
 
 func (s *FSService) CreateFS(ctx context.Context, user *users.User, owners []uuid.UUID) (*spaces.Space, error) {
-	root, err := s.inodes.CreateRootDir(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to CreateRootDir: %w", err)
-	}
-
 	// XXX:MULTI-WRITE
 	space, err := s.spaces.Create(ctx, &spaces.CreateCmd{
 		User:   user,
 		Name:   DefaultSpaceName,
 		Owners: owners,
-		RootFS: root.ID(),
 	})
 	if err != nil {
-		_ = s.inodes.Remove(ctx, root)
-
 		return nil, fmt.Errorf("failed to create the space: %w", err)
+	}
+
+	_, err = s.inodes.CreateRootDir(ctx, &inodes.CreateRootDirCmd{
+		CreatedBy: user,
+		Space:     space,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to CreateRootDir: %w", err)
 	}
 
 	return space, nil

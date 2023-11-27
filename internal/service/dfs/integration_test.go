@@ -84,7 +84,10 @@ func Test_DFS_Integration(t *testing.T) {
 	})
 
 	t.Run("CreateDir success", func(t *testing.T) {
-		dir, err := spaceFS.CreateDir(ctx, "/Documents/")
+		dir, err := spaceFS.CreateDir(ctx, &dfs.CreateDirCmd{
+			FilePath:  "/Documents/",
+			CreatedBy: serv.User,
+		})
 		require.NoError(t, err)
 
 		require.Equal(t, "Documents", dir.Name())
@@ -113,7 +116,10 @@ func Test_DFS_Integration(t *testing.T) {
 		var dirBaz, dirBar, dirFoo *dfs.INode
 
 		t.Run("Create the /foo/bar/baz directory", func(t *testing.T) {
-			dirBaz, err = spaceFS.CreateDir(ctx, "/foo/bar/baz")
+			dirBaz, err = spaceFS.CreateDir(ctx, &dfs.CreateDirCmd{
+				FilePath:  "/foo/bar/baz",
+				CreatedBy: serv.User,
+			})
 			require.NoError(t, err)
 
 			require.Equal(t, "baz", dirBaz.Name())
@@ -183,7 +189,11 @@ func Test_DFS_Integration(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
 			buf.WriteString(content)
 
-			err := spaceFS.Upload(ctx, "/Documents/todo.txt", buf)
+			err := spaceFS.Upload(ctx, &dfs.UploadCmd{
+				FilePath:   "/Documents/todo.txt",
+				Content:    buf,
+				UploadedBy: serv.User,
+			})
 			require.NoError(t, err)
 		})
 
@@ -240,7 +250,11 @@ func Test_DFS_Integration(t *testing.T) {
 
 		t.Run("Move", func(t *testing.T) {
 			// The /NewSpace doesn't exists yet. It must be automatically created
-			err := spaceFS.Move(ctx, "/Documents/todo.txt", "/NewDocuments/todo.txt")
+			err := spaceFS.Move(ctx, &dfs.MoveCmd{
+				SrcPath: "/Documents/todo.txt",
+				NewPath: "/NewDocuments/todo.txt",
+				MovedBy: serv.User,
+			})
 			require.NoError(t, err)
 		})
 
@@ -287,7 +301,10 @@ func Test_DFS_Integration(t *testing.T) {
 		content := "Hello, World!"
 
 		t.Run("Create the test directory", func(t *testing.T) {
-			_, err := spaceFS.CreateDir(ctx, "/Duplicate")
+			_, err := spaceFS.CreateDir(ctx, &dfs.CreateDirCmd{
+				FilePath:  "/Duplicate",
+				CreatedBy: serv.User,
+			})
 			require.NoError(t, err)
 		})
 
@@ -295,7 +312,11 @@ func Test_DFS_Integration(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
 			buf.WriteString(content)
 
-			err := spaceFS.Upload(ctx, "/Duplicate/todo.txt", buf)
+			err := spaceFS.Upload(ctx, &dfs.UploadCmd{
+				FilePath:   "/Duplicate/todo.txt",
+				Content:    buf,
+				UploadedBy: serv.User,
+			})
 			require.NoError(t, err)
 
 			err = serv.RunnerSvc.Run(ctx)
@@ -306,7 +327,11 @@ func Test_DFS_Integration(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
 			buf.WriteString(content)
 
-			err := spaceFS.Upload(ctx, "/Duplicate/todo-duplicate.txt", buf)
+			err := spaceFS.Upload(ctx, &dfs.UploadCmd{
+				FilePath:   "/Duplicate/todo-duplicate.txt",
+				Content:    buf,
+				UploadedBy: serv.User,
+			})
 			require.NoError(t, err)
 
 			err = serv.RunnerSvc.Run(ctx)

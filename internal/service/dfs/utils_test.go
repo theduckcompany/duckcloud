@@ -38,7 +38,11 @@ func Test_Walk(t *testing.T) {
 	})
 
 	t.Run("with a simple file", func(t *testing.T) {
-		err := ffs.Upload(ctx, "/foo.txt", http.NoBody)
+		err := ffs.Upload(ctx, &dfs.UploadCmd{
+			FilePath:   "/foo.txt",
+			Content:    http.NoBody,
+			UploadedBy: serv.User,
+		})
 		require.NoError(t, err)
 
 		err = serv.RunnerSvc.Run(ctx)
@@ -55,7 +59,10 @@ func Test_Walk(t *testing.T) {
 	})
 
 	t.Run("with an empty directory", func(t *testing.T) {
-		_, err := ffs.CreateDir(ctx, "dir-a")
+		_, err := ffs.CreateDir(ctx, &dfs.CreateDirCmd{
+			FilePath:  "dir-a",
+			CreatedBy: serv.User,
+		})
 		require.NoError(t, err)
 
 		err = serv.RunnerSvc.Run(ctx)
@@ -85,7 +92,11 @@ func Test_Walk(t *testing.T) {
 	})
 
 	t.Run("do all the sub spaces", func(t *testing.T) {
-		err := ffs.Upload(ctx, "/dir-a/file-a.txt", http.NoBody)
+		err := ffs.Upload(ctx, &dfs.UploadCmd{
+			FilePath:   "/dir-a/file-a.txt",
+			Content:    http.NoBody,
+			UploadedBy: serv.User,
+		})
 		require.NoError(t, err)
 
 		err = serv.RunnerSvc.Run(ctx)
@@ -102,11 +113,18 @@ func Test_Walk(t *testing.T) {
 	})
 
 	t.Run("with a big space and pagination", func(t *testing.T) {
-		_, err := ffs.CreateDir(ctx, "big-space")
+		_, err := ffs.CreateDir(ctx, &dfs.CreateDirCmd{
+			FilePath:  "big-space",
+			CreatedBy: serv.User,
+		})
 		require.NoError(t, err)
 
 		for i := 0; i < 100; i++ {
-			err := ffs.Upload(ctx, fmt.Sprintf("/big-space/%d.txt", i), http.NoBody)
+			err := ffs.Upload(ctx, &dfs.UploadCmd{
+				FilePath:   fmt.Sprintf("/big-space/%d.txt", i),
+				Content:    http.NoBody,
+				UploadedBy: serv.User,
+			})
 			require.NoError(t, err)
 		}
 

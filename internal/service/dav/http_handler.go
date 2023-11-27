@@ -9,6 +9,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
@@ -20,12 +21,13 @@ type HTTPHandler struct {
 }
 
 // NewHTTPHandler builds a new EchoHandler.
-func NewHTTPHandler(tools tools.Tools, fs dfs.Service, files files.Service, spaces spaces.Service, davSessions davsessions.Service) *HTTPHandler {
+func NewHTTPHandler(tools tools.Tools, fs dfs.Service, files files.Service, spaces spaces.Service, davSessions davsessions.Service, users users.Service) *HTTPHandler {
 	return &HTTPHandler{
 		webdavHandler: &webdav.Handler{
 			Prefix:     "/webdav",
 			FileSystem: fs,
 			Spaces:     spaces,
+			Users:      users,
 			Files:      files,
 			Sessions:   davSessions,
 			Logger: func(r *http.Request, err error) {

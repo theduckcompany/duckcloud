@@ -3,9 +3,11 @@ CREATE TABLE IF NOT EXISTS fs_inodes (
   "parent" TEXT DEFAULT NULL,
   "name" TEXT NOT NULL,
   "size" NUMERIC NOT NULL,
+  "space_id" TEXT NOT NULL,
   "file_id" TEXT DEFAULT NULL,
   "last_modified_at" DATETIME NOT NULL,
   "created_at" DATETIME NOT NULL,
+  "created_by" TEXT NOT NULL,
   "deleted_at" DATETIME DEFAULT NULL
 );
 

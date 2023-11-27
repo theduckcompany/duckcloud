@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
@@ -33,6 +34,7 @@ func TestINodes(t *testing.T) {
 			name:           "some-dir-name",
 			parent:         ptr.To(ExampleAliceRoot.ID()),
 			createdAt:      now,
+			createdBy:      users.ExampleAlice.ID(),
 			lastModifiedAt: now,
 			fileID:         nil,
 		}
@@ -43,7 +45,7 @@ func TestINodes(t *testing.T) {
 		tools.UUIDMock.On("New").Return(uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62")).Once()
 		storageMock.On("Save", mock.Anything, &inode).Return(nil).Once()
 
-		res, err := service.CreateDir(ctx, &ExampleAliceRoot, "some-dir-name")
+		res, err := service.CreateDir(ctx, &users.ExampleAlice, &ExampleAliceRoot, "some-dir-name")
 		assert.NoError(t, err)
 		assert.EqualValues(t, &inode, res)
 	})
@@ -56,7 +58,7 @@ func TestINodes(t *testing.T) {
 
 		storageMock.On("GetByNameAndParent", mock.Anything, "some-dir-name", ExampleAliceRoot.ID()).Return(&ExampleAliceFile, nil).Once()
 
-		res, err := service.CreateDir(ctx, &ExampleAliceRoot, "some-dir-name")
+		res, err := service.CreateDir(ctx, &users.ExampleAlice, &ExampleAliceRoot, "some-dir-name")
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrBadRequest)
 		assert.ErrorIs(t, err, ErrAlreadyExists)
@@ -167,7 +169,7 @@ func TestINodes(t *testing.T) {
 			// some other unused fields
 		}
 
-		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&INode{
 			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
@@ -210,7 +212,7 @@ func TestINodes(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(schedulerMock, tools, storageMock)
 
-		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(nil, errNotFound).Once()
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(nil, errNotFound).Once()
 
 		res, err := service.Get(ctx, &PathCmd{
 			Space: &spaces.ExampleAlicePersonalSpace,
@@ -228,7 +230,7 @@ func TestINodes(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(schedulerMock, tools, storageMock)
 
-		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&INode{
 			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
@@ -318,8 +320,10 @@ func TestINodes(t *testing.T) {
 			id:             uuid.UUID("some-inode-id"),
 			parent:         ptr.To(ExampleAliceRoot.ID()),
 			name:           "foobar",
+			spaceID:        spaces.ExampleAlicePersonalSpace.ID(),
 			size:           0,
 			createdAt:      now,
+			createdBy:      users.ExampleAlice.ID(),
 			lastModifiedAt: now,
 			fileID:         ptr.To(uuid.UUID("b30f1f80-d07a-4c17-a543-71503624fa3a")),
 		}
@@ -331,9 +335,11 @@ func TestINodes(t *testing.T) {
 		storageMock.On("Save", mock.Anything, &inode).Return(nil).Once()
 
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
+			Space:      &spaces.ExampleAlicePersonalSpace,
 			Parent:     ExampleAliceRoot.ID(),
 			Name:       "foobar",
 			UploadedAt: now,
+			UploadedBy: &users.ExampleAlice,
 			FileID:     uuid.UUID("b30f1f80-d07a-4c17-a543-71503624fa3a"),
 		})
 
@@ -348,10 +354,12 @@ func TestINodes(t *testing.T) {
 		service := NewService(schedulerMock, tools, storageMock)
 
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
+			Space:      &spaces.ExampleAlicePersonalSpace,
 			Parent:     "some-invalid-id",
 			Name:       "foobar",
 			FileID:     *ExampleAliceFile.FileID(),
 			UploadedAt: now,
+			UploadedBy: &users.ExampleAlice,
 		})
 
 		assert.Nil(t, res)
@@ -368,10 +376,12 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, ExampleAliceRoot.ID()).Return(nil, errNotFound).Once()
 
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
+			Space:      &spaces.ExampleAlicePersonalSpace,
 			Parent:     ExampleAliceRoot.ID(),
 			Name:       "foobar",
 			FileID:     *ExampleAliceFile.FileID(),
 			UploadedAt: now,
+			UploadedBy: &users.ExampleAlice,
 		})
 
 		assert.Nil(t, res)
@@ -385,7 +395,7 @@ func TestINodes(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(schedulerMock, tools, storageMock)
 
-		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&INode{
 			id:     uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
@@ -415,7 +425,9 @@ func TestINodes(t *testing.T) {
 			id:             uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62"),
 			name:           "",
 			parent:         nil,
+			spaceID:        spaces.ExampleAlicePersonalSpace.ID(),
 			createdAt:      now,
+			createdBy:      users.ExampleAlice.ID(),
 			lastModifiedAt: now,
 			fileID:         nil,
 		}
@@ -424,7 +436,10 @@ func TestINodes(t *testing.T) {
 		tools.UUIDMock.On("New").Return(uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62")).Once()
 		storageMock.On("Save", mock.Anything, inode).Return(nil).Once()
 
-		res, err := service.CreateRootDir(ctx)
+		res, err := service.CreateRootDir(ctx, &CreateRootDirCmd{
+			Space:     &spaces.ExampleAlicePersonalSpace,
+			CreatedBy: &users.ExampleAlice,
+		})
 
 		assert.NoError(t, err)
 		assert.EqualValues(t, inode, res)
@@ -442,6 +457,7 @@ func TestINodes(t *testing.T) {
 			name:           "foo",
 			parent:         ptr.To(ExampleAliceRoot.ID()),
 			createdAt:      now,
+			createdBy:      users.ExampleAlice.ID(),
 			lastModifiedAt: now,
 			fileID:         nil,
 		}
@@ -450,12 +466,12 @@ func TestINodes(t *testing.T) {
 			name:           "bar",
 			parent:         ptr.To(uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62")),
 			createdAt:      now,
+			createdBy:      users.ExampleAlice.ID(),
 			lastModifiedAt: now,
 			fileID:         nil,
 		}
 
-		storageMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.RootFS()).
-			Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 
 		// Check if the space /foo exists
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(nil, errNotFound).Once()
@@ -480,7 +496,7 @@ func TestINodes(t *testing.T) {
 		tools.UUIDMock.On("New").Return(barDir.ID()).Once()
 		storageMock.On("Save", mock.Anything, &barDir).Return(nil).Once()
 
-		res, err := service.MkdirAll(ctx, &PathCmd{
+		res, err := service.MkdirAll(ctx, &users.ExampleAlice, &PathCmd{
 			Space: &spaces.ExampleAlicePersonalSpace,
 			Path:  "/foo/bar",
 		})
@@ -489,7 +505,7 @@ func TestINodes(t *testing.T) {
 		assert.EqualValues(t, &barDir, res)
 	})
 
-	t.Run("MkdirAll with a space already existing", func(t *testing.T) {
+	t.Run("MkdirAll with a folder already existing", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
@@ -501,6 +517,7 @@ func TestINodes(t *testing.T) {
 			name:           "foo",
 			parent:         ptr.To(ExampleAliceRoot.ID()),
 			createdAt:      now,
+			createdBy:      users.ExampleAlice.ID(),
 			lastModifiedAt: now,
 			fileID:         nil,
 		}
@@ -509,11 +526,12 @@ func TestINodes(t *testing.T) {
 			name:           "bar",
 			parent:         ptr.To(uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62")),
 			createdAt:      now,
+			createdBy:      users.ExampleAlice.ID(),
 			lastModifiedAt: now,
 			fileID:         nil,
 		}
 
-		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 
 		// Check if the space /foo exists
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&fooDir, nil).Once()
@@ -531,7 +549,7 @@ func TestINodes(t *testing.T) {
 		tools.UUIDMock.On("New").Return(barDir.ID()).Once()
 		storageMock.On("Save", mock.Anything, &barDir).Return(nil).Once()
 
-		res, err := service.MkdirAll(ctx, &PathCmd{
+		res, err := service.MkdirAll(ctx, &users.ExampleAlice, &PathCmd{
 			Space: &spaces.ExampleAlicePersonalSpace,
 			Path:  "/foo/bar",
 		})
@@ -546,12 +564,12 @@ func TestINodes(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(schedulerMock, tools, storageMock)
 
-		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 
 		// Check if the space /foo exists
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceFile, nil).Once()
 
-		res, err := service.MkdirAll(ctx, &PathCmd{
+		res, err := service.MkdirAll(ctx, &users.ExampleAlice, &PathCmd{
 			Space: &spaces.ExampleAlicePersonalSpace,
 			Path:  "/foo/bar",
 		})
@@ -561,16 +579,16 @@ func TestINodes(t *testing.T) {
 		assert.ErrorIs(t, err, ErrIsNotDir)
 	})
 
-	t.Run("MkdirAll with with / as fullname", func(t *testing.T) {
+	t.Run("MkdirAll with / as fullname", func(t *testing.T) {
 		// In this case it will return the Root.
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(schedulerMock, tools, storageMock)
 
-		storageMock.On("GetByID", mock.Anything, uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 
-		res, err := service.MkdirAll(ctx, &PathCmd{
+		res, err := service.MkdirAll(ctx, &users.ExampleAlice, &PathCmd{
 			Space: &spaces.ExampleAlicePersonalSpace,
 			Path:  "/",
 		})
@@ -701,5 +719,45 @@ func TestINodes(t *testing.T) {
 		res, err := service.GetAllInodesWithFileID(ctx, uuid.UUID("some-file-id"))
 		assert.NoError(t, err)
 		assert.Equal(t, []INode{ExampleAliceFile}, res)
+	})
+
+	t.Run("GetSpaceRoot success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		service := NewService(schedulerMock, tools, storageMock)
+
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
+
+		res, err := service.GetSpaceRoot(ctx, &spaces.ExampleAlicePersonalSpace)
+		assert.NoError(t, err)
+		assert.Equal(t, &ExampleAliceRoot, res)
+	})
+
+	t.Run("GetSpaceRoot not found", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		service := NewService(schedulerMock, tools, storageMock)
+
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(nil, errNotFound).Once()
+
+		res, err := service.GetSpaceRoot(ctx, &spaces.ExampleAlicePersonalSpace)
+		assert.ErrorIs(t, err, errs.ErrNotFound)
+		assert.Nil(t, res)
+	})
+
+	t.Run("GetSpaceRoot with an error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		service := NewService(schedulerMock, tools, storageMock)
+
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(nil, fmt.Errorf("some-error")).Once()
+
+		res, err := service.GetSpaceRoot(ctx, &spaces.ExampleAlicePersonalSpace)
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
+		assert.Nil(t, res)
 	})
 }

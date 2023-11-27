@@ -19,7 +19,6 @@ func Test_SpaceService(t *testing.T) {
 
 	// This AliceID is hardcoded in order to avoid dependency cycles
 	const AliceID = uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3")
-
 	t.Run("Create success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
@@ -33,7 +32,6 @@ func Test_SpaceService(t *testing.T) {
 			User:   &users.ExampleAlice,
 			Name:   ExampleAlicePersonalSpace.name,
 			Owners: []uuid.UUID{AliceID},
-			RootFS: ExampleAlicePersonalSpace.rootFS,
 		})
 		assert.NoError(t, err)
 		assert.EqualValues(t, &ExampleAlicePersonalSpace, res)
@@ -48,7 +46,6 @@ func Test_SpaceService(t *testing.T) {
 			User:   &users.ExampleAlice,
 			Name:   "",
 			Owners: []uuid.UUID{AliceID},
-			RootFS: ExampleAlicePersonalSpace.rootFS,
 		})
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrValidation)
@@ -68,7 +65,6 @@ func Test_SpaceService(t *testing.T) {
 			User:   &users.ExampleAlice,
 			Name:   "Alice's Space",
 			Owners: []uuid.UUID{AliceID},
-			RootFS: ExampleAlicePersonalSpace.rootFS,
 		})
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)

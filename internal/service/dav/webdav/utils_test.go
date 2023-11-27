@@ -49,16 +49,27 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 		op := strings.Split(b, " ")
 		switch op[0] {
 		case "mkdir":
-			_, err := fs.CreateDir(ctx, op[1])
+			_, err := fs.CreateDir(ctx, &dfs.CreateDirCmd{
+				FilePath:  op[1],
+				CreatedBy: serv.User,
+			})
 			require.NoError(t, err)
 		case "touch":
-			err := fs.Upload(ctx, op[1], http.NoBody)
+			err := fs.Upload(ctx, &dfs.UploadCmd{
+				FilePath:   op[1],
+				Content:    http.NoBody,
+				UploadedBy: serv.User,
+			})
 			require.NoError(t, err)
 		case "write":
 			buf := bytes.NewBuffer(nil)
 			buf.Write([]byte(op[2]))
 
-			err := fs.Upload(ctx, op[1], buf)
+			err := fs.Upload(ctx, &dfs.UploadCmd{
+				FilePath:   op[1],
+				Content:    buf,
+				UploadedBy: serv.User,
+			})
 			require.NoError(t, err)
 		default:
 			t.Fatalf("unknown file operation %q", op[0])

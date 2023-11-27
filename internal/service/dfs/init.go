@@ -20,12 +20,12 @@ import (
 //go:generate mockery --name FS
 type FS interface {
 	Space() *spaces.Space
-	CreateDir(ctx context.Context, dirPath string) (*INode, error)
+	CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, error)
 	ListDir(ctx context.Context, dirPath string, cmd *storage.PaginateCmd) ([]INode, error)
 	Remove(ctx context.Context, path string) error
-	Move(ctx context.Context, oldPath, newPath string) error
+	Move(ctx context.Context, cmd *MoveCmd) error
 	Get(ctx context.Context, path string) (*INode, error)
-	Upload(ctx context.Context, filePath string, w io.Reader) error
+	Upload(ctx context.Context, cmd *UploadCmd) error
 	Download(ctx context.Context, filePath string) (io.ReadSeekCloser, error)
 }
 
@@ -45,13 +45,13 @@ type Result struct {
 	FSRemoveDuplicateFilesRunner runner.TaskRunner `group:"tasks"`
 }
 
-func Init(db *sql.DB, spaces spaces.Service, files files.Service, scheduler scheduler.Service, tools tools.Tools) (Result, error) {
+func Init(db *sql.DB, spaces spaces.Service, files files.Service, scheduler scheduler.Service, users users.Service, tools tools.Tools) (Result, error) {
 	inodes := inodes.Init(scheduler, tools, db)
 
 	return Result{
 		Service:                      NewFSService(inodes, files, spaces, scheduler, tools),
 		FSGCTask:                     NewFSGGCTaskRunner(inodes, files, spaces, tools),
-		FSMoveTask:                   NewFSMoveTaskRunner(inodes, spaces, scheduler),
+		FSMoveTask:                   NewFSMoveTaskRunner(inodes, spaces, users, scheduler),
 		FSRefreshSizeTask:            NewFSRefreshSizeTaskRunner(inodes, files),
 		FSRemoveDuplicateFilesRunner: NewFSRemoveDuplicateFileRunner(inodes, files, scheduler),
 	}, nil

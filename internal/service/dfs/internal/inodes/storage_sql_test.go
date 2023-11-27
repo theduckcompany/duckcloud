@@ -36,6 +36,18 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.Equal(t, &ExampleBobRoot, res)
 	})
 
+	t.Run("GetSpaceRoot success", func(t *testing.T) {
+		res, err := store.GetSpaceRoot(ctx, ExampleBobRoot.spaceID)
+		assert.NoError(t, err)
+		assert.Equal(t, &ExampleBobRoot, res)
+	})
+
+	t.Run("GetSpaceRoot with an unknown space", func(t *testing.T) {
+		res, err := store.GetSpaceRoot(ctx, uuid.UUID("some-invalid-space"))
+		assert.ErrorIs(t, err, errNotFound)
+		assert.Nil(t, res)
+	})
+
 	t.Run("Create 10 childes", func(t *testing.T) {
 		for i := 0; i < 10; i++ {
 			err := store.Save(ctx, &INode{
