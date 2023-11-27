@@ -334,8 +334,10 @@ func (s *INodeService) CreateDir(ctx context.Context, parent *INode, name string
 		id:             s.uuid.New(),
 		parent:         ptr.To(parent.ID()),
 		name:           name,
-		lastModifiedAt: now,
+		spaceID:        parent.SpaceID(),
+		size:           0,
 		createdAt:      now,
+		lastModifiedAt: now,
 		fileID:         nil,
 	}
 
