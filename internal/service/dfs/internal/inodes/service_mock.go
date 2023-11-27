@@ -178,25 +178,25 @@ func (_m *MockService) GetAllInodesWithFileID(ctx context.Context, fileID uuid.U
 	return r0, r1
 }
 
-// GetByID provides a mock function with given fields: ctx, inodeID
-func (_m *MockService) GetByID(ctx context.Context, inodeID uuid.UUID) (*INode, error) {
-	ret := _m.Called(ctx, inodeID)
+// GetByID provides a mock function with given fields: ctx, space, inodeID
+func (_m *MockService) GetByID(ctx context.Context, space *spaces.Space, inodeID uuid.UUID) (*INode, error) {
+	ret := _m.Called(ctx, space, inodeID)
 
 	var r0 *INode
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (*INode, error)); ok {
-		return rf(ctx, inodeID)
+	if rf, ok := ret.Get(0).(func(context.Context, *spaces.Space, uuid.UUID) (*INode, error)); ok {
+		return rf(ctx, space, inodeID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) *INode); ok {
-		r0 = rf(ctx, inodeID)
+	if rf, ok := ret.Get(0).(func(context.Context, *spaces.Space, uuid.UUID) *INode); ok {
+		r0 = rf(ctx, space, inodeID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*INode)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
-		r1 = rf(ctx, inodeID)
+	if rf, ok := ret.Get(1).(func(context.Context, *spaces.Space, uuid.UUID) error); ok {
+		r1 = rf(ctx, space, inodeID)
 	} else {
 		r1 = ret.Error(1)
 	}

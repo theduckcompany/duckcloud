@@ -8,17 +8,19 @@ import (
 
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 )
 
 type FSRefreshSizeTaskRunner struct {
+	spaces spaces.Service
 	inodes inodes.Service
 	files  files.Service
 }
 
-func NewFSRefreshSizeTaskRunner(inodes inodes.Service, files files.Service) *FSRefreshSizeTaskRunner {
-	return &FSRefreshSizeTaskRunner{inodes, files}
+func NewFSRefreshSizeTaskRunner(inodes inodes.Service, files files.Service, spaces spaces.Service) *FSRefreshSizeTaskRunner {
+	return &FSRefreshSizeTaskRunner{spaces, inodes, files}
 }
 
 func (r *FSRefreshSizeTaskRunner) Name() string { return "fs-refresh-size" }
@@ -34,14 +36,19 @@ func (r *FSRefreshSizeTaskRunner) Run(ctx context.Context, rawArgs json.RawMessa
 }
 
 func (r *FSRefreshSizeTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSRefreshSizeArg) error {
-	inodeID := &args.INode
+	space, err := r.spaces.GetByID(ctx, args.SpaceID)
+	if err != nil {
+		return fmt.Errorf("failed to get the space: %w", err)
+	}
+
+	inodeID := &args.INodeID
 
 	for {
 		if inodeID == nil {
 			break
 		}
 
-		inode, err := r.inodes.GetByID(ctx, *inodeID)
+		inode, err := r.inodes.GetByID(ctx, space, *inodeID)
 		if errors.Is(err, errs.ErrNotFound) {
 			return nil
 		}

@@ -204,7 +204,8 @@ func (s *LocalFS) Upload(ctx context.Context, cmd *UploadCmd) error {
 	}
 
 	err = s.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
-		INode:      inode.ID(),
+		SpaceID:    inode.SpaceID(),
+		INodeID:    inode.ID(),
 		ModifiedAt: now,
 	})
 	if err != nil {

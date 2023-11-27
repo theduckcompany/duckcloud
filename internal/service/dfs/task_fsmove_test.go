@@ -43,7 +43,7 @@ func TestFSMoveTask(t *testing.T) {
 			Space: &spaces.ExampleAlicePersonalSpace,
 			Path:  "/bar.txt",
 		}).Return(nil, errs.ErrNotFound).Once()
-		inodesMock.On("GetByID", mock.Anything, inodes.ExampleAliceFile.ID()).
+		inodesMock.On("GetByID", mock.Anything, &spaces.ExampleAlicePersonalSpace, inodes.ExampleAliceFile.ID()).
 			Return(&inodes.ExampleAliceFile, nil).Once()
 		inodesMock.On("MkdirAll", mock.Anything, &users.ExampleAlice, &inodes.PathCmd{
 			Space: &spaces.ExampleAlicePersonalSpace,
@@ -52,11 +52,13 @@ func TestFSMoveTask(t *testing.T) {
 		inodesMock.On("PatchMove", mock.Anything, &inodes.ExampleAliceFile, &inodes.ExampleAliceRoot, "bar.txt", now).
 			Return(&newFile, nil).Once()
 		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
-			INode:      *inodes.ExampleAliceFile.Parent(),
+			SpaceID:    inodes.ExampleAliceFile.SpaceID(),
+			INodeID:    *inodes.ExampleAliceFile.Parent(),
 			ModifiedAt: now,
 		}).Return(nil).Once()
 		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
-			INode:      inodes.ExampleAliceRoot.ID(),
+			SpaceID:    inodes.ExampleAliceFile.SpaceID(),
+			INodeID:    inodes.ExampleAliceRoot.ID(),
 			ModifiedAt: now,
 		}).Return(nil).Once()
 
@@ -88,7 +90,7 @@ func TestFSMoveTask(t *testing.T) {
 			Space: &spaces.ExampleAlicePersonalSpace,
 			Path:  "/bar.txt",
 		}).Return(&inodes.ExampleAliceDir, nil).Once()
-		inodesMock.On("GetByID", mock.Anything, inodes.ExampleAliceFile.ID()).
+		inodesMock.On("GetByID", mock.Anything, &spaces.ExampleAlicePersonalSpace, inodes.ExampleAliceFile.ID()).
 			Return(&inodes.ExampleAliceFile, nil).Once()
 		inodesMock.On("MkdirAll", mock.Anything, &users.ExampleAlice, &inodes.PathCmd{
 			Space: &spaces.ExampleAlicePersonalSpace,
@@ -98,11 +100,13 @@ func TestFSMoveTask(t *testing.T) {
 			Return(&newFile, nil).Once()
 		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceDir).Return(nil).Once()
 		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
-			INode:      *inodes.ExampleAliceFile.Parent(),
+			SpaceID:    inodes.ExampleAliceFile.SpaceID(),
+			INodeID:    *inodes.ExampleAliceFile.Parent(),
 			ModifiedAt: now,
 		}).Return(nil).Once()
 		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
-			INode:      inodes.ExampleAliceRoot.ID(),
+			SpaceID:    inodes.ExampleAliceFile.SpaceID(),
+			INodeID:    inodes.ExampleAliceRoot.ID(),
 			ModifiedAt: now,
 		}).Return(nil).Once()
 
@@ -150,7 +154,7 @@ func TestFSMoveTask(t *testing.T) {
 			Space: &spaces.ExampleAlicePersonalSpace,
 			Path:  "/bar.txt",
 		}).Return(&inodes.ExampleAliceDir, nil).Once()
-		inodesMock.On("GetByID", mock.Anything, inodes.ExampleAliceFile.ID()).
+		inodesMock.On("GetByID", mock.Anything, &spaces.ExampleAlicePersonalSpace, inodes.ExampleAliceFile.ID()).
 			Return(nil, errs.ErrNotFound).Once()
 
 		err := runner.RunArgs(ctx, &scheduler.FSMoveArgs{
@@ -205,7 +209,7 @@ func TestFSMoveTask(t *testing.T) {
 			Space: &spaces.ExampleAlicePersonalSpace,
 			Path:  "/bar.txt",
 		}).Return(&inodes.ExampleAliceDir, nil).Once()
-		inodesMock.On("GetByID", mock.Anything, inodes.ExampleAliceFile.ID()).
+		inodesMock.On("GetByID", mock.Anything, &spaces.ExampleAlicePersonalSpace, inodes.ExampleAliceFile.ID()).
 			Return(&inodes.ExampleAliceFile, nil).Once()
 		inodesMock.On("MkdirAll", mock.Anything, &users.ExampleAlice, &inodes.PathCmd{
 			Space: &spaces.ExampleAlicePersonalSpace,
