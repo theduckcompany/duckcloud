@@ -12,6 +12,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -33,12 +34,13 @@ func TestDFSService(t *testing.T) {
 
 		inodesMock.On("CreateRootDir", mock.Anything).Return(&inodes.ExampleAliceRoot, nil).Once()
 		spacesMock.On("Create", mock.Anything, &spaces.CreateCmd{
+			User:   &users.ExampleAlice,
 			Name:   DefaultSpaceName,
 			Owners: []uuid.UUID{AliceUserID},
 			RootFS: inodes.ExampleAliceRoot.ID(),
 		}).Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
-		res, err := svc.CreateFS(ctx, []uuid.UUID{AliceUserID})
+		res, err := svc.CreateFS(ctx, &users.ExampleAlice, []uuid.UUID{AliceUserID})
 		assert.NoError(t, err)
 		assert.Equal(t, &spaces.ExampleAlicePersonalSpace, res)
 	})
@@ -53,7 +55,7 @@ func TestDFSService(t *testing.T) {
 
 		inodesMock.On("CreateRootDir", mock.Anything).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
 
-		res, err := svc.CreateFS(ctx, []uuid.UUID{AliceUserID})
+		res, err := svc.CreateFS(ctx, &users.ExampleAlice, []uuid.UUID{AliceUserID})
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
@@ -69,13 +71,14 @@ func TestDFSService(t *testing.T) {
 
 		inodesMock.On("CreateRootDir", mock.Anything).Return(&inodes.ExampleAliceRoot, nil).Once()
 		spacesMock.On("Create", mock.Anything, &spaces.CreateCmd{
+			User:   &users.ExampleAlice,
 			Name:   DefaultSpaceName,
 			Owners: []uuid.UUID{AliceUserID},
 			RootFS: inodes.ExampleAliceRoot.ID(),
 		}).Return(nil, errs.Internal(errors.New("some-error"))).Once()
 		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceRoot).Return(nil).Once()
 
-		res, err := svc.CreateFS(ctx, []uuid.UUID{AliceUserID})
+		res, err := svc.CreateFS(ctx, &users.ExampleAlice, []uuid.UUID{AliceUserID})
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")

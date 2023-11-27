@@ -8,6 +8,7 @@ import (
 
 	v "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -18,6 +19,7 @@ type Space struct {
 	owners    Owners
 	rootFS    uuid.UUID
 	createdAt time.Time
+	createdBy uuid.UUID
 }
 
 func (f Space) ID() uuid.UUID        { return f.id }
@@ -26,6 +28,7 @@ func (f Space) IsPublic() bool       { return f.isPublic }
 func (f Space) Owners() Owners       { return f.owners }
 func (f Space) RootFS() uuid.UUID    { return f.rootFS }
 func (f Space) CreatedAt() time.Time { return f.createdAt }
+func (f Space) CreatedBy() uuid.UUID { return f.createdBy }
 
 type Owners []uuid.UUID
 
@@ -56,6 +59,7 @@ func (t *Owners) Scan(src any) error {
 }
 
 type CreateCmd struct {
+	User   *users.User
 	Name   string
 	Owners []uuid.UUID
 	RootFS uuid.UUID
@@ -64,6 +68,7 @@ type CreateCmd struct {
 // Validate the fields.
 func (t CreateCmd) Validate() error {
 	return v.ValidateStruct(&t,
+		v.Field(&t.User, v.Required),
 		v.Field(&t.Name, v.Required, v.Length(1, 30)),
 		v.Field(&t.Owners, v.Required, v.Each(is.UUIDv4)),
 		v.Field(&t.RootFS, v.Required, is.UUIDv4),

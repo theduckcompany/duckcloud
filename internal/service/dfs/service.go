@@ -10,6 +10,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -62,7 +63,7 @@ func (s *FSService) RemoveFS(ctx context.Context, space *spaces.Space) error {
 	return nil
 }
 
-func (s *FSService) CreateFS(ctx context.Context, owners []uuid.UUID) (*spaces.Space, error) {
+func (s *FSService) CreateFS(ctx context.Context, user *users.User, owners []uuid.UUID) (*spaces.Space, error) {
 	root, err := s.inodes.CreateRootDir(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to CreateRootDir: %w", err)
@@ -70,6 +71,7 @@ func (s *FSService) CreateFS(ctx context.Context, owners []uuid.UUID) (*spaces.S
 
 	// XXX:MULTI-WRITE
 	space, err := s.spaces.Create(ctx, &spaces.CreateCmd{
+		User:   user,
 		Name:   DefaultSpaceName,
 		Owners: owners,
 		RootFS: root.ID(),

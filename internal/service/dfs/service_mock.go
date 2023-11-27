@@ -8,6 +8,8 @@ import (
 	mock "github.com/stretchr/testify/mock"
 	spaces "github.com/theduckcompany/duckcloud/internal/service/spaces"
 
+	users "github.com/theduckcompany/duckcloud/internal/service/users"
+
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -16,25 +18,25 @@ type MockService struct {
 	mock.Mock
 }
 
-// CreateFS provides a mock function with given fields: ctx, owners
-func (_m *MockService) CreateFS(ctx context.Context, owners []uuid.UUID) (*spaces.Space, error) {
-	ret := _m.Called(ctx, owners)
+// CreateFS provides a mock function with given fields: ctx, user, owners
+func (_m *MockService) CreateFS(ctx context.Context, user *users.User, owners []uuid.UUID) (*spaces.Space, error) {
+	ret := _m.Called(ctx, user, owners)
 
 	var r0 *spaces.Space
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []uuid.UUID) (*spaces.Space, error)); ok {
-		return rf(ctx, owners)
+	if rf, ok := ret.Get(0).(func(context.Context, *users.User, []uuid.UUID) (*spaces.Space, error)); ok {
+		return rf(ctx, user, owners)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []uuid.UUID) *spaces.Space); ok {
-		r0 = rf(ctx, owners)
+	if rf, ok := ret.Get(0).(func(context.Context, *users.User, []uuid.UUID) *spaces.Space); ok {
+		r0 = rf(ctx, user, owners)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*spaces.Space)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, []uuid.UUID) error); ok {
-		r1 = rf(ctx, owners)
+	if rf, ok := ret.Get(1).(func(context.Context, *users.User, []uuid.UUID) error); ok {
+		r1 = rf(ctx, user, owners)
 	} else {
 		r1 = ret.Error(1)
 	}
