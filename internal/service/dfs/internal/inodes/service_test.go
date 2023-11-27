@@ -348,9 +348,10 @@ func TestINodes(t *testing.T) {
 		service := NewService(schedulerMock, tools, storageMock)
 
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
-			Parent: "some-invalid-id",
-			Name:   "foobar",
-			FileID: *ExampleAliceFile.FileID(),
+			Parent:     "some-invalid-id",
+			Name:       "foobar",
+			FileID:     *ExampleAliceFile.FileID(),
+			UploadedAt: now,
 		})
 
 		assert.Nil(t, res)
@@ -367,9 +368,10 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, ExampleAliceRoot.ID()).Return(nil, errNotFound).Once()
 
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
-			Parent: ExampleAliceRoot.ID(),
-			Name:   "foobar",
-			FileID: *ExampleAliceFile.FileID(),
+			Parent:     ExampleAliceRoot.ID(),
+			Name:       "foobar",
+			FileID:     *ExampleAliceFile.FileID(),
+			UploadedAt: now,
 		})
 
 		assert.Nil(t, res)

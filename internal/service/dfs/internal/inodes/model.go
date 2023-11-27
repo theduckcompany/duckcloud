@@ -6,7 +6,6 @@ import (
 	v "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
-	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -30,7 +29,6 @@ type CreateFileCmd struct {
 	Name       string
 	FileID     uuid.UUID
 	UploadedAt time.Time
-	Key        secret.Text
 }
 
 // Validate the fields.
@@ -39,6 +37,7 @@ func (t CreateFileCmd) Validate() error {
 		v.Field(&t.Parent, v.Required, is.UUIDv4),
 		v.Field(&t.Name, v.Required, v.Length(1, 255)),
 		v.Field(&t.FileID, v.Required, is.UUIDv4),
+		v.Field(&t.UploadedAt, v.Required),
 	)
 }
 
