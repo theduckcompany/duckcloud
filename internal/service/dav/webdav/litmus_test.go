@@ -37,6 +37,7 @@ func TestWebdavLitmus(t *testing.T) {
 		FileSystem: serv.DFSSvc,
 		Sessions:   serv.DavSessionsSvc,
 		Spaces:     serv.SpacesSvc,
+		Users:      serv.UsersSvc,
 		Files:      serv.Files,
 		Logger: func(r *http.Request, err error) {
 			litmus := r.Header.Get("X-Litmus")

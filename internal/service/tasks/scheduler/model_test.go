@@ -26,6 +26,7 @@ func TestSchedulerModels(t *testing.T) {
 			SourceInode: uuid.UUID("some-invalid-id"),
 			TargetPath:  "/foo/bar.txt",
 			MovedAt:     time.Now(),
+			MovedBy:     uuid.UUID("74926c6a-1802-45cd-bcb2-2dc0729fa986"),
 		}.Validate()
 
 		assert.EqualError(t, err, "source-inode: must be a valid UUID v4.")

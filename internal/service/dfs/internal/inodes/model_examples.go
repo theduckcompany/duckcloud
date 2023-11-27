@@ -5,6 +5,7 @@ import (
 
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -20,6 +21,7 @@ var ExampleAliceRoot INode = INode{
 	parent:         nil,
 	size:           0,
 	createdAt:      now,
+	createdBy:      users.ExampleAlice.ID(),
 	lastModifiedAt: now2,
 	fileID:         nil,
 }
@@ -31,6 +33,7 @@ var ExampleAliceDir INode = INode{
 	spaceID:        spaces.ExampleAlicePersonalSpace.ID(),
 	size:           42,
 	createdAt:      now,
+	createdBy:      users.ExampleAlice.ID(),
 	lastModifiedAt: now2,
 	fileID:         nil,
 }
@@ -42,6 +45,7 @@ var ExampleAliceFile2 INode = INode{
 	spaceID:        spaces.ExampleAlicePersonalSpace.ID(),
 	size:           42,
 	createdAt:      now,
+	createdBy:      users.ExampleAlice.ID(),
 	lastModifiedAt: now2,
 	fileID:         ptr.To(uuid.UUID("2007688f-022f-4d4a-a704-e86d66070227")),
 }
@@ -53,6 +57,7 @@ var ExampleAliceFile INode = INode{
 	spaceID:        spaces.ExampleAlicePersonalSpace.ID(),
 	size:           42,
 	createdAt:      now,
+	createdBy:      users.ExampleAlice.ID(),
 	lastModifiedAt: now2,
 	fileID:         ptr.To(files.ExampleFile1.ID()),
 }
@@ -64,6 +69,7 @@ var ExampleBobRoot INode = INode{
 	spaceID:        spaces.ExampleBobPersonalSpace.ID(),
 	size:           0,
 	createdAt:      now,
+	createdBy:      users.ExampleBob.ID(),
 	lastModifiedAt: now2,
 	fileID:         nil,
 }

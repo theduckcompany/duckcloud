@@ -351,10 +351,19 @@ func Test_Browser_Page(t *testing.T) {
 		spaceFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
 
-		spaceFSMock.On("CreateDir", mock.Anything, "foo/bar").Return(&dfs.ExampleAliceDir, nil).Once()
-		spaceFSMock.On("Upload", mock.Anything, "foo/bar/hello.txt", mock.Anything).
+		spaceFSMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
+			FilePath:  "foo/bar",
+			CreatedBy: &users.ExampleAlice,
+		}).Return(&dfs.ExampleAliceDir, nil).Once()
+		spaceFSMock.On("Upload", mock.Anything, mock.Anything).
 			Run(func(args mock.Arguments) {
-				uploaded, err := io.ReadAll(args[2].(io.Reader))
+				cmd, ok := args[1].(*dfs.UploadCmd)
+				require.True(t, ok)
+
+				require.Equal(t, "foo/bar/hello.txt", cmd.FilePath)
+				require.Equal(t, &users.ExampleAlice, cmd.UploadedBy)
+
+				uploaded, err := io.ReadAll(cmd.Content)
 				require.NoError(t, err)
 				require.Equal(t, []byte(content), uploaded)
 			}).
@@ -409,11 +418,20 @@ func Test_Browser_Page(t *testing.T) {
 		spaceFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
 
-		spaceFSMock.On("CreateDir", mock.Anything, "foo/bar/baz").Return(&dfs.ExampleAliceDir, nil).Once()
+		spaceFSMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
+			FilePath:  "foo/bar/baz",
+			CreatedBy: &users.ExampleAlice,
+		}).Return(&dfs.ExampleAliceDir, nil).Once()
 
-		spaceFSMock.On("Upload", mock.Anything, "foo/bar/baz/hello.txt", mock.Anything).
+		spaceFSMock.On("Upload", mock.Anything, mock.Anything).
 			Run(func(args mock.Arguments) {
-				uploaded, err := io.ReadAll(args[2].(io.Reader))
+				cmd, ok := args[1].(*dfs.UploadCmd)
+				require.True(t, ok)
+
+				require.Equal(t, "foo/bar/baz/hello.txt", cmd.FilePath)
+				require.Equal(t, &users.ExampleAlice, cmd.UploadedBy)
+
+				uploaded, err := io.ReadAll(cmd.Content)
 				require.NoError(t, err)
 				require.Equal(t, []byte(content), uploaded)
 			}).
@@ -654,7 +672,10 @@ func Test_Browser_Page(t *testing.T) {
 		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
 
 		spaceFSMock.On("Get", mock.Anything, "/foo/New Dir").Return(nil, errs.ErrNotFound).Once()
-		spaceFSMock.On("CreateDir", mock.Anything, "/foo/New Dir").Return(&dfs.ExampleAliceDir, nil).Once()
+		spaceFSMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
+			FilePath:  "/foo/New Dir",
+			CreatedBy: &users.ExampleAlice,
+		}).Return(&dfs.ExampleAliceDir, nil).Once()
 
 		// Render
 		spaceFSMock.On("Get", mock.Anything, "/foo").Return(&dfs.ExampleAliceRoot, nil).Once()
@@ -864,7 +885,10 @@ func Test_Browser_Page(t *testing.T) {
 
 		err := fmt.Errorf("some-error")
 		spaceFSMock.On("Get", mock.Anything, "/foo/New Dir").Return(nil, errs.ErrNotFound).Once()
-		spaceFSMock.On("CreateDir", mock.Anything, "/foo/New Dir").Return(nil, err).Once()
+		spaceFSMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
+			FilePath:  "/foo/New Dir",
+			CreatedBy: &users.ExampleAlice,
+		}).Return(nil, err).Once()
 
 		htmlMock.On("WriteHTMLErrorPage", mock.Anything, mock.Anything, fmt.Errorf("failed to create the directory: %w", err)).Once()
 

@@ -150,7 +150,7 @@ func TestSchdulerService(t *testing.T) {
 			Status:       model.Queuing,
 			Name:         "fs-move",
 			RegisteredAt: now,
-			Args:         json.RawMessage(`{"space":"a379fef3-ebc3-4069-b1ef-8c67948b3cff","source-inode":"0d76c071-2e8b-4873-92e9-d8be871ef636","target-path":"/foo/bar.txt","moved-at":"2020-02-12T11:10:00Z"}`),
+			Args:         json.RawMessage(`{"space":"a379fef3-ebc3-4069-b1ef-8c67948b3cff","source-inode":"0d76c071-2e8b-4873-92e9-d8be871ef636","target-path":"/foo/bar.txt","moved-at":"2020-02-12T11:10:00Z","moved-by":"74926c6a-1802-45cd-bcb2-2dc0729fa986"}`),
 		}).Return(nil).Once()
 
 		err := svc.RegisterFSMoveTask(ctx, &FSMoveArgs{
@@ -158,6 +158,7 @@ func TestSchdulerService(t *testing.T) {
 			SourceInode: uuid.UUID("0d76c071-2e8b-4873-92e9-d8be871ef636"),
 			TargetPath:  "/foo/bar.txt",
 			MovedAt:     now,
+			MovedBy:     uuid.UUID("74926c6a-1802-45cd-bcb2-2dc0729fa986"),
 		})
 		assert.NoError(t, err)
 	})

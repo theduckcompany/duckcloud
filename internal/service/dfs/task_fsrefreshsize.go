@@ -1,12 +1,12 @@
 package dfs
 
 import (
-	context "context"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 
-	inodes "github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"

@@ -37,7 +37,10 @@ func TestDFSService(t *testing.T) {
 			Name:   DefaultSpaceName,
 			Owners: []uuid.UUID{AliceUserID},
 		}).Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
-		inodesMock.On("CreateRootDir", mock.Anything, &spaces.ExampleAlicePersonalSpace).Return(&inodes.ExampleAliceRoot, nil).Once()
+		inodesMock.On("CreateRootDir", mock.Anything, &inodes.CreateRootDirCmd{
+			CreatedBy: &users.ExampleAlice,
+			Space:     &spaces.ExampleAlicePersonalSpace,
+		}).Return(&inodes.ExampleAliceRoot, nil).Once()
 
 		res, err := svc.CreateFS(ctx, &users.ExampleAlice, []uuid.UUID{AliceUserID})
 		assert.NoError(t, err)
@@ -57,7 +60,10 @@ func TestDFSService(t *testing.T) {
 			Name:   DefaultSpaceName,
 			Owners: []uuid.UUID{AliceUserID},
 		}).Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
-		inodesMock.On("CreateRootDir", mock.Anything, &spaces.ExampleAlicePersonalSpace).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
+		inodesMock.On("CreateRootDir", mock.Anything, &inodes.CreateRootDirCmd{
+			CreatedBy: &users.ExampleAlice,
+			Space:     &spaces.ExampleAlicePersonalSpace,
+		}).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
 
 		res, err := svc.CreateFS(ctx, &users.ExampleAlice, []uuid.UUID{AliceUserID})
 		assert.Nil(t, res)

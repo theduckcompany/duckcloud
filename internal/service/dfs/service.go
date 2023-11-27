@@ -74,7 +74,10 @@ func (s *FSService) CreateFS(ctx context.Context, user *users.User, owners []uui
 		return nil, fmt.Errorf("failed to create the space: %w", err)
 	}
 
-	_, err = s.inodes.CreateRootDir(ctx, space)
+	_, err = s.inodes.CreateRootDir(ctx, &inodes.CreateRootDirCmd{
+		CreatedBy: user,
+		Space:     space,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to CreateRootDir: %w", err)
 	}

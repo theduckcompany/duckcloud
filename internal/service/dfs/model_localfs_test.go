@@ -15,6 +15,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
@@ -69,12 +70,15 @@ func Test_LocalFS(t *testing.T) {
 		toolsMock := tools.NewMock(t)
 		spaceFS := newLocalFS(inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
 
-		inodesMock.On("MkdirAll", mock.Anything, &inodes.PathCmd{
+		inodesMock.On("MkdirAll", mock.Anything, &users.ExampleAlice, &inodes.PathCmd{
 			Space: &spaces.ExampleAlicePersonalSpace,
 			Path:  "/foo",
 		}).Return(&inodes.ExampleAliceRoot, nil).Once()
 
-		res, err := spaceFS.CreateDir(ctx, "foo")
+		res, err := spaceFS.CreateDir(ctx, &CreateDirCmd{
+			FilePath:  "foo",
+			CreatedBy: &users.ExampleAlice,
+		})
 		require.NoError(t, err)
 		assert.Equal(t, &inodes.ExampleAliceRoot, res)
 	})
@@ -164,6 +168,7 @@ func Test_LocalFS(t *testing.T) {
 			Name:       "bar.txt",
 			FileID:     uuid.UUID("some-file-id"),
 			UploadedAt: now,
+			UploadedBy: &users.ExampleAlice,
 		}).Return(&ExampleAliceFile, nil).Once()
 
 		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
@@ -171,8 +176,29 @@ func Test_LocalFS(t *testing.T) {
 			ModifiedAt: now,
 		}).Return(nil).Once()
 
-		err := spaceFS.Upload(ctx, "foo/bar.txt", bytes.NewBufferString(content))
+		err := spaceFS.Upload(ctx, &UploadCmd{
+			FilePath:   "foo/bar.txt",
+			Content:    bytes.NewBufferString(content),
+			UploadedBy: &users.ExampleAlice,
+		})
 		assert.NoError(t, err)
+	})
+
+	t.Run("Upload with a validation error", func(t *testing.T) {
+		inodesMock := inodes.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		spaceFS := newLocalFS(inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
+
+		err := spaceFS.Upload(ctx, &UploadCmd{
+			FilePath:   "foo/bar.txt",
+			Content:    nil,
+			UploadedBy: &users.ExampleAlice,
+		})
+		assert.ErrorIs(t, err, errs.ErrValidation)
+		assert.EqualError(t, err, "validation: Content: cannot be blank.")
 	})
 
 	t.Run("Move success", func(t *testing.T) {
@@ -194,10 +220,32 @@ func Test_LocalFS(t *testing.T) {
 			SourceInode: inodes.ExampleAliceFile.ID(),
 			TargetPath:  "/bar.txt",
 			MovedAt:     now,
+			MovedBy:     users.ExampleAlice.ID(),
 		}).Return(nil).Once()
 
-		err := spaceFS.Move(ctx, "/foo.txt", "/bar.txt")
+		err := spaceFS.Move(ctx, &MoveCmd{
+			SrcPath: "/foo.txt",
+			NewPath: "/bar.txt",
+			MovedBy: &users.ExampleAlice,
+		})
 		assert.NoError(t, err)
+	})
+
+	t.Run("Move with a validation error", func(t *testing.T) {
+		inodesMock := inodes.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		spaceFS := newLocalFS(inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
+
+		err := spaceFS.Move(ctx, &MoveCmd{
+			SrcPath: "",
+			NewPath: "/bar.txt",
+			MovedBy: &users.ExampleAlice,
+		})
+		assert.ErrorIs(t, err, errs.ErrValidation)
+		assert.EqualError(t, err, "validation: SrcPath: cannot be blank.")
 	})
 
 	t.Run("Move with a source not found", func(t *testing.T) {
@@ -213,7 +261,11 @@ func Test_LocalFS(t *testing.T) {
 			Path:  "/foo.txt",
 		}).Return(nil, errs.ErrNotFound).Once()
 
-		err := spaceFS.Move(ctx, "/foo.txt", "/bar.txt")
+		err := spaceFS.Move(ctx, &MoveCmd{
+			SrcPath: "/foo.txt",
+			NewPath: "/bar.txt",
+			MovedBy: &users.ExampleAlice,
+		})
 		assert.ErrorIs(t, err, errs.ErrNotFound)
 	})
 
@@ -236,9 +288,14 @@ func Test_LocalFS(t *testing.T) {
 			SourceInode: inodes.ExampleAliceFile.ID(),
 			TargetPath:  "/bar.txt",
 			MovedAt:     now,
+			MovedBy:     users.ExampleAlice.ID(),
 		}).Return(errs.Internal(fmt.Errorf("some-error"))).Once()
 
-		err := spaceFS.Move(ctx, "/foo.txt", "/bar.txt")
+		err := spaceFS.Move(ctx, &MoveCmd{
+			SrcPath: "/foo.txt",
+			NewPath: "/bar.txt",
+			MovedBy: &users.ExampleAlice,
+		})
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})

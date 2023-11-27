@@ -151,7 +151,10 @@ func (h *browserHandler) handleCreateDirReq(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	_, err = fs.CreateDir(r.Context(), path.Join(dir, name))
+	_, err = fs.CreateDir(r.Context(), &dfs.CreateDirCmd{
+		FilePath:  path.Join(dir, name),
+		CreatedBy: user,
+	})
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to create the directory: %w", err))
 		return
@@ -359,12 +362,19 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 	}
 
 	dirPath := path.Dir(fullPath)
-	_, err = ffs.CreateDir(ctx, dirPath)
+	_, err = ffs.CreateDir(ctx, &dfs.CreateDirCmd{
+		FilePath:  dirPath,
+		CreatedBy: cmd.user,
+	})
 	if err != nil && !errors.Is(err, dfs.ErrAlreadyExists) {
 		return fmt.Errorf("failed to create the directory %q: %w", dirPath, err)
 	}
 
-	err = ffs.Upload(ctx, fullPath, cmd.fileReader)
+	err = ffs.Upload(ctx, &dfs.UploadCmd{
+		FilePath:   fullPath,
+		Content:    cmd.fileReader,
+		UploadedBy: cmd.user,
+	})
 	if err != nil {
 		return fmt.Errorf("failed to Upload file: %w", err)
 	}

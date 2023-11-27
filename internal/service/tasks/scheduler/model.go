@@ -29,6 +29,7 @@ type FSMoveArgs struct {
 	SourceInode uuid.UUID `json:"source-inode"`
 	TargetPath  string    `json:"target-path"`
 	MovedAt     time.Time `json:"moved-at"`
+	MovedBy     uuid.UUID `json:"moved-by"`
 }
 
 func (a FSMoveArgs) Validate() error {
@@ -37,6 +38,7 @@ func (a FSMoveArgs) Validate() error {
 		v.Field(&a.SourceInode, v.Required, is.UUIDv4),
 		v.Field(&a.TargetPath, v.Required),
 		v.Field(&a.MovedAt, v.Required),
+		v.Field(&a.MovedBy, v.Required, is.UUIDv4),
 	)
 }
 

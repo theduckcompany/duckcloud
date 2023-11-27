@@ -20,6 +20,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 )
@@ -36,6 +37,7 @@ type Handler struct {
 	// Sessions handle the users sessions used for authentification.
 	Sessions davsessions.Service
 	Spaces   spaces.Service
+	Users    users.Service
 	Files    files.Service
 	// Logger is an optional error logger. If non-nil, it will be called
 	// for all HTTP requests.
@@ -79,6 +81,12 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user, err := h.Users.GetByID(r.Context(), session.UserID())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	space, err := h.Spaces.GetUserSpace(r.Context(), session.UserID(), session.SpaceID())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -100,11 +108,11 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		case "DELETE":
 			status, err = h.handleDelete(w, r, fs)
 		case "PUT":
-			status, err = h.handlePut(w, r, fs)
+			status, err = h.handlePut(w, r, fs, user)
 		case "MKCOL":
-			status, err = h.handleMkcol(w, r, fs)
+			status, err = h.handleMkcol(w, r, fs, user)
 		case "COPY", "MOVE":
-			status, err = h.handleCopyMove(w, r, fs)
+			status, err = h.handleCopyMove(w, r, fs, user)
 		case "PROPFIND":
 			status, err = h.handlePropfind(w, r, fs)
 		case "PROPPATCH":
@@ -203,7 +211,7 @@ func (h *Handler) handleDelete(w http.ResponseWriter, r *http.Request, fs dfs.FS
 	return http.StatusNoContent, nil
 }
 
-func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request, fs dfs.FS) (status int, err error) {
+func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request, fs dfs.FS, user *users.User) (status int, err error) {
 	reqPath, status, err := h.stripPrefix(r.URL.Path)
 	if err != nil {
 		return status, err
@@ -213,7 +221,11 @@ func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request, fs dfs.FS) (
 	// comments in http.checkEtag.
 	ctx := r.Context()
 
-	err = fs.Upload(ctx, reqPath, r.Body)
+	err = fs.Upload(ctx, &dfs.UploadCmd{
+		FilePath:   reqPath,
+		Content:    r.Body,
+		UploadedBy: user,
+	})
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -223,7 +235,7 @@ func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request, fs dfs.FS) (
 	return http.StatusCreated, nil
 }
 
-func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, fs dfs.FS) (status int, err error) {
+func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, fs dfs.FS, user *users.User) (status int, err error) {
 	reqPath, status, err := h.stripPrefix(r.URL.Path)
 	if err != nil {
 		return status, err
@@ -257,7 +269,10 @@ func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, fs dfs.FS)
 		}
 	}
 
-	if _, err := fs.CreateDir(ctx, reqPath); err != nil {
+	if _, err := fs.CreateDir(ctx, &dfs.CreateDirCmd{
+		FilePath:  reqPath,
+		CreatedBy: user,
+	}); err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return http.StatusConflict, err
 		}
@@ -266,7 +281,7 @@ func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, fs dfs.FS)
 	return http.StatusCreated, nil
 }
 
-func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.FS) (status int, err error) {
+func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.FS, user *users.User) (status int, err error) {
 	hdr := r.Header.Get("Destination")
 	if hdr == "" {
 		return http.StatusBadRequest, errInvalidDestination
@@ -318,7 +333,7 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.
 				return http.StatusBadRequest, errInvalidDepth
 			}
 		}
-		return copyFiles(ctx, fs, src, dst, r.Header.Get("Overwrite") != "F", depth, 0)
+		return copyFiles(ctx, user, fs, src, dst, r.Header.Get("Overwrite") != "F", depth, 0)
 	}
 
 	// Section 9.9.2 says that "The MOVE method on a collection must act as if
@@ -339,7 +354,11 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.
 		return http.StatusPreconditionFailed, nil
 	}
 
-	err = fs.Move(ctx, src, dst)
+	err = fs.Move(ctx, &dfs.MoveCmd{
+		SrcPath: src,
+		NewPath: dst,
+		MovedBy: user,
+	})
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

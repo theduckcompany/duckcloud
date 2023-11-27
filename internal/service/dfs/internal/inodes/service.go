@@ -10,6 +10,7 @@ import (
 
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -80,7 +81,7 @@ func (s *INodeService) GetByID(ctx context.Context, inodeID uuid.UUID) (*INode, 
 	return res, nil
 }
 
-func (s *INodeService) MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, error) {
+func (s *INodeService) MkdirAll(ctx context.Context, createdBy *users.User, cmd *PathCmd) (*INode, error) {
 	err := cmd.Validate()
 	if err != nil {
 		return nil, errs.Validation(err)
@@ -114,7 +115,7 @@ func (s *INodeService) MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, erro
 		//
 		// This function is idempotent so there isn't a real issue here. Worst case
 		// senario only some spaces are recreated but a new call would create them.
-		inode, err = s.CreateDir(ctx, dir, frag)
+		inode, err = s.CreateDir(ctx, createdBy, dir, frag)
 		if err != nil {
 			return fmt.Errorf("failed to CreateDir %q: %w", path.Join(currentPath, frag), err)
 		}
@@ -128,15 +129,16 @@ func (s *INodeService) MkdirAll(ctx context.Context, cmd *PathCmd) (*INode, erro
 	return inode, nil
 }
 
-func (s *INodeService) CreateRootDir(ctx context.Context, space *spaces.Space) (*INode, error) {
+func (s *INodeService) CreateRootDir(ctx context.Context, cmd *CreateRootDirCmd) (*INode, error) {
 	now := s.clock.Now()
 
 	node := INode{
 		id:             s.uuid.New(),
 		parent:         nil,
 		name:           "",
-		spaceID:        space.ID(),
+		spaceID:        cmd.Space.ID(),
 		createdAt:      now,
+		createdBy:      cmd.CreatedBy.ID(),
 		lastModifiedAt: now,
 		fileID:         nil,
 	}
@@ -171,6 +173,7 @@ func (s *INodeService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INo
 		size:           0,
 		name:           cmd.Name,
 		createdAt:      cmd.UploadedAt,
+		createdBy:      cmd.UploadedBy.ID(),
 		lastModifiedAt: cmd.UploadedAt,
 		fileID:         &cmd.FileID,
 	}
@@ -315,7 +318,7 @@ func (s *INodeService) PatchFileID(ctx context.Context, inode *INode, newFileID 
 	return &newFile, nil
 }
 
-func (s *INodeService) CreateDir(ctx context.Context, parent *INode, name string) (*INode, error) {
+func (s *INodeService) CreateDir(ctx context.Context, createdBy *users.User, parent *INode, name string) (*INode, error) {
 	if !parent.IsDir() {
 		return nil, errs.BadRequest(ErrIsNotDir)
 	}
@@ -337,6 +340,7 @@ func (s *INodeService) CreateDir(ctx context.Context, parent *INode, name string
 		spaceID:        parent.SpaceID(),
 		size:           0,
 		createdAt:      now,
+		createdBy:      createdBy.ID(),
 		lastModifiedAt: now,
 		fileID:         nil,
 	}

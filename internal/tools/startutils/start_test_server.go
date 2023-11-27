@@ -21,7 +21,6 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tasks"
 	"github.com/theduckcompany/duckcloud/internal/tools"
-	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
@@ -54,7 +53,7 @@ func NewServer(t *testing.T) *Server {
 
 	ctx := context.Background()
 
-	tools := tools.NewToolbox(tools.Config{Log: logger.Config{}})
+	tools := tools.NewToolboxForTest(t)
 	db := storage.NewTestStorage(t)
 	afs := afero.NewMemMapFs()
 
@@ -72,10 +71,10 @@ func NewServer(t *testing.T) *Server {
 	filesInit, err := files.Init(masterKeySvc, "/", afs, tools, db)
 	require.NoError(t, err)
 
-	dfsInit, err := dfs.Init(db, spacesSvc, filesInit.Service, schedulerSvc, tools)
+	usersSvc, err := users.Init(ctx, tools, db, schedulerSvc)
 	require.NoError(t, err)
 
-	usersSvc, err := users.Init(ctx, tools, db, schedulerSvc)
+	dfsInit, err := dfs.Init(db, spacesSvc, filesInit.Service, schedulerSvc, usersSvc, tools)
 	require.NoError(t, err)
 
 	tasks := tasks.Init(dfsInit.Service, spacesSvc, usersSvc, webSessionsSvc, davSessionsSvc, oauthSessionsSvc, oauthConsentsSvc)

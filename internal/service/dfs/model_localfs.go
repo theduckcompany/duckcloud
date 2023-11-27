@@ -58,10 +58,10 @@ func (s *LocalFS) ListDir(ctx context.Context, path string, cmd *storage.Paginat
 	return s.inodes.Readdir(ctx, dir, cmd)
 }
 
-func (s *LocalFS) CreateDir(ctx context.Context, dirPath string) (*INode, error) {
-	dirPath = CleanPath(dirPath)
+func (s *LocalFS) CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, error) {
+	dirPath := CleanPath(cmd.FilePath)
 
-	inode, err := s.inodes.MkdirAll(ctx, &inodes.PathCmd{
+	inode, err := s.inodes.MkdirAll(ctx, cmd.CreatedBy, &inodes.PathCmd{
 		Space: s.space,
 		Path:  dirPath,
 	})
@@ -94,10 +94,15 @@ func (s *LocalFS) Remove(ctx context.Context, path string) error {
 	return nil
 }
 
-func (s *LocalFS) Move(ctx context.Context, oldPath, newPath string) error {
+func (s *LocalFS) Move(ctx context.Context, cmd *MoveCmd) error {
+	err := cmd.Validate()
+	if err != nil {
+		return errs.Validation(err)
+	}
+
 	sourceINode, err := s.inodes.Get(ctx, &inodes.PathCmd{
 		Space: s.space,
-		Path:  CleanPath(oldPath),
+		Path:  CleanPath(cmd.SrcPath),
 	})
 	if err != nil {
 		return fmt.Errorf("invalid source: %w", err)
@@ -106,8 +111,9 @@ func (s *LocalFS) Move(ctx context.Context, oldPath, newPath string) error {
 	err = s.scheduler.RegisterFSMoveTask(ctx, &scheduler.FSMoveArgs{
 		SpaceID:     s.space.ID(),
 		SourceInode: sourceINode.ID(),
-		TargetPath:  newPath,
+		TargetPath:  cmd.NewPath,
 		MovedAt:     s.clock.Now(),
+		MovedBy:     cmd.MovedBy.ID(),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to save the task: %w", err)
@@ -157,8 +163,13 @@ func (s *LocalFS) Download(ctx context.Context, filePath string) (io.ReadSeekClo
 	return fileReader, nil
 }
 
-func (s *LocalFS) Upload(ctx context.Context, filePath string, w io.Reader) error {
-	filePath = CleanPath(filePath)
+func (s *LocalFS) Upload(ctx context.Context, cmd *UploadCmd) error {
+	err := cmd.Validate()
+	if err != nil {
+		return errs.Validation(err)
+	}
+
+	filePath := CleanPath(cmd.FilePath)
 
 	dirPath, fileName := path.Split(filePath)
 
@@ -170,7 +181,7 @@ func (s *LocalFS) Upload(ctx context.Context, filePath string, w io.Reader) erro
 		return fmt.Errorf("failed to get the dir: %w", err)
 	}
 
-	fileID, err := s.files.Upload(ctx, w)
+	fileID, err := s.files.Upload(ctx, cmd.Content)
 	if err != nil {
 		return fmt.Errorf("failed to Create file: %w", err)
 	}
@@ -186,6 +197,7 @@ func (s *LocalFS) Upload(ctx context.Context, filePath string, w io.Reader) erro
 		Name:       fileName,
 		FileID:     fileID,
 		UploadedAt: now,
+		UploadedBy: cmd.UploadedBy,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to inodes.CreateFile: %w", err)
