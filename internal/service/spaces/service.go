@@ -54,6 +54,7 @@ func (s *SpaceService) Create(ctx context.Context, cmd *CreateCmd) (*Space, erro
 		owners:    cmd.Owners,
 		rootFS:    cmd.RootFS,
 		createdAt: now,
+		createdBy: cmd.User.ID(),
 	}
 
 	err = s.storage.Save(context.WithoutCancel(ctx), &space)

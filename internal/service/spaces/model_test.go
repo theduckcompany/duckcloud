@@ -4,11 +4,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 func Test_CreateCmd_Validate(t *testing.T) {
 	assert.EqualError(t, CreateCmd{
+		User:   &users.ExampleAlice,
 		Name:   "My space",
 		Owners: []uuid.UUID{"some-invalid-uuid"},
 		RootFS: uuid.UUID("49d16286-2a29-44c3-8dc5-3f7e53b49a0b"),
@@ -22,6 +24,7 @@ func Test_Space_Getters(t *testing.T) {
 	assert.Equal(t, ExampleAlicePersonalSpace.Owners(), ExampleAlicePersonalSpace.owners)
 	assert.Equal(t, ExampleAlicePersonalSpace.RootFS(), ExampleAlicePersonalSpace.rootFS)
 	assert.Equal(t, ExampleAlicePersonalSpace.CreatedAt(), ExampleAlicePersonalSpace.createdAt)
+	assert.Equal(t, ExampleAlicePersonalSpace.CreatedBy(), ExampleAlicePersonalSpace.createdBy)
 }
 
 func Test_Owners_Getters(t *testing.T) {

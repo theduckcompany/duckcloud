@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
@@ -29,6 +30,7 @@ func Test_SpaceService(t *testing.T) {
 		storageMock.On("Save", mock.Anything, &ExampleAlicePersonalSpace).Return(nil).Once()
 
 		res, err := svc.Create(ctx, &CreateCmd{
+			User:   &users.ExampleAlice,
 			Name:   ExampleAlicePersonalSpace.name,
 			Owners: []uuid.UUID{AliceID},
 			RootFS: ExampleAlicePersonalSpace.rootFS,
@@ -43,6 +45,7 @@ func Test_SpaceService(t *testing.T) {
 		svc := NewService(tools, storageMock)
 
 		res, err := svc.Create(ctx, &CreateCmd{
+			User:   &users.ExampleAlice,
 			Name:   "",
 			Owners: []uuid.UUID{AliceID},
 			RootFS: ExampleAlicePersonalSpace.rootFS,
@@ -62,6 +65,7 @@ func Test_SpaceService(t *testing.T) {
 		storageMock.On("Save", mock.Anything, &ExampleAlicePersonalSpace).Return(fmt.Errorf("some-error")).Once()
 
 		res, err := svc.Create(ctx, &CreateCmd{
+			User:   &users.ExampleAlice,
 			Name:   "Alice's Space",
 			Owners: []uuid.UUID{AliceID},
 			RootFS: ExampleAlicePersonalSpace.rootFS,

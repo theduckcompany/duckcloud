@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/startutils"
@@ -30,7 +31,7 @@ func Test_DFS_Integration(t *testing.T) {
 	var rootFS *dfs.INode
 
 	t.Run("CreateFS and RemoveFS success", func(t *testing.T) {
-		tmpSpace, err := dfsSvc.CreateFS(ctx, []uuid.UUID{serv.User.ID()})
+		tmpSpace, err := dfsSvc.CreateFS(ctx, &users.ExampleAlice, []uuid.UUID{serv.User.ID()})
 		require.NoError(t, err)
 
 		// Check that a new space have been created

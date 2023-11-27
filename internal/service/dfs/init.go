@@ -10,6 +10,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -31,7 +32,7 @@ type FS interface {
 //go:generate mockery --name Service
 type Service interface {
 	GetSpaceFS(space *spaces.Space) FS
-	CreateFS(ctx context.Context, owners []uuid.UUID) (*spaces.Space, error)
+	CreateFS(ctx context.Context, user *users.User, owners []uuid.UUID) (*spaces.Space, error)
 	RemoveFS(ctx context.Context, space *spaces.Space) error
 }
 

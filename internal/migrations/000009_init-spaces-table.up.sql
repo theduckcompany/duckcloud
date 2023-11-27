@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS spaces (
   "public" BOOLEAN NOT NULL,
   "owners" TEXT NOT NULL,
   "root_fs" TEXT NOT NULL,
-  "created_at" DATETIME NOT NULL
+  "created_at" DATETIME NOT NULL,
+  "created_by" TEXT NOT NULL
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_spaces_id ON spaces(id);
