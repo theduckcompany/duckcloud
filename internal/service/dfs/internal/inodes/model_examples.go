@@ -20,7 +20,6 @@ var ExampleAliceRoot INode = INode{
 	name:           "",
 	parent:         nil,
 	size:           0,
-	spaceID:        spaces.ExampleAlicePersonalSpace.ID(),
 	createdAt:      now,
 	createdBy:      users.ExampleAlice.ID(),
 	lastModifiedAt: now2,

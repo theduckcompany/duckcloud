@@ -56,7 +56,7 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 		return fmt.Errorf("failed to check if a file already existed: %w", err)
 	}
 
-	oldNode, err := r.inodes.GetByID(ctx, space, args.SourceInode)
+	oldNode, err := r.inodes.GetByID(ctx, args.SourceInode)
 	if err != nil {
 		return fmt.Errorf("failed to GetByID %q: %w", args.SourceInode, err)
 	}
@@ -99,8 +99,7 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 
 	if oldNode.Parent() != nil {
 		err = r.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
-			SpaceID:    oldNode.SpaceID(),
-			INodeID:    *oldNode.Parent(),
+			INode:      *oldNode.Parent(),
 			ModifiedAt: args.MovedAt,
 		})
 		if err != nil {
@@ -110,8 +109,7 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 
 	if newNode.Parent() != nil {
 		err = r.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
-			SpaceID:    newNode.SpaceID(),
-			INodeID:    *newNode.Parent(),
+			INode:      *newNode.Parent(),
 			ModifiedAt: args.MovedAt,
 		})
 		if err != nil {

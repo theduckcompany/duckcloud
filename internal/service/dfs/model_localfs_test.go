@@ -171,8 +171,7 @@ func Test_LocalFS(t *testing.T) {
 		}).Return(&ExampleAliceFile, nil).Once()
 
 		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
-			SpaceID:    ExampleAliceFile.SpaceID(),
-			INodeID:    ExampleAliceFile.ID(),
+			INode:      ExampleAliceFile.ID(),
 			ModifiedAt: now,
 		}).Return(nil).Once()
 
