@@ -150,6 +150,7 @@ func (s *INodeService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INo
 	inode := INode{
 		id:             s.uuid.New(),
 		parent:         ptr.To(parent.ID()),
+		spaceID:        cmd.Space.ID(),
 		size:           0,
 		name:           cmd.Name,
 		createdAt:      cmd.UploadedAt,

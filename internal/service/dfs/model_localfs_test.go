@@ -159,6 +159,7 @@ func Test_LocalFS(t *testing.T) {
 		filesMock.On("Upload", mock.Anything, bytes.NewBufferString(content)).Return(uuid.UUID("some-file-id"), nil).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 		inodesMock.On("CreateFile", mock.Anything, &inodes.CreateFileCmd{
+			Space:      spaceFS.space,
 			Parent:     ExampleAliceDir.ID(),
 			Name:       "bar.txt",
 			FileID:     uuid.UUID("some-file-id"),

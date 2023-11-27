@@ -318,6 +318,7 @@ func TestINodes(t *testing.T) {
 			id:             uuid.UUID("some-inode-id"),
 			parent:         ptr.To(ExampleAliceRoot.ID()),
 			name:           "foobar",
+			spaceID:        spaces.ExampleAlicePersonalSpace.ID(),
 			size:           0,
 			createdAt:      now,
 			lastModifiedAt: now,
@@ -331,6 +332,7 @@ func TestINodes(t *testing.T) {
 		storageMock.On("Save", mock.Anything, &inode).Return(nil).Once()
 
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
+			Space:      &spaces.ExampleAlicePersonalSpace,
 			Parent:     ExampleAliceRoot.ID(),
 			Name:       "foobar",
 			UploadedAt: now,
@@ -348,6 +350,7 @@ func TestINodes(t *testing.T) {
 		service := NewService(schedulerMock, tools, storageMock)
 
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
+			Space:      &spaces.ExampleAlicePersonalSpace,
 			Parent:     "some-invalid-id",
 			Name:       "foobar",
 			FileID:     *ExampleAliceFile.FileID(),
@@ -368,6 +371,7 @@ func TestINodes(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, ExampleAliceRoot.ID()).Return(nil, errNotFound).Once()
 
 		res, err := service.CreateFile(ctx, &CreateFileCmd{
+			Space:      &spaces.ExampleAlicePersonalSpace,
 			Parent:     ExampleAliceRoot.ID(),
 			Name:       "foobar",
 			FileID:     *ExampleAliceFile.FileID(),

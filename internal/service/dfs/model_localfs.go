@@ -181,6 +181,7 @@ func (s *LocalFS) Upload(ctx context.Context, filePath string, w io.Reader) erro
 	// XXX:MULTI-WRITE
 	//
 	inode, err := s.inodes.CreateFile(ctx, &inodes.CreateFileCmd{
+		Space:      s.space,
 		Parent:     dir.ID(),
 		Name:       fileName,
 		FileID:     fileID,
