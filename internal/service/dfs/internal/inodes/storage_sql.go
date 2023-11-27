@@ -59,8 +59,8 @@ func (s *sqlStorage) Patch(ctx context.Context, inode uuid.UUID, fields map[stri
 	return nil
 }
 
-func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*INode, error) {
-	return s.getByKeys(ctx, sq.Eq{"id": id})
+func (s *sqlStorage) GetByID(ctx context.Context, spaceID, inodeID uuid.UUID) (*INode, error) {
+	return s.getByKeys(ctx, sq.Eq{"space_id": spaceID, "id": inodeID})
 }
 
 func (s *sqlStorage) HardDelete(ctx context.Context, id uuid.UUID) error {

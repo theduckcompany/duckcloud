@@ -57,10 +57,11 @@ func TestSchedulerModels(t *testing.T) {
 
 	t.Run("FSRefreshSizeArg", func(t *testing.T) {
 		err := FSRefreshSizeArg{
-			INode:      uuid.UUID("some-invalid-id"),
+			SpaceID:    uuid.UUID("a379fef3-ebc3-4069-b1ef-8c67948b3cff"),
+			INodeID:    uuid.UUID("some-invalid-id"),
 			ModifiedAt: time.Now().UTC(),
 		}.Validate()
 
-		assert.EqualError(t, err, "inode: must be a valid UUID v4.")
+		assert.EqualError(t, err, "inode-id: must be a valid UUID v4.")
 	})
 }
