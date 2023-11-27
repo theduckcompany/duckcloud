@@ -33,7 +33,7 @@ var (
 //go:generate mockery --name Storage
 type Storage interface {
 	Save(ctx context.Context, dir *INode) error
-	GetByID(ctx context.Context, spaceID, id uuid.UUID) (*INode, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*INode, error)
 	GetByNameAndParent(ctx context.Context, name string, parent uuid.UUID) (*INode, error)
 	GetAllChildrens(ctx context.Context, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error)
 	HardDelete(ctx context.Context, id uuid.UUID) error
@@ -69,8 +69,8 @@ func (s *INodeService) GetSpaceRoot(ctx context.Context, space *spaces.Space) (*
 	return res, nil
 }
 
-func (s *INodeService) GetByID(ctx context.Context, space *spaces.Space, inodeID uuid.UUID) (*INode, error) {
-	res, err := s.storage.GetByID(ctx, space.ID(), inodeID)
+func (s *INodeService) GetByID(ctx context.Context, inodeID uuid.UUID) (*INode, error) {
+	res, err := s.storage.GetByID(ctx, inodeID)
 	if errors.Is(err, errNotFound) {
 		return nil, errs.NotFound(ErrNotFound)
 	}
@@ -240,8 +240,7 @@ func (s *INodeService) Remove(ctx context.Context, inode *INode) error {
 
 	if inode.parent != nil {
 		err = s.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
-			SpaceID:    inode.SpaceID(),
-			INodeID:    *inode.Parent(),
+			INode:      *inode.Parent(),
 			ModifiedAt: now,
 		})
 		if err != nil {
@@ -300,8 +299,7 @@ func (s *INodeService) PatchFileID(ctx context.Context, inode *INode, newFileID 
 
 	// XXX:MULTI-WRITE
 	err = s.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
-		SpaceID:    inode.SpaceID(),
-		INodeID:    inode.ID(),
+		INode:      inode.ID(),
 		ModifiedAt: inode.LastModifiedAt(),
 	})
 	if err != nil {

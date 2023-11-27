@@ -34,7 +34,6 @@ func TestINodes(t *testing.T) {
 			id:             uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62"),
 			name:           "some-dir-name",
 			parent:         ptr.To(ExampleAliceRoot.ID()),
-			spaceID:        ExampleAliceRoot.SpaceID(),
 			createdAt:      now,
 			createdBy:      users.ExampleAlice.ID(),
 			lastModifiedAt: now,
@@ -72,9 +71,9 @@ func TestINodes(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := NewService(schedulerMock, tools, storageMock)
 
-		storageMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.ID(), ExampleAliceRoot.ID()).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetByID", mock.Anything, ExampleAliceRoot.ID()).Return(&ExampleAliceRoot, nil).Once()
 
-		res, err := service.GetByID(ctx, &spaces.ExampleAlicePersonalSpace, ExampleAliceRoot.ID())
+		res, err := service.GetByID(ctx, ExampleAliceRoot.ID())
 		assert.NoError(t, err)
 		assert.EqualValues(t, &ExampleAliceRoot, res)
 	})
@@ -87,9 +86,9 @@ func TestINodes(t *testing.T) {
 
 		invalidID := uuid.UUID("f092f39a-1b5b-488c-8679-75607e798502")
 
-		storageMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.ID(), invalidID).Return(nil, errNotFound).Once()
+		storageMock.On("GetByID", mock.Anything, invalidID).Return(nil, errNotFound).Once()
 
-		res, err := service.GetByID(ctx, &spaces.ExampleAlicePersonalSpace, invalidID)
+		res, err := service.GetByID(ctx, invalidID)
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrNotFound)
 		assert.ErrorIs(t, err, ErrNotFound)
@@ -108,8 +107,7 @@ func TestINodes(t *testing.T) {
 			"last_modified_at": now,
 		}).Return(nil).Once()
 		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
-			SpaceID:    ExampleAliceDir.SpaceID(),
-			INodeID:    *ExampleAliceDir.Parent(),
+			INode:      *ExampleAliceDir.Parent(),
 			ModifiedAt: now,
 		}).Return(nil).Once()
 
@@ -150,8 +148,7 @@ func TestINodes(t *testing.T) {
 			"last_modified_at": now,
 		}).Return(nil).Once()
 		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
-			SpaceID:    ExampleAliceDir.SpaceID(),
-			INodeID:    *ExampleAliceDir.Parent(),
+			INode:      *ExampleAliceDir.Parent(),
 			ModifiedAt: now,
 		}).Return(errors.New("some-error")).Once()
 
@@ -436,7 +433,6 @@ func TestINodes(t *testing.T) {
 			id:             uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62"),
 			name:           "foo",
 			parent:         ptr.To(ExampleAliceRoot.ID()),
-			spaceID:        ExampleAliceRoot.SpaceID(),
 			createdAt:      now,
 			createdBy:      users.ExampleAlice.ID(),
 			lastModifiedAt: now,
@@ -446,7 +442,6 @@ func TestINodes(t *testing.T) {
 			id:             uuid.UUID("1afc4ef3-d0e8-4efe-8e37-4d23acc5df9c"),
 			name:           "bar",
 			parent:         ptr.To(uuid.UUID("976246a7-ed3e-4556-af48-1fed703e7a62")),
-			spaceID:        ExampleAliceRoot.SpaceID(),
 			createdAt:      now,
 			createdBy:      users.ExampleAlice.ID(),
 			lastModifiedAt: now,
@@ -656,8 +651,7 @@ func TestINodes(t *testing.T) {
 		}).Return(nil).Once()
 
 		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
-			SpaceID:    ExampleAliceFile.SpaceID(),
-			INodeID:    ExampleAliceFile.ID(),
+			INode:      ExampleAliceFile.ID(),
 			ModifiedAt: ExampleAliceDir.LastModifiedAt(),
 		}).Return(nil).Once()
 
