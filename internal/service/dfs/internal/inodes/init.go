@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
@@ -13,7 +14,7 @@ import (
 
 //go:generate mockery --name Service
 type Service interface {
-	CreateRootDir(ctx context.Context) (*INode, error)
+	CreateRootDir(ctx context.Context, space *spaces.Space) (*INode, error)
 	Get(ctx context.Context, cmd *PathCmd) (*INode, error)
 	GetByID(ctx context.Context, inodeID uuid.UUID) (*INode, error)
 	Readdir(ctx context.Context, inode *INode, paginateCmd *storage.PaginateCmd) ([]INode, error)
@@ -29,6 +30,7 @@ type Service interface {
 	RegisterModification(ctx context.Context, inode *INode, newSize uint64, modeTime time.Time) error
 	PatchFileID(ctx context.Context, inode *INode, newFileID uuid.UUID) (*INode, error)
 	GetAllInodesWithFileID(ctx context.Context, fileID uuid.UUID) ([]INode, error)
+	GetSpaceRoot(ctx context.Context, space *spaces.Space) (*INode, error)
 }
 
 func Init(scheduler scheduler.Service, tools tools.Tools, db *sql.DB) Service {

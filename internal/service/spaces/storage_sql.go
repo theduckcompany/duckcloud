@@ -17,7 +17,7 @@ const tableName = "spaces"
 
 var errNotFound = errors.New("not found")
 
-var allFields = []string{"id", "name", "public", "owners", "root_fs", "created_at", "created_by"}
+var allFields = []string{"id", "name", "public", "owners", "created_at", "created_by"}
 
 type sqlStorage struct {
 	db    *sql.DB
@@ -32,7 +32,7 @@ func (s *sqlStorage) Save(ctx context.Context, space *Space) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(allFields...).
-		Values(space.id, space.name, space.isPublic, space.owners, space.rootFS, space.createdAt, space.createdBy).
+		Values(space.id, space.name, space.isPublic, space.owners, space.createdAt, space.createdBy).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -111,7 +111,7 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*Space, erro
 
 	err := query.
 		RunWith(s.db).
-		ScanContext(ctx, &res.id, &res.name, &res.isPublic, &res.owners, &res.rootFS, &res.createdAt, &res.createdBy)
+		ScanContext(ctx, &res.id, &res.name, &res.isPublic, &res.owners, &res.createdAt, &res.createdBy)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errNotFound
 	}
@@ -129,7 +129,7 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]Space, error) {
 	for rows.Next() {
 		var res Space
 
-		err := rows.Scan(&res.id, &res.name, &res.isPublic, &res.owners, &res.rootFS, &res.createdAt, &res.createdBy)
+		err := rows.Scan(&res.id, &res.name, &res.isPublic, &res.owners, &res.createdAt, &res.createdBy)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}

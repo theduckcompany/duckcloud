@@ -42,6 +42,10 @@ func (s *sqlStorage) Save(ctx context.Context, i *INode) error {
 	return nil
 }
 
+func (s *sqlStorage) GetSpaceRoot(ctx context.Context, spaceID uuid.UUID) (*INode, error) {
+	return s.getByKeys(ctx, sq.Eq{"space_id": spaceID, "parent": nil})
+}
+
 func (s *sqlStorage) Patch(ctx context.Context, inode uuid.UUID, fields map[string]any) error {
 	_, err := sq.Update(tableName).
 		SetMap(fields).

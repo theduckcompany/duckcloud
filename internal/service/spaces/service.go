@@ -52,7 +52,6 @@ func (s *SpaceService) Create(ctx context.Context, cmd *CreateCmd) (*Space, erro
 		name:      cmd.Name,
 		isPublic:  len(cmd.Owners) > 1,
 		owners:    cmd.Owners,
-		rootFS:    cmd.RootFS,
 		createdAt: now,
 		createdBy: cmd.User.ID(),
 	}

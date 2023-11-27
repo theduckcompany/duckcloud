@@ -32,13 +32,12 @@ func TestDFSService(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
-		inodesMock.On("CreateRootDir", mock.Anything).Return(&inodes.ExampleAliceRoot, nil).Once()
 		spacesMock.On("Create", mock.Anything, &spaces.CreateCmd{
 			User:   &users.ExampleAlice,
 			Name:   DefaultSpaceName,
 			Owners: []uuid.UUID{AliceUserID},
-			RootFS: inodes.ExampleAliceRoot.ID(),
 		}).Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
+		inodesMock.On("CreateRootDir", mock.Anything, &spaces.ExampleAlicePersonalSpace).Return(&inodes.ExampleAliceRoot, nil).Once()
 
 		res, err := svc.CreateFS(ctx, &users.ExampleAlice, []uuid.UUID{AliceUserID})
 		assert.NoError(t, err)
@@ -53,7 +52,12 @@ func TestDFSService(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
-		inodesMock.On("CreateRootDir", mock.Anything).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
+		spacesMock.On("Create", mock.Anything, &spaces.CreateCmd{
+			User:   &users.ExampleAlice,
+			Name:   DefaultSpaceName,
+			Owners: []uuid.UUID{AliceUserID},
+		}).Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
+		inodesMock.On("CreateRootDir", mock.Anything, &spaces.ExampleAlicePersonalSpace).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
 
 		res, err := svc.CreateFS(ctx, &users.ExampleAlice, []uuid.UUID{AliceUserID})
 		assert.Nil(t, res)
@@ -69,14 +73,11 @@ func TestDFSService(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
-		inodesMock.On("CreateRootDir", mock.Anything).Return(&inodes.ExampleAliceRoot, nil).Once()
 		spacesMock.On("Create", mock.Anything, &spaces.CreateCmd{
 			User:   &users.ExampleAlice,
 			Name:   DefaultSpaceName,
 			Owners: []uuid.UUID{AliceUserID},
-			RootFS: inodes.ExampleAliceRoot.ID(),
 		}).Return(nil, errs.Internal(errors.New("some-error"))).Once()
-		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceRoot).Return(nil).Once()
 
 		res, err := svc.CreateFS(ctx, &users.ExampleAlice, []uuid.UUID{AliceUserID})
 		assert.Nil(t, res)
@@ -92,7 +93,7 @@ func TestDFSService(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
-		inodesMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.RootFS()).
+		inodesMock.On("GetSpaceRoot", mock.Anything, &spaces.ExampleAlicePersonalSpace).
 			Return(&inodes.ExampleAliceRoot, nil).Once()
 		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceRoot).Return(nil).Once()
 		spacesMock.On("Delete", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(nil).Once()
@@ -109,7 +110,7 @@ func TestDFSService(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
-		inodesMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.RootFS()).
+		inodesMock.On("GetSpaceRoot", mock.Anything, &spaces.ExampleAlicePersonalSpace).
 			Return(nil, errs.ErrNotFound).Once()
 		spacesMock.On("Delete", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(nil).Once()
 
@@ -125,7 +126,7 @@ func TestDFSService(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
-		inodesMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.RootFS()).
+		inodesMock.On("GetSpaceRoot", mock.Anything, &spaces.ExampleAlicePersonalSpace).
 			Return(nil, errs.Internal(errors.New("some-error"))).Once()
 
 		err := svc.RemoveFS(ctx, &spaces.ExampleAlicePersonalSpace)
@@ -141,7 +142,7 @@ func TestDFSService(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
-		inodesMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.RootFS()).
+		inodesMock.On("GetSpaceRoot", mock.Anything, &spaces.ExampleAlicePersonalSpace).
 			Return(&inodes.ExampleAliceRoot, nil).Once()
 		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceRoot).
 			Return(errs.Internal(errors.New("some-error"))).Once()
@@ -159,7 +160,7 @@ func TestDFSService(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
-		inodesMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.RootFS()).
+		inodesMock.On("GetSpaceRoot", mock.Anything, &spaces.ExampleAlicePersonalSpace).
 			Return(&inodes.ExampleAliceRoot, nil).Once()
 		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceRoot).Return(nil).Once()
 		spacesMock.On("Delete", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).

@@ -6,6 +6,8 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
+	spaces "github.com/theduckcompany/duckcloud/internal/service/spaces"
+
 	storage "github.com/theduckcompany/duckcloud/internal/tools/storage"
 
 	time "time"
@@ -70,25 +72,25 @@ func (_m *MockService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INo
 	return r0, r1
 }
 
-// CreateRootDir provides a mock function with given fields: ctx
-func (_m *MockService) CreateRootDir(ctx context.Context) (*INode, error) {
-	ret := _m.Called(ctx)
+// CreateRootDir provides a mock function with given fields: ctx, space
+func (_m *MockService) CreateRootDir(ctx context.Context, space *spaces.Space) (*INode, error) {
+	ret := _m.Called(ctx, space)
 
 	var r0 *INode
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) (*INode, error)); ok {
-		return rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, *spaces.Space) (*INode, error)); ok {
+		return rf(ctx, space)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) *INode); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, *spaces.Space) *INode); ok {
+		r0 = rf(ctx, space)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*INode)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, *spaces.Space) error); ok {
+		r1 = rf(ctx, space)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -219,6 +221,32 @@ func (_m *MockService) GetByNameAndParent(ctx context.Context, name string, pare
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, uuid.UUID) error); ok {
 		r1 = rf(ctx, name, parent)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetSpaceRoot provides a mock function with given fields: ctx, space
+func (_m *MockService) GetSpaceRoot(ctx context.Context, space *spaces.Space) (*INode, error) {
+	ret := _m.Called(ctx, space)
+
+	var r0 *INode
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *spaces.Space) (*INode, error)); ok {
+		return rf(ctx, space)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *spaces.Space) *INode); ok {
+		r0 = rf(ctx, space)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*INode)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *spaces.Space) error); ok {
+		r1 = rf(ctx, space)
 	} else {
 		r1 = ret.Error(1)
 	}
