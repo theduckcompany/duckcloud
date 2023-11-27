@@ -193,9 +193,9 @@ func (s *LocalFS) Upload(ctx context.Context, cmd *UploadCmd) error {
 	//
 	inode, err := s.inodes.CreateFile(ctx, &inodes.CreateFileCmd{
 		Space:      s.space,
-		Parent:     dir.ID(),
+		Parent:     dir,
 		Name:       fileName,
-		FileID:     fileID,
+		File:       fileID,
 		UploadedAt: now,
 		UploadedBy: cmd.UploadedBy,
 	})

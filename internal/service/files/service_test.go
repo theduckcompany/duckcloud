@@ -32,12 +32,9 @@ func TestFileService(t *testing.T) {
 		require.NoError(t, err)
 		svc := NewFileService(storage, fs, tools, masterkeySvc)
 
-		fileID, err := svc.Upload(ctx, bytes.NewReader([]byte("Hello, World!")))
+		fileMeta, err := svc.Upload(ctx, bytes.NewReader([]byte("Hello, World!")))
 		assert.NoError(t, err)
-		assert.NotEmpty(t, fileID)
-
-		fileMeta, err := svc.GetMetadata(ctx, fileID)
-		assert.NoError(t, err)
+		assert.NotNil(t, fileMeta)
 
 		reader, err := svc.Download(ctx, fileMeta)
 		assert.NoError(t, err)
@@ -76,15 +73,12 @@ func TestFileService(t *testing.T) {
 		svc := NewFileService(storage, fs, tools, masterkeySvc)
 
 		// Create a file
-		fileID, err := svc.Upload(ctx, bytes.NewReader([]byte("Hello, World!")))
+		fileMeta, err := svc.Upload(ctx, bytes.NewReader([]byte("Hello, World!")))
 		require.NoError(t, err)
-		assert.NotEmpty(t, fileID)
-
-		fileMeta, err := svc.GetMetadata(ctx, fileID)
-		assert.NoError(t, err)
+		assert.NotNil(t, fileMeta)
 
 		// Delete it
-		err = svc.Delete(ctx, fileID)
+		err = svc.Delete(ctx, fileMeta.ID())
 		assert.NoError(t, err)
 
 		// Check it doesn't exists

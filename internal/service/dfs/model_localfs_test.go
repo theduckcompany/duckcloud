@@ -19,7 +19,6 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
-	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 func Test_LocalFS(t *testing.T) {
@@ -160,13 +159,13 @@ func Test_LocalFS(t *testing.T) {
 			Space: &spaces.ExampleAlicePersonalSpace,
 			Path:  "/foo/",
 		}).Return(&ExampleAliceDir, nil).Once()
-		filesMock.On("Upload", mock.Anything, bytes.NewBufferString(content)).Return(uuid.UUID("some-file-id"), nil).Once()
+		filesMock.On("Upload", mock.Anything, bytes.NewBufferString(content)).Return(&files.ExampleFile1, nil).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 		inodesMock.On("CreateFile", mock.Anything, &inodes.CreateFileCmd{
 			Space:      spaceFS.space,
-			Parent:     ExampleAliceDir.ID(),
+			Parent:     &ExampleAliceDir,
 			Name:       "bar.txt",
-			FileID:     uuid.UUID("some-file-id"),
+			File:       &files.ExampleFile1,
 			UploadedAt: now,
 			UploadedBy: &users.ExampleAlice,
 		}).Return(&ExampleAliceFile, nil).Once()

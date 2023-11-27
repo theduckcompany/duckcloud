@@ -18,7 +18,7 @@ import (
 
 //go:generate mockery --name Service
 type Service interface {
-	Upload(ctx context.Context, r io.Reader) (uuid.UUID, error)
+	Upload(ctx context.Context, r io.Reader) (*FileMeta, error)
 	Download(ctx context.Context, file *FileMeta) (io.ReadSeekCloser, error)
 	Delete(ctx context.Context, fileID uuid.UUID) error
 	GetMetadata(ctx context.Context, fileID uuid.UUID) (*FileMeta, error)

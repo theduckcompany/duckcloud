@@ -48,7 +48,7 @@ func NewFileService(storage Storage, rootFS afero.Fs, tools tools.Tools, masterk
 	return &FileService{masterkey, storage, rootFS, tools.UUID(), tools.Clock()}
 }
 
-func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error) {
+func (s *FileService) Upload(ctx context.Context, r io.Reader) (*FileMeta, error) {
 	fileID := s.uuid.New()
 
 	idStr := string(fileID)
@@ -56,12 +56,12 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 
 	file, err := s.fs.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
 	if err != nil {
-		return "", errs.Internal(fmt.Errorf("failed to create the file: %w", err))
+		return nil, errs.Internal(fmt.Errorf("failed to create the file: %w", err))
 	}
 
 	key, err := secret.NewKey()
 	if err != nil {
-		return "", fmt.Errorf("failed to create a new key: %w", err)
+		return nil, fmt.Errorf("failed to create a new key: %w", err)
 	}
 
 	g, ctx := errgroup.WithContext(ctx)
@@ -69,7 +69,7 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 	// Start the file encryption
 	encryptWriter, err := sio.EncryptWriter(file, sio.Config{Key: key.Raw()})
 	if err != nil {
-		return "", fmt.Errorf("failed to create the file encryption: %w", err)
+		return nil, fmt.Errorf("failed to create the file encryption: %w", err)
 	}
 
 	// Start the hasher job
@@ -106,7 +106,7 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 	written, err := io.Copy(multiWrite, r)
 	if err != nil {
 		_ = s.Delete(context.WithoutCancel(ctx), fileID)
-		return "", errs.Internal(fmt.Errorf("upload error: %w", err))
+		return nil, errs.Internal(fmt.Errorf("upload error: %w", err))
 	}
 
 	_ = mimeWriter.Close()
@@ -115,12 +115,12 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 	err = encryptWriter.Close()
 	if err != nil {
 		_ = s.Delete(context.WithoutCancel(ctx), fileID)
-		return "", errs.Internal(fmt.Errorf("failed to end the file encryption: %w", err))
+		return nil, errs.Internal(fmt.Errorf("failed to end the file encryption: %w", err))
 	}
 
 	err = g.Wait()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	ctx = context.WithoutCancel(ctx)
@@ -129,35 +129,37 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (uuid.UUID, error
 
 	existingFile, err := s.storage.GetByChecksum(ctx, checksum)
 	if err != nil && !errors.Is(err, errNotFound) {
-		return "", errs.Internal(fmt.Errorf("failed to GetByChecksum: %w", err))
+		return nil, errs.Internal(fmt.Errorf("failed to GetByChecksum: %w", err))
 	}
 
 	if existingFile != nil {
 		_ = s.Delete(context.WithoutCancel(ctx), fileID)
-		return existingFile.ID(), nil
+		return existingFile, nil
 	}
 
 	// Start the key sealing
 	var sealedKey *secret.SealedKey
 	sealedKey, err = s.masterkey.SealKey(key)
 	if err != nil {
-		return "", fmt.Errorf("failed to sealed the key: %w", err)
+		return nil, fmt.Errorf("failed to sealed the key: %w", err)
 	}
 
-	// XXX:MULTI-WRITE
-	err = s.storage.Save(ctx, &FileMeta{
+	fileMeta := FileMeta{
 		id:         fileID,
 		size:       uint64(written),
 		mimetype:   mimeStr,
 		checksum:   checksum,
 		key:        sealedKey,
 		uploadedAt: s.clock.Now(),
-	})
-	if err != nil {
-		return "", errs.Internal(fmt.Errorf("failed to save the file meta: %w", err))
 	}
 
-	return fileID, nil
+	// XXX:MULTI-WRITE
+	err = s.storage.Save(ctx, &fileMeta)
+	if err != nil {
+		return nil, errs.Internal(fmt.Errorf("failed to save the file meta: %w", err))
+	}
+
+	return &fileMeta, nil
 }
 
 func (s *FileService) GetMetadataByChecksum(ctx context.Context, checksum string) (*FileMeta, error) {

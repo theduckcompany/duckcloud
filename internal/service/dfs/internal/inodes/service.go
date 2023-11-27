@@ -157,25 +157,16 @@ func (s *INodeService) CreateFile(ctx context.Context, cmd *CreateFileCmd) (*INo
 		return nil, errs.Validation(err)
 	}
 
-	parent, err := s.storage.GetByID(ctx, cmd.Parent)
-	if errors.Is(err, errNotFound) {
-		return nil, errs.BadRequest(fmt.Errorf("%w: parent %q not found", ErrInvalidParent, cmd.Parent))
-	}
-
-	if err != nil {
-		return nil, errs.Internal(fmt.Errorf("failed to GetByID: %w", err))
-	}
-
 	inode := INode{
 		id:             s.uuid.New(),
-		parent:         ptr.To(parent.ID()),
+		parent:         ptr.To(cmd.Parent.ID()),
 		spaceID:        cmd.Space.ID(),
 		size:           0,
 		name:           cmd.Name,
 		createdAt:      cmd.UploadedAt,
 		createdBy:      cmd.UploadedBy.ID(),
 		lastModifiedAt: cmd.UploadedAt,
-		fileID:         &cmd.FileID,
+		fileID:         ptr.To(cmd.File.ID()),
 	}
 
 	err = s.storage.Save(ctx, &inode)
