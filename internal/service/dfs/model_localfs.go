@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"path"
+	"strings"
 
 	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
@@ -56,6 +57,46 @@ func (s *LocalFS) ListDir(ctx context.Context, path string, cmd *storage.Paginat
 	}
 
 	return s.inodes.Readdir(ctx, dir, cmd)
+}
+
+func (s *LocalFS) Rename(ctx context.Context, inode *INode, newName string) (*INode, error) {
+	if newName == "" {
+		return nil, errs.Validation(errors.New("can't be empty"))
+	}
+
+	name, err := s.findUniqueName(ctx, inode, newName)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.inodes.PatchRename(ctx, inode, name)
+}
+
+func (s *LocalFS) findUniqueName(ctx context.Context, inode *INode, newName string) (string, error) {
+	if inode.Parent() == nil {
+		return "", errs.Validation(errors.New("can't rename the root"))
+	}
+
+	name := newName
+	loop := 0
+	ext := path.Ext(newName)
+	base := strings.TrimRight(newName, ext)
+	for {
+		if loop > 0 {
+			name = fmt.Sprintf("%s (%d)%s", base, loop, ext)
+		}
+
+		_, err := s.inodes.GetByNameAndParent(ctx, name, *inode.Parent())
+		if errors.Is(err, errs.ErrNotFound) {
+			return name, nil
+		}
+
+		if err != nil {
+			return "", errs.Internal(fmt.Errorf("failed to check if the name is already taken: %w", err))
+		}
+
+		loop++
+	}
 }
 
 func (s *LocalFS) CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, error) {

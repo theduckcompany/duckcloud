@@ -20,6 +20,7 @@ type Service interface {
 	GetByID(ctx context.Context, inodeID uuid.UUID) (*INode, error)
 	Readdir(ctx context.Context, inode *INode, paginateCmd *storage.PaginateCmd) ([]INode, error)
 	Remove(ctx context.Context, inode *INode) error
+	PatchRename(ctx context.Context, inode *INode, newName string) (*INode, error)
 	GetAllDeleted(ctx context.Context, limit int) ([]INode, error)
 	HardDelete(ctx context.Context, inode *INode) error
 	GetByNameAndParent(ctx context.Context, name string, parent uuid.UUID) (*INode, error)

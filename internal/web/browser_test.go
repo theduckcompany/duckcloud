@@ -904,4 +904,268 @@ func Test_Browser_Page(t *testing.T) {
 		handler.Register(srv, nil)
 		srv.ServeHTTP(w, r)
 	})
+
+	t.Run("getRenameModal success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		filesMock := files.NewMockService(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		fsMock := dfs.NewMockService(t)
+		handler := newBrowserHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		tools.UUIDMock.On("Parse", "some-space-id").Return(uuid.UUID("some-space-id"), nil).Once()
+		spacesMock.On("GetByID", mock.Anything, uuid.UUID("some-space-id")).
+			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
+
+		spaceFSMock := dfs.NewMockFS(t)
+		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
+
+		spaceFSMock.On("Get", mock.Anything, "/foo/bar.jpg").Return(&dfs.ExampleAliceFile, nil).Once()
+
+		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/rename-form.tmpl", map[string]any{
+			"error":        "",
+			"path":         "/foo/bar.jpg",
+			"spaceID":      spaces.ExampleAlicePersonalSpace.ID(),
+			"value":        "bar.jpg",
+			"endSelection": 3, // name == bar.pdf / we want the selection at |bar|.pdf
+		}).Once()
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/browser/rename", nil)
+		r.URL.RawQuery = url.Values{
+			"path":    []string{"/foo/bar.jpg"},
+			"value":   []string{"bar.jpg"},
+			"spaceID": []string{"some-space-id"},
+		}.Encode()
+
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+	})
+
+	t.Run("getRenameModal with an unauthenticated user", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		filesMock := files.NewMockService(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		fsMock := dfs.NewMockService(t)
+		handler := newBrowserHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/browser/rename", nil)
+		r.URL.RawQuery = url.Values{
+			"path":    []string{"/foo/bar.jpg"},
+			"value":   []string{"bar.jpg"},
+			"spaceID": []string{"some-space-id"},
+		}.Encode()
+
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusFound, res.StatusCode)
+		assert.Equal(t, "/login", res.Header.Get("Location"))
+	})
+
+	t.Run("getRenameModal without the path param", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		filesMock := files.NewMockService(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		fsMock := dfs.NewMockService(t)
+		handler := newBrowserHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/browser/rename", nil)
+		r.URL.RawQuery = url.Values{
+			// "path":    []string{"/foo/bar.jpg"},
+			"value":   []string{"bar.jpg"},
+			"spaceID": []string{"some-space-id"},
+		}.Encode()
+
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusNotFound, res.StatusCode)
+	})
+
+	t.Run("getRenameModal with an invalid spaceID", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		filesMock := files.NewMockService(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		fsMock := dfs.NewMockService(t)
+		handler := newBrowserHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		tools.UUIDMock.On("Parse", "some-space-id").Return(uuid.UUID(""), fmt.Errorf("some-error")).Once()
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/browser/rename", nil)
+		r.URL.RawQuery = url.Values{
+			"path":    []string{"/foo/bar.jpg"},
+			"value":   []string{"bar.jpg"},
+			"spaceID": []string{"some-space-id"},
+		}.Encode()
+
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusNotFound, res.StatusCode)
+	})
+
+	t.Run("handleRenameReq success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		filesMock := files.NewMockService(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		fsMock := dfs.NewMockService(t)
+		handler := newBrowserHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		tools.UUIDMock.On("Parse", "some-space-id").Return(uuid.UUID("some-space-id"), nil).Once()
+		spacesMock.On("GetByID", mock.Anything, uuid.UUID("some-space-id")).
+			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
+
+		spaceFSMock := dfs.NewMockFS(t)
+		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
+		spaceFSMock.On("Get", mock.Anything, "/foo/bar.jpg").Return(&dfs.ExampleAliceFile, nil).Once()
+
+		spaceFSMock.On("Rename", mock.Anything, &dfs.ExampleAliceFile, "new-name.jpg").Return(&dfs.ExampleAliceFile, nil).Once()
+
+		// Render dir content
+		spaceFSMock.On("Get", mock.Anything, "/foo").Return(&dfs.ExampleAliceDir, nil).Once()
+		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace).Once()
+		spaceFSMock.On("ListDir", mock.Anything, "/foo", &storage.PaginateCmd{
+			StartAfter: map[string]string{"name": ""},
+			Limit:      PageSize,
+		}).Return([]dfs.INode{dfs.ExampleAliceFile, dfs.ExampleAliceFile2}, nil).Once()
+		spacesMock.On("GetAllUserSpaces", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).
+			Return([]spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace}, nil).Once()
+		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/content.tmpl", map[string]any{
+			"breadcrumb": []breadCrumbElement{
+				{
+					Name:    "Alice's Space",
+					Href:    "/browser/e97b60f7-add2-43e1-a9bd-e2dac9ce69ec",
+					Current: false,
+				},
+				{
+					Name:    "foo",
+					Href:    "/browser/e97b60f7-add2-43e1-a9bd-e2dac9ce69ec/foo",
+					Current: true,
+				},
+			},
+			"space":    &spaces.ExampleAlicePersonalSpace,
+			"spaces":   []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
+			"fullPath": "/foo",
+			"host":     "example.com",
+			"inodes":   []dfs.INode{dfs.ExampleAliceFile, dfs.ExampleAliceFile2},
+		})
+
+		w := httptest.NewRecorder()
+		form := url.Values{}
+		form.Add("path", "/foo/bar.jpg")
+		form.Add("name", "new-name.jpg")
+		form.Add("spaceID", "some-space-id")
+		r := httptest.NewRequest(http.MethodPost, "/browser/rename", strings.NewReader(form.Encode()))
+		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+	})
+
+	t.Run("handleRenameReq with a rename error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		filesMock := files.NewMockService(t)
+		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		fsMock := dfs.NewMockService(t)
+		handler := newBrowserHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		tools.UUIDMock.On("Parse", "some-space-id").Return(uuid.UUID("some-space-id"), nil).Once()
+		spacesMock.On("GetByID", mock.Anything, uuid.UUID("some-space-id")).
+			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
+
+		spaceFSMock := dfs.NewMockFS(t)
+		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
+		spaceFSMock.On("Get", mock.Anything, "/foo/bar.jpg").Return(&dfs.ExampleAliceFile, nil).Once()
+
+		spaceFSMock.On("Rename", mock.Anything, &dfs.ExampleAliceFile, "new-name").Return(nil, errs.Validation(errors.New("some-error"))).Once()
+
+		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusUnprocessableEntity, "browser/rename-form.tmpl", map[string]any{
+			"error":        "validation: some-error",
+			"path":         "/foo/bar.jpg",
+			"spaceID":      spaces.ExampleAlicePersonalSpace.ID(),
+			"value":        "new-name",
+			"endSelection": 8, // name == new-name / we want the selection at |new-name|.pdf
+		}).Once()
+
+		w := httptest.NewRecorder()
+		form := url.Values{}
+		form.Add("path", "/foo/bar.jpg")
+		form.Add("name", "new-name")
+		form.Add("spaceID", "some-space-id")
+		r := httptest.NewRequest(http.MethodPost, "/browser/rename", strings.NewReader(form.Encode()))
+		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+	})
 }

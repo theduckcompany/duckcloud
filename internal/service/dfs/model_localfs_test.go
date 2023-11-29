@@ -298,4 +298,67 @@ func Test_LocalFS(t *testing.T) {
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})
+
+	t.Run("Rename success", func(t *testing.T) {
+		inodesMock := inodes.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		spaceFS := newLocalFS(inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
+
+		inodesMock.On("GetByNameAndParent", mock.Anything, "foobar.jpg", *ExampleAliceFile.Parent()).Return(nil, errs.ErrNotFound).Once()
+		inodesMock.On("PatchRename", mock.Anything, &ExampleAliceFile, "foobar.jpg").Return(&ExampleAliceRenamedFile, nil).Once()
+
+		res, err := spaceFS.Rename(ctx, &ExampleAliceFile, "foobar.jpg")
+
+		assert.NoError(t, err)
+		assert.Equal(t, &ExampleAliceRenamedFile, res)
+	})
+
+	t.Run("Rename with an empty name", func(t *testing.T) {
+		inodesMock := inodes.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		spaceFS := newLocalFS(inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
+
+		res, err := spaceFS.Rename(ctx, &ExampleAliceFile, "")
+
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrValidation)
+		assert.ErrorContains(t, err, "can't be empty")
+	})
+
+	t.Run("Rename with a root inode", func(t *testing.T) {
+		inodesMock := inodes.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		spaceFS := newLocalFS(inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
+
+		res, err := spaceFS.Rename(ctx, &ExampleAliceRoot, "foo")
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrValidation)
+		assert.ErrorContains(t, err, "can't rename the root")
+	})
+
+	t.Run("Rename with a file with the same name", func(t *testing.T) {
+		inodesMock := inodes.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		spaceFS := newLocalFS(inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
+
+		inodesMock.On("GetByNameAndParent", mock.Anything, "foobar.pdf", *ExampleAliceFile.Parent()).Return(&ExampleAliceFile, nil).Once()
+		inodesMock.On("GetByNameAndParent", mock.Anything, "foobar (1).pdf", *ExampleAliceFile.Parent()).Return(nil, errs.ErrNotFound).Once()
+		inodesMock.On("PatchRename", mock.Anything, &ExampleAliceFile, "foobar (1).pdf").Return(&ExampleAliceRenamedFile, nil).Once()
+
+		res, err := spaceFS.Rename(ctx, &ExampleAliceFile, "foobar.pdf")
+		assert.NoError(t, err)
+		assert.Equal(t, &ExampleAliceRenamedFile, res)
+	})
 }

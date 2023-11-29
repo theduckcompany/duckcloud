@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"net/http"
 	"testing"
 	"time"
 
@@ -370,6 +371,64 @@ func Test_DFS_Integration(t *testing.T) {
 
 			err = serv.RunnerSvc.Run(ctx)
 			require.NoError(t, err)
+		})
+
+		t.Run("Move with the same name", func(t *testing.T) {
+			t.Run("Setup", func(t *testing.T) {
+				_, err := spaceFS.CreateDir(ctx, &dfs.CreateDirCmd{
+					FilePath:  "/move-same-name",
+					CreatedBy: serv.User,
+				})
+				require.NoError(t, err)
+
+				err = spaceFS.Upload(ctx, &dfs.UploadCmd{
+					FilePath:   "/move-same-name/foo.txt",
+					Content:    http.NoBody,
+					UploadedBy: serv.User,
+				})
+				require.NoError(t, err)
+
+				err = serv.RunnerSvc.Run(ctx)
+				require.NoError(t, err)
+			})
+
+			t.Run("Move success", func(t *testing.T) {
+				file, err := spaceFS.Get(ctx, "/move-same-name/foo.txt")
+				require.NoError(t, err)
+
+				res, err := spaceFS.Rename(ctx, file, "foo2.txt")
+				require.NoError(t, err)
+
+				require.Equal(t, "foo2.txt", res.Name())
+			})
+
+			t.Run("Move with a file with the same name", func(t *testing.T) {
+				err := spaceFS.Upload(ctx, &dfs.UploadCmd{
+					FilePath:   "/move-same-name/bar.txt",
+					Content:    http.NoBody,
+					UploadedBy: serv.User,
+				})
+				require.NoError(t, err)
+
+				err = serv.RunnerSvc.Run(ctx)
+				require.NoError(t, err)
+
+				file, err := spaceFS.Get(ctx, "/move-same-name/foo2.txt")
+				require.NoError(t, err)
+
+				res, err := spaceFS.Rename(ctx, file, "bar.txt")
+				require.NoError(t, err)
+
+				require.Equal(t, "bar (1).txt", res.Name())
+			})
+
+			t.Run("Destroy", func(t *testing.T) {
+				err := spaceFS.Remove(ctx, "/move-same-name")
+				require.NoError(t, err)
+
+				err = serv.RunnerSvc.Run(ctx)
+				require.NoError(t, err)
+			})
 		})
 	})
 }

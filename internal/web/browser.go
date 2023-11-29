@@ -71,6 +71,9 @@ func (h *browserHandler) Register(r chi.Router, mids *router.Middlewares) {
 	r.Get("/browser/*", h.getBrowserContent)
 	r.Get("/download/*", h.download)
 
+	r.Get("/browser/rename", h.getRenameModal)
+	r.Post("/browser/rename", h.handleRenameReq)
+
 	r.Get("/browser/create-dir", h.getCreateDirModal)
 	r.Post("/browser/create-dir", h.handleCreateDirReq)
 
@@ -79,6 +82,133 @@ func (h *browserHandler) Register(r chi.Router, mids *router.Middlewares) {
 
 func (h *browserHandler) String() string {
 	return "web.browser"
+}
+
+func (h *browserHandler) handleRenameReq(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	user, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	if abort {
+		return
+	}
+
+	space, filePath, abort := h.getRenameParams(w, r)
+	if abort {
+		return
+	}
+
+	fs := h.fs.GetSpaceFS(space)
+
+	inode, err := fs.Get(ctx, filePath)
+	if errors.Is(err, errs.ErrNotFound) {
+		w.WriteHeader(http.StatusNotFound)
+	}
+
+	_, err = fs.Rename(ctx, inode, r.FormValue("name"))
+	if errors.Is(err, errs.ErrValidation) {
+		h.renderRenameModal(w, r, &renameCmd{
+			ErrorMsg: err.Error(),
+			Space:    space,
+			Value:    r.FormValue("name"),
+			Path:     filePath,
+		})
+		return
+	}
+
+	if err != nil {
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to rename the file: %w", err))
+	}
+
+	h.renderBrowserContent(w, r, user, fs, path.Dir(filePath))
+}
+
+func (h *browserHandler) getRenameParams(w http.ResponseWriter, r *http.Request) (*spaces.Space, string, bool) {
+	path := r.FormValue("path")
+	if len(path) == 0 {
+		w.WriteHeader(http.StatusNotFound)
+		return nil, "", true
+	}
+
+	spaceID, err := h.uuid.Parse(r.FormValue("spaceID"))
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return nil, "", true
+	}
+
+	space, err := h.spaces.GetByID(r.Context(), spaceID)
+	if err != nil {
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to get the space: %w", err))
+		return nil, "", true
+	}
+
+	return space, path, false
+}
+
+func (h *browserHandler) getRenameModal(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	_, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	if abort {
+		return
+	}
+
+	space, filePath, abort := h.getRenameParams(w, r)
+	if abort {
+		return
+	}
+
+	fs := h.fs.GetSpaceFS(space)
+
+	_, err := fs.Get(ctx, filePath)
+	if err != nil {
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to get the file %q: %w", filePath, err))
+	}
+
+	h.renderRenameModal(w, r, &renameCmd{
+		ErrorMsg: "",
+		Space:    space,
+		Path:     filePath,
+		Value:    path.Base(filePath),
+	})
+}
+
+type renameCmd struct {
+	ErrorMsg string
+	Space    *spaces.Space
+	Value    string
+	Path     string
+}
+
+func (h *browserHandler) renderRenameModal(w http.ResponseWriter, r *http.Request, cmd *renameCmd) {
+	status := http.StatusOK
+	if cmd.ErrorMsg != "" {
+		status = http.StatusUnprocessableEntity
+	}
+
+	value := cmd.Value
+	// endSelection indicate to the js when to stop the text selection.
+	// For the files we want to select only the name, without the extension in
+	// order to allow a quick name change without impacting the extension.
+	var endSelection int
+
+	for i := len(value) - 1; i >= 0 && value[i] != '/'; i-- {
+		if value[i] == '.' {
+			endSelection = i
+			break
+		}
+	}
+
+	if endSelection == 0 {
+		endSelection = len(value)
+	}
+
+	h.html.WriteHTML(w, r, status, "browser/rename-form.tmpl", map[string]interface{}{
+		"error":        cmd.ErrorMsg,
+		"path":         cmd.Path,
+		"value":        value,
+		"spaceID":      cmd.Space.ID(),
+		"endSelection": endSelection,
+	})
 }
 
 func (h *browserHandler) getCreateDirModal(w http.ResponseWriter, r *http.Request) {
@@ -193,7 +323,7 @@ func (h *browserHandler) getBrowserContent(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	space, fullPath, abort := h.getSpaceAndPathFromURL(w, r, user)
+	space, fullPath, abort := h.getSpaceAndPathFromURL(w, r, user, r.URL.Path)
 	if abort {
 		return
 	}
@@ -281,7 +411,7 @@ func (h *browserHandler) deleteAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	space, fullPath, abort := h.getSpaceAndPathFromURL(w, r, user)
+	space, fullPath, abort := h.getSpaceAndPathFromURL(w, r, user, r.URL.Path)
 	if abort {
 		return
 	}
@@ -382,13 +512,16 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 	return nil
 }
 
-func (h browserHandler) getSpaceAndPathFromURL(w http.ResponseWriter, r *http.Request, user *users.User) (*spaces.Space, string, bool) {
-	// For the path "/browser/{{spaceID}}/foo/bar/baz" the elems variable will have for content:
-	// []string{"", "browser", "{{spaceID}}", "/foo/bar/baz"}
-	elems := strings.SplitN(r.URL.Path, "/", 4)
+func (h browserHandler) getSpaceAndPathFromURL(w http.ResponseWriter, r *http.Request, user *users.User, pathStr string) (*spaces.Space, string, bool) {
+	pathStr = strings.TrimPrefix(pathStr, "/")        // Trim for the urls like: /space-id/foo/bar
+	pathStr = strings.TrimPrefix(pathStr, "browser/") // Trim for the urls like: /browser/space-id/foo/bar
+
+	// For the path "{{spaceID}}/foo/bar/baz" the elems variable will have for content:
+	// []string{"{{spaceID}}", "/foo/bar/baz"}
+	elems := strings.SplitN(pathStr, "/", 2)
 
 	// no need to check elems len as the url format force a len of 3 minimum
-	spaceID, err := h.uuid.Parse(elems[2])
+	spaceID, err := h.uuid.Parse(elems[0])
 	if err != nil {
 		w.Header().Set("Location", "/browser")
 		w.WriteHeader(http.StatusFound)
@@ -408,8 +541,8 @@ func (h browserHandler) getSpaceAndPathFromURL(w http.ResponseWriter, r *http.Re
 	}
 
 	fullPath := "/"
-	if len(elems) == 4 {
-		fullPath = dfs.CleanPath(elems[3])
+	if len(elems) == 2 {
+		fullPath = path.Clean("/" + elems[1])
 	}
 
 	return space, fullPath, false
@@ -494,7 +627,7 @@ func (h *browserHandler) download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	space, fullPath, abort := h.getSpaceAndPathFromURL(w, r, user)
+	space, fullPath, abort := h.getSpaceAndPathFromURL(w, r, user, r.URL.Path)
 	if abort {
 		return
 	}

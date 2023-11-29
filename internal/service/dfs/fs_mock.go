@@ -152,6 +152,32 @@ func (_m *MockFS) Remove(ctx context.Context, path string) error {
 	return r0
 }
 
+// Rename provides a mock function with given fields: ctx, inode, newName
+func (_m *MockFS) Rename(ctx context.Context, inode *inodes.INode, newName string) (*inodes.INode, error) {
+	ret := _m.Called(ctx, inode, newName)
+
+	var r0 *inodes.INode
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *inodes.INode, string) (*inodes.INode, error)); ok {
+		return rf(ctx, inode, newName)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *inodes.INode, string) *inodes.INode); ok {
+		r0 = rf(ctx, inode, newName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*inodes.INode)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *inodes.INode, string) error); ok {
+		r1 = rf(ctx, inode, newName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Space provides a mock function with given fields:
 func (_m *MockFS) Space() *spaces.Space {
 	ret := _m.Called()
