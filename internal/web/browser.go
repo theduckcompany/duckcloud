@@ -87,7 +87,7 @@ func (h *browserHandler) String() string {
 func (h *browserHandler) handleRenameReq(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	user, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	_, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
 	if abort {
 		return
 	}
@@ -119,7 +119,9 @@ func (h *browserHandler) handleRenameReq(w http.ResponseWriter, r *http.Request)
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to rename the file: %w", err))
 	}
 
-	h.renderBrowserContent(w, r, user, fs, path.Dir(filePath))
+	w.Header().Add("HX-Trigger", "refreshFolder")
+	w.Header().Add("HX-Reswap", "none")
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *browserHandler) getRenameParams(w http.ResponseWriter, r *http.Request) (*spaces.Space, string, bool) {
@@ -290,7 +292,9 @@ func (h *browserHandler) handleCreateDirReq(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	h.renderBrowserContent(w, r, user, fs, dir)
+	w.Header().Add("HX-Trigger", "refreshFolder")
+	w.Header().Add("HX-Reswap", "none")
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (h *browserHandler) redirectDefaultBrowser(w http.ResponseWriter, r *http.Request) {
@@ -423,7 +427,9 @@ func (h *browserHandler) deleteAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.renderBrowserContent(w, r, user, fs, path.Dir(fullPath))
+	w.Header().Add("HX-Trigger", "refreshFolder")
+	w.Header().Add("HX-Reswap", "none")
+	w.WriteHeader(http.StatusNoContent)
 }
 
 type breadCrumbElement struct {
