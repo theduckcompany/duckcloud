@@ -1,4 +1,4 @@
-package web
+package browser
 
 import (
 	"archive/zip"
@@ -11,7 +11,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
@@ -19,11 +18,11 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
-	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
+	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 )
 
@@ -34,24 +33,24 @@ const (
 
 var ErrInvalidSpaceID = errors.New("invalid spaceID")
 
-type browserHandler struct {
+type Handler struct {
 	html   html.Writer
 	spaces spaces.Service
 	files  files.Service
 	uuid   uuid.Service
-	auth   *Authenticator
+	auth   *auth.Authenticator
 	fs     dfs.Service
 }
 
-func newBrowserHandler(
+func NewHandler(
 	tools tools.Tools,
 	html html.Writer,
 	spaces spaces.Service,
 	files files.Service,
-	auth *Authenticator,
+	auth *auth.Authenticator,
 	fs dfs.Service,
-) *browserHandler {
-	return &browserHandler{
+) *Handler {
+	return &Handler{
 		html:   html,
 		spaces: spaces,
 		files:  files,
@@ -61,246 +60,30 @@ func newBrowserHandler(
 	}
 }
 
-func (h *browserHandler) Register(r chi.Router, mids *router.Middlewares) {
+func (h *Handler) Register(r chi.Router, mids *router.Middlewares) {
 	if mids != nil {
 		r = r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
 	}
 
 	r.Get("/browser", h.redirectDefaultBrowser)
 	r.Post("/browser/upload", h.upload)
-	r.Get("/browser/*", h.getBrowserContent)
 	r.Get("/download/*", h.download)
-
-	r.Get("/browser/rename", h.getRenameModal)
-	r.Post("/browser/rename", h.handleRenameReq)
-
-	r.Get("/browser/create-dir", h.getCreateDirModal)
-	r.Post("/browser/create-dir", h.handleCreateDirReq)
+	r.Get("/browser/*", h.getBrowserContent)
 
 	r.Delete("/browser/*", h.deleteAll)
+
+	newCreateDirModalHandler(h.auth, h.spaces, h.html, h.uuid, h.fs).Register(r, mids)
+	newRenameModalHandler(h.auth, h.spaces, h.html, h.uuid, h.fs).Register(r, mids)
 }
 
-func (h *browserHandler) String() string {
+func (h *Handler) String() string {
 	return "web.browser"
 }
 
-func (h *browserHandler) handleRenameReq(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) redirectDefaultBrowser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	_, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
-	if abort {
-		return
-	}
-
-	space, filePath, abort := h.getRenameParams(w, r)
-	if abort {
-		return
-	}
-
-	fs := h.fs.GetSpaceFS(space)
-
-	inode, err := fs.Get(ctx, filePath)
-	if errors.Is(err, errs.ErrNotFound) {
-		w.WriteHeader(http.StatusNotFound)
-	}
-
-	_, err = fs.Rename(ctx, inode, r.FormValue("name"))
-	if errors.Is(err, errs.ErrValidation) {
-		h.renderRenameModal(w, r, &renameCmd{
-			ErrorMsg: err.Error(),
-			Space:    space,
-			Value:    r.FormValue("name"),
-			Path:     filePath,
-		})
-		return
-	}
-
-	if err != nil {
-		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to rename the file: %w", err))
-	}
-
-	w.Header().Add("HX-Trigger", "refreshFolder")
-	w.Header().Add("HX-Reswap", "none")
-	w.WriteHeader(http.StatusOK)
-}
-
-func (h *browserHandler) getRenameParams(w http.ResponseWriter, r *http.Request) (*spaces.Space, string, bool) {
-	path := r.FormValue("path")
-	if len(path) == 0 {
-		w.WriteHeader(http.StatusNotFound)
-		return nil, "", true
-	}
-
-	spaceID, err := h.uuid.Parse(r.FormValue("spaceID"))
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		return nil, "", true
-	}
-
-	space, err := h.spaces.GetByID(r.Context(), spaceID)
-	if err != nil {
-		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to get the space: %w", err))
-		return nil, "", true
-	}
-
-	return space, path, false
-}
-
-func (h *browserHandler) getRenameModal(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	_, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
-	if abort {
-		return
-	}
-
-	space, filePath, abort := h.getRenameParams(w, r)
-	if abort {
-		return
-	}
-
-	fs := h.fs.GetSpaceFS(space)
-
-	_, err := fs.Get(ctx, filePath)
-	if err != nil {
-		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to get the file %q: %w", filePath, err))
-	}
-
-	h.renderRenameModal(w, r, &renameCmd{
-		ErrorMsg: "",
-		Space:    space,
-		Path:     filePath,
-		Value:    path.Base(filePath),
-	})
-}
-
-type renameCmd struct {
-	ErrorMsg string
-	Space    *spaces.Space
-	Value    string
-	Path     string
-}
-
-func (h *browserHandler) renderRenameModal(w http.ResponseWriter, r *http.Request, cmd *renameCmd) {
-	status := http.StatusOK
-	if cmd.ErrorMsg != "" {
-		status = http.StatusUnprocessableEntity
-	}
-
-	value := cmd.Value
-	// endSelection indicate to the js when to stop the text selection.
-	// For the files we want to select only the name, without the extension in
-	// order to allow a quick name change without impacting the extension.
-	var endSelection int
-
-	for i := len(value) - 1; i >= 0 && value[i] != '/'; i-- {
-		if value[i] == '.' {
-			endSelection = i
-			break
-		}
-	}
-
-	if endSelection == 0 {
-		endSelection = len(value)
-	}
-
-	h.html.WriteHTML(w, r, status, "browser/rename-form.tmpl", map[string]interface{}{
-		"error":        cmd.ErrorMsg,
-		"path":         cmd.Path,
-		"value":        value,
-		"spaceID":      cmd.Space.ID(),
-		"endSelection": endSelection,
-	})
-}
-
-func (h *browserHandler) getCreateDirModal(w http.ResponseWriter, r *http.Request) {
-	_, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
-	if abort {
-		return
-	}
-
-	dir := r.URL.Query().Get("dir")
-	if dir == "" {
-		h.html.WriteHTMLErrorPage(w, r, errors.New("failed to get the dir path from the url query"))
-		return
-	}
-
-	spaceID := r.URL.Query().Get("space")
-	if spaceID == "" {
-		h.html.WriteHTMLErrorPage(w, r, errors.New("failed to get the space id from the url query"))
-		return
-	}
-
-	h.html.WriteHTML(w, r, http.StatusOK, "browser/create-dir.tmpl", map[string]interface{}{
-		"directory": dir,
-		"spaceID":   spaceID,
-	})
-}
-
-func (h *browserHandler) handleCreateDirReq(w http.ResponseWriter, r *http.Request) {
-	user, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
-	if abort {
-		return
-	}
-
-	dir := r.FormValue("dirPath")
-	name := r.FormValue("name")
-	spaceID, err := h.uuid.Parse(r.FormValue("spaceID"))
-	if err != nil {
-		h.html.WriteHTMLErrorPage(w, r, errors.New("invalid space id param"))
-		return
-	}
-
-	if name == "" {
-		h.html.WriteHTML(w, r, http.StatusUnprocessableEntity, "browser/create-dir.tmpl", map[string]interface{}{
-			"directory": dir,
-			"spaceID":   spaceID,
-			"error":     "Must not be empty",
-		})
-		return
-	}
-
-	space, err := h.spaces.GetUserSpace(r.Context(), user.ID(), spaceID)
-	if err != nil {
-		h.html.WriteHTMLErrorPage(w, r, errs.BadRequest(fmt.Errorf("failed to GetUserSpace: %w", err)))
-		return
-	}
-
-	fs := h.fs.GetSpaceFS(space)
-
-	existingDir, err := fs.Get(r.Context(), path.Join(dir, name))
-	if err != nil && !errors.Is(err, errs.ErrNotFound) {
-		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to get the directory: %w", err))
-		return
-	}
-
-	if existingDir != nil {
-		h.html.WriteHTML(w, r, http.StatusUnprocessableEntity, "browser/create-dir.tmpl", map[string]interface{}{
-			"directory": dir,
-			"spaceID":   spaceID,
-			"error":     "Already exists",
-		})
-		return
-	}
-
-	_, err = fs.CreateDir(r.Context(), &dfs.CreateDirCmd{
-		FilePath:  path.Join(dir, name),
-		CreatedBy: user,
-	})
-	if err != nil {
-		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to create the directory: %w", err))
-		return
-	}
-
-	w.Header().Add("HX-Trigger", "refreshFolder")
-	w.Header().Add("HX-Reswap", "none")
-	w.WriteHeader(http.StatusCreated)
-}
-
-func (h *browserHandler) redirectDefaultBrowser(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	user, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
 	}
@@ -321,8 +104,8 @@ func (h *browserHandler) redirectDefaultBrowser(w http.ResponseWriter, r *http.R
 	w.WriteHeader(http.StatusFound)
 }
 
-func (h *browserHandler) getBrowserContent(w http.ResponseWriter, r *http.Request) {
-	user, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+func (h *Handler) getBrowserContent(w http.ResponseWriter, r *http.Request) {
+	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
 	}
@@ -342,8 +125,8 @@ func (h *browserHandler) getBrowserContent(w http.ResponseWriter, r *http.Reques
 	h.renderMoreDirContent(w, r, space, fullPath, lastElem)
 }
 
-func (h *browserHandler) upload(w http.ResponseWriter, r *http.Request) {
-	user, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
+	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
 	}
@@ -409,8 +192,8 @@ func (h *browserHandler) upload(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *browserHandler) deleteAll(w http.ResponseWriter, r *http.Request) {
-	user, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+func (h *Handler) deleteAll(w http.ResponseWriter, r *http.Request) {
+	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
 	}
@@ -478,7 +261,7 @@ type lauchUploadCmd struct {
 	fileReader io.Reader
 }
 
-func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
+func (h *Handler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
 	space, err := h.spaces.GetUserSpace(ctx, cmd.user.ID(), cmd.spaceID)
 	if err != nil {
 		return fmt.Errorf("failed to GetByID: %w", err)
@@ -518,7 +301,7 @@ func (h *browserHandler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) e
 	return nil
 }
 
-func (h browserHandler) getSpaceAndPathFromURL(w http.ResponseWriter, r *http.Request, user *users.User, pathStr string) (*spaces.Space, string, bool) {
+func (h Handler) getSpaceAndPathFromURL(w http.ResponseWriter, r *http.Request, user *users.User, pathStr string) (*spaces.Space, string, bool) {
 	pathStr = strings.TrimPrefix(pathStr, "/")        // Trim for the urls like: /space-id/foo/bar
 	pathStr = strings.TrimPrefix(pathStr, "browser/") // Trim for the urls like: /browser/space-id/foo/bar
 
@@ -554,7 +337,7 @@ func (h browserHandler) getSpaceAndPathFromURL(w http.ResponseWriter, r *http.Re
 	return space, fullPath, false
 }
 
-func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, ffs dfs.FS, fullPath string) {
+func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, ffs dfs.FS, fullPath string) {
 	inode, err := ffs.Get(r.Context(), fullPath)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Get: %w", err))
@@ -588,7 +371,7 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 		}
 		defer file.Close()
 
-		h.serveContent(w, r, inode, file, fileMeta)
+		serveContent(w, r, inode, file, fileMeta)
 		return
 	}
 
@@ -608,7 +391,7 @@ func (h *browserHandler) renderBrowserContent(w http.ResponseWriter, r *http.Req
 	})
 }
 
-func (h *browserHandler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, space *spaces.Space, fullPath, lastElem string) {
+func (h *Handler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, space *spaces.Space, fullPath, lastElem string) {
 	ffs := h.fs.GetSpaceFS(space)
 	dirContent, err := ffs.ListDir(r.Context(), fullPath, &storage.PaginateCmd{
 		StartAfter: map[string]string{"name": lastElem},
@@ -627,8 +410,8 @@ func (h *browserHandler) renderMoreDirContent(w http.ResponseWriter, r *http.Req
 	})
 }
 
-func (h *browserHandler) download(w http.ResponseWriter, r *http.Request) {
-	user, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
+	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
 	}
@@ -664,12 +447,12 @@ func (h *browserHandler) download(w http.ResponseWriter, r *http.Request) {
 		}
 		defer file.Close()
 
-		h.serveContent(w, r, inode, file, fileMeta)
+		serveContent(w, r, inode, file, fileMeta)
 		return
 	}
 }
 
-func (h *browserHandler) serveSpaceContent(w http.ResponseWriter, r *http.Request, ffs dfs.FS, root string) {
+func (h *Handler) serveSpaceContent(w http.ResponseWriter, r *http.Request, ffs dfs.FS, root string) {
 	var err error
 
 	_, dir := path.Split(root)
@@ -730,16 +513,4 @@ func (h *browserHandler) serveSpaceContent(w http.ResponseWriter, r *http.Reques
 	}
 
 	w.WriteHeader(http.StatusOK)
-}
-
-func (h *browserHandler) serveContent(w http.ResponseWriter, r *http.Request, inode *dfs.INode, file io.ReadSeeker, fileMeta *files.FileMeta) {
-	if fileMeta != nil {
-		w.Header().Set("Etag", fileMeta.Checksum())
-		w.Header().Set("Content-Type", fileMeta.MimeType())
-	}
-
-	w.Header().Set("Expires", time.Now().Add(365*24*time.Hour).UTC().Format(http.TimeFormat))
-	w.Header().Set("Cache-Control", "max-age=31536000")
-
-	http.ServeContent(w, r, inode.Name(), inode.LastModifiedAt(), file)
 }

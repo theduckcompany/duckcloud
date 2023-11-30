@@ -16,6 +16,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
+	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 )
 
@@ -32,7 +33,7 @@ type settingsHandler struct {
 	spaces      spaces.Service
 	users       users.Service
 	uuid        uuid.Service
-	auth        *Authenticator
+	auth        *auth.Authenticator
 }
 
 func newSettingsHandler(
@@ -42,7 +43,7 @@ func newSettingsHandler(
 	davSessions davsessions.Service,
 	spaces spaces.Service,
 	users users.Service,
-	authent *Authenticator,
+	authent *auth.Authenticator,
 ) *settingsHandler {
 	return &settingsHandler{
 		html:        html,
@@ -83,7 +84,7 @@ func (h *settingsHandler) String() string {
 }
 
 func (h *settingsHandler) getSecurityPage(w http.ResponseWriter, r *http.Request) {
-	user, session, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	user, session, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
 	}
@@ -135,7 +136,7 @@ func (h *settingsHandler) renderSecurityPage(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *settingsHandler) getWebDAVForm(w http.ResponseWriter, r *http.Request) {
-	user, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
 	}
@@ -171,7 +172,7 @@ type passwordFormCmd struct {
 }
 
 func (h *settingsHandler) getPasswordForm(w http.ResponseWriter, r *http.Request) {
-	_, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	_, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
 	}
@@ -196,7 +197,7 @@ func (h *settingsHandler) renderPasswordForm(w http.ResponseWriter, r *http.Requ
 func (h *settingsHandler) updatePassword(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	user, session, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	user, session, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
 	}
@@ -240,7 +241,7 @@ func (h *settingsHandler) updatePassword(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *settingsHandler) getGeneralPage(w http.ResponseWriter, r *http.Request) {
-	user, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
 	}
@@ -261,7 +262,7 @@ func (h *settingsHandler) renderGeneralPage(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Request) {
-	user, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
 	}
@@ -295,7 +296,7 @@ func (h *settingsHandler) createDavSession(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Request) {
-	user, session, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	user, session, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
 	}
@@ -319,7 +320,7 @@ func (h *settingsHandler) deleteDavSession(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *settingsHandler) getUsers(w http.ResponseWriter, r *http.Request) {
-	user, session, abort := h.auth.getUserAndSession(w, r, AdminOnly)
+	user, session, abort := h.auth.GetUserAndSession(w, r, auth.AdminOnly)
 	if abort {
 		return
 	}
@@ -368,7 +369,7 @@ func (h *settingsHandler) renderUsersRegistrationForm(w http.ResponseWriter, r *
 }
 
 func (h *settingsHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
-	user, session, abort := h.auth.getUserAndSession(w, r, AdminOnly)
+	user, session, abort := h.auth.GetUserAndSession(w, r, auth.AdminOnly)
 	if abort {
 		return
 	}
@@ -389,7 +390,7 @@ func (h *settingsHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *settingsHandler) createUser(w http.ResponseWriter, r *http.Request) {
-	user, session, abort := h.auth.getUserAndSession(w, r, AdminOnly)
+	user, session, abort := h.auth.GetUserAndSession(w, r, auth.AdminOnly)
 	if abort {
 		return
 	}
@@ -417,7 +418,7 @@ func (h *settingsHandler) createUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *settingsHandler) deleteWebSession(w http.ResponseWriter, r *http.Request) {
-	user, session, abort := h.auth.getUserAndSession(w, r, AdminOnly)
+	user, session, abort := h.auth.GetUserAndSession(w, r, auth.AdminOnly)
 	if abort {
 		return
 	}

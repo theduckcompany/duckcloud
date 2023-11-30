@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
+	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 )
 
@@ -18,7 +19,7 @@ func Test_Home_Page(t *testing.T) {
 		webSessionsMock := websessions.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := newHomeHandler(htmlMock, auth)
 
 		// Authentication
@@ -42,7 +43,7 @@ func Test_Home_Page(t *testing.T) {
 		webSessionsMock := websessions.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := newHomeHandler(htmlMock, auth)
 
 		// Authentication
