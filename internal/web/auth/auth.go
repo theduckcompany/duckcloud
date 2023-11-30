@@ -1,4 +1,4 @@
-package web
+package auth
 
 import (
 	"errors"
@@ -20,7 +20,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 )
 
-type authHandler struct {
+type Handler struct {
 	html html.Writer
 	uuid uuid.Service
 
@@ -31,7 +31,7 @@ type authHandler struct {
 	oauthConsent oauthconsents.Service
 }
 
-func newAuthHandler(
+func NewHandler(
 	tools tools.Tools,
 	htmlWriter html.Writer,
 	auth *Authenticator,
@@ -39,8 +39,8 @@ func newAuthHandler(
 	clients oauthclients.Service,
 	oauthConsent oauthconsents.Service,
 	webSessions websessions.Service,
-) *authHandler {
-	return &authHandler{
+) *Handler {
+	return &Handler{
 		uuid:         tools.UUID(),
 		auth:         auth,
 		html:         htmlWriter,
@@ -51,7 +51,7 @@ func newAuthHandler(
 	}
 }
 
-func (h *authHandler) Register(r chi.Router, mids *router.Middlewares) {
+func (h *Handler) Register(r chi.Router, mids *router.Middlewares) {
 	if mids != nil {
 		r = r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
 	}
@@ -61,11 +61,11 @@ func (h *authHandler) Register(r chi.Router, mids *router.Middlewares) {
 	r.HandleFunc("/consent", h.handleConsentPage)
 }
 
-func (h *authHandler) String() string {
+func (h *Handler) String() string {
 	return "web.auth"
 }
 
-func (h *authHandler) printLoginPage(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) printLoginPage(w http.ResponseWriter, r *http.Request) {
 	currentSession, _ := h.webSession.GetFromReq(r)
 
 	if currentSession != nil {
@@ -77,7 +77,7 @@ func (h *authHandler) printLoginPage(w http.ResponseWriter, r *http.Request) {
 	h.html.WriteHTML(w, r, http.StatusOK, "auth/login.tmpl", nil)
 }
 
-func (h *authHandler) applyLogin(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) applyLogin(w http.ResponseWriter, r *http.Request) {
 	_ = r.ParseForm()
 
 	inputs := map[string]string{}
@@ -132,7 +132,7 @@ func (h *authHandler) applyLogin(w http.ResponseWriter, r *http.Request) {
 	h.chooseRedirection(w, r)
 }
 
-func (h *authHandler) chooseRedirection(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) chooseRedirection(w http.ResponseWriter, r *http.Request) {
 	var client *oauthclients.Client
 	clientID, err := h.uuid.Parse(r.FormValue("client_id"))
 	if err == nil {
@@ -156,10 +156,10 @@ func (h *authHandler) chooseRedirection(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func (h *authHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) handleConsentPage(w http.ResponseWriter, r *http.Request) {
 	_ = r.ParseForm()
 
-	user, session, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	user, session, abort := h.auth.GetUserAndSession(w, r, AnyUser)
 	if abort {
 		return
 	}
@@ -206,7 +206,7 @@ func (h *authHandler) handleConsentPage(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
-func (h *authHandler) printClientErrorPage(w http.ResponseWriter, r *http.Request, err error) {
+func (h *Handler) printClientErrorPage(w http.ResponseWriter, r *http.Request, err error) {
 	reqID, ok := r.Context().Value(middleware.RequestIDKey).(string)
 	if !ok {
 		reqID = "??1?"

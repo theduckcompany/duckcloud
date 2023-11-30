@@ -1,4 +1,4 @@
-package web
+package auth
 
 import (
 	"fmt"
@@ -25,7 +25,7 @@ func Test_Utils_Authenticator(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/foo", nil)
-		user, session, abort := auth.getUserAndSession(w, r, AnyUser)
+		user, session, abort := auth.GetUserAndSession(w, r, AnyUser)
 		assert.Equal(t, &users.ExampleAlice, user)
 		assert.Equal(t, &websessions.AliceWebSessionExample, session)
 		assert.False(t, abort)
@@ -47,7 +47,7 @@ func Test_Utils_Authenticator(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/foo", nil)
-		user, session, abort := auth.getUserAndSession(w, r, AnyUser)
+		user, session, abort := auth.GetUserAndSession(w, r, AnyUser)
 		assert.Nil(t, user)
 		assert.Nil(t, session)
 		assert.True(t, abort)
@@ -63,7 +63,7 @@ func Test_Utils_Authenticator(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/foo", nil)
-		user, session, abort := auth.getUserAndSession(w, r, AnyUser)
+		user, session, abort := auth.GetUserAndSession(w, r, AnyUser)
 		assert.Nil(t, user)
 		assert.Nil(t, session)
 		assert.True(t, abort)
@@ -87,7 +87,7 @@ func Test_Utils_Authenticator(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/foo", nil)
-		user, session, abort := auth.getUserAndSession(w, r, AnyUser)
+		user, session, abort := auth.GetUserAndSession(w, r, AnyUser)
 		assert.Nil(t, user)
 		assert.Nil(t, session)
 		assert.True(t, abort)
@@ -106,7 +106,7 @@ func Test_Utils_Authenticator(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/foo", nil)
-		user, session, abort := auth.getUserAndSession(w, r, AnyUser)
+		user, session, abort := auth.GetUserAndSession(w, r, AnyUser)
 		assert.Nil(t, user)
 		assert.Nil(t, session)
 		assert.True(t, abort)

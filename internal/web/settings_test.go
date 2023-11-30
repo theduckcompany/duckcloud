@@ -21,6 +21,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
+	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 )
 
@@ -32,7 +33,7 @@ func Test_Settings(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
@@ -71,7 +72,7 @@ func Test_Settings(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
@@ -96,7 +97,7 @@ func Test_Settings(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
@@ -136,7 +137,7 @@ func Test_Settings(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
@@ -179,7 +180,7 @@ func Test_Settings(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
@@ -225,7 +226,7 @@ func Test_Settings(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
@@ -262,7 +263,7 @@ func Test_Settings(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
@@ -303,7 +304,7 @@ func Test_Settings(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
@@ -352,7 +353,7 @@ func Test_Settings(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
@@ -404,7 +405,7 @@ func Test_Settings(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
@@ -443,7 +444,7 @@ func Test_Settings(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
@@ -482,7 +483,7 @@ func Test_Settings(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
@@ -517,7 +518,7 @@ func Test_Settings(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
@@ -561,7 +562,7 @@ func Test_Settings(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
@@ -592,7 +593,7 @@ func Test_Settings(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		auth := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication

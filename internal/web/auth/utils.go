@@ -1,4 +1,4 @@
-package web
+package auth
 
 import (
 	"errors"
@@ -27,7 +27,7 @@ func NewAuthenticator(webSessions websessions.Service, users users.Service, html
 	return &Authenticator{webSessions, users, html}
 }
 
-func (a *Authenticator) getUserAndSession(w http.ResponseWriter, r *http.Request, access AccessType) (*users.User, *websessions.Session, bool) {
+func (a *Authenticator) GetUserAndSession(w http.ResponseWriter, r *http.Request, access AccessType) (*users.User, *websessions.Session, bool) {
 	currentSession, err := a.webSessions.GetFromReq(r)
 	switch {
 	case err == nil:
@@ -62,4 +62,8 @@ func (a *Authenticator) getUserAndSession(w http.ResponseWriter, r *http.Request
 	}
 
 	return user, currentSession, false
+}
+
+func (a *Authenticator) Logout(w http.ResponseWriter, r *http.Request) {
+	a.webSessions.Logout(r, w)
 }

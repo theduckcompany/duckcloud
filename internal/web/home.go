@@ -5,17 +5,18 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
+	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 )
 
 type homeHandler struct {
 	html html.Writer
-	auth *Authenticator
+	auth *auth.Authenticator
 }
 
 func newHomeHandler(
 	html html.Writer,
-	auth *Authenticator,
+	auth *auth.Authenticator,
 ) *homeHandler {
 	return &homeHandler{html, auth}
 }
@@ -34,11 +35,11 @@ func (h *homeHandler) String() string {
 }
 
 func (h *homeHandler) logout(w http.ResponseWriter, r *http.Request) {
-	h.auth.webSessions.Logout(r, w)
+	h.auth.Logout(w, r)
 }
 
 func (h *homeHandler) getHome(w http.ResponseWriter, r *http.Request) {
-	_, _, abort := h.auth.getUserAndSession(w, r, AnyUser)
+	_, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
 	}
