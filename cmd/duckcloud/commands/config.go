@@ -130,6 +130,7 @@ func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
 		Listener: router.Config{
 			Addr:      net.JoinHostPort(cfg.HTTPHost, strconv.Itoa(cfg.HTTPPort)),
 			TLS:       isTLSEnabled,
+			Secure:    cfg.Dev == false,
 			CertFile:  cfg.TLSCert,
 			KeyFile:   cfg.TLSKey,
 			HostNames: cfg.HTTPHostnames,

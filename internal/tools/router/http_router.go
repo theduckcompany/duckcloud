@@ -21,6 +21,7 @@ type API struct{}
 type Config struct {
 	Addr      string
 	TLS       bool
+	Secure    bool
 	CertFile  string
 	KeyFile   string
 	HostNames []string
@@ -122,11 +123,17 @@ func createHandler(cfg Config, routes []Registerer, mids *Middlewares) (chi.Rout
 		w.WriteHeader(http.StatusFound)
 	})
 
-	if cfg.TLS {
+	if cfg.Secure {
 		r.Use(func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				next.ServeHTTP(w, r)
 				w.Header().Set("Strict-Transport-Security", "max-age=15768000; preload")
+				w.Header().Set("X-Frame-Options", "DENY")
+				w.Header().Set("X-Content-Type-Options", "nosniff")
+				w.Header().Set("Referrer-Policy", "same-origin")
+				w.Header().Set("Content-Security-Policy", "default-src 'self' 'unsafe-inline'")
+				w.Header().Set("Permissions-Policy", "")
+
+				next.ServeHTTP(w, r)
 			})
 		})
 	}
