@@ -484,33 +484,8 @@ func Test_Browser_Page(t *testing.T) {
 
 		spaceFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace)
 
 		spaceFSMock.On("Remove", mock.Anything, "/foo/bar").Return(nil).Once()
-
-		// Then look for the path inside this space
-		spaceFSMock.On("Get", mock.Anything, "/foo").Return(&dfs.ExampleAliceRoot, nil).Once()
-
-		spaceFSMock.On("ListDir", mock.Anything, "/foo", &storage.PaginateCmd{
-			StartAfter: map[string]string{"name": ""},
-			Limit:      PageSize,
-		}).Return([]dfs.INode{dfs.ExampleAliceFile}, nil).Once()
-
-		spacesMock.On("GetAllUserSpaces", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).
-			Return([]spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace}, nil).Once()
-
-		spaceID := string(spaces.ExampleAlicePersonalSpace.ID())
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
-			"host":     "example.com",
-			"fullPath": "/foo",
-			"space":    &spaces.ExampleAlicePersonalSpace,
-			"breadcrumb": []breadCrumbElement{
-				{Name: spaces.ExampleAlicePersonalSpace.Name(), Href: "/browser/" + spaceID, Current: false},
-				{Name: "foo", Href: "/browser/" + spaceID + "/foo", Current: true},
-			},
-			"spaces": []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
-			"inodes": []dfs.INode{dfs.ExampleAliceFile},
-		}).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodDelete, "/browser/space-id/foo/bar", nil)
@@ -520,7 +495,8 @@ func Test_Browser_Page(t *testing.T) {
 
 		res := w.Result()
 		defer res.Body.Close()
-		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Equal(t, http.StatusNoContent, res.StatusCode)
+		assert.Equal(t, "refreshFolder", res.Header.Get("HX-Trigger"))
 	})
 
 	t.Run("getCreateDirModel success", func(t *testing.T) {
@@ -677,35 +653,6 @@ func Test_Browser_Page(t *testing.T) {
 			CreatedBy: &users.ExampleAlice,
 		}).Return(&dfs.ExampleAliceDir, nil).Once()
 
-		// Render
-		spaceFSMock.On("Get", mock.Anything, "/foo").Return(&dfs.ExampleAliceRoot, nil).Once()
-		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace).Once()
-		spaceFSMock.On("ListDir", mock.Anything, "/foo", &storage.PaginateCmd{
-			StartAfter: map[string]string{"name": ""},
-			Limit:      PageSize,
-		}).Return([]dfs.INode{dfs.ExampleAliceFile, dfs.ExampleAliceFile2}, nil).Once()
-		spacesMock.On("GetAllUserSpaces", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).
-			Return([]spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace}, nil).Once()
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/content.tmpl", map[string]any{
-			"breadcrumb": []breadCrumbElement{
-				{
-					Name:    "Alice's Space",
-					Href:    "/browser/e97b60f7-add2-43e1-a9bd-e2dac9ce69ec",
-					Current: false,
-				},
-				{
-					Name:    "foo",
-					Href:    "/browser/e97b60f7-add2-43e1-a9bd-e2dac9ce69ec/foo",
-					Current: true,
-				},
-			},
-			"space":    &spaces.ExampleAlicePersonalSpace,
-			"spaces":   []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
-			"fullPath": "/foo",
-			"host":     "example.com",
-			"inodes":   []dfs.INode{dfs.ExampleAliceFile, dfs.ExampleAliceFile2},
-		})
-
 		w := httptest.NewRecorder()
 		form := url.Values{}
 		form.Add("dirPath", "/foo")
@@ -717,6 +664,11 @@ func Test_Browser_Page(t *testing.T) {
 		srv := chi.NewRouter()
 		handler.Register(srv, nil)
 		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusCreated, res.StatusCode)
+		assert.Equal(t, "refreshFolder", res.Header.Get("HX-Trigger"))
 	})
 
 	t.Run("handleCreateDirReq with an authentication error", func(t *testing.T) {
@@ -1073,35 +1025,6 @@ func Test_Browser_Page(t *testing.T) {
 
 		spaceFSMock.On("Rename", mock.Anything, &dfs.ExampleAliceFile, "new-name.jpg").Return(&dfs.ExampleAliceFile, nil).Once()
 
-		// Render dir content
-		spaceFSMock.On("Get", mock.Anything, "/foo").Return(&dfs.ExampleAliceDir, nil).Once()
-		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace).Once()
-		spaceFSMock.On("ListDir", mock.Anything, "/foo", &storage.PaginateCmd{
-			StartAfter: map[string]string{"name": ""},
-			Limit:      PageSize,
-		}).Return([]dfs.INode{dfs.ExampleAliceFile, dfs.ExampleAliceFile2}, nil).Once()
-		spacesMock.On("GetAllUserSpaces", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).
-			Return([]spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace}, nil).Once()
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/content.tmpl", map[string]any{
-			"breadcrumb": []breadCrumbElement{
-				{
-					Name:    "Alice's Space",
-					Href:    "/browser/e97b60f7-add2-43e1-a9bd-e2dac9ce69ec",
-					Current: false,
-				},
-				{
-					Name:    "foo",
-					Href:    "/browser/e97b60f7-add2-43e1-a9bd-e2dac9ce69ec/foo",
-					Current: true,
-				},
-			},
-			"space":    &spaces.ExampleAlicePersonalSpace,
-			"spaces":   []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
-			"fullPath": "/foo",
-			"host":     "example.com",
-			"inodes":   []dfs.INode{dfs.ExampleAliceFile, dfs.ExampleAliceFile2},
-		})
-
 		w := httptest.NewRecorder()
 		form := url.Values{}
 		form.Add("path", "/foo/bar.jpg")
@@ -1117,6 +1040,7 @@ func Test_Browser_Page(t *testing.T) {
 		res := w.Result()
 		defer res.Body.Close()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Equal(t, "refreshFolder", res.Header.Get("HX-Trigger"))
 	})
 
 	t.Run("handleRenameReq with a rename error", func(t *testing.T) {
