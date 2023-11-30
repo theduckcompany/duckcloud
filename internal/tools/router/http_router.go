@@ -131,6 +131,7 @@ func createHandler(cfg Config, routes []Registerer, mids *Middlewares) (chi.Rout
 				w.Header().Set("X-Content-Type-Options", "nosniff")
 				w.Header().Set("Referrer-Policy", "same-origin")
 				w.Header().Set("Content-Security-Policy", "default-src 'self' 'unsafe-inline'")
+				w.Header().Set("Permissions-Policy", "")
 
 				next.ServeHTTP(w, r)
 			})

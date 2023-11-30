@@ -86,21 +86,21 @@ func (s *MasterKeyService) generateMasterKey(ctx context.Context) error {
 }
 
 func (s *MasterKeyService) loadPassword(ctx context.Context) (*secret.Key, error) {
-	// if s.cfg.DevMode {
-	passwordKey, err := secret.KeyFromBase64(defaultPasswordKey)
+	if s.cfg.DevMode {
+		passwordKey, err := secret.KeyFromBase64(defaultPasswordKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load the default password key: %w", err)
+		}
+
+		return passwordKey, nil
+	}
+
+	passwordKey, err := s.loadPasswordFromSystemdCreds(ctx, s.fs)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load the default password key: %w", err)
+		return nil, fmt.Errorf("failed to load password: %w", err)
 	}
 
 	return passwordKey, nil
-	// }
-
-	// passwordKey, err := s.loadPasswordFromSystemdCreds(ctx, s.fs)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to load password: %w", err)
-	// }
-
-	// return passwordKey, nil
 }
 
 func (s *MasterKeyService) loadPasswordFromSystemdCreds(ctx context.Context, fs afero.Fs) (*secret.Key, error) {
