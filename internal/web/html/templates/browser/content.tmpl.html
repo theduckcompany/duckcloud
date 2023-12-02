@@ -28,7 +28,6 @@
   </div>
 
   <br>
-
   <div class="row d-flex justify-content-between user-select-none">
     <div class="col-md-7">Name</div>
     <div class="col-md-5 row text-center text-muted d-none d-md-flex d-lg-flex d-xxl-flex d-xl-flex">
@@ -40,8 +39,10 @@
 
   <hr class="mb-1">
 
+
   {{template "browser/rows.tmpl" (.Rows)}}
 </section>
+
 <script type="module">
   import {Uppy, XHRUpload, StatusBar} from "/assets/js/uppy.min.mjs"
   let client = new Uppy().use(XHRUpload, {

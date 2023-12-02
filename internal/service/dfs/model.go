@@ -29,11 +29,7 @@ func (t PathCmd) String() string {
 // "/foo".Contains("/foo/") -> true
 // "/foo/bar".Contains("/foo") -> false
 // "/foo".Contains("/foo/bar") -> true
-func (t *PathCmd) Contains(p *PathCmd) bool {
-	if p == nil || t == nil {
-		return false
-	}
-
+func (t PathCmd) Contains(p PathCmd) bool {
 	if t.Space != p.Space {
 		return false
 	}
@@ -138,13 +134,13 @@ type INode struct {
 	fileID         *uuid.UUID
 }
 
-func (n *INode) ID() uuid.UUID             { return n.id }
-func (n *INode) Parent() *uuid.UUID        { return n.parent }
-func (n *INode) Name() string              { return n.name }
-func (n *INode) SpaceID() uuid.UUID        { return n.spaceID }
-func (n *INode) Size() uint64              { return n.size }
-func (n *INode) CreatedAt() time.Time      { return n.createdAt }
-func (n *INode) CreatedBy() uuid.UUID      { return n.createdBy }
-func (n *INode) LastModifiedAt() time.Time { return n.lastModifiedAt }
-func (n *INode) FileID() *uuid.UUID        { return n.fileID }
-func (n *INode) IsDir() bool               { return n.fileID == nil }
+func (n INode) ID() uuid.UUID             { return n.id }
+func (n INode) Parent() *uuid.UUID        { return n.parent }
+func (n INode) Name() string              { return n.name }
+func (n INode) SpaceID() uuid.UUID        { return n.spaceID }
+func (n INode) Size() uint64              { return n.size }
+func (n INode) CreatedAt() time.Time      { return n.createdAt }
+func (n INode) CreatedBy() uuid.UUID      { return n.createdBy }
+func (n INode) LastModifiedAt() time.Time { return n.lastModifiedAt }
+func (n INode) FileID() *uuid.UUID        { return n.fileID }
+func (n INode) IsDir() bool               { return n.fileID == nil }

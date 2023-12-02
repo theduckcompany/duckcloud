@@ -58,15 +58,20 @@ func Test_Templates(t *testing.T) {
 			Name:   "rows",
 			Layout: false,
 			Template: &RowsTemplate{
-				Folder: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
-				Inodes: []dfs.INode{dfs.ExampleAliceFile, dfs.ExampleAliceFile2},
+				Folder:        &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+				Inodes:        []dfs.INode{dfs.ExampleAliceFile, dfs.ExampleAliceFile2},
+				ContentTarget: "#content",
 			},
 		},
 		{
 			Name:   "breadcrumb",
 			Layout: false,
 			Template: &BreadCrumbTemplate{
-				Path: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+				Elements: []BreadCrumbElement{
+					{Name: "My Files", Href: "https://localhost/", Current: false},
+					{Name: "foo", Href: "https://localhost/foo", Current: true},
+				},
+				Target: "#content",
 			},
 		},
 		{
@@ -77,6 +82,33 @@ func Test_Templates(t *testing.T) {
 				Inodes:       []dfs.INode{dfs.ExampleAliceFile, dfs.ExampleAliceFile2},
 				CurrentSpace: &spaces.ExampleAlicePersonalSpace,
 				AllSpaces:    []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
+			},
+		},
+		{
+			Name:   "move modal",
+			Layout: false,
+			Template: &MoveTemplate{
+				SrcPath:  &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+				SrcInode: &dfs.ExampleAliceDir,
+				DstPath:  &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar"},
+				FolderContent: map[dfs.PathCmd]dfs.INode{
+					{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/file1.jpg"}: dfs.ExampleAliceFile,
+					{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/file2.jpg"}: dfs.ExampleAliceFile2,
+				},
+				PageSize: 10,
+			},
+		},
+		{
+			Name:   "move rows",
+			Layout: false,
+			Template: &MoveRowsTemplate{
+				SrcPath: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+				DstPath: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar"},
+				FolderContent: map[dfs.PathCmd]dfs.INode{
+					{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/file1.jpg"}: dfs.ExampleAliceFile,
+					{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/file2.jpg"}: dfs.ExampleAliceFile2,
+				},
+				PageSize: 10,
 			},
 		},
 	}
@@ -99,6 +131,61 @@ func Test_Templates(t *testing.T) {
 				require.NoError(t, err)
 				t.Log(string(body))
 			}
+		})
+	}
+}
+
+func TestMoveTemplateBreadcrumb(t *testing.T) {
+	tests := []struct {
+		Name     string
+		Path     *dfs.PathCmd
+		Expected []BreadCrumbElement
+	}{
+		{
+			Name: "Simple",
+			Path: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar"},
+			Expected: []BreadCrumbElement{
+				{
+					Name:    spaces.ExampleAlicePersonalSpace.Name(),
+					Href:    "/browser/move?dstPath=%2F&spaceID=e97b60f7-add2-43e1-a9bd-e2dac9ce69ec&srcPath=%2Ffoo",
+					Current: false,
+				},
+				{
+					Name:    "bar",
+					Href:    "/browser/move?dstPath=%2Fbar&spaceID=e97b60f7-add2-43e1-a9bd-e2dac9ce69ec&srcPath=%2Ffoo",
+					Current: true,
+				},
+			},
+		},
+		{
+			Name: "Space root",
+			Path: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/"},
+			Expected: []BreadCrumbElement{
+				{
+					Name:    spaces.ExampleAlicePersonalSpace.Name(),
+					Href:    "/browser/move?dstPath=%2F&spaceID=e97b60f7-add2-43e1-a9bd-e2dac9ce69ec&srcPath=%2Ffoo",
+					Current: true,
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			moveTemplate := MoveTemplate{
+				SrcPath:  &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+				SrcInode: &dfs.ExampleAliceDir,
+				DstPath:  test.Path, // The breadcrumb is created based on the destination path.
+				FolderContent: map[dfs.PathCmd]dfs.INode{
+					{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/file1.jpg"}: dfs.ExampleAliceFile,
+					{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/file2.jpg"}: dfs.ExampleAliceFile2,
+				},
+				PageSize: 10,
+			}
+
+			res := moveTemplate.Breadcrumb()
+
+			assert.Equal(t, test.Expected, res.Elements)
 		})
 	}
 }

@@ -117,14 +117,57 @@ func Test_Browser_Page(t *testing.T) {
 		}).Return([]dfs.INode{dfs.ExampleAliceFile}, nil).Once()
 
 		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &browser.ContentTemplate{
-			Folder:       &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
-			Inodes:       []dfs.INode{dfs.ExampleAliceFile},
-			CurrentSpace: &spaces.ExampleAlicePersonalSpace,
-			AllSpaces:    []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
+			Folder:        &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
+			Inodes:        []dfs.INode{dfs.ExampleAliceFile},
+			CurrentSpace:  &spaces.ExampleAlicePersonalSpace,
+			AllSpaces:     []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
+			ContentTarget: "#content",
 		}).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/browser/space-id/foo/bar", nil)
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+	})
+
+	t.Run("getBrowserContent success with dir and a last attribute", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		filesMock := files.NewMockService(t)
+		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
+		fsMock := dfs.NewMockService(t)
+		handler := NewHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
+
+		// Authentication
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
+		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+
+		// Get the space from the url
+		tools.UUIDMock.On("Parse", "space-id").Return(uuid.UUID("space-id"), nil).Once()
+		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("space-id")).
+			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
+
+		fsMock.On("ListDir", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}, &storage.PaginateCmd{
+			StartAfter: map[string]string{"name": "some-filename"},
+			Limit:      PageSize,
+		}).Return([]dfs.INode{dfs.ExampleAliceFile}, nil).Once()
+
+		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &browser.RowsTemplate{
+			Folder:        &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
+			Inodes:        []dfs.INode{dfs.ExampleAliceFile},
+			ContentTarget: "#content",
+		}).Once()
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/browser/space-id/foo/bar?last=some-filename", nil)
 		srv := chi.NewRouter()
 		handler.Register(srv, nil)
 		srv.ServeHTTP(w, r)
