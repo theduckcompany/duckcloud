@@ -199,8 +199,12 @@ func (s *LocalFS) Remove(ctx context.Context, path string) error {
 		return fmt.Errorf("failed to Get inode: %w", err)
 	}
 
+	return s.removeINode(ctx, inode)
+}
+
+func (s *LocalFS) removeINode(ctx context.Context, inode *INode) error {
 	now := s.clock.Now()
-	err = s.storage.Patch(ctx, inode.ID(), map[string]any{
+	err := s.storage.Patch(ctx, inode.ID(), map[string]any{
 		"deleted_at":       now,
 		"last_modified_at": now,
 	})

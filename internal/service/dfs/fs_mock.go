@@ -234,6 +234,20 @@ func (_m *MockFS) createDir(ctx context.Context, createdBy *users.User, parent *
 	return r0, r1
 }
 
+// removeINode provides a mock function with given fields: ctx, inode
+func (_m *MockFS) removeINode(ctx context.Context, inode *INode) error {
+	ret := _m.Called(ctx, inode)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *INode) error); ok {
+		r0 = rf(ctx, inode)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewMockFS creates a new instance of MockFS. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockFS(t interface {

@@ -21,7 +21,6 @@ import (
 type FS interface {
 	Space() *spaces.Space
 	CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, error)
-	createDir(ctx context.Context, createdBy *users.User, parent *INode, name string) (*INode, error)
 	ListDir(ctx context.Context, dirPath string, cmd *storage.PaginateCmd) ([]INode, error)
 	Remove(ctx context.Context, path string) error
 	Rename(ctx context.Context, inode *INode, newName string) (*INode, error)
@@ -29,6 +28,8 @@ type FS interface {
 	Get(ctx context.Context, path string) (*INode, error)
 	Upload(ctx context.Context, cmd *UploadCmd) error
 	Download(ctx context.Context, filePath string) (io.ReadSeekCloser, error)
+	createDir(ctx context.Context, createdBy *users.User, parent *INode, name string) (*INode, error)
+	removeINode(ctx context.Context, inode *INode) error
 }
 
 //go:generate mockery --name Service
@@ -51,10 +52,12 @@ func Init(db *sql.DB, spaces spaces.Service, files files.Service, scheduler sche
 	storage := newSqlStorage(db, tools)
 	inodes := inodes.Init(scheduler, tools, db)
 
+	svc := NewFSService(storage, files, spaces, scheduler, tools)
+
 	return Result{
-		Service:                      NewFSService(storage, files, spaces, scheduler, tools),
+		Service:                      svc,
 		FSGCTask:                     NewFSGGCTaskRunner(storage, files, spaces, tools),
-		FSMoveTask:                   NewFSMoveTaskRunner(inodes, spaces, users, scheduler),
+		FSMoveTask:                   NewFSMoveTaskRunner(svc, storage, spaces, users, scheduler),
 		FSRefreshSizeTask:            NewFSRefreshSizeTaskRunner(inodes, files),
 		FSRemoveDuplicateFilesRunner: NewFSRemoveDuplicateFileRunner(inodes, files, scheduler),
 	}, nil
