@@ -8,7 +8,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
@@ -38,7 +37,6 @@ type Storage interface {
 
 type LocalFS struct {
 	storage   Storage
-	inodes    inodes.Service
 	files     files.Service
 	space     *spaces.Space
 	spaces    spaces.Service
@@ -49,14 +47,13 @@ type LocalFS struct {
 
 func newLocalFS(
 	storage Storage,
-	inodes inodes.Service,
 	files files.Service,
 	space *spaces.Space,
 	spaces spaces.Service,
 	tasks scheduler.Service,
 	tools tools.Tools,
 ) *LocalFS {
-	return &LocalFS{storage, inodes, files, space, spaces, tasks, tools.Clock(), tools.UUID()}
+	return &LocalFS{storage, files, space, spaces, tasks, tools.Clock(), tools.UUID()}
 }
 
 func (s *LocalFS) Space() *spaces.Space {

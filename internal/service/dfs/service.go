@@ -38,7 +38,7 @@ func NewFSService(storage Storage, inodes inodes.Service, files files.Service, s
 }
 
 func (s *FSService) GetSpaceFS(space *spaces.Space) FS {
-	return newLocalFS(s.storage, s.inodes, s.files, space, s.spaces, s.scheduler, s.tools)
+	return newLocalFS(s.storage, s.files, space, s.spaces, s.scheduler, s.tools)
 }
 
 func (s *FSService) RemoveFS(ctx context.Context, space *spaces.Space) error {
