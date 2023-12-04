@@ -66,10 +66,7 @@ func (s *LocalFS) Space() *spaces.Space {
 func (s *LocalFS) ListDir(ctx context.Context, path string, cmd *storage.PaginateCmd) ([]INode, error) {
 	path = CleanPath(path)
 
-	dir, err := s.inodes.Get(ctx, &inodes.PathCmd{
-		Space: s.space,
-		Path:  path,
-	})
+	dir, err := s.Get(ctx, path)
 	if errors.Is(err, errs.ErrNotFound) {
 		return nil, errs.NotFound(err)
 	}
@@ -233,10 +230,7 @@ func (s *LocalFS) Move(ctx context.Context, cmd *MoveCmd) error {
 		return errs.Validation(err)
 	}
 
-	sourceINode, err := s.inodes.Get(ctx, &inodes.PathCmd{
-		Space: s.space,
-		Path:  CleanPath(cmd.SrcPath),
-	})
+	sourceINode, err := s.Get(ctx, CleanPath(cmd.SrcPath))
 	if err != nil {
 		return fmt.Errorf("invalid source: %w", err)
 	}
