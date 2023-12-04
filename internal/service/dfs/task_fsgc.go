@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
@@ -18,21 +17,21 @@ import (
 const gcBatchSize = 10
 
 type FSGGCTaskRunner struct {
-	inodes inodes.Service
-	files  files.Service
-	spaces spaces.Service
-	cancel context.CancelFunc
-	clock  clock.Clock
-	quit   chan struct{}
+	storage Storage
+	files   files.Service
+	spaces  spaces.Service
+	cancel  context.CancelFunc
+	clock   clock.Clock
+	quit    chan struct{}
 }
 
 func NewFSGGCTaskRunner(
-	inodes inodes.Service,
+	storage Storage,
 	files files.Service,
 	spaces spaces.Service,
 	tools tools.Tools,
 ) *FSGGCTaskRunner {
-	return &FSGGCTaskRunner{inodes, files, spaces, nil, tools.Clock(), make(chan struct{})}
+	return &FSGGCTaskRunner{storage, files, spaces, nil, tools.Clock(), make(chan struct{})}
 }
 
 func (r *FSGGCTaskRunner) Name() string { return "fs-gc" }
@@ -43,7 +42,7 @@ func (r *FSGGCTaskRunner) Run(ctx context.Context, rawArgs json.RawMessage) erro
 
 func (r *FSGGCTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSGCArgs) error {
 	for {
-		toDelete, err := r.inodes.GetAllDeleted(ctx, gcBatchSize)
+		toDelete, err := r.storage.GetAllDeleted(ctx, gcBatchSize)
 		if err != nil {
 			return fmt.Errorf("failed to GetAllDeleted: %w", err)
 		}
@@ -63,9 +62,9 @@ func (r *FSGGCTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSGCArgs)
 	}
 }
 
-func (r *FSGGCTaskRunner) deleteDirINode(ctx context.Context, inode *inodes.INode, deletionDate time.Time) error {
+func (r *FSGGCTaskRunner) deleteDirINode(ctx context.Context, inode *INode, deletionDate time.Time) error {
 	for {
-		childs, err := r.inodes.Readdir(ctx, inode, &storage.PaginateCmd{Limit: gcBatchSize})
+		childs, err := r.storage.GetAllChildrens(ctx, inode.ID(), &storage.PaginateCmd{Limit: gcBatchSize})
 		if err != nil {
 			return fmt.Errorf("failed to Readdir: %w", err)
 		}
@@ -82,7 +81,7 @@ func (r *FSGGCTaskRunner) deleteDirINode(ctx context.Context, inode *inodes.INod
 		}
 	}
 
-	err := r.inodes.HardDelete(ctx, inode)
+	err := r.storage.HardDelete(ctx, inode.id)
 	if err != nil {
 		return fmt.Errorf("failed to HardDelete: %w", err)
 	}
@@ -90,7 +89,7 @@ func (r *FSGGCTaskRunner) deleteDirINode(ctx context.Context, inode *inodes.INod
 	return nil
 }
 
-func (j *FSGGCTaskRunner) deleteINode(ctx context.Context, inode *inodes.INode, deletionDate time.Time) error {
+func (j *FSGGCTaskRunner) deleteINode(ctx context.Context, inode *INode, deletionDate time.Time) error {
 	// XXX:MULTI-WRITE
 	//
 	// This file have severa consecutive writes but they are all idempotent and the
@@ -99,12 +98,12 @@ func (j *FSGGCTaskRunner) deleteINode(ctx context.Context, inode *inodes.INode, 
 		return j.deleteDirINode(ctx, inode, deletionDate)
 	}
 
-	err := j.inodes.HardDelete(ctx, inode)
+	err := j.storage.HardDelete(ctx, inode.id)
 	if err != nil {
 		return fmt.Errorf("failed to HardDelete: %w", err)
 	}
 
-	inodes, err := j.inodes.GetAllInodesWithFileID(ctx, *inode.FileID())
+	inodes, err := j.storage.GetAllInodesWithFileID(ctx, *inode.FileID())
 	if err != nil {
 		return fmt.Errorf("failed to GetAllINodesWithFileID: %w", err)
 	}
