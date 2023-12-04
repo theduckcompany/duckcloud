@@ -325,15 +325,12 @@ func (s *LocalFS) Upload(ctx context.Context, cmd *UploadCmd) error {
 
 	dirPath, fileName := path.Split(filePath)
 
-	dir, err := s.inodes.Get(ctx, &inodes.PathCmd{
-		Space: s.space,
-		Path:  dirPath,
-	})
+	dir, err := s.Get(ctx, dirPath)
 	if err != nil {
 		return fmt.Errorf("failed to get the dir: %w", err)
 	}
 
-	fileID, err := s.files.Upload(ctx, cmd.Content)
+	fileMeta, err := s.files.Upload(ctx, cmd.Content)
 	if err != nil {
 		return fmt.Errorf("failed to Create file: %w", err)
 	}
@@ -341,20 +338,25 @@ func (s *LocalFS) Upload(ctx context.Context, cmd *UploadCmd) error {
 	ctx = context.WithoutCancel(ctx)
 	now := s.clock.Now()
 
-	// XXX:MULTI-WRITE
-	//
-	inode, err := s.inodes.CreateFile(ctx, &inodes.CreateFileCmd{
-		Space:      s.space,
-		Parent:     dir,
-		Name:       fileName,
-		File:       fileID,
-		UploadedAt: now,
-		UploadedBy: cmd.UploadedBy,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to inodes.CreateFile: %w", err)
+	inode := INode{
+		id:             s.uuid.New(),
+		parent:         ptr.To(dir.ID()),
+		spaceID:        s.space.ID(),
+		size:           0,
+		name:           fileName,
+		createdAt:      now,
+		createdBy:      cmd.UploadedBy.ID(),
+		lastModifiedAt: now,
+		fileID:         ptr.To(fileMeta.ID()),
 	}
 
+	err = s.storage.Save(ctx, &inode)
+	if err != nil {
+		return errs.Internal(fmt.Errorf("failed to Save: %w", err))
+	}
+
+	// XXX:MULTI-WRITE
+	//
 	err = s.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
 		INode:      inode.ID(),
 		ModifiedAt: now,

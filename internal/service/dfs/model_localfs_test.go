@@ -407,28 +407,23 @@ func Test_LocalFS(t *testing.T) {
 
 		content := "Hello, World!"
 
-		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Space: &spaces.ExampleAlicePersonalSpace,
-			Path:  "/foo/",
-		}).Return(&inodes.ExampleAliceDir, nil).Once()
+		// Get /foo
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&ExampleAliceDir, nil).Once()
+
 		filesMock.On("Upload", mock.Anything, bytes.NewBufferString(content)).Return(&files.ExampleFile1, nil).Once()
-		toolsMock.ClockMock.On("Now").Return(now).Once()
-		inodesMock.On("CreateFile", mock.Anything, &inodes.CreateFileCmd{
-			Space:      spaceFS.space,
-			Parent:     &inodes.ExampleAliceDir,
-			Name:       "bar.txt",
-			File:       &files.ExampleFile1,
-			UploadedAt: now,
-			UploadedBy: &users.ExampleAlice,
-		}).Return(&inodes.ExampleAliceFile, nil).Once()
+		toolsMock.ClockMock.On("Now").Return(ExampleAliceNewFile.createdAt).Once()
+		toolsMock.UUIDMock.On("New").Return(ExampleAliceNewFile.ID()).Once()
+
+		storageMock.On("Save", mock.Anything, &ExampleAliceNewFile).Return(nil).Once()
 
 		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
-			INode:      ExampleAliceFile.ID(),
-			ModifiedAt: now,
+			INode:      ExampleAliceNewFile.ID(),
+			ModifiedAt: ExampleAliceNewFile.createdAt,
 		}).Return(nil).Once()
 
 		err := spaceFS.Upload(ctx, &UploadCmd{
-			FilePath:   "foo/bar.txt",
+			FilePath:   "foo/new.pdf",
 			Content:    bytes.NewBufferString(content),
 			UploadedBy: &users.ExampleAlice,
 		})
@@ -451,6 +446,120 @@ func Test_LocalFS(t *testing.T) {
 		})
 		assert.ErrorIs(t, err, errs.ErrValidation)
 		assert.EqualError(t, err, "validation: Content: cannot be blank.")
+	})
+
+	t.Run("Upload with an non existing directory", func(t *testing.T) {
+		inodesMock := inodes.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		spaceFS := newLocalFS(storageMock, inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
+
+		content := "Hello, World!"
+
+		// Get /foo
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errs.ErrNotFound).Once()
+
+		err := spaceFS.Upload(ctx, &UploadCmd{
+			FilePath:   "foo/new.pdf",
+			Content:    bytes.NewBufferString(content),
+			UploadedBy: &users.ExampleAlice,
+		})
+		assert.ErrorIs(t, err, errs.ErrNotFound)
+	})
+
+	t.Run("Upload with a file upload error", func(t *testing.T) {
+		inodesMock := inodes.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		spaceFS := newLocalFS(storageMock, inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
+
+		content := "Hello, World!"
+
+		// Get /foo
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&ExampleAliceDir, nil).Once()
+
+		filesMock.On("Upload", mock.Anything, bytes.NewBufferString(content)).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
+
+		err := spaceFS.Upload(ctx, &UploadCmd{
+			FilePath:   "foo/new.pdf",
+			Content:    bytes.NewBufferString(content),
+			UploadedBy: &users.ExampleAlice,
+		})
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
+	})
+
+	t.Run("Upload with a Save error", func(t *testing.T) {
+		inodesMock := inodes.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		spaceFS := newLocalFS(storageMock, inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
+
+		content := "Hello, World!"
+
+		// Get /foo
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&ExampleAliceDir, nil).Once()
+
+		filesMock.On("Upload", mock.Anything, bytes.NewBufferString(content)).Return(&files.ExampleFile1, nil).Once()
+		toolsMock.ClockMock.On("Now").Return(ExampleAliceNewFile.createdAt).Once()
+		toolsMock.UUIDMock.On("New").Return(ExampleAliceNewFile.ID()).Once()
+
+		storageMock.On("Save", mock.Anything, &ExampleAliceNewFile).Return(fmt.Errorf("some-error")).Once()
+
+		err := spaceFS.Upload(ctx, &UploadCmd{
+			FilePath:   "foo/new.pdf",
+			Content:    bytes.NewBufferString(content),
+			UploadedBy: &users.ExampleAlice,
+		})
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
+	})
+
+	t.Run("Upload with a RegisterFSRefreshSizeTask", func(t *testing.T) {
+		inodesMock := inodes.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		spaceFS := newLocalFS(storageMock, inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
+
+		content := "Hello, World!"
+
+		// Get /foo
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&ExampleAliceDir, nil).Once()
+
+		filesMock.On("Upload", mock.Anything, bytes.NewBufferString(content)).Return(&files.ExampleFile1, nil).Once()
+		toolsMock.ClockMock.On("Now").Return(ExampleAliceNewFile.createdAt).Once()
+		toolsMock.UUIDMock.On("New").Return(ExampleAliceNewFile.ID()).Once()
+
+		storageMock.On("Save", mock.Anything, &ExampleAliceNewFile).Return(nil).Once()
+
+		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
+			INode:      ExampleAliceNewFile.ID(),
+			ModifiedAt: ExampleAliceNewFile.createdAt,
+		}).Return(errs.Internal(fmt.Errorf("some-error"))).Once()
+
+		err := spaceFS.Upload(ctx, &UploadCmd{
+			FilePath:   "foo/new.pdf",
+			Content:    bytes.NewBufferString(content),
+			UploadedBy: &users.ExampleAlice,
+		})
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("Move success", func(t *testing.T) {
