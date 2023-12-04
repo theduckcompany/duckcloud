@@ -127,8 +127,8 @@ func (s *LocalFS) findUniqueName(ctx context.Context, inode *INode, newName stri
 			name = fmt.Sprintf("%s (%d)%s", base, loop, ext)
 		}
 
-		_, err := s.inodes.GetByNameAndParent(ctx, name, *inode.Parent())
-		if errors.Is(err, errs.ErrNotFound) {
+		_, err := s.storage.GetByNameAndParent(ctx, name, *inode.Parent())
+		if errors.Is(err, errNotFound) {
 			return name, nil
 		}
 
@@ -373,7 +373,7 @@ func (s *LocalFS) createDir(ctx context.Context, createdBy *users.User, parent *
 
 	res, err := s.storage.GetByNameAndParent(ctx, name, parent.ID())
 	if err != nil && !errors.Is(err, errNotFound) {
-		return nil, fmt.Errorf("failed to GetByNameAndParent: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to GetByNameAndParent: %w", err))
 	}
 
 	if res != nil {

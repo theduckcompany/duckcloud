@@ -562,7 +562,7 @@ func Test_LocalFS(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		spaceFS := newLocalFS(storageMock, inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
 
-		inodesMock.On("GetByNameAndParent", mock.Anything, "foobar.jpg", *ExampleAliceFile.Parent()).Return(nil, errs.ErrNotFound).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "foobar.jpg", *ExampleAliceFile.Parent()).Return(nil, errNotFound).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Patch", mock.Anything, inodes.ExampleAliceFile.ID(), map[string]any{
 			"last_modified_at": now,
@@ -617,8 +617,8 @@ func Test_LocalFS(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		spaceFS := newLocalFS(storageMock, inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
 
-		inodesMock.On("GetByNameAndParent", mock.Anything, "foobar.pdf", *ExampleAliceFile.Parent()).Return(&inodes.ExampleAliceFile, nil).Once()
-		inodesMock.On("GetByNameAndParent", mock.Anything, "foobar (1).pdf", *ExampleAliceFile.Parent()).Return(nil, errs.ErrNotFound).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "foobar.pdf", *ExampleAliceFile.Parent()).Return(&ExampleAliceFile, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "foobar (1).pdf", *ExampleAliceFile.Parent()).Return(nil, errNotFound).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Patch", mock.Anything, inodes.ExampleAliceFile.ID(), map[string]any{
 			"last_modified_at": now,
