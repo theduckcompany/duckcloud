@@ -197,10 +197,7 @@ func (s *LocalFS) CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, err
 func (s *LocalFS) Remove(ctx context.Context, path string) error {
 	path = CleanPath(path)
 
-	res, err := s.inodes.Get(ctx, &inodes.PathCmd{
-		Space: s.space,
-		Path:  path,
-	})
+	inode, err := s.Get(ctx, path)
 	if errors.Is(err, errs.ErrNotFound) {
 		return nil
 	}
@@ -208,9 +205,23 @@ func (s *LocalFS) Remove(ctx context.Context, path string) error {
 		return fmt.Errorf("failed to Get inode: %w", err)
 	}
 
-	err = s.inodes.Remove(ctx, res)
+	now := s.clock.Now()
+	err = s.storage.Patch(ctx, inode.ID(), map[string]any{
+		"deleted_at":       now,
+		"last_modified_at": now,
+	})
 	if err != nil {
-		return fmt.Errorf("failed to Remove: %w", err)
+		return errs.Internal(fmt.Errorf("failed to Patch: %w", err))
+	}
+
+	if inode.parent != nil {
+		err = s.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
+			INode:      *inode.Parent(),
+			ModifiedAt: now,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to schedule the fs-refresh-size task: %w", err)
+		}
 	}
 
 	return nil
@@ -287,10 +298,7 @@ func (s *LocalFS) Get(ctx context.Context, pathStr string) (*INode, error) {
 }
 
 func (s *LocalFS) Download(ctx context.Context, filePath string) (io.ReadSeekCloser, error) {
-	inode, err := s.inodes.Get(ctx, &inodes.PathCmd{
-		Space: s.space,
-		Path:  filePath,
-	})
+	inode, err := s.Get(ctx, filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to Get: %w", err)
 	}

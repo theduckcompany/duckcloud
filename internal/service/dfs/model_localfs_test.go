@@ -193,14 +193,101 @@ func Test_LocalFS(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		spaceFS := newLocalFS(storageMock, inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
 
-		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Space: &spaces.ExampleAlicePersonalSpace,
-			Path:  "/foo",
-		}).Return(&inodes.ExampleAliceFile, nil).Once()
-		inodesMock.On("Remove", mock.Anything, &inodes.ExampleAliceFile).Return(nil).Once()
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&ExampleAliceFile, nil).Once()
+		toolsMock.ClockMock.On("Now").Return(now).Once()
+		storageMock.On("Patch", mock.Anything, ExampleAliceFile.ID(), map[string]any{
+			"deleted_at":       now,
+			"last_modified_at": now,
+		}).Return(nil).Once()
+		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
+			INode:      *ExampleAliceDir.Parent(),
+			ModifiedAt: now,
+		}).Return(nil).Once()
 
 		err := spaceFS.Remove(ctx, "foo")
 		assert.NoError(t, err)
+	})
+
+	t.Run("Remove with an inode not found", func(t *testing.T) {
+		inodesMock := inodes.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		spaceFS := newLocalFS(storageMock, inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
+
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errs.ErrNotFound).Once()
+
+		err := spaceFS.Remove(ctx, "foo")
+		assert.NoError(t, err)
+	})
+
+	t.Run("Remove with a Get error", func(t *testing.T) {
+		inodesMock := inodes.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		spaceFS := newLocalFS(storageMock, inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
+
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
+
+		err := spaceFS.Remove(ctx, "foo")
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
+	})
+
+	t.Run("Remove with a Patch error", func(t *testing.T) {
+		inodesMock := inodes.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		spaceFS := newLocalFS(storageMock, inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
+
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&ExampleAliceFile, nil).Once()
+		toolsMock.ClockMock.On("Now").Return(now).Once()
+		storageMock.On("Patch", mock.Anything, ExampleAliceFile.ID(), map[string]any{
+			"deleted_at":       now,
+			"last_modified_at": now,
+		}).Return(fmt.Errorf("some-error")).Once()
+
+		err := spaceFS.Remove(ctx, "foo")
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
+	})
+
+	t.Run("Remove with a RegisterFSRefreshSizeTask error", func(t *testing.T) {
+		inodesMock := inodes.NewMockService(t)
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		spaceFS := newLocalFS(storageMock, inodesMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
+
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&ExampleAliceFile, nil).Once()
+		toolsMock.ClockMock.On("Now").Return(now).Once()
+		storageMock.On("Patch", mock.Anything, ExampleAliceFile.ID(), map[string]any{
+			"deleted_at":       now,
+			"last_modified_at": now,
+		}).Return(nil).Once()
+		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
+			INode:      *ExampleAliceDir.Parent(),
+			ModifiedAt: now,
+		}).Return(errs.Internal(fmt.Errorf("some-error"))).Once()
+
+		err := spaceFS.Remove(ctx, "foo")
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("ListDir success", func(t *testing.T) {
@@ -317,10 +404,10 @@ func Test_LocalFS(t *testing.T) {
 		file, err := afero.TempFile(afero.NewMemMapFs(), "foo", "")
 		require.NoError(t, err)
 
-		inodesMock.On("Get", mock.Anything, &inodes.PathCmd{
-			Space: spaceFS.space,
-			Path:  "/foo/bar.txt",
-		}).Return(&inodes.ExampleAliceFile, nil).Once()
+		// Get /foo/bar.txt
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&ExampleAliceDir, nil).Once()
+		storageMock.On("GetByNameAndParent", mock.Anything, "bar.txt", ExampleAliceDir.ID()).Return(&ExampleAliceFile, nil).Once()
 
 		filesMock.On("GetMetadata", mock.Anything, *inodes.ExampleAliceFile.FileID()).Return(&files.ExampleFile1, nil).Once()
 
