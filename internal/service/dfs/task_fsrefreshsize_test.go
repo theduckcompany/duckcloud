@@ -28,14 +28,14 @@ func TestFSRefreshSizeTask(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		runner := NewFSRefreshSizeTaskRunner(inodesMock, filesMock)
 
-		inodesMock.On("GetByID", mock.Anything, ExampleAliceDir.ID()).Return(&ExampleAliceDir, nil).Once()
+		inodesMock.On("GetByID", mock.Anything, ExampleAliceDir.ID()).Return(&inodes.ExampleAliceDir, nil).Once()
 		inodesMock.On("GetSumChildsSize", mock.Anything, ExampleAliceDir.ID()).Return(uint64(42), nil).Once()
-		inodesMock.On("RegisterModification", mock.Anything, &ExampleAliceDir, uint64(42), now).Return(nil).Once()
+		inodesMock.On("RegisterModification", mock.Anything, &inodes.ExampleAliceDir, uint64(42), now).Return(nil).Once()
 
 		// Do the same thing for the parent
-		inodesMock.On("GetByID", mock.Anything, *ExampleAliceDir.Parent()).Return(&ExampleAliceRoot, nil).Once()
+		inodesMock.On("GetByID", mock.Anything, *ExampleAliceDir.Parent()).Return(&inodes.ExampleAliceRoot, nil).Once()
 		inodesMock.On("GetSumChildsSize", mock.Anything, ExampleAliceRoot.ID()).Return(uint64(142), nil).Once()
-		inodesMock.On("RegisterModification", mock.Anything, &ExampleAliceRoot, uint64(142), now).Return(nil).Once()
+		inodesMock.On("RegisterModification", mock.Anything, &inodes.ExampleAliceRoot, uint64(142), now).Return(nil).Once()
 
 		// ExampleAliceRoot doesnt' have a parent because it's a root node so we stop here.
 
@@ -46,14 +46,14 @@ func TestFSRefreshSizeTask(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("RunArg with a inode not found", func(t *testing.T) {
+	t.Run("RunArg with an inode not found", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		runner := NewFSRefreshSizeTaskRunner(inodesMock, filesMock)
 
-		inodesMock.On("GetByID", mock.Anything, ExampleAliceDir.ID()).Return(&ExampleAliceDir, nil).Once()
+		inodesMock.On("GetByID", mock.Anything, ExampleAliceDir.ID()).Return(&inodes.ExampleAliceDir, nil).Once()
 		inodesMock.On("GetSumChildsSize", mock.Anything, ExampleAliceDir.ID()).Return(uint64(42), nil).Once()
-		inodesMock.On("RegisterModification", mock.Anything, &ExampleAliceDir, uint64(42), now).Return(nil).Once()
+		inodesMock.On("RegisterModification", mock.Anything, &inodes.ExampleAliceDir, uint64(42), now).Return(nil).Once()
 
 		// Do the same thing for the parent
 		inodesMock.On("GetByID", mock.Anything, *ExampleAliceDir.Parent()).Return(nil, errs.ErrNotFound).Once()
@@ -66,12 +66,12 @@ func TestFSRefreshSizeTask(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("RunArg success", func(t *testing.T) {
+	t.Run("RunArg with a GetSumChildsSize error", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		runner := NewFSRefreshSizeTaskRunner(inodesMock, filesMock)
 
-		inodesMock.On("GetByID", mock.Anything, ExampleAliceDir.ID()).Return(&ExampleAliceDir, nil).Once()
+		inodesMock.On("GetByID", mock.Anything, ExampleAliceDir.ID()).Return(&inodes.ExampleAliceDir, nil).Once()
 		inodesMock.On("GetSumChildsSize", mock.Anything, ExampleAliceDir.ID()).Return(uint64(0), errors.New("some-error")).Once()
 
 		err := runner.RunArgs(ctx, &scheduler.FSRefreshSizeArg{
@@ -81,14 +81,14 @@ func TestFSRefreshSizeTask(t *testing.T) {
 		assert.ErrorContains(t, err, "some-error")
 	})
 
-	t.Run("RunArg success", func(t *testing.T) {
+	t.Run("RunArg with a RegisterModification error", func(t *testing.T) {
 		inodesMock := inodes.NewMockService(t)
 		filesMock := files.NewMockService(t)
 		runner := NewFSRefreshSizeTaskRunner(inodesMock, filesMock)
 
-		inodesMock.On("GetByID", mock.Anything, ExampleAliceDir.ID()).Return(&ExampleAliceDir, nil).Once()
+		inodesMock.On("GetByID", mock.Anything, ExampleAliceDir.ID()).Return(&inodes.ExampleAliceDir, nil).Once()
 		inodesMock.On("GetSumChildsSize", mock.Anything, ExampleAliceDir.ID()).Return(uint64(42), nil).Once()
-		inodesMock.On("RegisterModification", mock.Anything, &ExampleAliceDir, uint64(42), now).Return(errors.New("some-error")).Once()
+		inodesMock.On("RegisterModification", mock.Anything, &inodes.ExampleAliceDir, uint64(42), now).Return(errors.New("some-error")).Once()
 
 		err := runner.RunArgs(ctx, &scheduler.FSRefreshSizeArg{
 			INode:      ExampleAliceDir.ID(),

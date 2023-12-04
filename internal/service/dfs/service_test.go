@@ -30,7 +30,8 @@ func TestDFSService(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
+		storageMock := NewMockStorage(t)
+		svc := NewFSService(storageMock, inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		spacesMock.On("Create", mock.Anything, &spaces.CreateCmd{
 			User:   &users.ExampleAlice,
@@ -53,7 +54,8 @@ func TestDFSService(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
+		storageMock := NewMockStorage(t)
+		svc := NewFSService(storageMock, inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		spacesMock.On("Create", mock.Anything, &spaces.CreateCmd{
 			User:   &users.ExampleAlice,
@@ -77,7 +79,8 @@ func TestDFSService(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
+		storageMock := NewMockStorage(t)
+		svc := NewFSService(storageMock, inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		spacesMock.On("Create", mock.Anything, &spaces.CreateCmd{
 			User:   &users.ExampleAlice,
@@ -97,7 +100,8 @@ func TestDFSService(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
+		storageMock := NewMockStorage(t)
+		svc := NewFSService(storageMock, inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		inodesMock.On("GetSpaceRoot", mock.Anything, &spaces.ExampleAlicePersonalSpace).
 			Return(&inodes.ExampleAliceRoot, nil).Once()
@@ -114,7 +118,8 @@ func TestDFSService(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
+		storageMock := NewMockStorage(t)
+		svc := NewFSService(storageMock, inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		inodesMock.On("GetSpaceRoot", mock.Anything, &spaces.ExampleAlicePersonalSpace).
 			Return(nil, errs.ErrNotFound).Once()
@@ -130,7 +135,8 @@ func TestDFSService(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
+		storageMock := NewMockStorage(t)
+		svc := NewFSService(storageMock, inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		inodesMock.On("GetSpaceRoot", mock.Anything, &spaces.ExampleAlicePersonalSpace).
 			Return(nil, errs.Internal(errors.New("some-error"))).Once()
@@ -146,7 +152,8 @@ func TestDFSService(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
+		storageMock := NewMockStorage(t)
+		svc := NewFSService(storageMock, inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		inodesMock.On("GetSpaceRoot", mock.Anything, &spaces.ExampleAlicePersonalSpace).
 			Return(&inodes.ExampleAliceRoot, nil).Once()
@@ -164,7 +171,8 @@ func TestDFSService(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewFSService(inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
+		storageMock := NewMockStorage(t)
+		svc := NewFSService(storageMock, inodesMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		inodesMock.On("GetSpaceRoot", mock.Anything, &spaces.ExampleAlicePersonalSpace).
 			Return(&inodes.ExampleAliceRoot, nil).Once()

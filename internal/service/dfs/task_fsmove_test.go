@@ -32,7 +32,7 @@ func TestFSMoveTask(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		runner := NewFSMoveTaskRunner(inodesMock, spacesMock, usersMock, schedulerMock)
 
-		newFile := ExampleAliceFile
+		newFile := inodes.ExampleAliceFile
 
 		require.True(t, ExampleAliceRoot.LastModifiedAt().Before(now))
 
@@ -77,7 +77,7 @@ func TestFSMoveTask(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		runner := NewFSMoveTaskRunner(inodesMock, spacesMock, usersMock, schedulerMock)
 
-		newFile := ExampleAliceFile
+		newFile := inodes.ExampleAliceFile
 
 		require.True(t, ExampleAliceRoot.LastModifiedAt().Before(now))
 

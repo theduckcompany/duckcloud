@@ -25,6 +25,7 @@ var (
 )
 
 type FSService struct {
+	storage   Storage
 	inodes    inodes.Service
 	files     files.Service
 	spaces    spaces.Service
@@ -32,12 +33,12 @@ type FSService struct {
 	tools     tools.Tools
 }
 
-func NewFSService(inodes inodes.Service, files files.Service, spaces spaces.Service, tasks scheduler.Service, tools tools.Tools) *FSService {
-	return &FSService{inodes, files, spaces, tasks, tools}
+func NewFSService(storage Storage, inodes inodes.Service, files files.Service, spaces spaces.Service, tasks scheduler.Service, tools tools.Tools) *FSService {
+	return &FSService{storage, inodes, files, spaces, tasks, tools}
 }
 
 func (s *FSService) GetSpaceFS(space *spaces.Space) FS {
-	return newLocalFS(s.inodes, s.files, space, s.spaces, s.scheduler, s.tools)
+	return newLocalFS(s.storage, s.inodes, s.files, space, s.spaces, s.scheduler, s.tools)
 }
 
 func (s *FSService) RemoveFS(ctx context.Context, space *spaces.Space) error {

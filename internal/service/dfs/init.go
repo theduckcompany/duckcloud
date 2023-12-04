@@ -21,6 +21,7 @@ import (
 type FS interface {
 	Space() *spaces.Space
 	CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, error)
+	createDir(ctx context.Context, createdBy *users.User, parent *INode, name string) (*INode, error)
 	ListDir(ctx context.Context, dirPath string, cmd *storage.PaginateCmd) ([]INode, error)
 	Remove(ctx context.Context, path string) error
 	Rename(ctx context.Context, inode *INode, newName string) (*INode, error)
@@ -47,10 +48,11 @@ type Result struct {
 }
 
 func Init(db *sql.DB, spaces spaces.Service, files files.Service, scheduler scheduler.Service, users users.Service, tools tools.Tools) (Result, error) {
+	storage := newSqlStorage(db, tools)
 	inodes := inodes.Init(scheduler, tools, db)
 
 	return Result{
-		Service:                      NewFSService(inodes, files, spaces, scheduler, tools),
+		Service:                      NewFSService(storage, inodes, files, spaces, scheduler, tools),
 		FSGCTask:                     NewFSGGCTaskRunner(inodes, files, spaces, tools),
 		FSMoveTask:                   NewFSMoveTaskRunner(inodes, spaces, users, scheduler),
 		FSRefreshSizeTask:            NewFSRefreshSizeTaskRunner(inodes, files),

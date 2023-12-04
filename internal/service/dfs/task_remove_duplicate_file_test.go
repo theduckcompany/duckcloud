@@ -30,7 +30,7 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 		runner := NewFSRemoveDuplicateFileRunner(inodesMock, filesMock, schedulerMock)
 
 		inodesMock.On("GetAllInodesWithFileID", mock.Anything, *inodes.ExampleAliceFile.FileID()).
-			Return([]INode{inodes.ExampleAliceFile}, nil).Once()
+			Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
 
 		filesMock.On("GetMetadata", mock.Anything, files.ExampleFile1.ID()).
 			Return(&files.ExampleFile1, nil).Once()
@@ -71,7 +71,7 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 		runner := NewFSRemoveDuplicateFileRunner(inodesMock, filesMock, schedulerMock)
 
 		inodesMock.On("GetAllInodesWithFileID", mock.Anything, *inodes.ExampleAliceFile.FileID()).
-			Return([]INode{inodes.ExampleAliceFile}, nil).Once()
+			Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
 
 		filesMock.On("GetMetadata", mock.Anything, files.ExampleFile1.ID()).
 			Return(nil, errs.Internal(errors.New("some-error"))).Once()
@@ -91,7 +91,7 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 		runner := NewFSRemoveDuplicateFileRunner(inodesMock, filesMock, schedulerMock)
 
 		inodesMock.On("GetAllInodesWithFileID", mock.Anything, *inodes.ExampleAliceFile.FileID()).
-			Return([]INode{inodes.ExampleAliceFile}, nil).Once()
+			Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
 
 		filesMock.On("GetMetadata", mock.Anything, files.ExampleFile1.ID()).
 			Return(&files.ExampleFile1, nil).Once()
@@ -114,7 +114,7 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 		runner := NewFSRemoveDuplicateFileRunner(inodesMock, filesMock, schedulerMock)
 
 		inodesMock.On("GetAllInodesWithFileID", mock.Anything, *inodes.ExampleAliceFile.FileID()).
-			Return([]INode{inodes.ExampleAliceFile}, nil).Once()
+			Return([]inodes.INode{inodes.ExampleAliceFile}, nil).Once()
 
 		filesMock.On("GetMetadata", mock.Anything, files.ExampleFile2.ID()).
 			Return(&files.ExampleFile1, nil).Once()
