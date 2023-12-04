@@ -52,7 +52,7 @@ func Init(db *sql.DB, spaces spaces.Service, files files.Service, scheduler sche
 	inodes := inodes.Init(scheduler, tools, db)
 
 	return Result{
-		Service:                      NewFSService(storage, inodes, files, spaces, scheduler, tools),
+		Service:                      NewFSService(storage, files, spaces, scheduler, tools),
 		FSGCTask:                     NewFSGGCTaskRunner(inodes, files, spaces, tools),
 		FSMoveTask:                   NewFSMoveTaskRunner(inodes, spaces, users, scheduler),
 		FSRefreshSizeTask:            NewFSRefreshSizeTaskRunner(inodes, files),
