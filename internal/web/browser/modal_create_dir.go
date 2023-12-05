@@ -96,9 +96,7 @@ func (h *createDirModalHandler) handleCreateDirReq(w http.ResponseWriter, r *htt
 		return
 	}
 
-	fs := h.fs.GetSpaceFS(space)
-
-	existingDir, err := fs.Get(r.Context(), &dfs.PathCmd{Space: space, Path: path.Join(dir, name)})
+	existingDir, err := h.fs.Get(r.Context(), &dfs.PathCmd{Space: space, Path: path.Join(dir, name)})
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to get the directory: %w", err))
 		return
@@ -113,7 +111,7 @@ func (h *createDirModalHandler) handleCreateDirReq(w http.ResponseWriter, r *htt
 		return
 	}
 
-	_, err = fs.CreateDir(r.Context(), &dfs.CreateDirCmd{
+	_, err = h.fs.CreateDir(r.Context(), &dfs.CreateDirCmd{
 		Space:     space,
 		FilePath:  path.Join(dir, name),
 		CreatedBy: user,

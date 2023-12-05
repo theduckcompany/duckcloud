@@ -16,8 +16,8 @@ import (
 	"go.uber.org/fx"
 )
 
-//go:generate mockery --name FS
-type FS interface {
+//go:generate mockery --name Service
+type Service interface {
 	Destroy(ctx context.Context, space *spaces.Space) error
 	CreateFS(ctx context.Context, user *users.User, owners []uuid.UUID) (*spaces.Space, error)
 	CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, error)
@@ -32,11 +32,6 @@ type FS interface {
 	removeINode(ctx context.Context, inode *INode) error
 }
 
-//go:generate mockery --name Service
-type Service interface {
-	GetSpaceFS(space *spaces.Space) FS
-}
-
 type Result struct {
 	fx.Out
 	Service                      Service
@@ -48,7 +43,7 @@ type Result struct {
 
 func Init(db *sql.DB, spaces spaces.Service, files files.Service, scheduler scheduler.Service, users users.Service, tools tools.Tools) (Result, error) {
 	storage := newSqlStorage(db, tools)
-	svc := NewFSService(storage, files, spaces, scheduler, tools)
+	svc := NewService(storage, files, spaces, scheduler, tools)
 
 	return Result{
 		Service:                      svc,

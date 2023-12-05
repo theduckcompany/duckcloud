@@ -42,10 +42,7 @@ func Test_RenameModalHandler(t *testing.T) {
 		spacesMock.On("GetByID", mock.Anything, uuid.UUID("some-space-id")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
-		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-
-		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.jpg"}).Return(&dfs.ExampleAliceFile, nil).Once()
+		fsMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.jpg"}).Return(&dfs.ExampleAliceFile, nil).Once()
 
 		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/rename-form.tmpl", map[string]any{
 			"error":        "",
@@ -181,11 +178,9 @@ func Test_RenameModalHandler(t *testing.T) {
 		spacesMock.On("GetByID", mock.Anything, uuid.UUID("some-space-id")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
-		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.jpg"}).Return(&dfs.ExampleAliceFile, nil).Once()
+		fsMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.jpg"}).Return(&dfs.ExampleAliceFile, nil).Once()
 
-		spaceFSMock.On("Rename", mock.Anything, &dfs.ExampleAliceFile, "new-name.jpg").Return(&dfs.ExampleAliceFile, nil).Once()
+		fsMock.On("Rename", mock.Anything, &dfs.ExampleAliceFile, "new-name.jpg").Return(&dfs.ExampleAliceFile, nil).Once()
 
 		w := httptest.NewRecorder()
 		form := url.Values{}
@@ -223,11 +218,9 @@ func Test_RenameModalHandler(t *testing.T) {
 		spacesMock.On("GetByID", mock.Anything, uuid.UUID("some-space-id")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
-		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.jpg"}).Return(&dfs.ExampleAliceFile, nil).Once()
+		fsMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.jpg"}).Return(&dfs.ExampleAliceFile, nil).Once()
 
-		spaceFSMock.On("Rename", mock.Anything, &dfs.ExampleAliceFile, "new-name").Return(nil, errs.Validation(errors.New("some-error"))).Once()
+		fsMock.On("Rename", mock.Anything, &dfs.ExampleAliceFile, "new-name").Return(nil, errs.Validation(errors.New("some-error"))).Once()
 
 		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusUnprocessableEntity, "browser/rename-form.tmpl", map[string]any{
 			"error":        "validation: some-error",

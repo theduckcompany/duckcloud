@@ -35,16 +35,13 @@ func TestFSMoveTask(t *testing.T) {
 
 		require.True(t, ExampleAliceRoot.LastModifiedAt().Before(now))
 
-		spaceFSMock := NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-
 		spacesMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-		spaceFSMock.On("Get", mock.Anything, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"}).Return(nil, errs.ErrNotFound).Once()
+		fsMock.On("Get", mock.Anything, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"}).Return(nil, errs.ErrNotFound).Once()
 		storageMock.On("GetByID", mock.Anything, ExampleAliceFile.ID()).
 			Return(&ExampleAliceFile, nil).Once()
-		spaceFSMock.On("CreateDir", mock.Anything, &CreateDirCmd{
+		fsMock.On("CreateDir", mock.Anything, &CreateDirCmd{
 			Space:     &spaces.ExampleAlicePersonalSpace,
 			FilePath:  "/",
 			CreatedBy: &users.ExampleAlice,
@@ -83,16 +80,13 @@ func TestFSMoveTask(t *testing.T) {
 
 		require.True(t, ExampleAliceRoot.LastModifiedAt().Before(now))
 
-		spaceFSMock := NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-
 		spacesMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-		spaceFSMock.On("Get", mock.Anything, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"}).Return(&ExampleAliceDir, nil).Once()
+		fsMock.On("Get", mock.Anything, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"}).Return(&ExampleAliceDir, nil).Once()
 		storageMock.On("GetByID", mock.Anything, ExampleAliceFile.ID()).
 			Return(&ExampleAliceFile, nil).Once()
-		spaceFSMock.On("CreateDir", mock.Anything, &CreateDirCmd{
+		fsMock.On("CreateDir", mock.Anything, &CreateDirCmd{
 			Space:     &spaces.ExampleAlicePersonalSpace,
 			FilePath:  "/",
 			CreatedBy: &users.ExampleAlice,
@@ -102,7 +96,7 @@ func TestFSMoveTask(t *testing.T) {
 			"name":             "bar.txt",
 			"last_modified_at": now,
 		}).Return(nil).Once()
-		spaceFSMock.On("removeINode", mock.Anything, &ExampleAliceDir).Return(nil).Once()
+		fsMock.On("removeINode", mock.Anything, &ExampleAliceDir).Return(nil).Once()
 		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
 			INode:      *ExampleAliceFile.Parent(),
 			ModifiedAt: now,
@@ -151,13 +145,10 @@ func TestFSMoveTask(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		runner := NewFSMoveTaskRunner(fsMock, storageMock, spacesMock, usersMock, schedulerMock)
 
-		spaceFSMock := NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-
 		spacesMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-		spaceFSMock.On("Get", mock.Anything, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"}).Return(&ExampleAliceDir, nil).Once()
+		fsMock.On("Get", mock.Anything, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"}).Return(&ExampleAliceDir, nil).Once()
 		storageMock.On("GetByID", mock.Anything, ExampleAliceFile.ID()).
 			Return(nil, errs.ErrNotFound).Once()
 
@@ -179,13 +170,10 @@ func TestFSMoveTask(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		runner := NewFSMoveTaskRunner(fsMock, storageMock, spacesMock, usersMock, schedulerMock)
 
-		spaceFSMock := NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-
 		spacesMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-		spaceFSMock.On("Get", mock.Anything, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"}).Return(nil, errs.Internal(errors.New("some-error"))).Once()
+		fsMock.On("Get", mock.Anything, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"}).Return(nil, errs.Internal(errors.New("some-error"))).Once()
 
 		err := runner.RunArgs(ctx, &scheduler.FSMoveArgs{
 			SpaceID:     spaces.ExampleAlicePersonalSpace.ID(),
@@ -208,16 +196,13 @@ func TestFSMoveTask(t *testing.T) {
 
 		require.True(t, ExampleAliceRoot.LastModifiedAt().Before(now))
 
-		spaceFSMock := NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-
 		spacesMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-		spaceFSMock.On("Get", mock.Anything, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"}).Return(&ExampleAliceDir, nil).Once()
+		fsMock.On("Get", mock.Anything, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"}).Return(&ExampleAliceDir, nil).Once()
 		storageMock.On("GetByID", mock.Anything, ExampleAliceFile.ID()).
 			Return(&ExampleAliceFile, nil).Once()
-		spaceFSMock.On("CreateDir", mock.Anything, &CreateDirCmd{
+		fsMock.On("CreateDir", mock.Anything, &CreateDirCmd{
 			Space:     &spaces.ExampleAlicePersonalSpace,
 			FilePath:  "/",
 			CreatedBy: &users.ExampleAlice,

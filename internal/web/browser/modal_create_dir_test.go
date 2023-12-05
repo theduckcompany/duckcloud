@@ -164,11 +164,8 @@ func TestCreateDirModal(t *testing.T) {
 		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("some-space-id")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
-		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-
-		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/New Dir"}).Return(nil, errs.ErrNotFound).Once()
-		spaceFSMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
+		fsMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/New Dir"}).Return(nil, errs.ErrNotFound).Once()
+		fsMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
 			Space:     &spaces.ExampleAlicePersonalSpace,
 			FilePath:  "/foo/New Dir",
 			CreatedBy: &users.ExampleAlice,
@@ -305,10 +302,7 @@ func TestCreateDirModal(t *testing.T) {
 		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("some-space-id")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
-		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-
-		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/New Dir"}).Return(&dfs.ExampleAliceDir, nil).Once()
+		fsMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/New Dir"}).Return(&dfs.ExampleAliceDir, nil).Once()
 
 		// Render
 		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusUnprocessableEntity, "browser/create-dir.tmpl", map[string]any{
@@ -348,12 +342,9 @@ func TestCreateDirModal(t *testing.T) {
 		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("some-space-id")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
-		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-
 		err := fmt.Errorf("some-error")
-		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/New Dir"}).Return(nil, errs.ErrNotFound).Once()
-		spaceFSMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
+		fsMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/New Dir"}).Return(nil, errs.ErrNotFound).Once()
+		fsMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
 			Space:     &spaces.ExampleAlicePersonalSpace,
 			FilePath:  "/foo/New Dir",
 			CreatedBy: &users.ExampleAlice,
