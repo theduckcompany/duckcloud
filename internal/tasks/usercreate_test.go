@@ -31,7 +31,10 @@ func TestUserCreateTask(t *testing.T) {
 
 		usersMock.On("GetByID", mock.Anything, uuid.UUID("059d78af-e675-498e-8b77-d4b2b4b9d4e7")).Return(&users.ExampleInitializingBob, nil).Once()
 		spacesMock.On("GetAllUserSpaces", mock.Anything, users.ExampleInitializingBob.ID(), (*storage.PaginateCmd)(nil)).Return([]spaces.Space{}, nil).Once()
-		fsMock.On("CreateFS", mock.Anything, &users.ExampleInitializingBob, []uuid.UUID{users.ExampleInitializingBob.ID()}).Return(&spaces.ExampleBobPersonalSpace, nil).Once()
+
+		spaceFSMock := dfs.NewMockFS(t)
+		fsMock.On("GetSpaceFS", (*spaces.Space)(nil)).Return(spaceFSMock)
+		spaceFSMock.On("CreateFS", mock.Anything, &users.ExampleInitializingBob, []uuid.UUID{users.ExampleInitializingBob.ID()}).Return(&spaces.ExampleBobPersonalSpace, nil).Once()
 
 		usersMock.On("MarkInitAsFinished", mock.Anything, uuid.UUID("059d78af-e675-498e-8b77-d4b2b4b9d4e7")).Return(&users.ExampleBob, nil).Once()
 

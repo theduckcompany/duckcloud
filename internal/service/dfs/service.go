@@ -1,17 +1,12 @@
 package dfs
 
 import (
-	"context"
 	"errors"
-	"fmt"
 
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
-	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
-	"github.com/theduckcompany/duckcloud/internal/tools/errs"
-	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 const DefaultSpaceName = "My files"
@@ -42,35 +37,4 @@ func NewFSService(storage Storage, files files.Service, spaces spaces.Service, t
 
 func (s *FSService) GetSpaceFS(space *spaces.Space) FS {
 	return newLocalFS(s.storage, s.files, s.spaces, s.scheduler, s.tools)
-}
-
-func (s *FSService) CreateFS(ctx context.Context, user *users.User, owners []uuid.UUID) (*spaces.Space, error) {
-	// XXX:MULTI-WRITE
-	space, err := s.spaces.Create(ctx, &spaces.CreateCmd{
-		User:   user,
-		Name:   DefaultSpaceName,
-		Owners: owners,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create the space: %w", err)
-	}
-
-	now := s.tools.Clock().Now()
-	node := INode{
-		id:             s.tools.UUID().New(),
-		parent:         nil,
-		name:           "",
-		spaceID:        space.ID(),
-		createdAt:      now,
-		createdBy:      user.ID(),
-		lastModifiedAt: now,
-		fileID:         nil,
-	}
-
-	err = s.storage.Save(ctx, &node)
-	if err != nil {
-		return nil, errs.Internal(fmt.Errorf("failed to Save: %w", err))
-	}
-
-	return space, nil
 }

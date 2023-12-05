@@ -70,6 +70,37 @@ func (s *LocalFS) Destroy(ctx context.Context, space *spaces.Space) error {
 	return nil
 }
 
+func (s *LocalFS) CreateFS(ctx context.Context, user *users.User, owners []uuid.UUID) (*spaces.Space, error) {
+	// XXX:MULTI-WRITE
+	space, err := s.spaces.Create(ctx, &spaces.CreateCmd{
+		User:   user,
+		Name:   DefaultSpaceName,
+		Owners: owners,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create the space: %w", err)
+	}
+
+	now := s.clock.Now()
+	node := INode{
+		id:             s.uuid.New(),
+		parent:         nil,
+		name:           "",
+		spaceID:        space.ID(),
+		createdAt:      now,
+		createdBy:      user.ID(),
+		lastModifiedAt: now,
+		fileID:         nil,
+	}
+
+	err = s.storage.Save(ctx, &node)
+	if err != nil {
+		return nil, errs.Internal(fmt.Errorf("failed to Save: %w", err))
+	}
+
+	return space, nil
+}
+
 func (s *LocalFS) ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
 	dir, err := s.Get(ctx, cmd)
 	if errors.Is(err, errs.ErrNotFound) {

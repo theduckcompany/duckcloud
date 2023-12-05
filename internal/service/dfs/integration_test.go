@@ -32,7 +32,8 @@ func Test_DFS_Integration(t *testing.T) {
 	var rootFS *dfs.INode
 
 	t.Run("CreateFS and RemoveFS success", func(t *testing.T) {
-		tmpSpace, err := dfsSvc.CreateFS(ctx, &users.ExampleAlice, []uuid.UUID{serv.User.ID()})
+		fs := dfsSvc.GetSpaceFS(nil)
+		tmpSpace, err := fs.CreateFS(ctx, &users.ExampleAlice, []uuid.UUID{serv.User.ID()})
 		require.NoError(t, err)
 
 		// Check that a new space have been created
@@ -41,7 +42,6 @@ func Test_DFS_Integration(t *testing.T) {
 		require.Len(t, spaces, 2) // the default one + the new one
 
 		// Delete the new space
-		fs := dfsSvc.GetSpaceFS(tmpSpace)
 		err = fs.Destroy(ctx, tmpSpace)
 		require.NoError(t, err)
 
