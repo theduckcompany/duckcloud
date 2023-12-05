@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"path"
 
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
@@ -74,13 +73,4 @@ func (s *FSService) CreateFS(ctx context.Context, user *users.User, owners []uui
 	}
 
 	return space, nil
-}
-
-// CleanPath is equivalent to but slightly more efficient than
-// path.Clean("/" + name).
-func CleanPath(name string) string {
-	if name == "" || name[0] != '/' {
-		name = "/" + name
-	}
-	return path.Clean(name)
 }

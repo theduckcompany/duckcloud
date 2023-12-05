@@ -63,3 +63,12 @@ func Walk(ctx context.Context, ffs FS, cmd *PathCmd, fn WalkDirFunc) error {
 
 	return nil
 }
+
+// CleanPath is equivalent to but slightly more efficient than
+// path.Clean("/" + name).
+func CleanPath(name string) string {
+	if name == "" || name[0] != '/' {
+		name = "/" + name
+	}
+	return path.Clean(name)
+}
