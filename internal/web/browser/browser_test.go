@@ -110,8 +110,6 @@ func Test_Browser_Page(t *testing.T) {
 		spaceFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
 
-		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace)
-
 		// Then look for the path inside this space
 		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}).Return(&dfs.ExampleAliceRoot, nil).Once()
 
@@ -167,7 +165,6 @@ func Test_Browser_Page(t *testing.T) {
 
 		spaceFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace)
 
 		// Then look for the path inside this space
 		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}).Return(&dfs.ExampleAliceFile, nil).Once()
@@ -306,7 +303,6 @@ func Test_Browser_Page(t *testing.T) {
 
 		spaceFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace)
 
 		// Then look for the path inside this space
 		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/invalid"}).Return(nil, errs.ErrNotFound).Once()

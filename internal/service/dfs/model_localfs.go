@@ -38,7 +38,6 @@ type Storage interface {
 type LocalFS struct {
 	storage   Storage
 	files     files.Service
-	space     *spaces.Space
 	spaces    spaces.Service
 	scheduler scheduler.Service
 	clock     clock.Clock
@@ -48,16 +47,11 @@ type LocalFS struct {
 func newLocalFS(
 	storage Storage,
 	files files.Service,
-	space *spaces.Space,
 	spaces spaces.Service,
 	tasks scheduler.Service,
 	tools tools.Tools,
 ) *LocalFS {
-	return &LocalFS{storage, files, space, spaces, tasks, tools.Clock(), tools.UUID()}
-}
-
-func (s *LocalFS) Space() *spaces.Space {
-	return s.space
+	return &LocalFS{storage, files, spaces, tasks, tools.Clock(), tools.UUID()}
 }
 
 func (s *LocalFS) ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
@@ -233,7 +227,7 @@ func (s *LocalFS) Move(ctx context.Context, cmd *MoveCmd) error {
 	}
 
 	err = s.scheduler.RegisterFSMoveTask(ctx, &scheduler.FSMoveArgs{
-		SpaceID:     s.space.ID(),
+		SpaceID:     cmd.Src.Space.ID(),
 		SourceInode: sourceINode.ID(),
 		TargetPath:  cmd.Dst.Path,
 		MovedAt:     s.clock.Now(),
@@ -317,7 +311,7 @@ func (s *LocalFS) Upload(ctx context.Context, cmd *UploadCmd) error {
 
 	dirPath, fileName := path.Split(filePath)
 
-	dir, err := s.Get(ctx, &PathCmd{Space: s.space, Path: dirPath})
+	dir, err := s.Get(ctx, &PathCmd{Space: cmd.Space, Path: dirPath})
 	if err != nil {
 		return fmt.Errorf("failed to get the dir: %w", err)
 	}
@@ -333,7 +327,7 @@ func (s *LocalFS) Upload(ctx context.Context, cmd *UploadCmd) error {
 	inode := INode{
 		id:             s.uuid.New(),
 		parent:         ptr.To(dir.ID()),
-		spaceID:        s.space.ID(),
+		spaceID:        cmd.Space.ID(),
 		size:           0,
 		name:           fileName,
 		createdAt:      now,

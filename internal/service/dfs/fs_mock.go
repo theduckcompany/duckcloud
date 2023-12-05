@@ -8,8 +8,6 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	spaces "github.com/theduckcompany/duckcloud/internal/service/spaces"
-
 	storage "github.com/theduckcompany/duckcloud/internal/tools/storage"
 
 	users "github.com/theduckcompany/duckcloud/internal/service/users"
@@ -176,22 +174,6 @@ func (_m *MockFS) Rename(ctx context.Context, inode *INode, newName string) (*IN
 	}
 
 	return r0, r1
-}
-
-// Space provides a mock function with given fields:
-func (_m *MockFS) Space() *spaces.Space {
-	ret := _m.Called()
-
-	var r0 *spaces.Space
-	if rf, ok := ret.Get(0).(func() *spaces.Space); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*spaces.Space)
-		}
-	}
-
-	return r0
 }
 
 // Upload provides a mock function with given fields: ctx, cmd

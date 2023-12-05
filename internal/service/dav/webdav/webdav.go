@@ -305,11 +305,13 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.
 	if err != nil {
 		return status, err
 	}
+	srcPath := &dfs.PathCmd{Space: space, Path: src}
 
 	dst, status, err := h.stripPrefix(u.Path)
 	if err != nil {
 		return status, err
 	}
+	dstPath := &dfs.PathCmd{Space: space, Path: dst}
 
 	if dst == "" {
 		return http.StatusBadGateway, errInvalidDestination
@@ -320,7 +322,7 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.
 
 	ctx := r.Context()
 
-	_, err = fs.Get(ctx, &dfs.PathCmd{Space: space, Path: src})
+	_, err = fs.Get(ctx, srcPath)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return http.StatusConflict, err
@@ -340,7 +342,7 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.
 				return http.StatusBadRequest, errInvalidDepth
 			}
 		}
-		return copyFiles(ctx, user, fs, src, dst, r.Header.Get("Overwrite") != "F", depth, 0)
+		return copyFiles(ctx, user, fs, srcPath, dstPath, r.Header.Get("Overwrite") != "F", depth, 0)
 	}
 
 	// Section 9.9.2 says that "The MOVE method on a collection must act as if

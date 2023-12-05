@@ -222,16 +222,16 @@ type breadCrumbElement struct {
 	Current bool
 }
 
-func generateBreadCrumb(space *spaces.Space, fullPath string) []breadCrumbElement {
-	basePath := path.Join("/browser/", string(space.ID()))
+func generateBreadCrumb(cmd *dfs.PathCmd) []breadCrumbElement {
+	basePath := path.Join("/browser/", string(cmd.Space.ID()))
 
 	res := []breadCrumbElement{{
-		Name:    space.Name(),
+		Name:    cmd.Space.Name(),
 		Href:    basePath,
 		Current: false,
 	}}
 
-	fullPath = strings.TrimPrefix(fullPath, "/")
+	fullPath := strings.TrimPrefix(cmd.Path, "/")
 
 	if fullPath == "" {
 		res[0].Current = true
@@ -347,10 +347,8 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 
-	space := ffs.Space()
-
 	if inode == nil {
-		w.Header().Set("Location", path.Join("/browser/", string(space.ID())))
+		w.Header().Set("Location", path.Join("/browser/", string(cmd.Space.ID())))
 		w.WriteHeader(http.StatusFound)
 		return
 	}
@@ -387,8 +385,8 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 	h.html.WriteHTML(w, r, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
 		"host":       r.Host,
 		"fullPath":   cmd.Path,
-		"space":      space,
-		"breadcrumb": generateBreadCrumb(space, cmd.Path),
+		"space":      cmd.Space,
+		"breadcrumb": generateBreadCrumb(cmd),
 		"spaces":     spaces,
 		"inodes":     dirContent,
 	})

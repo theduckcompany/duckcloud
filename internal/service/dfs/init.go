@@ -18,7 +18,6 @@ import (
 
 //go:generate mockery --name FS
 type FS interface {
-	Space() *spaces.Space
 	CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, error)
 	ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error)
 	Remove(ctx context.Context, cmd *PathCmd) error
