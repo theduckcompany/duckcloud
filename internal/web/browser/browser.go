@@ -18,6 +18,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
@@ -339,7 +340,7 @@ func (h Handler) getSpaceAndPathFromURL(w http.ResponseWriter, r *http.Request, 
 
 func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, ffs dfs.FS, cmd *dfs.PathCmd) {
 	inode, err := ffs.Get(r.Context(), cmd)
-	if err != nil {
+	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Get: %w", err))
 		return
 	}

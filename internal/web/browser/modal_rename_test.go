@@ -45,7 +45,7 @@ func Test_RenameModalHandler(t *testing.T) {
 		spaceFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
 
-		spaceFSMock.On("Get", mock.Anything, "/foo/bar.jpg").Return(&dfs.ExampleAliceFile, nil).Once()
+		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.jpg"}).Return(&dfs.ExampleAliceFile, nil).Once()
 
 		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/rename-form.tmpl", map[string]any{
 			"error":        "",
@@ -183,7 +183,7 @@ func Test_RenameModalHandler(t *testing.T) {
 
 		spaceFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-		spaceFSMock.On("Get", mock.Anything, "/foo/bar.jpg").Return(&dfs.ExampleAliceFile, nil).Once()
+		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.jpg"}).Return(&dfs.ExampleAliceFile, nil).Once()
 
 		spaceFSMock.On("Rename", mock.Anything, &dfs.ExampleAliceFile, "new-name.jpg").Return(&dfs.ExampleAliceFile, nil).Once()
 
@@ -225,7 +225,7 @@ func Test_RenameModalHandler(t *testing.T) {
 
 		spaceFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-		spaceFSMock.On("Get", mock.Anything, "/foo/bar.jpg").Return(&dfs.ExampleAliceFile, nil).Once()
+		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.jpg"}).Return(&dfs.ExampleAliceFile, nil).Once()
 
 		spaceFSMock.On("Rename", mock.Anything, &dfs.ExampleAliceFile, "new-name").Return(nil, errs.Validation(errors.New("some-error"))).Once()
 

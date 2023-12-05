@@ -20,6 +20,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
@@ -112,7 +113,7 @@ func Test_Browser_Page(t *testing.T) {
 		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace)
 
 		// Then look for the path inside this space
-		spaceFSMock.On("Get", mock.Anything, "/foo/bar").Return(&dfs.ExampleAliceRoot, nil).Once()
+		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}).Return(&dfs.ExampleAliceRoot, nil).Once()
 
 		spaceFSMock.On("ListDir", mock.Anything, "/foo/bar", &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
@@ -169,7 +170,7 @@ func Test_Browser_Page(t *testing.T) {
 		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace)
 
 		// Then look for the path inside this space
-		spaceFSMock.On("Get", mock.Anything, "/foo/bar").Return(&dfs.ExampleAliceFile, nil).Once()
+		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}).Return(&dfs.ExampleAliceFile, nil).Once()
 
 		filesMock.On("GetMetadata", mock.Anything, *dfs.ExampleAliceFile.FileID()).Return(&files.ExampleFile1, nil).Once()
 
@@ -308,7 +309,7 @@ func Test_Browser_Page(t *testing.T) {
 		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace)
 
 		// Then look for the path inside this space
-		spaceFSMock.On("Get", mock.Anything, "/invalid").Return(nil, nil).Once()
+		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/invalid"}).Return(nil, errs.ErrNotFound).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/browser/space-id/invalid", nil)
