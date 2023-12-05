@@ -89,7 +89,6 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 
 	ctx = context.WithoutCancel(ctx)
 
-	fmt.Printf("existing: %v\n", existingFile)
 	if existingFile != nil {
 		// XXX:MULTI-WRITE
 		//

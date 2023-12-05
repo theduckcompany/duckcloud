@@ -1,7 +1,6 @@
 package dfs
 
 import (
-	"errors"
 	io "io"
 	"time"
 
@@ -13,15 +12,6 @@ import (
 )
 
 const NoParent = uuid.UUID("00000000-0000-0000-0000-00000000000")
-
-var (
-	ErrInvalidRoot     = errors.New("invalid root")
-	ErrInvalidParent   = errors.New("invalid parent")
-	ErrInvalidMimeType = errors.New("invalid mime type")
-	ErrIsNotDir        = errors.New("not a directory")
-	ErrIsADir          = errors.New("is a directory")
-	ErrNotFound        = errors.New("inode not found")
-)
 
 type PathCmd struct {
 	Space *spaces.Space
