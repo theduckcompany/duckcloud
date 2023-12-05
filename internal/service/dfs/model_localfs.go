@@ -283,8 +283,8 @@ func (s *LocalFS) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	return inode, nil
 }
 
-func (s *LocalFS) Download(ctx context.Context, filePath string) (io.ReadSeekCloser, error) {
-	inode, err := s.Get(ctx, &PathCmd{Space: s.space, Path: filePath})
+func (s *LocalFS) Download(ctx context.Context, cmd *PathCmd) (io.ReadSeekCloser, error) {
+	inode, err := s.Get(ctx, cmd)
 	if err != nil {
 		return nil, fmt.Errorf("failed to Get: %w", err)
 	}

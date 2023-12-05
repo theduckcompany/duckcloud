@@ -158,9 +158,12 @@ func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request, fs d
 	if err != nil {
 		return status, err
 	}
+
+	pathCmd := &dfs.PathCmd{Space: space, Path: reqPath}
+
 	// TODO: check locks for read-only access??
 	ctx := r.Context()
-	info, err := fs.Get(ctx, &dfs.PathCmd{Space: space, Path: reqPath})
+	info, err := fs.Get(ctx, pathCmd)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
@@ -169,7 +172,7 @@ func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request, fs d
 		return http.StatusMethodNotAllowed, nil
 	}
 
-	f, err := fs.Download(ctx, reqPath)
+	f, err := fs.Download(ctx, pathCmd)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

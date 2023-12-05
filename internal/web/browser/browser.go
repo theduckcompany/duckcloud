@@ -367,7 +367,7 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 		}
 	} else {
 		fileMeta, _ := h.files.GetMetadata(r.Context(), *inode.FileID())
-		file, err := ffs.Download(r.Context(), cmd.Path)
+		file, err := ffs.Download(r.Context(), cmd)
 		if err != nil {
 			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Download: %w", err))
 			return
@@ -426,7 +426,9 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 
 	ffs := h.fs.GetSpaceFS(space)
 
-	inode, err := ffs.Get(r.Context(), &dfs.PathCmd{Space: space, Path: fullPath})
+	pathCmd := &dfs.PathCmd{Space: space, Path: fullPath}
+
+	inode, err := ffs.Get(r.Context(), pathCmd)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Get: %w", err))
 		return
@@ -443,7 +445,7 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 	} else {
 		fileMeta, _ := h.files.GetMetadata(r.Context(), *inode.FileID())
 
-		file, err := ffs.Download(r.Context(), fullPath)
+		file, err := ffs.Download(r.Context(), pathCmd)
 		if err != nil {
 			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Download: %w", err))
 			return
@@ -499,7 +501,7 @@ func (h *Handler) serveFolderContent(w http.ResponseWriter, r *http.Request, ffs
 			return nil
 		}
 
-		file, err := ffs.Download(ctx, path.Join(p, i.Name()))
+		file, err := ffs.Download(ctx, &dfs.PathCmd{Space: cmd.Space, Path: path.Join(p, i.Name())})
 		if err != nil {
 			return fmt.Errorf("failed to download for zip: %w", err)
 		}

@@ -46,25 +46,25 @@ func (_m *MockFS) CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, err
 	return r0, r1
 }
 
-// Download provides a mock function with given fields: ctx, filePath
-func (_m *MockFS) Download(ctx context.Context, filePath string) (io.ReadSeekCloser, error) {
-	ret := _m.Called(ctx, filePath)
+// Download provides a mock function with given fields: ctx, cmd
+func (_m *MockFS) Download(ctx context.Context, cmd *PathCmd) (io.ReadSeekCloser, error) {
+	ret := _m.Called(ctx, cmd)
 
 	var r0 io.ReadSeekCloser
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (io.ReadSeekCloser, error)); ok {
-		return rf(ctx, filePath)
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) (io.ReadSeekCloser, error)); ok {
+		return rf(ctx, cmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) io.ReadSeekCloser); ok {
-		r0 = rf(ctx, filePath)
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) io.ReadSeekCloser); ok {
+		r0 = rf(ctx, cmd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(io.ReadSeekCloser)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, filePath)
+	if rf, ok := ret.Get(1).(func(context.Context, *PathCmd) error); ok {
+		r1 = rf(ctx, cmd)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -78,7 +78,7 @@ func copyFiles(ctx context.Context, user *users.User, fs dfs.FS, src, dst string
 			}
 		}
 	} else {
-		reader, err := fs.Download(ctx, src)
+		reader, err := fs.Download(ctx, &dfs.PathCmd{Space: fs.Space(), Path: src})
 		if err != nil {
 			if errors.Is(err, errs.ErrNotFound) {
 				return http.StatusConflict, err

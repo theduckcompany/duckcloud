@@ -178,7 +178,7 @@ func Test_Browser_Page(t *testing.T) {
 		file, err := afero.TempFile(afs, t.TempDir(), "")
 		require.NoError(t, err)
 
-		spaceFSMock.On("Download", mock.Anything, "/foo/bar").Return(file, nil).Once()
+		spaceFSMock.On("Download", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}).Return(file, nil).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/browser/space-id/foo/bar", nil)

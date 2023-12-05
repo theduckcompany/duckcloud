@@ -219,7 +219,7 @@ func Test_DFS_Integration(t *testing.T) {
 
 		t.Run("Download the new file", func(t *testing.T) {
 			// Download the newly created file
-			reader, err := spaceFS.Download(ctx, "/Documents/todo.txt")
+			reader, err := spaceFS.Download(ctx, &dfs.PathCmd{Space: &space, Path: "/Documents/todo.txt"})
 			require.NoError(t, err)
 
 			res, err := io.ReadAll(reader)
@@ -362,7 +362,7 @@ func Test_DFS_Integration(t *testing.T) {
 			err = serv.RunnerSvc.Run(ctx)
 			require.NoError(t, err)
 
-			reader, err := spaceFS.Download(ctx, "/Duplicate/todo-duplicate.txt")
+			reader, err := spaceFS.Download(ctx, &dfs.PathCmd{Space: &space, Path: "/Duplicate/todo-duplicate.txt"})
 			require.NoError(t, err)
 
 			res, err := io.ReadAll(reader)

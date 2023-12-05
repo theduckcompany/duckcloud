@@ -377,7 +377,7 @@ func Test_LocalFS(t *testing.T) {
 
 		filesMock.On("Download", mock.Anything, &files.ExampleFile1).Return(file, nil).Once()
 
-		res, err := spaceFS.Download(ctx, "/foo/bar.txt")
+		res, err := spaceFS.Download(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.txt"})
 		assert.NoError(t, err)
 		assert.Equal(t, file, res)
 	})
