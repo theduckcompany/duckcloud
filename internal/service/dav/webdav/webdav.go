@@ -362,8 +362,14 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.
 	}
 
 	err = fs.Move(ctx, &dfs.MoveCmd{
-		SrcPath: src,
-		NewPath: dst,
+		Src: &dfs.PathCmd{
+			Space: space,
+			Path:  src,
+		},
+		Dst: &dfs.PathCmd{
+			Space: space,
+			Path:  dst,
+		},
 		MovedBy: user,
 	})
 	if err != nil {

@@ -570,8 +570,8 @@ func Test_LocalFS(t *testing.T) {
 		}).Return(nil).Once()
 
 		err := spaceFS.Move(ctx, &MoveCmd{
-			SrcPath: "/foo.txt",
-			NewPath: "/bar.txt",
+			Src:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo.txt"},
+			Dst:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"},
 			MovedBy: &users.ExampleAlice,
 		})
 		assert.NoError(t, err)
@@ -586,12 +586,12 @@ func Test_LocalFS(t *testing.T) {
 		spaceFS := newLocalFS(storageMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
 
 		err := spaceFS.Move(ctx, &MoveCmd{
-			SrcPath: "",
-			NewPath: "/bar.txt",
+			Src:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: ""},
+			Dst:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"},
 			MovedBy: &users.ExampleAlice,
 		})
 		assert.ErrorIs(t, err, errs.ErrValidation)
-		assert.EqualError(t, err, "validation: SrcPath: cannot be blank.")
+		assert.EqualError(t, err, "validation: Src: (Path: cannot be blank.).")
 	})
 
 	t.Run("Move with a source not found", func(t *testing.T) {
@@ -607,8 +607,8 @@ func Test_LocalFS(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo.txt", ExampleAliceRoot.ID()).Return(nil, errs.ErrNotFound).Once()
 
 		err := spaceFS.Move(ctx, &MoveCmd{
-			SrcPath: "/foo.txt",
-			NewPath: "/bar.txt",
+			Src:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo.txt"},
+			Dst:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"},
 			MovedBy: &users.ExampleAlice,
 		})
 		assert.ErrorIs(t, err, errs.ErrNotFound)
@@ -636,8 +636,8 @@ func Test_LocalFS(t *testing.T) {
 		}).Return(errs.Internal(fmt.Errorf("some-error"))).Once()
 
 		err := spaceFS.Move(ctx, &MoveCmd{
-			SrcPath: "/foo.txt",
-			NewPath: "/bar.txt",
+			Src:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo.txt"},
+			Dst:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"},
 			MovedBy: &users.ExampleAlice,
 		})
 		assert.ErrorIs(t, err, errs.ErrInternal)

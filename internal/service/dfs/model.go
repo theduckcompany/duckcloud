@@ -57,15 +57,15 @@ func (t CreateDirCmd) Validate() error {
 }
 
 type MoveCmd struct {
-	SrcPath string
-	NewPath string
+	Src     *PathCmd
+	Dst     *PathCmd
 	MovedBy *users.User
 }
 
 func (t MoveCmd) Validate() error {
 	return v.ValidateStruct(&t,
-		v.Field(&t.SrcPath, v.Required, v.Length(1, 255)),
-		v.Field(&t.NewPath, v.Required, v.Length(1, 255)),
+		v.Field(&t.Src, v.Required, v.NotNil),
+		v.Field(&t.Dst, v.Required, v.NotNil),
 		v.Field(&t.MovedBy, v.Required, v.NotNil),
 	)
 }

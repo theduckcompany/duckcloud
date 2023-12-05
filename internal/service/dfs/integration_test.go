@@ -255,8 +255,8 @@ func Test_DFS_Integration(t *testing.T) {
 		t.Run("Move", func(t *testing.T) {
 			// The /NewSpace doesn't exists yet. It must be automatically created
 			err := spaceFS.Move(ctx, &dfs.MoveCmd{
-				SrcPath: "/Documents/todo.txt",
-				NewPath: "/NewDocuments/todo.txt",
+				Src:     &dfs.PathCmd{Space: &space, Path: "/Documents/todo.txt"},
+				Dst:     &dfs.PathCmd{Space: &space, Path: "/NewDocuments/todo.txt"},
 				MovedBy: serv.User,
 			})
 			require.NoError(t, err)

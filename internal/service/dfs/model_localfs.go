@@ -227,7 +227,7 @@ func (s *LocalFS) Move(ctx context.Context, cmd *MoveCmd) error {
 		return errs.Validation(err)
 	}
 
-	sourceINode, err := s.Get(ctx, &PathCmd{Space: s.space, Path: cmd.SrcPath})
+	sourceINode, err := s.Get(ctx, cmd.Src)
 	if err != nil {
 		return fmt.Errorf("invalid source: %w", err)
 	}
@@ -235,7 +235,7 @@ func (s *LocalFS) Move(ctx context.Context, cmd *MoveCmd) error {
 	err = s.scheduler.RegisterFSMoveTask(ctx, &scheduler.FSMoveArgs{
 		SpaceID:     s.space.ID(),
 		SourceInode: sourceINode.ID(),
-		TargetPath:  cmd.NewPath,
+		TargetPath:  cmd.Dst.Path,
 		MovedAt:     s.clock.Now(),
 		MovedBy:     cmd.MovedBy.ID(),
 	})
