@@ -184,7 +184,7 @@ func TestPrefix(t *testing.T) {
 
 		require.NoError(t, tc.Runner.Run(ctx))
 
-		got, err := find(ctx, nil, fs, "/")
+		got, err := find(ctx, nil, fs, &dfs.PathCmd{Space: tc.Space, Path: "/"})
 		if err != nil {
 			t.Errorf("prefix=%-9q find: %v", prefix, err)
 			continue
@@ -561,7 +561,8 @@ func TestWalkFS(t *testing.T) {
 	}}
 	ctx := context.Background()
 	for _, tc := range testCases {
-		fs := buildTestFS(t, tc.buildfs).FS
+		testContext := buildTestFS(t, tc.buildfs)
+		fs := testContext.FS
 		var got []string
 		traceFn := func(path string, info *dfs.INode, err error) error {
 			if tc.walkFn != nil {
@@ -573,7 +574,7 @@ func TestWalkFS(t *testing.T) {
 			got = append(got, path)
 			return nil
 		}
-		fi, err := fs.Get(ctx, tc.startAt)
+		fi, err := fs.Get(ctx, &dfs.PathCmd{Space: testContext.Space, Path: tc.startAt})
 		if err != nil {
 			t.Fatalf("%s: cannot stat: %v", tc.desc, err)
 		}

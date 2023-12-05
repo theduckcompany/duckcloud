@@ -61,7 +61,7 @@ func Test_DFS_Integration(t *testing.T) {
 
 	t.Run("Get the rootFS success", func(t *testing.T) {
 		var err error
-		rootFS, err = spaceFS.Get(ctx, "/")
+		rootFS, err = spaceFS.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/"})
 		require.NoError(t, err)
 
 		require.NotEmpty(t, rootFS)
@@ -131,13 +131,13 @@ func Test_DFS_Integration(t *testing.T) {
 		})
 
 		t.Run("/foo/bar/bar have /foo/bar as parent", func(t *testing.T) {
-			dirBar, err = spaceFS.Get(ctx, "/foo/bar")
+			dirBar, err = spaceFS.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/foo/bar"})
 			require.NoError(t, err)
 			assert.Equal(t, ptr.To(dirBar.ID()), dirBaz.Parent())
 		})
 
 		t.Run("/foo/bar have /foo as parent", func(t *testing.T) {
-			dirFoo, err = spaceFS.Get(ctx, "/foo")
+			dirFoo, err = spaceFS.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/foo"})
 			require.NoError(t, err)
 			require.Equal(t, ptr.To(dirFoo.ID()), dirBar.Parent())
 		})
@@ -204,7 +204,7 @@ func Test_DFS_Integration(t *testing.T) {
 		})
 
 		t.Run("Get the new file", func(t *testing.T) {
-			info, err := spaceFS.Get(ctx, "/Documents/todo.txt")
+			info, err := spaceFS.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/Documents/todo.txt"})
 			require.NoError(t, err)
 
 			require.Equal(t, "todo.txt", info.Name())
@@ -226,12 +226,12 @@ func Test_DFS_Integration(t *testing.T) {
 		})
 
 		t.Run("Check parents size and modtime", func(t *testing.T) {
-			root, err := spaceFS.Get(ctx, "/")
+			root, err := spaceFS.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/"})
 			require.NoError(t, err)
 			assert.Equal(t, modTime, root.LastModifiedAt())
 			assert.Equal(t, uint64(len(content)), root.Size())
 
-			dir, err := spaceFS.Get(ctx, "/Documents")
+			dir, err := spaceFS.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/Documents"})
 			require.NoError(t, err)
 			assert.Equal(t, modTime, dir.LastModifiedAt())
 			assert.Equal(t, uint64(len(content)), dir.Size())
@@ -245,7 +245,7 @@ func Test_DFS_Integration(t *testing.T) {
 		t.Run("Get the old file", func(t *testing.T) {
 			var err error
 
-			oldFile, err = spaceFS.Get(ctx, "/Documents/todo.txt")
+			oldFile, err = spaceFS.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/Documents/todo.txt"})
 			require.NoError(t, err)
 		})
 
@@ -267,7 +267,7 @@ func Test_DFS_Integration(t *testing.T) {
 		t.Run("Get the new file", func(t *testing.T) {
 			var err error
 
-			newFile, err = spaceFS.Get(ctx, "/NewDocuments/todo.txt")
+			newFile, err = spaceFS.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/NewDocuments/todo.txt"})
 			require.NoError(t, err)
 
 			// A move must change the inode path an keep the same id
@@ -278,7 +278,7 @@ func Test_DFS_Integration(t *testing.T) {
 		})
 
 		t.Run("Check old parents modtime and size", func(t *testing.T) {
-			dir, err := spaceFS.Get(ctx, "/Documents")
+			dir, err := spaceFS.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/Documents"})
 			require.NoError(t, err)
 			assert.Equal(t, newFile.LastModifiedAt(), dir.LastModifiedAt())
 			// Theres is no more files so the size is 0
@@ -286,12 +286,12 @@ func Test_DFS_Integration(t *testing.T) {
 		})
 
 		t.Run("Check new parents modtime and size", func(t *testing.T) {
-			root, err := spaceFS.Get(ctx, "/")
+			root, err := spaceFS.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/"})
 			require.NoError(t, err)
 			assert.Equal(t, newFile.LastModifiedAt(), root.LastModifiedAt())
 			assert.Equal(t, newFile.Size(), root.Size())
 
-			dir, err := spaceFS.Get(ctx, "/NewDocuments")
+			dir, err := spaceFS.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/NewDocuments"})
 			require.NoError(t, err)
 			assert.Equal(t, newFile.LastModifiedAt(), dir.LastModifiedAt())
 			assert.Equal(t, newFile.Size(), dir.Size())
@@ -340,10 +340,10 @@ func Test_DFS_Integration(t *testing.T) {
 		})
 
 		t.Run("The two file must have the same fileID", func(t *testing.T) {
-			file1, err := spaceFS.Get(ctx, "/Duplicate/todo.txt")
+			file1, err := spaceFS.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/Duplicate/todo.txt"})
 			require.NoError(t, err)
 
-			file2, err := spaceFS.Get(ctx, "/Duplicate/todo-duplicate.txt")
+			file2, err := spaceFS.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/Duplicate/todo-duplicate.txt"})
 			require.NoError(t, err)
 
 			require.Equal(t, file1.FileID(), file2.FileID())
@@ -393,7 +393,7 @@ func Test_DFS_Integration(t *testing.T) {
 			})
 
 			t.Run("Move success", func(t *testing.T) {
-				file, err := spaceFS.Get(ctx, "/move-same-name/foo.txt")
+				file, err := spaceFS.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/move-same-name/foo.txt"})
 				require.NoError(t, err)
 
 				res, err := spaceFS.Rename(ctx, file, "foo2.txt")
@@ -413,7 +413,7 @@ func Test_DFS_Integration(t *testing.T) {
 				err = serv.RunnerSvc.Run(ctx)
 				require.NoError(t, err)
 
-				file, err := spaceFS.Get(ctx, "/move-same-name/foo2.txt")
+				file, err := spaceFS.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/move-same-name/foo2.txt"})
 				require.NoError(t, err)
 
 				res, err := spaceFS.Rename(ctx, file, "bar.txt")

@@ -72,25 +72,25 @@ func (_m *MockFS) Download(ctx context.Context, filePath string) (io.ReadSeekClo
 	return r0, r1
 }
 
-// Get provides a mock function with given fields: ctx, path
-func (_m *MockFS) Get(ctx context.Context, path string) (*INode, error) {
-	ret := _m.Called(ctx, path)
+// Get provides a mock function with given fields: ctx, cmd
+func (_m *MockFS) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
+	ret := _m.Called(ctx, cmd)
 
 	var r0 *INode
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*INode, error)); ok {
-		return rf(ctx, path)
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) (*INode, error)); ok {
+		return rf(ctx, cmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *INode); ok {
-		r0 = rf(ctx, path)
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) *INode); ok {
+		r0 = rf(ctx, cmd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*INode)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, path)
+	if rf, ok := ret.Get(1).(func(context.Context, *PathCmd) error); ok {
+		r1 = rf(ctx, cmd)
 	} else {
 		r1 = ret.Error(1)
 	}

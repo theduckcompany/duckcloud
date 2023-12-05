@@ -63,7 +63,7 @@ func (s *LocalFS) Space() *spaces.Space {
 func (s *LocalFS) ListDir(ctx context.Context, path string, cmd *storage.PaginateCmd) ([]INode, error) {
 	path = CleanPath(path)
 
-	dir, err := s.Get(ctx, path)
+	dir, err := s.Get(ctx, &PathCmd{Space: s.space, Path: path})
 	if errors.Is(err, errs.ErrNotFound) {
 		return nil, errs.NotFound(err)
 	}
@@ -191,7 +191,7 @@ func (s *LocalFS) CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, err
 func (s *LocalFS) Remove(ctx context.Context, path string) error {
 	path = CleanPath(path)
 
-	inode, err := s.Get(ctx, path)
+	inode, err := s.Get(ctx, &PathCmd{Space: s.space, Path: path})
 	if errors.Is(err, errs.ErrNotFound) {
 		return nil
 	}
@@ -231,7 +231,7 @@ func (s *LocalFS) Move(ctx context.Context, cmd *MoveCmd) error {
 		return errs.Validation(err)
 	}
 
-	sourceINode, err := s.Get(ctx, CleanPath(cmd.SrcPath))
+	sourceINode, err := s.Get(ctx, &PathCmd{Space: s.space, Path: cmd.SrcPath})
 	if err != nil {
 		return fmt.Errorf("invalid source: %w", err)
 	}
@@ -250,12 +250,7 @@ func (s *LocalFS) Move(ctx context.Context, cmd *MoveCmd) error {
 	return nil
 }
 
-func (s *LocalFS) Get(ctx context.Context, pathStr string) (*INode, error) {
-	cmd := PathCmd{
-		Space: s.space,
-		Path:  CleanPath(pathStr),
-	}
-
+func (s *LocalFS) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	err := cmd.Validate()
 	if err != nil {
 		return nil, errs.Validation(err)
@@ -263,7 +258,7 @@ func (s *LocalFS) Get(ctx context.Context, pathStr string) (*INode, error) {
 
 	var inode *INode
 	currentPath := "/"
-	err = s.walk(ctx, &cmd, "open", func(dir *INode, frag string, final bool) error {
+	err = s.walk(ctx, cmd, "open", func(dir *INode, frag string, final bool) error {
 		currentPath = path.Join(currentPath, dir.Name())
 		if !final {
 			return nil
@@ -293,7 +288,7 @@ func (s *LocalFS) Get(ctx context.Context, pathStr string) (*INode, error) {
 }
 
 func (s *LocalFS) Download(ctx context.Context, filePath string) (io.ReadSeekCloser, error) {
-	inode, err := s.Get(ctx, filePath)
+	inode, err := s.Get(ctx, &PathCmd{Space: s.space, Path: filePath})
 	if err != nil {
 		return nil, fmt.Errorf("failed to Get: %w", err)
 	}
@@ -326,7 +321,7 @@ func (s *LocalFS) Upload(ctx context.Context, cmd *UploadCmd) error {
 
 	dirPath, fileName := path.Split(filePath)
 
-	dir, err := s.Get(ctx, dirPath)
+	dir, err := s.Get(ctx, &PathCmd{Space: s.space, Path: dirPath})
 	if err != nil {
 		return fmt.Errorf("failed to get the dir: %w", err)
 	}

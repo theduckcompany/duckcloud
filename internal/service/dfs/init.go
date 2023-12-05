@@ -24,7 +24,7 @@ type FS interface {
 	Remove(ctx context.Context, path string) error
 	Rename(ctx context.Context, inode *INode, newName string) (*INode, error)
 	Move(ctx context.Context, cmd *MoveCmd) error
-	Get(ctx context.Context, path string) (*INode, error)
+	Get(ctx context.Context, cmd *PathCmd) (*INode, error)
 	Upload(ctx context.Context, cmd *UploadCmd) error
 	Download(ctx context.Context, filePath string) (io.ReadSeekCloser, error)
 	createDir(ctx context.Context, createdBy *users.User, parent *INode, name string) (*INode, error)

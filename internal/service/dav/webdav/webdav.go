@@ -102,21 +102,21 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	default:
 		switch r.Method {
 		case "OPTIONS":
-			status, err = h.handleOptions(w, r, fs)
+			status, err = h.handleOptions(w, r, fs, space)
 		case "GET", "HEAD", "POST":
-			status, err = h.handleGetHeadPost(w, r, fs)
+			status, err = h.handleGetHeadPost(w, r, fs, space)
 		case "DELETE":
-			status, err = h.handleDelete(w, r, fs)
+			status, err = h.handleDelete(w, r, fs, space)
 		case "PUT":
 			status, err = h.handlePut(w, r, fs, user)
 		case "MKCOL":
-			status, err = h.handleMkcol(w, r, fs, user)
+			status, err = h.handleMkcol(w, r, fs, user, space)
 		case "COPY", "MOVE":
-			status, err = h.handleCopyMove(w, r, fs, user)
+			status, err = h.handleCopyMove(w, r, fs, user, space)
 		case "PROPFIND":
-			status, err = h.handlePropfind(w, r, fs)
+			status, err = h.handlePropfind(w, r, fs, space)
 		case "PROPPATCH":
-			status, err = h.handleProppatch(w, r, fs)
+			status, err = h.handleProppatch(w, r, fs, space)
 		}
 	}
 
@@ -131,14 +131,14 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) handleOptions(w http.ResponseWriter, r *http.Request, fs dfs.FS) (status int, err error) {
+func (h *Handler) handleOptions(w http.ResponseWriter, r *http.Request, fs dfs.FS, space *spaces.Space) (status int, err error) {
 	reqPath, status, err := h.stripPrefix(r.URL.Path)
 	if err != nil {
 		return status, err
 	}
 	ctx := r.Context()
 	allow := "OPTIONS, PUT, MKCOL"
-	if fi, err := fs.Get(ctx, reqPath); err == nil {
+	if fi, err := fs.Get(ctx, &dfs.PathCmd{Space: space, Path: reqPath}); err == nil {
 		if fi.IsDir() {
 			allow = "OPTIONS, DELETE, PROPPATCH, COPY, MOVE, PROPFIND"
 		} else {
@@ -153,14 +153,14 @@ func (h *Handler) handleOptions(w http.ResponseWriter, r *http.Request, fs dfs.F
 	return 0, nil
 }
 
-func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request, fs dfs.FS) (status int, err error) {
+func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request, fs dfs.FS, space *spaces.Space) (status int, err error) {
 	reqPath, status, err := h.stripPrefix(r.URL.Path)
 	if err != nil {
 		return status, err
 	}
 	// TODO: check locks for read-only access??
 	ctx := r.Context()
-	info, err := fs.Get(ctx, reqPath)
+	info, err := fs.Get(ctx, &dfs.PathCmd{Space: space, Path: reqPath})
 	if err != nil {
 		return http.StatusNotFound, err
 	}
@@ -186,7 +186,7 @@ func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request, fs d
 	return 0, nil
 }
 
-func (h *Handler) handleDelete(w http.ResponseWriter, r *http.Request, fs dfs.FS) (status int, err error) {
+func (h *Handler) handleDelete(w http.ResponseWriter, r *http.Request, fs dfs.FS, space *spaces.Space) (status int, err error) {
 	reqPath, status, err := h.stripPrefix(r.URL.Path)
 	if err != nil {
 		return status, err
@@ -199,7 +199,7 @@ func (h *Handler) handleDelete(w http.ResponseWriter, r *http.Request, fs dfs.FS
 	// "godoc os RemoveAll" says that "If the path does not exist, RemoveAll
 	// returns nil (no error)." WebDAV semantics are that it should return a
 	// "404 Not Found". We therefore have to Stat before we RemoveAll.
-	if _, err := fs.Get(ctx, reqPath); err != nil {
+	if _, err := fs.Get(ctx, &dfs.PathCmd{Space: space, Path: reqPath}); err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return http.StatusNotFound, err
 		}
@@ -235,7 +235,7 @@ func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request, fs dfs.FS, u
 	return http.StatusCreated, nil
 }
 
-func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, fs dfs.FS, user *users.User) (status int, err error) {
+func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, fs dfs.FS, user *users.User, space *spaces.Space) (status int, err error) {
 	reqPath, status, err := h.stripPrefix(r.URL.Path)
 	if err != nil {
 		return status, err
@@ -248,7 +248,7 @@ func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, fs dfs.FS,
 	}
 
 	// No file or directory with the same name should already exists
-	res, err := fs.Get(ctx, reqPath)
+	res, err := fs.Get(ctx, &dfs.PathCmd{Space: space, Path: reqPath})
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		return http.StatusInternalServerError, err
 	}
@@ -259,7 +259,7 @@ func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, fs dfs.FS,
 
 	// All the parents must exists
 	if reqPath != "/" {
-		parent, err := fs.Get(ctx, path.Dir(reqPath))
+		parent, err := fs.Get(ctx, &dfs.PathCmd{Space: space, Path: path.Dir(reqPath)})
 		if err != nil && !errors.Is(err, errs.ErrNotFound) {
 			return http.StatusInternalServerError, err
 		}
@@ -281,7 +281,7 @@ func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, fs dfs.FS,
 	return http.StatusCreated, nil
 }
 
-func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.FS, user *users.User) (status int, err error) {
+func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.FS, user *users.User, space *spaces.Space) (status int, err error) {
 	hdr := r.Header.Get("Destination")
 	if hdr == "" {
 		return http.StatusBadRequest, errInvalidDestination
@@ -313,7 +313,7 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.
 
 	ctx := r.Context()
 
-	_, err = fs.Get(ctx, src)
+	_, err = fs.Get(ctx, &dfs.PathCmd{Space: space, Path: src})
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return http.StatusConflict, err
@@ -345,7 +345,7 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.
 		}
 	}
 
-	dstInfo, err := fs.Get(ctx, dst)
+	dstInfo, err := fs.Get(ctx, &dfs.PathCmd{Space: space, Path: dst})
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		return http.StatusInternalServerError, err
 	}
@@ -370,13 +370,13 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.
 	return http.StatusCreated, nil
 }
 
-func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, fs dfs.FS) (status int, err error) {
+func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, fs dfs.FS, space *spaces.Space) (status int, err error) {
 	reqPath, status, err := h.stripPrefix(r.URL.Path)
 	if err != nil {
 		return status, err
 	}
 	ctx := r.Context()
-	fi, err := fs.Get(ctx, reqPath)
+	fi, err := fs.Get(ctx, &dfs.PathCmd{Space: space, Path: reqPath})
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return http.StatusNotFound, err
@@ -446,7 +446,7 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, fs dfs.
 	return 0, nil
 }
 
-func (h *Handler) handleProppatch(w http.ResponseWriter, r *http.Request, fs dfs.FS) (status int, err error) {
+func (h *Handler) handleProppatch(w http.ResponseWriter, r *http.Request, fs dfs.FS, space *spaces.Space) (status int, err error) {
 	reqPath, status, err := h.stripPrefix(r.URL.Path)
 	if err != nil {
 		return status, err
@@ -454,7 +454,7 @@ func (h *Handler) handleProppatch(w http.ResponseWriter, r *http.Request, fs dfs
 
 	ctx := r.Context()
 
-	if _, err := fs.Get(ctx, reqPath); err != nil {
+	if _, err := fs.Get(ctx, &dfs.PathCmd{Space: space, Path: reqPath}); err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return http.StatusNotFound, err
 		}

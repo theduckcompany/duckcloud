@@ -24,7 +24,7 @@ func copyFiles(ctx context.Context, user *users.User, fs dfs.FS, src, dst string
 	// TODO: section 9.8.3 says that "Note that an infinite-depth COPY of /A/
 	// into /A/B/ could lead to infinite recursion if not handled correctly."
 
-	srcStat, err := fs.Get(ctx, src)
+	srcStat, err := fs.Get(ctx, &dfs.PathCmd{Space: fs.Space(), Path: src})
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return http.StatusNotFound, err
@@ -33,14 +33,14 @@ func copyFiles(ctx context.Context, user *users.User, fs dfs.FS, src, dst string
 	}
 
 	created := false
-	if _, err := fs.Get(ctx, dst); err != nil {
+	if _, err := fs.Get(ctx, &dfs.PathCmd{Space: fs.Space(), Path: dst}); err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			created = true
 		} else {
 			return http.StatusForbidden, err
 		}
 
-		_, err := fs.Get(ctx, path.Dir(dst))
+		_, err := fs.Get(ctx, &dfs.PathCmd{Space: fs.Space(), Path: path.Dir(dst)})
 		if err != nil && errors.Is(err, errs.ErrNotFound) && !overwrite {
 			return http.StatusConflict, nil
 		}

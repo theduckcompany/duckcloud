@@ -22,8 +22,8 @@ func TestMemPS(t *testing.T) {
 	ctx := context.Background()
 	// calcProps calculates the getlastmodified and getetag DAV: property
 	// values in pstats for resource name in file-system fs.
-	calcProps := func(name string, fs dfs.FS, files files.Service, pstats []Propstat) error {
-		fi, err := fs.Get(ctx, name)
+	calcProps := func(cmd *dfs.PathCmd, fs dfs.FS, files files.Service, pstats []Propstat) error {
+		fi, err := fs.Get(ctx, cmd)
 		if err != nil {
 			return err
 		}
@@ -43,7 +43,7 @@ func TestMemPS(t *testing.T) {
 					if fi.IsDir() {
 						continue
 					}
-					etag, err := findETag(ctx, name, fi, meta)
+					etag, err := findETag(ctx, cmd.Path, fi, meta)
 					if err != nil {
 						return err
 					}
@@ -522,11 +522,11 @@ func TestMemPS(t *testing.T) {
 		var err error
 		for _, op := range tc.propOp {
 			desc := fmt.Sprintf("%s: %s %s", tc.desc, op.op, op.name)
-			if err = calcProps(op.name, fs, files, op.wantPropstats); err != nil {
+			if err = calcProps(&dfs.PathCmd{Space: testContext.Space, Path: op.name}, fs, files, op.wantPropstats); err != nil {
 				t.Fatalf("%s: calcProps: %v", desc, err)
 			}
 
-			info, err := fs.Get(ctx, op.name)
+			info, err := fs.Get(ctx, &dfs.PathCmd{Space: testContext.Space, Path: op.name})
 			if err != nil {
 				t.Fatalf("failed to get %q\n", op.name)
 			}

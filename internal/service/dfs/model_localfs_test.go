@@ -36,7 +36,7 @@ func Test_LocalFS(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&ExampleAliceDir, nil).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, "bar", ExampleAliceDir.ID()).Return(&ExampleAliceFile, nil).Once()
 
-		res, err := spaceFS.Get(ctx, "/foo/bar")
+		res, err := spaceFS.Get(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"})
 		assert.NoError(t, err)
 		assert.Equal(t, &ExampleAliceFile, res)
 	})
@@ -52,7 +52,7 @@ func Test_LocalFS(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errNotFound).Once()
 
-		res, err := spaceFS.Get(ctx, "/foo")
+		res, err := spaceFS.Get(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"})
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrNotFound)
 	})
@@ -68,7 +68,7 @@ func Test_LocalFS(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, fmt.Errorf("some-error")).Once()
 
-		res, err := spaceFS.Get(ctx, "/foo/bar")
+		res, err := spaceFS.Get(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"})
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")

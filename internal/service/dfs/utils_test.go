@@ -28,7 +28,10 @@ func Test_Walk(t *testing.T) {
 	t.Run("with an empty space", func(t *testing.T) {
 		res := []string{}
 
-		err = dfs.Walk(ctx, ffs, ".", func(_ context.Context, p string, _ *dfs.INode) error {
+		err = dfs.Walk(ctx, ffs, &dfs.PathCmd{
+			Space: space,
+			Path:  ".",
+		}, func(_ context.Context, p string, _ *dfs.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -49,7 +52,10 @@ func Test_Walk(t *testing.T) {
 		require.NoError(t, err)
 
 		res := []string{}
-		err = dfs.Walk(ctx, ffs, "foo.txt", func(_ context.Context, p string, _ *dfs.INode) error {
+		err = dfs.Walk(ctx, ffs, &dfs.PathCmd{
+			Space: space,
+			Path:  "foo.txt",
+		}, func(_ context.Context, p string, _ *dfs.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -70,7 +76,10 @@ func Test_Walk(t *testing.T) {
 
 		res := []string{}
 
-		err = dfs.Walk(ctx, ffs, "dir-a", func(_ context.Context, p string, _ *dfs.INode) error {
+		err = dfs.Walk(ctx, ffs, &dfs.PathCmd{
+			Space: space,
+			Path:  "dir-a",
+		}, func(_ context.Context, p string, _ *dfs.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -82,7 +91,10 @@ func Test_Walk(t *testing.T) {
 	t.Run("the root with a file and a dir", func(t *testing.T) {
 		res := []string{}
 
-		err = dfs.Walk(ctx, ffs, ".", func(_ context.Context, p string, _ *dfs.INode) error {
+		err = dfs.Walk(ctx, ffs, &dfs.PathCmd{
+			Space: space,
+			Path:  ".",
+		}, func(_ context.Context, p string, _ *dfs.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -103,7 +115,10 @@ func Test_Walk(t *testing.T) {
 		require.NoError(t, err)
 
 		res := []string{}
-		err = dfs.Walk(ctx, ffs, ".", func(_ context.Context, p string, _ *dfs.INode) error {
+		err = dfs.Walk(ctx, ffs, &dfs.PathCmd{
+			Space: space,
+			Path:  ".",
+		}, func(_ context.Context, p string, _ *dfs.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -133,7 +148,10 @@ func Test_Walk(t *testing.T) {
 
 		res := []string{}
 
-		err = dfs.Walk(ctx, ffs, "big-space", func(_ context.Context, p string, _ *dfs.INode) error {
+		err = dfs.Walk(ctx, ffs, &dfs.PathCmd{
+			Space: space,
+			Path:  "big-space",
+		}, func(_ context.Context, p string, _ *dfs.INode) error {
 			res = append(res, p)
 			return nil
 		})

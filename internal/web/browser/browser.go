@@ -118,7 +118,7 @@ func (h *Handler) getBrowserContent(w http.ResponseWriter, r *http.Request) {
 
 	lastElem := r.URL.Query().Get("last")
 	if lastElem == "" {
-		h.renderBrowserContent(w, r, user, fs, fullPath)
+		h.renderBrowserContent(w, r, user, fs, &dfs.PathCmd{Space: space, Path: fullPath})
 		return
 	}
 
@@ -337,8 +337,8 @@ func (h Handler) getSpaceAndPathFromURL(w http.ResponseWriter, r *http.Request, 
 	return space, fullPath, false
 }
 
-func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, ffs dfs.FS, fullPath string) {
-	inode, err := ffs.Get(r.Context(), fullPath)
+func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, ffs dfs.FS, cmd *dfs.PathCmd) {
+	inode, err := ffs.Get(r.Context(), cmd)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Get: %w", err))
 		return
@@ -354,7 +354,7 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 
 	dirContent := []dfs.INode{}
 	if inode.IsDir() {
-		dirContent, err = ffs.ListDir(r.Context(), fullPath, &storage.PaginateCmd{
+		dirContent, err = ffs.ListDir(r.Context(), cmd.Path, &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
 			Limit:      PageSize,
 		})
@@ -364,7 +364,7 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 		}
 	} else {
 		fileMeta, _ := h.files.GetMetadata(r.Context(), *inode.FileID())
-		file, err := ffs.Download(r.Context(), fullPath)
+		file, err := ffs.Download(r.Context(), cmd.Path)
 		if err != nil {
 			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Download: %w", err))
 			return
@@ -383,9 +383,9 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 
 	h.html.WriteHTML(w, r, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
 		"host":       r.Host,
-		"fullPath":   fullPath,
+		"fullPath":   cmd.Path,
 		"space":      space,
-		"breadcrumb": generateBreadCrumb(space, fullPath),
+		"breadcrumb": generateBreadCrumb(space, cmd.Path),
 		"spaces":     spaces,
 		"inodes":     dirContent,
 	})
@@ -423,7 +423,7 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 
 	ffs := h.fs.GetSpaceFS(space)
 
-	inode, err := ffs.Get(r.Context(), fullPath)
+	inode, err := ffs.Get(r.Context(), &dfs.PathCmd{Space: space, Path: fullPath})
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Get: %w", err))
 		return
@@ -436,7 +436,7 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if inode.IsDir() {
-		h.serveSpaceContent(w, r, ffs, fullPath)
+		h.serveFolderContent(w, r, ffs, &dfs.PathCmd{Space: space, Path: fullPath})
 	} else {
 		fileMeta, _ := h.files.GetMetadata(r.Context(), *inode.FileID())
 
@@ -452,10 +452,10 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) serveSpaceContent(w http.ResponseWriter, r *http.Request, ffs dfs.FS, root string) {
+func (h *Handler) serveFolderContent(w http.ResponseWriter, r *http.Request, ffs dfs.FS, cmd *dfs.PathCmd) {
 	var err error
 
-	_, dir := path.Split(root)
+	_, dir := path.Split(cmd.Path)
 
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", dir))
@@ -463,7 +463,7 @@ func (h *Handler) serveSpaceContent(w http.ResponseWriter, r *http.Request, ffs 
 
 	writer := zip.NewWriter(w)
 
-	dfs.Walk(r.Context(), ffs, root, func(ctx context.Context, p string, i *dfs.INode) error {
+	dfs.Walk(r.Context(), ffs, cmd, func(ctx context.Context, p string, i *dfs.INode) error {
 		header := &zip.FileHeader{
 			Method:             zip.Deflate,
 			Comment:            "From DuckCloud with love",
@@ -478,7 +478,7 @@ func (h *Handler) serveSpaceContent(w http.ResponseWriter, r *http.Request, ffs 
 			header.SetMode(0o644)
 		}
 
-		header.Name, err = filepath.Rel(root, p)
+		header.Name, err = filepath.Rel(cmd.Path, p)
 		if err != nil {
 			return fmt.Errorf("failed to find the relative path: %w", err)
 		}
