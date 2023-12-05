@@ -353,7 +353,7 @@ func Test_DFS_Integration(t *testing.T) {
 		})
 
 		t.Run("The first replicate is deleted, the second still have the file", func(t *testing.T) {
-			err := spaceFS.Remove(ctx, "/Duplicate/todo.txt")
+			err := spaceFS.Remove(ctx, &dfs.PathCmd{Space: &space, Path: "/Duplicate/todo.txt"})
 			require.NoError(t, err)
 
 			err = serv.RunnerSvc.Run(ctx)
@@ -369,7 +369,7 @@ func Test_DFS_Integration(t *testing.T) {
 		})
 
 		t.Run("Delete the directory", func(t *testing.T) {
-			err := spaceFS.Remove(ctx, "/Duplicate")
+			err := spaceFS.Remove(ctx, &dfs.PathCmd{Space: &space, Path: "/Duplicate"})
 			require.NoError(t, err)
 
 			err = serv.RunnerSvc.Run(ctx)
@@ -427,7 +427,7 @@ func Test_DFS_Integration(t *testing.T) {
 			})
 
 			t.Run("Destroy", func(t *testing.T) {
-				err := spaceFS.Remove(ctx, "/move-same-name")
+				err := spaceFS.Remove(ctx, &dfs.PathCmd{Space: &space, Path: "/move-same-name"})
 				require.NoError(t, err)
 
 				err = serv.RunnerSvc.Run(ctx)

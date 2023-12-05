@@ -485,7 +485,7 @@ func Test_Browser_Page(t *testing.T) {
 		spaceFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
 
-		spaceFSMock.On("Remove", mock.Anything, "/foo/bar").Return(nil).Once()
+		spaceFSMock.On("Remove", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}).Return(nil).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodDelete, "/browser/space-id/foo/bar", nil)

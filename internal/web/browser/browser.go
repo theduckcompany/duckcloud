@@ -205,7 +205,7 @@ func (h *Handler) deleteAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fs := h.fs.GetSpaceFS(space)
-	err := fs.Remove(r.Context(), fullPath)
+	err := fs.Remove(r.Context(), &dfs.PathCmd{Space: space, Path: fullPath})
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Remove: %w", err))
 		return

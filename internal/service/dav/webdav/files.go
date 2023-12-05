@@ -48,7 +48,7 @@ func copyFiles(ctx context.Context, user *users.User, fs dfs.FS, src, dst string
 		if !overwrite {
 			return http.StatusPreconditionFailed, os.ErrExist
 		}
-		if err := fs.Remove(ctx, dst); err != nil && !errors.Is(err, errs.ErrNotFound) {
+		if err := fs.Remove(ctx, &dfs.PathCmd{Space: fs.Space(), Path: dst}); err != nil && !errors.Is(err, errs.ErrNotFound) {
 			return http.StatusForbidden, err
 		}
 	}

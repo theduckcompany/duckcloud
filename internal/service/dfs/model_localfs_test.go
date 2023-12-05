@@ -200,7 +200,7 @@ func Test_LocalFS(t *testing.T) {
 			ModifiedAt: now,
 		}).Return(nil).Once()
 
-		err := spaceFS.Remove(ctx, "foo")
+		err := spaceFS.Remove(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo"})
 		assert.NoError(t, err)
 	})
 
@@ -215,7 +215,7 @@ func Test_LocalFS(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errs.ErrNotFound).Once()
 
-		err := spaceFS.Remove(ctx, "foo")
+		err := spaceFS.Remove(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo"})
 		assert.NoError(t, err)
 	})
 
@@ -230,7 +230,7 @@ func Test_LocalFS(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
 
-		err := spaceFS.Remove(ctx, "foo")
+		err := spaceFS.Remove(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo"})
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})
@@ -251,7 +251,7 @@ func Test_LocalFS(t *testing.T) {
 			"last_modified_at": now,
 		}).Return(fmt.Errorf("some-error")).Once()
 
-		err := spaceFS.Remove(ctx, "foo")
+		err := spaceFS.Remove(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo"})
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})
@@ -276,7 +276,7 @@ func Test_LocalFS(t *testing.T) {
 			ModifiedAt: now,
 		}).Return(errs.Internal(fmt.Errorf("some-error"))).Once()
 
-		err := spaceFS.Remove(ctx, "foo")
+		err := spaceFS.Remove(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo"})
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})

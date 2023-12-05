@@ -186,10 +186,8 @@ func (s *LocalFS) CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, err
 	return inode, nil
 }
 
-func (s *LocalFS) Remove(ctx context.Context, path string) error {
-	path = CleanPath(path)
-
-	inode, err := s.Get(ctx, &PathCmd{Space: s.space, Path: path})
+func (s *LocalFS) Remove(ctx context.Context, cmd *PathCmd) error {
+	inode, err := s.Get(ctx, cmd)
 	if errors.Is(err, errs.ErrNotFound) {
 		return nil
 	}

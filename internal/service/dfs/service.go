@@ -48,7 +48,7 @@ func (s *FSService) GetSpaceFS(space *spaces.Space) FS {
 func (s *FSService) RemoveFS(ctx context.Context, space *spaces.Space) error {
 	fs := s.GetSpaceFS(space)
 
-	err := fs.Remove(ctx, "/")
+	err := fs.Remove(ctx, &PathCmd{Space: space, Path: "/"})
 	if err != nil {
 		return fmt.Errorf("failed to remove the fs: %w", err)
 	}

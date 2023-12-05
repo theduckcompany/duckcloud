@@ -138,13 +138,13 @@ func (_m *MockFS) Move(ctx context.Context, cmd *MoveCmd) error {
 	return r0
 }
 
-// Remove provides a mock function with given fields: ctx, path
-func (_m *MockFS) Remove(ctx context.Context, path string) error {
-	ret := _m.Called(ctx, path)
+// Remove provides a mock function with given fields: ctx, cmd
+func (_m *MockFS) Remove(ctx context.Context, cmd *PathCmd) error {
+	ret := _m.Called(ctx, cmd)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, path)
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) error); ok {
+		r0 = rf(ctx, cmd)
 	} else {
 		r0 = ret.Error(0)
 	}
