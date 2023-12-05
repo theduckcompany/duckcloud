@@ -15,7 +15,7 @@ import (
 // copyFiles copies files and/or directories from src to dst.
 //
 // See section 9.8.5 for when various HTTP status codes apply.
-func copyFiles(ctx context.Context, user *users.User, fs dfs.FS, src, dst *dfs.PathCmd, overwrite bool, depth, recursion int) (status int, err error) {
+func copyFiles(ctx context.Context, user *users.User, fs dfs.Service, src, dst *dfs.PathCmd, overwrite bool, depth, recursion int) (status int, err error) {
 	if recursion == 1000 {
 		return http.StatusInternalServerError, errRecursionTooDeep
 	}

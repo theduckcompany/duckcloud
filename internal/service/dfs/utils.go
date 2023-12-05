@@ -15,7 +15,7 @@ const WalkBatchSize = 100
 
 type WalkDirFunc func(ctx context.Context, path string, i *INode) error
 
-func Walk(ctx context.Context, ffs FS, cmd *PathCmd, fn WalkDirFunc) error {
+func Walk(ctx context.Context, ffs Service, cmd *PathCmd, fn WalkDirFunc) error {
 	err := cmd.Validate()
 	if err != nil {
 		return errs.Validation(err)
@@ -62,4 +62,13 @@ func Walk(ctx context.Context, ffs FS, cmd *PathCmd, fn WalkDirFunc) error {
 	}
 
 	return nil
+}
+
+// CleanPath is equivalent to but slightly more efficient than
+// path.Clean("/" + name).
+func CleanPath(name string) string {
+	if name == "" || name[0] != '/' {
+		name = "/" + name
+	}
+	return path.Clean(name)
 }

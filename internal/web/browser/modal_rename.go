@@ -63,9 +63,7 @@ func (h *renameModalHandler) getRenameModal(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	fs := h.fs.GetSpaceFS(space)
-
-	_, err := fs.Get(ctx, &dfs.PathCmd{Space: space, Path: filePath})
+	_, err := h.fs.Get(ctx, &dfs.PathCmd{Space: space, Path: filePath})
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to get the file %q: %w", filePath, err))
 	}
@@ -123,14 +121,12 @@ func (h *renameModalHandler) handleRenameReq(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	fs := h.fs.GetSpaceFS(space)
-
-	inode, err := fs.Get(ctx, &dfs.PathCmd{Space: space, Path: filePath})
+	inode, err := h.fs.Get(ctx, &dfs.PathCmd{Space: space, Path: filePath})
 	if errors.Is(err, errs.ErrNotFound) {
 		w.WriteHeader(http.StatusNotFound)
 	}
 
-	_, err = fs.Rename(ctx, inode, r.FormValue("name"))
+	_, err = h.fs.Rename(ctx, inode, r.FormValue("name"))
 	if errors.Is(err, errs.ErrValidation) {
 		h.renderRenameModal(w, r, &renameModalCmd{
 			ErrorMsg: err.Error(),

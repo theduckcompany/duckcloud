@@ -28,7 +28,7 @@ type TestContext struct {
 	Scheduler scheduler.Service
 	Files     files.Service
 	Runner    runner.Service
-	FS        dfs.FS
+	FS        dfs.Service
 
 	User  *users.User
 	Space *spaces.Space
@@ -45,20 +45,20 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 
 	space := &spaces[0]
 
-	fs := serv.DFSSvc.GetSpaceFS(space)
+	fsSvc := serv.DFSSvc
 
 	for _, b := range buildfs {
 		op := strings.Split(b, " ")
 		switch op[0] {
 		case "mkdir":
-			_, err := fs.CreateDir(ctx, &dfs.CreateDirCmd{
+			_, err := fsSvc.CreateDir(ctx, &dfs.CreateDirCmd{
 				Space:     space,
 				FilePath:  op[1],
 				CreatedBy: serv.User,
 			})
 			require.NoError(t, err)
 		case "touch":
-			err := fs.Upload(ctx, &dfs.UploadCmd{
+			err := fsSvc.Upload(ctx, &dfs.UploadCmd{
 				Space:      space,
 				FilePath:   op[1],
 				Content:    http.NoBody,
@@ -69,7 +69,7 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 			buf := bytes.NewBuffer(nil)
 			buf.Write([]byte(op[2]))
 
-			err := fs.Upload(ctx, &dfs.UploadCmd{
+			err := fsSvc.Upload(ctx, &dfs.UploadCmd{
 				Space:      space,
 				FilePath:   op[1],
 				Content:    buf,
@@ -93,7 +93,7 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 		Scheduler: serv.SchedulerSvc,
 		Runner:    serv.RunnerSvc,
 		Files:     serv.Files,
-		FS:        fs,
+		FS:        fsSvc,
 
 		User:  serv.User,
 		Space: &spaces[0],
@@ -104,7 +104,7 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 // analogous to the Unix find command.
 //
 // The returned strings are not guaranteed to be in any particular order.
-func find(ctx context.Context, ss []string, fs dfs.FS, cmd *dfs.PathCmd) ([]string, error) {
+func find(ctx context.Context, ss []string, fs dfs.Service, cmd *dfs.PathCmd) ([]string, error) {
 	stat, err := fs.Get(ctx, cmd)
 	if err != nil {
 		return nil, err

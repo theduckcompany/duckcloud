@@ -22,7 +22,7 @@ func TestMemPS(t *testing.T) {
 	ctx := context.Background()
 	// calcProps calculates the getlastmodified and getetag DAV: property
 	// values in pstats for resource name in file-system fs.
-	calcProps := func(cmd *dfs.PathCmd, fs dfs.FS, files files.Service, pstats []Propstat) error {
+	calcProps := func(cmd *dfs.PathCmd, fs dfs.Service, files files.Service, pstats []Propstat) error {
 		fi, err := fs.Get(ctx, cmd)
 		if err != nil {
 			return err
@@ -606,7 +606,7 @@ func (b byStatus) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
 func (b byStatus) Less(i, j int) bool { return b[i].Status < b[j].Status }
 
 // type noDeadPropsFS struct {
-// 	dfs.FS
+// 	dfs.Service
 // }
 
 // func (fs noDeadPropsFS) OpenFile(ctx context.Context, name string, flag int, perm os.FileMode) (File, error) {

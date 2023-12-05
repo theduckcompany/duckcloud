@@ -115,11 +115,10 @@ func (h *Handler) getBrowserContent(w http.ResponseWriter, r *http.Request) {
 	if abort {
 		return
 	}
-	fs := h.fs.GetSpaceFS(space)
 
 	lastElem := r.URL.Query().Get("last")
 	if lastElem == "" {
-		h.renderBrowserContent(w, r, user, fs, &dfs.PathCmd{Space: space, Path: fullPath})
+		h.renderBrowserContent(w, r, user, &dfs.PathCmd{Space: space, Path: fullPath})
 		return
 	}
 
@@ -204,8 +203,7 @@ func (h *Handler) deleteAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fs := h.fs.GetSpaceFS(space)
-	err := fs.Remove(r.Context(), &dfs.PathCmd{Space: space, Path: fullPath})
+	err := h.fs.Remove(r.Context(), &dfs.PathCmd{Space: space, Path: fullPath})
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Remove: %w", err))
 		return
@@ -268,8 +266,6 @@ func (h *Handler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
 		return fmt.Errorf("failed to GetByID: %w", err)
 	}
 
-	ffs := h.fs.GetSpaceFS(space)
-
 	var fullPath string
 	if cmd.relPath == "null" || cmd.relPath == "" {
 		fullPath = path.Join(cmd.rootPath, cmd.name)
@@ -282,7 +278,7 @@ func (h *Handler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
 	}
 
 	dirPath := path.Dir(fullPath)
-	_, err = ffs.CreateDir(ctx, &dfs.CreateDirCmd{
+	_, err = h.fs.CreateDir(ctx, &dfs.CreateDirCmd{
 		Space:     space,
 		FilePath:  dirPath,
 		CreatedBy: cmd.user,
@@ -291,7 +287,7 @@ func (h *Handler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
 		return fmt.Errorf("failed to create the directory %q: %w", dirPath, err)
 	}
 
-	err = ffs.Upload(ctx, &dfs.UploadCmd{
+	err = h.fs.Upload(ctx, &dfs.UploadCmd{
 		Space:      space,
 		FilePath:   fullPath,
 		Content:    cmd.fileReader,
@@ -340,8 +336,8 @@ func (h Handler) getSpaceAndPathFromURL(w http.ResponseWriter, r *http.Request, 
 	return space, fullPath, false
 }
 
-func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, ffs dfs.FS, cmd *dfs.PathCmd) {
-	inode, err := ffs.Get(r.Context(), cmd)
+func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, cmd *dfs.PathCmd) {
+	inode, err := h.fs.Get(r.Context(), cmd)
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Get: %w", err))
 		return
@@ -355,7 +351,7 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 
 	dirContent := []dfs.INode{}
 	if inode.IsDir() {
-		dirContent, err = ffs.ListDir(r.Context(), cmd, &storage.PaginateCmd{
+		dirContent, err = h.fs.ListDir(r.Context(), cmd, &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
 			Limit:      PageSize,
 		})
@@ -365,7 +361,7 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 		}
 	} else {
 		fileMeta, _ := h.files.GetMetadata(r.Context(), *inode.FileID())
-		file, err := ffs.Download(r.Context(), cmd)
+		file, err := h.fs.Download(r.Context(), cmd)
 		if err != nil {
 			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Download: %w", err))
 			return
@@ -393,8 +389,7 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 }
 
 func (h *Handler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, space *spaces.Space, fullPath, lastElem string) {
-	ffs := h.fs.GetSpaceFS(space)
-	dirContent, err := ffs.ListDir(r.Context(), &dfs.PathCmd{Space: space, Path: fullPath}, &storage.PaginateCmd{
+	dirContent, err := h.fs.ListDir(r.Context(), &dfs.PathCmd{Space: space, Path: fullPath}, &storage.PaginateCmd{
 		StartAfter: map[string]string{"name": lastElem},
 		Limit:      PageSize,
 	})
@@ -422,11 +417,9 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ffs := h.fs.GetSpaceFS(space)
-
 	pathCmd := &dfs.PathCmd{Space: space, Path: fullPath}
 
-	inode, err := ffs.Get(r.Context(), pathCmd)
+	inode, err := h.fs.Get(r.Context(), pathCmd)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Get: %w", err))
 		return
@@ -439,11 +432,11 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if inode.IsDir() {
-		h.serveFolderContent(w, r, ffs, &dfs.PathCmd{Space: space, Path: fullPath})
+		h.serveFolderContent(w, r, &dfs.PathCmd{Space: space, Path: fullPath})
 	} else {
 		fileMeta, _ := h.files.GetMetadata(r.Context(), *inode.FileID())
 
-		file, err := ffs.Download(r.Context(), pathCmd)
+		file, err := h.fs.Download(r.Context(), pathCmd)
 		if err != nil {
 			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Download: %w", err))
 			return
@@ -455,7 +448,7 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) serveFolderContent(w http.ResponseWriter, r *http.Request, ffs dfs.FS, cmd *dfs.PathCmd) {
+func (h *Handler) serveFolderContent(w http.ResponseWriter, r *http.Request, cmd *dfs.PathCmd) {
 	var err error
 
 	_, dir := path.Split(cmd.Path)
@@ -466,7 +459,7 @@ func (h *Handler) serveFolderContent(w http.ResponseWriter, r *http.Request, ffs
 
 	writer := zip.NewWriter(w)
 
-	dfs.Walk(r.Context(), ffs, cmd, func(ctx context.Context, p string, i *dfs.INode) error {
+	dfs.Walk(r.Context(), h.fs, cmd, func(ctx context.Context, p string, i *dfs.INode) error {
 		header := &zip.FileHeader{
 			Method:             zip.Deflate,
 			Comment:            "From DuckCloud with love",
@@ -499,7 +492,7 @@ func (h *Handler) serveFolderContent(w http.ResponseWriter, r *http.Request, ffs
 			return nil
 		}
 
-		file, err := ffs.Download(ctx, &dfs.PathCmd{Space: cmd.Space, Path: path.Join(p, i.Name())})
+		file, err := h.fs.Download(ctx, &dfs.PathCmd{Space: cmd.Space, Path: path.Join(p, i.Name())})
 		if err != nil {
 			return fmt.Errorf("failed to download for zip: %w", err)
 		}

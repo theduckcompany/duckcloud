@@ -48,9 +48,7 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 		return fmt.Errorf("failed to get the user: %w", err)
 	}
 
-	fs := r.fs.GetSpaceFS(space)
-
-	existingFile, err := fs.Get(ctx, &PathCmd{Space: space, Path: args.TargetPath})
+	existingFile, err := r.fs.Get(ctx, &PathCmd{Space: space, Path: args.TargetPath})
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		return fmt.Errorf("failed to check if a file already existed: %w", err)
 	}
@@ -62,7 +60,7 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 
 	dir, filename := path.Split(args.TargetPath)
 
-	targetDir, err := fs.CreateDir(ctx, &CreateDirCmd{
+	targetDir, err := r.fs.CreateDir(ctx, &CreateDirCmd{
 		Space:     space,
 		FilePath:  dir,
 		CreatedBy: user,
@@ -100,7 +98,7 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 		// path for example.
 		//
 		// TODO: Fix this with a commit system
-		err = fs.removeINode(ctx, existingFile)
+		err = r.fs.removeINode(ctx, existingFile)
 		if err != nil {
 			return errs.Internal(fmt.Errorf("failed to remove the old file: %w", err))
 		}

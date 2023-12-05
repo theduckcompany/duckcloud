@@ -249,7 +249,7 @@ func allprop(ctx context.Context, fi *dfs.INode, fm *files.FileMeta, name string
 
 // patch patches the properties of resource name. The return values are
 // constrained in the same manner as DeadPropsHolder.Patch.
-func patch(ctx context.Context, fs dfs.FS, name string, patches []Proppatch) ([]Propstat, error) {
+func patch(ctx context.Context, fs dfs.Service, name string, patches []Proppatch) ([]Propstat, error) {
 	conflict := false
 loop:
 	for _, patch := range patches {
