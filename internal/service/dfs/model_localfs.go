@@ -146,7 +146,7 @@ func (s *LocalFS) CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, err
 	var inode *INode
 	currentPath := "/"
 	err = s.walk(ctx, &PathCmd{
-		Space: s.space,
+		Space: cmd.Space,
 		Path:  CleanPath(cmd.FilePath),
 	}, "mkdir", func(dir *INode, frag string, _ bool) error {
 		currentPath = path.Join(currentPath, dir.Name())

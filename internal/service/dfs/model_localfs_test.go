@@ -92,6 +92,7 @@ func Test_LocalFS(t *testing.T) {
 		storageMock.On("Save", mock.Anything, &ExampleAliceEmptyDir).Return(nil).Once()
 
 		res, err := spaceFS.CreateDir(ctx, &CreateDirCmd{
+			Space:     &spaces.ExampleAlicePersonalSpace,
 			FilePath:  "/new-dir",
 			CreatedBy: &users.ExampleAlice,
 		})
@@ -108,6 +109,7 @@ func Test_LocalFS(t *testing.T) {
 		spaceFS := newLocalFS(storageMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
 
 		res, err := spaceFS.CreateDir(ctx, &CreateDirCmd{
+			Space:     &spaces.ExampleAlicePersonalSpace,
 			FilePath:  "/some-dir-name",
 			CreatedBy: nil,
 		})
@@ -128,6 +130,7 @@ func Test_LocalFS(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "some-dir-name", ExampleAliceRoot.ID()).Return(&ExampleAliceFile, nil).Once()
 
 		res, err := spaceFS.CreateDir(ctx, &CreateDirCmd{
+			Space:     &spaces.ExampleAlicePersonalSpace,
 			FilePath:  "/some-dir-name",
 			CreatedBy: &users.ExampleAlice,
 		})
@@ -149,6 +152,7 @@ func Test_LocalFS(t *testing.T) {
 			Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
 
 		res, err := spaceFS.CreateDir(ctx, &CreateDirCmd{
+			Space:     &spaces.ExampleAlicePersonalSpace,
 			FilePath:  "/some-dir-name",
 			CreatedBy: &users.ExampleAlice,
 		})
@@ -168,6 +172,7 @@ func Test_LocalFS(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 
 		res, err := spaceFS.CreateDir(ctx, &CreateDirCmd{
+			Space:     &spaces.ExampleAlicePersonalSpace,
 			FilePath:  "/",
 			CreatedBy: &users.ExampleAlice,
 		})

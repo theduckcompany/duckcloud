@@ -169,6 +169,7 @@ func TestCreateDirModal(t *testing.T) {
 
 		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/New Dir"}).Return(nil, errs.ErrNotFound).Once()
 		spaceFSMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
+			Space:     &spaces.ExampleAlicePersonalSpace,
 			FilePath:  "/foo/New Dir",
 			CreatedBy: &users.ExampleAlice,
 		}).Return(&dfs.ExampleAliceDir, nil).Once()
@@ -353,6 +354,7 @@ func TestCreateDirModal(t *testing.T) {
 		err := fmt.Errorf("some-error")
 		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/New Dir"}).Return(nil, errs.ErrNotFound).Once()
 		spaceFSMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
+			Space:     &spaces.ExampleAlicePersonalSpace,
 			FilePath:  "/foo/New Dir",
 			CreatedBy: &users.ExampleAlice,
 		}).Return(nil, err).Once()

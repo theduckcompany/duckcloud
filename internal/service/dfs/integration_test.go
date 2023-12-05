@@ -86,6 +86,7 @@ func Test_DFS_Integration(t *testing.T) {
 
 	t.Run("CreateDir success", func(t *testing.T) {
 		dir, err := spaceFS.CreateDir(ctx, &dfs.CreateDirCmd{
+			Space:     &space,
 			FilePath:  "/Documents/",
 			CreatedBy: serv.User,
 		})
@@ -118,6 +119,7 @@ func Test_DFS_Integration(t *testing.T) {
 
 		t.Run("Create the /foo/bar/baz directory", func(t *testing.T) {
 			dirBaz, err = spaceFS.CreateDir(ctx, &dfs.CreateDirCmd{
+				Space:     &space,
 				FilePath:  "/foo/bar/baz",
 				CreatedBy: serv.User,
 			})
@@ -303,6 +305,7 @@ func Test_DFS_Integration(t *testing.T) {
 
 		t.Run("Create the test directory", func(t *testing.T) {
 			_, err := spaceFS.CreateDir(ctx, &dfs.CreateDirCmd{
+				Space:     &space,
 				FilePath:  "/Duplicate",
 				CreatedBy: serv.User,
 			})
@@ -376,6 +379,7 @@ func Test_DFS_Integration(t *testing.T) {
 		t.Run("Move with the same name", func(t *testing.T) {
 			t.Run("Setup", func(t *testing.T) {
 				_, err := spaceFS.CreateDir(ctx, &dfs.CreateDirCmd{
+					Space:     &space,
 					FilePath:  "/move-same-name",
 					CreatedBy: serv.User,
 				})

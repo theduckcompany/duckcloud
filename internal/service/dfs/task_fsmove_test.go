@@ -45,6 +45,7 @@ func TestFSMoveTask(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, ExampleAliceFile.ID()).
 			Return(&ExampleAliceFile, nil).Once()
 		spaceFSMock.On("CreateDir", mock.Anything, &CreateDirCmd{
+			Space:     &spaces.ExampleAlicePersonalSpace,
 			FilePath:  "/",
 			CreatedBy: &users.ExampleAlice,
 		}).Return(&ExampleAliceRoot, nil).Once()
@@ -92,6 +93,7 @@ func TestFSMoveTask(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, ExampleAliceFile.ID()).
 			Return(&ExampleAliceFile, nil).Once()
 		spaceFSMock.On("CreateDir", mock.Anything, &CreateDirCmd{
+			Space:     &spaces.ExampleAlicePersonalSpace,
 			FilePath:  "/",
 			CreatedBy: &users.ExampleAlice,
 		}).Return(&ExampleAliceRoot, nil).Once()
@@ -216,6 +218,7 @@ func TestFSMoveTask(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, ExampleAliceFile.ID()).
 			Return(&ExampleAliceFile, nil).Once()
 		spaceFSMock.On("CreateDir", mock.Anything, &CreateDirCmd{
+			Space:     &spaces.ExampleAlicePersonalSpace,
 			FilePath:  "/",
 			CreatedBy: &users.ExampleAlice,
 		}).Return(nil, errs.Internal(errors.New("some-error"))).Once()

@@ -43,13 +43,16 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 	require.NoError(t, err, "failed to get the user default space")
 	require.NotEmpty(t, spaces)
 
-	fs := serv.DFSSvc.GetSpaceFS(&spaces[0])
+	space := &spaces[0]
+
+	fs := serv.DFSSvc.GetSpaceFS(space)
 
 	for _, b := range buildfs {
 		op := strings.Split(b, " ")
 		switch op[0] {
 		case "mkdir":
 			_, err := fs.CreateDir(ctx, &dfs.CreateDirCmd{
+				Space:     space,
 				FilePath:  op[1],
 				CreatedBy: serv.User,
 			})

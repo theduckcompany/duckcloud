@@ -55,6 +55,7 @@ func copyFiles(ctx context.Context, user *users.User, fs dfs.FS, src, dst string
 
 	if srcStat.IsDir() {
 		if _, err := fs.CreateDir(ctx, &dfs.CreateDirCmd{
+			Space:     fs.Space(),
 			FilePath:  dst,
 			CreatedBy: user,
 		}); err != nil {

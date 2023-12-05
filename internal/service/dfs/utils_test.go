@@ -66,6 +66,7 @@ func Test_Walk(t *testing.T) {
 
 	t.Run("with an empty directory", func(t *testing.T) {
 		_, err := ffs.CreateDir(ctx, &dfs.CreateDirCmd{
+			Space:     space,
 			FilePath:  "dir-a",
 			CreatedBy: serv.User,
 		})
@@ -129,6 +130,7 @@ func Test_Walk(t *testing.T) {
 
 	t.Run("with a big space and pagination", func(t *testing.T) {
 		_, err := ffs.CreateDir(ctx, &dfs.CreateDirCmd{
+			Space:     space,
 			FilePath:  "big-space",
 			CreatedBy: serv.User,
 		})

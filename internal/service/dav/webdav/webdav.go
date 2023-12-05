@@ -270,6 +270,7 @@ func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, fs dfs.FS,
 	}
 
 	if _, err := fs.CreateDir(ctx, &dfs.CreateDirCmd{
+		Space:     space,
 		FilePath:  reqPath,
 		CreatedBy: user,
 	}); err != nil {
