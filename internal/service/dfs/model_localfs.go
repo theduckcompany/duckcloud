@@ -54,6 +54,22 @@ func newLocalFS(
 	return &LocalFS{storage, files, spaces, tasks, tools.Clock(), tools.UUID()}
 }
 
+func (s *LocalFS) Destroy(ctx context.Context, space *spaces.Space) error {
+	err := s.Remove(ctx, &PathCmd{Space: space, Path: "/"})
+	if err != nil {
+		return fmt.Errorf("failed to remove the fs: %w", err)
+	}
+
+	// XXX:MULTI-WRITE
+	//
+	err = s.spaces.Delete(ctx, space.ID())
+	if err != nil {
+		return fmt.Errorf("failed to delete the space %q: %w", space.ID(), err)
+	}
+
+	return nil
+}
+
 func (s *LocalFS) ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
 	dir, err := s.Get(ctx, cmd)
 	if errors.Is(err, errs.ErrNotFound) {

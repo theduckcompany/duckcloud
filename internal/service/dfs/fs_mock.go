@@ -8,6 +8,8 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
+	spaces "github.com/theduckcompany/duckcloud/internal/service/spaces"
+
 	storage "github.com/theduckcompany/duckcloud/internal/tools/storage"
 
 	users "github.com/theduckcompany/duckcloud/internal/service/users"
@@ -42,6 +44,20 @@ func (_m *MockFS) CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, err
 	}
 
 	return r0, r1
+}
+
+// Destroy provides a mock function with given fields: ctx, space
+func (_m *MockFS) Destroy(ctx context.Context, space *spaces.Space) error {
+	ret := _m.Called(ctx, space)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *spaces.Space) error); ok {
+		r0 = rf(ctx, space)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // Download provides a mock function with given fields: ctx, cmd

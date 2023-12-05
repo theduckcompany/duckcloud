@@ -60,20 +60,6 @@ func (_m *MockService) GetSpaceFS(space *spaces.Space) FS {
 	return r0
 }
 
-// RemoveFS provides a mock function with given fields: ctx, space
-func (_m *MockService) RemoveFS(ctx context.Context, space *spaces.Space) error {
-	ret := _m.Called(ctx, space)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *spaces.Space) error); ok {
-		r0 = rf(ctx, space)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // NewMockService creates a new instance of MockService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockService(t interface {

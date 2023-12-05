@@ -718,4 +718,93 @@ func Test_LocalFS(t *testing.T) {
 		assert.Equal(t, res.Name(), "foobar (1).pdf")
 		assert.Equal(t, res.LastModifiedAt(), now)
 	})
+
+	t.Run("Destroy success", func(t *testing.T) {
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		spaceFS := newLocalFS(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
+
+		// Delete the file system
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).
+			Return(&ExampleAliceRoot, nil).Once()
+		toolsMock.ClockMock.On("Now").Return(now).Once()
+		storageMock.On("Patch", mock.Anything, ExampleAliceRoot.ID(), map[string]any{
+			"deleted_at":       now,
+			"last_modified_at": now,
+		}).Return(nil).Once()
+
+		// Delete the space
+		spacesMock.On("Delete", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(nil).Once()
+
+		err := spaceFS.Destroy(ctx, &spaces.ExampleAlicePersonalSpace)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Destroy with a GetSpaceRoot error", func(t *testing.T) {
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		spaceFS := newLocalFS(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
+
+		// Delete the file system
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).
+			Return(nil, fmt.Errorf("some-error")).Once()
+
+		err := spaceFS.Destroy(ctx, &spaces.ExampleAlicePersonalSpace)
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
+	})
+
+	t.Run("Destroy with a Patch error", func(t *testing.T) {
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		spaceFS := newLocalFS(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
+
+		// Delete the file system
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).
+			Return(&ExampleAliceRoot, nil).Once()
+		toolsMock.ClockMock.On("Now").Return(now).Once()
+		storageMock.On("Patch", mock.Anything, ExampleAliceRoot.ID(), map[string]any{
+			"deleted_at":       now,
+			"last_modified_at": now,
+		}).Return(fmt.Errorf("some-error")).Once()
+
+		err := spaceFS.Destroy(ctx, &spaces.ExampleAlicePersonalSpace)
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
+	})
+
+	t.Run("Destroy with a delete space error", func(t *testing.T) {
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		spaceFS := newLocalFS(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
+
+		// Delete the file system
+		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).
+			Return(&ExampleAliceRoot, nil).Once()
+		toolsMock.ClockMock.On("Now").Return(now).Once()
+		storageMock.On("Patch", mock.Anything, ExampleAliceRoot.ID(), map[string]any{
+			"deleted_at":       now,
+			"last_modified_at": now,
+		}).Return(nil).Once()
+
+		// Delete the space
+		spacesMock.On("Delete", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).
+			Return(errs.Internal(fmt.Errorf("some-error"))).Once()
+
+		err := spaceFS.Destroy(ctx, &spaces.ExampleAlicePersonalSpace)
+		assert.ErrorIs(t, err, errs.ErrInternal)
+		assert.ErrorContains(t, err, "some-error")
+	})
 }

@@ -41,7 +41,8 @@ func Test_DFS_Integration(t *testing.T) {
 		require.Len(t, spaces, 2) // the default one + the new one
 
 		// Delete the new space
-		err = dfsSvc.RemoveFS(ctx, tmpSpace)
+		fs := dfsSvc.GetSpaceFS(tmpSpace)
+		err = fs.Destroy(ctx, tmpSpace)
 		require.NoError(t, err)
 
 		// Check that a new space have been created

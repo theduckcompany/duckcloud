@@ -45,24 +45,6 @@ func (s *FSService) GetSpaceFS(space *spaces.Space) FS {
 	return newLocalFS(s.storage, s.files, s.spaces, s.scheduler, s.tools)
 }
 
-func (s *FSService) RemoveFS(ctx context.Context, space *spaces.Space) error {
-	fs := s.GetSpaceFS(space)
-
-	err := fs.Remove(ctx, &PathCmd{Space: space, Path: "/"})
-	if err != nil {
-		return fmt.Errorf("failed to remove the fs: %w", err)
-	}
-
-	// XXX:MULTI-WRITE
-	//
-	err = s.spaces.Delete(ctx, space.ID())
-	if err != nil {
-		return fmt.Errorf("failed to delete the space %q: %w", space.ID(), err)
-	}
-
-	return nil
-}
-
 func (s *FSService) CreateFS(ctx context.Context, user *users.User, owners []uuid.UUID) (*spaces.Space, error) {
 	// XXX:MULTI-WRITE
 	space, err := s.spaces.Create(ctx, &spaces.CreateCmd{

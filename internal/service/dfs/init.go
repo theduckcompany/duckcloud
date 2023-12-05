@@ -18,6 +18,7 @@ import (
 
 //go:generate mockery --name FS
 type FS interface {
+	Destroy(ctx context.Context, space *spaces.Space) error
 	CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, error)
 	ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error)
 	Remove(ctx context.Context, cmd *PathCmd) error
@@ -34,7 +35,6 @@ type FS interface {
 type Service interface {
 	GetSpaceFS(space *spaces.Space) FS
 	CreateFS(ctx context.Context, user *users.User, owners []uuid.UUID) (*spaces.Space, error)
-	RemoveFS(ctx context.Context, space *spaces.Space) error
 }
 
 type Result struct {
