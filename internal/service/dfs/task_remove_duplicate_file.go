@@ -5,20 +5,19 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 )
 
 type FSRemoveDuplicateFilesRunner struct {
-	inodes    inodes.Service
+	storage   Storage
 	files     files.Service
 	scheduler scheduler.Service
 }
 
-func NewFSRemoveDuplicateFileRunner(inodes inodes.Service, files files.Service, scheduler scheduler.Service) *FSRemoveDuplicateFilesRunner {
-	return &FSRemoveDuplicateFilesRunner{inodes, files, scheduler}
+func NewFSRemoveDuplicateFileRunner(storage Storage, files files.Service, scheduler scheduler.Service) *FSRemoveDuplicateFilesRunner {
+	return &FSRemoveDuplicateFilesRunner{storage, files, scheduler}
 }
 
 func (r *FSRemoveDuplicateFilesRunner) Name() string { return "fs-remove-duplicate-file" }
@@ -34,7 +33,7 @@ func (r *FSRemoveDuplicateFilesRunner) Run(ctx context.Context, rawArgs json.Raw
 }
 
 func (r *FSRemoveDuplicateFilesRunner) RunArgs(ctx context.Context, args *scheduler.FSRemoveDuplicateFileArgs) error {
-	duplicates, err := r.inodes.GetAllInodesWithFileID(ctx, args.DuplicateFileID)
+	duplicates, err := r.storage.GetAllInodesWithFileID(ctx, args.DuplicateFileID)
 	if err != nil {
 		return fmt.Errorf("failed to GetAllInodesWithFileID: %w", err)
 	}
@@ -45,9 +44,20 @@ func (r *FSRemoveDuplicateFilesRunner) RunArgs(ctx context.Context, args *schedu
 	}
 
 	for _, duplicate := range duplicates {
-		_, err := r.inodes.PatchFileID(ctx, &duplicate, existingFileMeta.ID())
+		err := r.storage.Patch(ctx, duplicate.ID(), map[string]any{
+			"file_id": existingFileMeta.ID(),
+		})
 		if err != nil {
-			return fmt.Errorf("failed to update the file id: %w", err)
+			return errs.Internal(fmt.Errorf("failed to Patch the inode: %w", err))
+		}
+
+		// XXX:MULTI-WRITE
+		err = r.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
+			INode:      duplicate.ID(),
+			ModifiedAt: duplicate.LastModifiedAt(),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to scheduler the fs-refresh-size task: %w", err)
 		}
 	}
 
