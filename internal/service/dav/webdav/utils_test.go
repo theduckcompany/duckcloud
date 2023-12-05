@@ -109,7 +109,7 @@ func find(ctx context.Context, ss []string, fs dfs.FS, cmd *dfs.PathCmd) ([]stri
 	}
 	ss = append(ss, cmd.Path)
 	if stat.IsDir() {
-		children, err := fs.ListDir(ctx, cmd.Path, nil)
+		children, err := fs.ListDir(ctx, cmd, nil)
 		if err != nil {
 			return nil, err
 		}

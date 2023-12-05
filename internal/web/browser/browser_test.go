@@ -115,7 +115,7 @@ func Test_Browser_Page(t *testing.T) {
 		// Then look for the path inside this space
 		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}).Return(&dfs.ExampleAliceRoot, nil).Once()
 
-		spaceFSMock.On("ListDir", mock.Anything, "/foo/bar", &storage.PaginateCmd{
+		spaceFSMock.On("ListDir", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}, &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
 			Limit:      PageSize,
 		}).Return([]dfs.INode{dfs.ExampleAliceFile}, nil).Once()

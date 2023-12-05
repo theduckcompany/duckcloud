@@ -60,10 +60,8 @@ func (s *LocalFS) Space() *spaces.Space {
 	return s.space
 }
 
-func (s *LocalFS) ListDir(ctx context.Context, path string, cmd *storage.PaginateCmd) ([]INode, error) {
-	path = CleanPath(path)
-
-	dir, err := s.Get(ctx, &PathCmd{Space: s.space, Path: path})
+func (s *LocalFS) ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
+	dir, err := s.Get(ctx, cmd)
 	if errors.Is(err, errs.ErrNotFound) {
 		return nil, errs.NotFound(err)
 	}
@@ -75,7 +73,7 @@ func (s *LocalFS) ListDir(ctx context.Context, path string, cmd *storage.Paginat
 		return nil, errs.BadRequest(ErrIsNotDir)
 	}
 
-	res, err := s.storage.GetAllChildrens(ctx, dir.ID(), cmd)
+	res, err := s.storage.GetAllChildrens(ctx, dir.ID(), paginateCmd)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to GetAllChildrens: %w", err))
 	}

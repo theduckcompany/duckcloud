@@ -398,7 +398,7 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, fs dfs.
 
 	mw := multistatusWriter{w: w}
 
-	walkFn := func(reqPath string, info *dfs.INode, err error) error {
+	walkFn := func(cmd *dfs.PathCmd, info *dfs.INode, err error) error {
 		if err != nil {
 			return handlePropfindError(err, info)
 		}
@@ -436,7 +436,7 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, fs dfs.
 		return mw.write(makePropstatResponse(href, pstats))
 	}
 
-	walkErr := walkFS(ctx, fs, depth, reqPath, fi, walkFn)
+	walkErr := walkFS(ctx, fs, depth, &dfs.PathCmd{Space: space, Path: reqPath}, fi, walkFn)
 	closeErr := mw.close()
 	if walkErr != nil {
 		return http.StatusInternalServerError, walkErr
@@ -604,16 +604,16 @@ func slashClean(name string) string {
 	return path.Clean(name)
 }
 
-type WalkFunc func(path string, info *dfs.INode, err error) error
+type WalkFunc func(cmd *dfs.PathCmd, info *dfs.INode, err error) error
 
 // walkFS traverses filesystem fs starting at name up to depth levels.
 //
 // Allowed values for depth are 0, 1 or infiniteDepth. For each visited node,
 // walkFS calls walkFn. If a visited file system node is a directory and
 // walkFn returns filepath.SkipDir, walkFS will skip traversal of this node.
-func walkFS(ctx context.Context, fs dfs.FS, depth int, name string, info *dfs.INode, walkFn WalkFunc) error {
+func walkFS(ctx context.Context, fs dfs.FS, depth int, cmd *dfs.PathCmd, info *dfs.INode, walkFn WalkFunc) error {
 	// This implementation is based on Walk's code in the standard path/filepath package.
-	err := walkFn(name, info, nil)
+	err := walkFn(cmd, info, nil)
 	if err != nil {
 		if info.IsDir() && err == filepath.SkipDir {
 			return nil
@@ -628,14 +628,14 @@ func walkFS(ctx context.Context, fs dfs.FS, depth int, name string, info *dfs.IN
 	}
 
 	// Read directory names.
-	fileInfos, err := fs.ListDir(ctx, name, nil)
+	fileInfos, err := fs.ListDir(ctx, cmd, nil)
 	if err != nil {
-		return walkFn(name, info, err)
+		return walkFn(cmd, info, err)
 	}
 
 	for _, fileInfo := range fileInfos {
-		filename := path.Join(name, fileInfo.Name())
-		err = walkFS(ctx, fs, depth, filename, &fileInfo, walkFn)
+		newPath := &dfs.PathCmd{Space: cmd.Space, Path: path.Join(cmd.Path, fileInfo.Name())}
+		err = walkFS(ctx, fs, depth, newPath, &fileInfo, walkFn)
 		if err != nil {
 			if !fileInfo.IsDir() || err != filepath.SkipDir {
 				return err

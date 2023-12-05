@@ -73,13 +73,13 @@ func Test_DFS_Integration(t *testing.T) {
 	})
 
 	t.Run("ListDir with an empty directory", func(t *testing.T) {
-		dirContent, err := spaceFS.ListDir(ctx, "/", nil)
+		dirContent, err := spaceFS.ListDir(ctx, &dfs.PathCmd{Space: &space, Path: "/"}, nil)
 		require.NoError(t, err)
 		require.Len(t, dirContent, 0)
 	})
 
 	t.Run("ListDir with an unexisting path", func(t *testing.T) {
-		dirContent, err := spaceFS.ListDir(ctx, "/dir/doesn't/exists", nil)
+		dirContent, err := spaceFS.ListDir(ctx, &dfs.PathCmd{Space: &space, Path: "/dir/doesn't/exists"}, nil)
 		require.Nil(t, dirContent)
 		require.ErrorIs(t, err, errs.ErrNotFound)
 	})
@@ -106,7 +106,7 @@ func Test_DFS_Integration(t *testing.T) {
 	})
 
 	t.Run("ListDir with 1 element inside the directory", func(t *testing.T) {
-		dirContent, err := spaceFS.ListDir(ctx, "/", nil)
+		dirContent, err := spaceFS.ListDir(ctx, &dfs.PathCmd{Space: &space, Path: "/"}, nil)
 		require.NoError(t, err)
 		require.Len(t, dirContent, 1)
 
@@ -151,14 +151,14 @@ func Test_DFS_Integration(t *testing.T) {
 
 	t.Run("ListDir with 2 element and a pagination", func(t *testing.T) {
 		t.Run("Get only the first element", func(t *testing.T) {
-			dirContent, err := spaceFS.ListDir(ctx, "/", &storage.PaginateCmd{Limit: 1})
+			dirContent, err := spaceFS.ListDir(ctx, &dfs.PathCmd{Space: &space, Path: "/"}, &storage.PaginateCmd{Limit: 1})
 			require.NoError(t, err)
 			require.Len(t, dirContent, 1)
 			require.Equal(t, "Documents", dirContent[0].Name())
 		})
 
 		t.Run("Get only the second element", func(t *testing.T) {
-			dirContent, err := spaceFS.ListDir(ctx, "/", &storage.PaginateCmd{
+			dirContent, err := spaceFS.ListDir(ctx, &dfs.PathCmd{Space: &space, Path: "/"}, &storage.PaginateCmd{
 				Limit:      1,
 				StartAfter: map[string]string{"name": "Documents"},
 			})
@@ -168,13 +168,13 @@ func Test_DFS_Integration(t *testing.T) {
 		})
 
 		t.Run("Get both", func(t *testing.T) {
-			dirContent, err := spaceFS.ListDir(ctx, "/", &storage.PaginateCmd{Limit: 2})
+			dirContent, err := spaceFS.ListDir(ctx, &dfs.PathCmd{Space: &space, Path: "/"}, &storage.PaginateCmd{Limit: 2})
 			require.NoError(t, err)
 			require.Len(t, dirContent, 2)
 		})
 
 		t.Run("Get two elements after Documents, it should return only one", func(t *testing.T) {
-			dirContent, err := spaceFS.ListDir(ctx, "/", &storage.PaginateCmd{
+			dirContent, err := spaceFS.ListDir(ctx, &dfs.PathCmd{Space: &space, Path: "/"}, &storage.PaginateCmd{
 				Limit:      2,
 				StartAfter: map[string]string{"name": "Documents"},
 			})

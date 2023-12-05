@@ -356,7 +356,7 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 
 	dirContent := []dfs.INode{}
 	if inode.IsDir() {
-		dirContent, err = ffs.ListDir(r.Context(), cmd.Path, &storage.PaginateCmd{
+		dirContent, err = ffs.ListDir(r.Context(), cmd, &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
 			Limit:      PageSize,
 		})
@@ -395,7 +395,7 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 
 func (h *Handler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, space *spaces.Space, fullPath, lastElem string) {
 	ffs := h.fs.GetSpaceFS(space)
-	dirContent, err := ffs.ListDir(r.Context(), fullPath, &storage.PaginateCmd{
+	dirContent, err := ffs.ListDir(r.Context(), &dfs.PathCmd{Space: space, Path: fullPath}, &storage.PaginateCmd{
 		StartAfter: map[string]string{"name": lastElem},
 		Limit:      PageSize,
 	})

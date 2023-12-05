@@ -62,7 +62,7 @@ func copyFiles(ctx context.Context, user *users.User, fs dfs.FS, src, dst string
 			return http.StatusForbidden, err
 		}
 		if depth == infiniteDepth {
-			children, err := fs.ListDir(ctx, src, nil)
+			children, err := fs.ListDir(ctx, &dfs.PathCmd{Space: fs.Space(), Path: src}, nil)
 			if err != nil {
 				return http.StatusForbidden, err
 			}

@@ -296,7 +296,7 @@ func Test_LocalFS(t *testing.T) {
 		storageMock.On("GetAllChildrens", mock.Anything, ExampleAliceDir.ID(), &storage.PaginateCmd{Limit: 2}).
 			Return([]INode{ExampleAliceFile}, nil).Once()
 
-		res, err := spaceFS.ListDir(ctx, "foo", &storage.PaginateCmd{Limit: 2})
+		res, err := spaceFS.ListDir(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo"}, &storage.PaginateCmd{Limit: 2})
 		assert.NoError(t, err)
 		assert.Equal(t, []INode{ExampleAliceFile}, res)
 	})
@@ -313,7 +313,7 @@ func Test_LocalFS(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errs.ErrNotFound).Once()
 
-		res, err := spaceFS.ListDir(ctx, "foo", &storage.PaginateCmd{Limit: 2})
+		res, err := spaceFS.ListDir(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo"}, &storage.PaginateCmd{Limit: 2})
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrNotFound)
 	})
@@ -330,7 +330,7 @@ func Test_LocalFS(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
 
-		res, err := spaceFS.ListDir(ctx, "foo", &storage.PaginateCmd{Limit: 2})
+		res, err := spaceFS.ListDir(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo"}, &storage.PaginateCmd{Limit: 2})
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
@@ -351,7 +351,7 @@ func Test_LocalFS(t *testing.T) {
 		storageMock.On("GetAllChildrens", mock.Anything, ExampleAliceDir.ID(), &storage.PaginateCmd{Limit: 2}).
 			Return(nil, fmt.Errorf("some-error")).Once()
 
-		res, err := spaceFS.ListDir(ctx, "foo", &storage.PaginateCmd{Limit: 2})
+		res, err := spaceFS.ListDir(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo"}, &storage.PaginateCmd{Limit: 2})
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")

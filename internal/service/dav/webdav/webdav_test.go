@@ -546,8 +546,8 @@ func TestWalkFS(t *testing.T) {
 		},
 		"/",
 		infiniteDepth,
-		func(path string, info *dfs.INode, err error) error {
-			if path == "/a/b/g" {
+		func(cmd *dfs.PathCmd, info *dfs.INode, err error) error {
+			if cmd.Path == "/a/b/g" {
 				return filepath.SkipDir
 			}
 			return nil
@@ -565,21 +565,21 @@ func TestWalkFS(t *testing.T) {
 		testContext := buildTestFS(t, tc.buildfs)
 		fs := testContext.FS
 		var got []string
-		traceFn := func(path string, info *dfs.INode, err error) error {
+		traceFn := func(cmd *dfs.PathCmd, info *dfs.INode, err error) error {
 			if tc.walkFn != nil {
-				err = tc.walkFn(path, info, err)
+				err = tc.walkFn(cmd, info, err)
 				if err != nil {
 					return err
 				}
 			}
-			got = append(got, path)
+			got = append(got, cmd.Path)
 			return nil
 		}
 		fi, err := fs.Get(ctx, &dfs.PathCmd{Space: testContext.Space, Path: tc.startAt})
 		if err != nil {
 			t.Fatalf("%s: cannot stat: %v", tc.desc, err)
 		}
-		err = walkFS(ctx, fs, tc.depth, tc.startAt, fi, traceFn)
+		err = walkFS(ctx, fs, tc.depth, &dfs.PathCmd{Space: testContext.Space, Path: tc.startAt}, fi, traceFn)
 		if err != nil {
 			t.Errorf("%s:\ngot error %v, want nil", tc.desc, err)
 			continue

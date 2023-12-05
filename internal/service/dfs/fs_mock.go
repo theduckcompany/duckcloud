@@ -98,25 +98,25 @@ func (_m *MockFS) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	return r0, r1
 }
 
-// ListDir provides a mock function with given fields: ctx, dirPath, cmd
-func (_m *MockFS) ListDir(ctx context.Context, dirPath string, cmd *storage.PaginateCmd) ([]INode, error) {
-	ret := _m.Called(ctx, dirPath, cmd)
+// ListDir provides a mock function with given fields: ctx, cmd, paginateCmd
+func (_m *MockFS) ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
+	ret := _m.Called(ctx, cmd, paginateCmd)
 
 	var r0 []INode
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *storage.PaginateCmd) ([]INode, error)); ok {
-		return rf(ctx, dirPath, cmd)
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd, *storage.PaginateCmd) ([]INode, error)); ok {
+		return rf(ctx, cmd, paginateCmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, *storage.PaginateCmd) []INode); ok {
-		r0 = rf(ctx, dirPath, cmd)
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd, *storage.PaginateCmd) []INode); ok {
+		r0 = rf(ctx, cmd, paginateCmd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]INode)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, *storage.PaginateCmd) error); ok {
-		r1 = rf(ctx, dirPath, cmd)
+	if rf, ok := ret.Get(1).(func(context.Context, *PathCmd, *storage.PaginateCmd) error); ok {
+		r1 = rf(ctx, cmd, paginateCmd)
 	} else {
 		r1 = ret.Error(1)
 	}

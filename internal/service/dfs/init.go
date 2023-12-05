@@ -20,7 +20,7 @@ import (
 type FS interface {
 	Space() *spaces.Space
 	CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, error)
-	ListDir(ctx context.Context, dirPath string, cmd *storage.PaginateCmd) ([]INode, error)
+	ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error)
 	Remove(ctx context.Context, path string) error
 	Rename(ctx context.Context, inode *INode, newName string) (*INode, error)
 	Move(ctx context.Context, cmd *MoveCmd) error
