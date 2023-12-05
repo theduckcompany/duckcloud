@@ -1,4 +1,4 @@
-package inodes
+package dfs
 
 import (
 	"time"
@@ -20,6 +20,7 @@ var ExampleAliceRoot INode = INode{
 	name:           "",
 	parent:         nil,
 	size:           0,
+	spaceID:        spaces.ExampleAlicePersonalSpace.ID(),
 	createdAt:      now,
 	createdBy:      users.ExampleAlice.ID(),
 	lastModifiedAt: now2,
@@ -35,6 +36,18 @@ var ExampleAliceDir INode = INode{
 	createdAt:      now,
 	createdBy:      users.ExampleAlice.ID(),
 	lastModifiedAt: now2,
+	fileID:         nil,
+}
+
+var ExampleAliceEmptyDir INode = INode{
+	id:             uuid.UUID("d0c48cef-202e-43fa-bc9e-f5ea01fc88e9"),
+	name:           "new-dir",
+	parent:         ptr.To(uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")),
+	spaceID:        spaces.ExampleAlicePersonalSpace.ID(),
+	size:           0,
+	createdAt:      now,
+	createdBy:      users.ExampleAlice.ID(),
+	lastModifiedAt: now,
 	fileID:         nil,
 }
 
@@ -62,7 +75,19 @@ var ExampleAliceFile INode = INode{
 	fileID:         ptr.To(files.ExampleFile1.ID()),
 }
 
-var ExampleAliceRenamedINode = INode{
+var ExampleAliceNewFile = INode{
+	id:             uuid.UUID("df4c3269-2680-4a64-8aeb-8daf865c34ac"),
+	name:           "new.pdf",
+	parent:         ptr.To(ExampleAliceDir.ID()),
+	spaceID:        spaces.ExampleAlicePersonalSpace.ID(),
+	size:           0,
+	createdAt:      now,
+	createdBy:      users.ExampleAlice.ID(),
+	lastModifiedAt: now,
+	fileID:         ptr.To(files.ExampleFile1.ID()),
+}
+
+var ExampleAliceRenamedFile = INode{
 	id:             uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
 	name:           "bar.pdf",
 	parent:         ptr.To(uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")),

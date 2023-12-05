@@ -1,4 +1,4 @@
-package inodes
+package dfs
 
 import (
 	"testing"

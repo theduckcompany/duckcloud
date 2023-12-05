@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"io"
 
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
@@ -28,6 +27,8 @@ type FS interface {
 	Get(ctx context.Context, path string) (*INode, error)
 	Upload(ctx context.Context, cmd *UploadCmd) error
 	Download(ctx context.Context, filePath string) (io.ReadSeekCloser, error)
+	createDir(ctx context.Context, createdBy *users.User, parent *INode, name string) (*INode, error)
+	removeINode(ctx context.Context, inode *INode) error
 }
 
 //go:generate mockery --name Service
@@ -47,13 +48,14 @@ type Result struct {
 }
 
 func Init(db *sql.DB, spaces spaces.Service, files files.Service, scheduler scheduler.Service, users users.Service, tools tools.Tools) (Result, error) {
-	inodes := inodes.Init(scheduler, tools, db)
+	storage := newSqlStorage(db, tools)
+	svc := NewFSService(storage, files, spaces, scheduler, tools)
 
 	return Result{
-		Service:                      NewFSService(inodes, files, spaces, scheduler, tools),
-		FSGCTask:                     NewFSGGCTaskRunner(inodes, files, spaces, tools),
-		FSMoveTask:                   NewFSMoveTaskRunner(inodes, spaces, users, scheduler),
-		FSRefreshSizeTask:            NewFSRefreshSizeTaskRunner(inodes, files),
-		FSRemoveDuplicateFilesRunner: NewFSRemoveDuplicateFileRunner(inodes, files, scheduler),
+		Service:                      svc,
+		FSGCTask:                     NewFSGGCTaskRunner(storage, files, spaces, tools),
+		FSMoveTask:                   NewFSMoveTaskRunner(svc, storage, spaces, users, scheduler),
+		FSRefreshSizeTask:            NewFSRefreshSizeTaskRunner(storage, files),
+		FSRemoveDuplicateFilesRunner: NewFSRemoveDuplicateFileRunner(storage, files, scheduler),
 	}, nil
 }

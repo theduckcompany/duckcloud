@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
@@ -15,14 +14,15 @@ import (
 )
 
 type FSMoveTaskRunner struct {
-	inodes    inodes.Service
+	fs        Service
+	storage   Storage
 	spaces    spaces.Service
 	users     users.Service
 	scheduler scheduler.Service
 }
 
-func NewFSMoveTaskRunner(inodes inodes.Service, spaces spaces.Service, users users.Service, scheduler scheduler.Service) *FSMoveTaskRunner {
-	return &FSMoveTaskRunner{inodes, spaces, users, scheduler}
+func NewFSMoveTaskRunner(fs Service, storage Storage, spaces spaces.Service, users users.Service, scheduler scheduler.Service) *FSMoveTaskRunner {
+	return &FSMoveTaskRunner{fs, storage, spaces, users, scheduler}
 }
 
 func (r *FSMoveTaskRunner) Name() string { return "fs-move" }
@@ -48,24 +48,23 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 		return fmt.Errorf("failed to get the user: %w", err)
 	}
 
-	existingFile, err := r.inodes.Get(ctx, &inodes.PathCmd{
-		Space: space,
-		Path:  args.TargetPath,
-	})
+	fs := r.fs.GetSpaceFS(space)
+
+	existingFile, err := fs.Get(ctx, args.TargetPath)
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		return fmt.Errorf("failed to check if a file already existed: %w", err)
 	}
 
-	oldNode, err := r.inodes.GetByID(ctx, args.SourceInode)
+	oldNode, err := r.storage.GetByID(ctx, args.SourceInode)
 	if err != nil {
 		return fmt.Errorf("failed to GetByID %q: %w", args.SourceInode, err)
 	}
 
 	dir, filename := path.Split(args.TargetPath)
 
-	targetDir, err := r.inodes.MkdirAll(ctx, user, &inodes.PathCmd{
-		Space: space,
-		Path:  dir,
+	targetDir, err := fs.CreateDir(ctx, &CreateDirCmd{
+		FilePath:  dir,
+		CreatedBy: user,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to fetch the source: %w", err)
@@ -74,9 +73,18 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 	// XXX:MULTI-WRITE
 	//
 	//
-	newNode, err := r.inodes.PatchMove(ctx, oldNode, targetDir, filename, args.MovedAt)
+	newNode := *oldNode
+	newNode.name = filename
+	newNode.parent = &targetDir.id
+	newNode.lastModifiedAt = args.MovedAt
+
+	err = r.storage.Patch(ctx, oldNode.ID(), map[string]any{
+		"parent":           *&newNode.parent,
+		"name":             newNode.name,
+		"last_modified_at": newNode.lastModifiedAt,
+	})
 	if err != nil {
-		return fmt.Errorf("failed to PatchMove: %w", err)
+		return errs.Internal(fmt.Errorf("failed to PatchMove the inode: %w", err))
 	}
 
 	ctx = context.WithoutCancel(ctx)
@@ -91,7 +99,7 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 		// path for example.
 		//
 		// TODO: Fix this with a commit system
-		err = r.inodes.Remove(ctx, existingFile)
+		err = fs.removeINode(ctx, existingFile)
 		if err != nil {
 			return errs.Internal(fmt.Errorf("failed to remove the old file: %w", err))
 		}

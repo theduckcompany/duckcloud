@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
@@ -19,42 +18,43 @@ import (
 const DefaultSpaceName = "My files"
 
 var (
-	ErrNotImplemented = errors.New("not implemented")
-	ErrInvalidPath    = inodes.ErrInvalidPath
-	ErrAlreadyExists  = inodes.ErrAlreadyExists
+	ErrNotImplemented  = errors.New("not implemented")
+	ErrInvalidPath     = errors.New("invalid path")
+	ErrInvalidRoot     = errors.New("invalid root")
+	ErrInvalidParent   = errors.New("invalid parent")
+	ErrInvalidMimeType = errors.New("invalid mime type")
+	ErrIsNotDir        = errors.New("not a directory")
+	ErrIsADir          = errors.New("is a directory")
+	ErrNotFound        = errors.New("inode not found")
+	ErrAlreadyExists   = errors.New("already exists")
 )
 
 type FSService struct {
-	inodes    inodes.Service
+	storage   Storage
 	files     files.Service
 	spaces    spaces.Service
 	scheduler scheduler.Service
 	tools     tools.Tools
 }
 
-func NewFSService(inodes inodes.Service, files files.Service, spaces spaces.Service, tasks scheduler.Service, tools tools.Tools) *FSService {
-	return &FSService{inodes, files, spaces, tasks, tools}
+func NewFSService(storage Storage, files files.Service, spaces spaces.Service, tasks scheduler.Service, tools tools.Tools) *FSService {
+	return &FSService{storage, files, spaces, tasks, tools}
 }
 
 func (s *FSService) GetSpaceFS(space *spaces.Space) FS {
-	return newLocalFS(s.inodes, s.files, space, s.spaces, s.scheduler, s.tools)
+	return newLocalFS(s.storage, s.files, space, s.spaces, s.scheduler, s.tools)
 }
 
 func (s *FSService) RemoveFS(ctx context.Context, space *spaces.Space) error {
-	rootFS, err := s.inodes.GetSpaceRoot(ctx, space)
-	if err != nil && !errors.Is(err, errs.ErrNotFound) {
-		return fmt.Errorf("failed to Get the rootFS for %q: %w", space.Name(), err)
+	fs := s.GetSpaceFS(space)
+
+	err := fs.Remove(ctx, "/")
+	if err != nil {
+		return fmt.Errorf("failed to remove the fs: %w", err)
 	}
 
 	// XXX:MULTI-WRITE
 	//
-	// TODO: Create a spacedelete task
-	if rootFS != nil {
-		err = s.inodes.Remove(ctx, rootFS)
-		if err != nil {
-			return fmt.Errorf("failed to remove the rootFS for %q: %w", space.Name(), err)
-		}
-	}
 	err = s.spaces.Delete(ctx, space.ID())
 	if err != nil {
 		return fmt.Errorf("failed to delete the space %q: %w", space.ID(), err)
@@ -74,12 +74,21 @@ func (s *FSService) CreateFS(ctx context.Context, user *users.User, owners []uui
 		return nil, fmt.Errorf("failed to create the space: %w", err)
 	}
 
-	_, err = s.inodes.CreateRootDir(ctx, &inodes.CreateRootDirCmd{
-		CreatedBy: user,
-		Space:     space,
-	})
+	now := s.tools.Clock().Now()
+	node := INode{
+		id:             s.tools.UUID().New(),
+		parent:         nil,
+		name:           "",
+		spaceID:        space.ID(),
+		createdAt:      now,
+		createdBy:      user.ID(),
+		lastModifiedAt: now,
+		fileID:         nil,
+	}
+
+	err = s.storage.Save(ctx, &node)
 	if err != nil {
-		return nil, fmt.Errorf("failed to CreateRootDir: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to Save: %w", err))
 	}
 
 	return space, nil
