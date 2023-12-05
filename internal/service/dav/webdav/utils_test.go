@@ -59,6 +59,7 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 			require.NoError(t, err)
 		case "touch":
 			err := fs.Upload(ctx, &dfs.UploadCmd{
+				Space:      space,
 				FilePath:   op[1],
 				Content:    http.NoBody,
 				UploadedBy: serv.User,
@@ -69,6 +70,7 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 			buf.Write([]byte(op[2]))
 
 			err := fs.Upload(ctx, &dfs.UploadCmd{
+				Space:      space,
 				FilePath:   op[1],
 				Content:    buf,
 				UploadedBy: serv.User,

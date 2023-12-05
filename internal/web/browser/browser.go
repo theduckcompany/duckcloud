@@ -292,6 +292,7 @@ func (h *Handler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
 	}
 
 	err = ffs.Upload(ctx, &dfs.UploadCmd{
+		Space:      space,
 		FilePath:   fullPath,
 		Content:    cmd.fileReader,
 		UploadedBy: cmd.user,

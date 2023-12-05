@@ -193,6 +193,7 @@ func Test_DFS_Integration(t *testing.T) {
 			buf.WriteString(content)
 
 			err := spaceFS.Upload(ctx, &dfs.UploadCmd{
+				Space:      &space,
 				FilePath:   "/Documents/todo.txt",
 				Content:    buf,
 				UploadedBy: serv.User,
@@ -317,6 +318,7 @@ func Test_DFS_Integration(t *testing.T) {
 			buf.WriteString(content)
 
 			err := spaceFS.Upload(ctx, &dfs.UploadCmd{
+				Space:      &space,
 				FilePath:   "/Duplicate/todo.txt",
 				Content:    buf,
 				UploadedBy: serv.User,
@@ -332,6 +334,7 @@ func Test_DFS_Integration(t *testing.T) {
 			buf.WriteString(content)
 
 			err := spaceFS.Upload(ctx, &dfs.UploadCmd{
+				Space:      &space,
 				FilePath:   "/Duplicate/todo-duplicate.txt",
 				Content:    buf,
 				UploadedBy: serv.User,
@@ -386,6 +389,7 @@ func Test_DFS_Integration(t *testing.T) {
 				require.NoError(t, err)
 
 				err = spaceFS.Upload(ctx, &dfs.UploadCmd{
+					Space:      &space,
 					FilePath:   "/move-same-name/foo.txt",
 					Content:    http.NoBody,
 					UploadedBy: serv.User,
@@ -408,6 +412,7 @@ func Test_DFS_Integration(t *testing.T) {
 
 			t.Run("Move with a file with the same name", func(t *testing.T) {
 				err := spaceFS.Upload(ctx, &dfs.UploadCmd{
+					Space:      &space,
 					FilePath:   "/move-same-name/bar.txt",
 					Content:    http.NoBody,
 					UploadedBy: serv.User,

@@ -320,6 +320,7 @@ func TestFilenameEscape(t *testing.T) {
 				}
 			} else {
 				err := fs.Upload(ctx, &dfs.UploadCmd{
+					Space:      tc.Space,
 					FilePath:   tt.name,
 					Content:    http.NoBody,
 					UploadedBy: tc.User,

@@ -408,6 +408,7 @@ func Test_LocalFS(t *testing.T) {
 		}).Return(nil).Once()
 
 		err := spaceFS.Upload(ctx, &UploadCmd{
+			Space:      &spaces.ExampleAlicePersonalSpace,
 			FilePath:   "foo/new.pdf",
 			Content:    bytes.NewBufferString(content),
 			UploadedBy: &users.ExampleAlice,
@@ -424,6 +425,7 @@ func Test_LocalFS(t *testing.T) {
 		spaceFS := newLocalFS(storageMock, filesMock, &spaces.ExampleAlicePersonalSpace, spacesMock, schedulerMock, toolsMock)
 
 		err := spaceFS.Upload(ctx, &UploadCmd{
+			Space:      &spaces.ExampleAlicePersonalSpace,
 			FilePath:   "foo/bar.txt",
 			Content:    nil,
 			UploadedBy: &users.ExampleAlice,
@@ -432,7 +434,7 @@ func Test_LocalFS(t *testing.T) {
 		assert.EqualError(t, err, "validation: Content: cannot be blank.")
 	})
 
-	t.Run("Upload with an non existing directory", func(t *testing.T) {
+	t.Run("Upload with a non existing directory", func(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
@@ -447,6 +449,7 @@ func Test_LocalFS(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errs.ErrNotFound).Once()
 
 		err := spaceFS.Upload(ctx, &UploadCmd{
+			Space:      &spaces.ExampleAlicePersonalSpace,
 			FilePath:   "foo/new.pdf",
 			Content:    bytes.NewBufferString(content),
 			UploadedBy: &users.ExampleAlice,
@@ -471,6 +474,7 @@ func Test_LocalFS(t *testing.T) {
 		filesMock.On("Upload", mock.Anything, bytes.NewBufferString(content)).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
 
 		err := spaceFS.Upload(ctx, &UploadCmd{
+			Space:      &spaces.ExampleAlicePersonalSpace,
 			FilePath:   "foo/new.pdf",
 			Content:    bytes.NewBufferString(content),
 			UploadedBy: &users.ExampleAlice,
@@ -500,6 +504,7 @@ func Test_LocalFS(t *testing.T) {
 		storageMock.On("Save", mock.Anything, &ExampleAliceNewFile).Return(fmt.Errorf("some-error")).Once()
 
 		err := spaceFS.Upload(ctx, &UploadCmd{
+			Space:      &spaces.ExampleAlicePersonalSpace,
 			FilePath:   "foo/new.pdf",
 			Content:    bytes.NewBufferString(content),
 			UploadedBy: &users.ExampleAlice,
@@ -534,6 +539,7 @@ func Test_LocalFS(t *testing.T) {
 		}).Return(errs.Internal(fmt.Errorf("some-error"))).Once()
 
 		err := spaceFS.Upload(ctx, &UploadCmd{
+			Space:      &spaces.ExampleAlicePersonalSpace,
 			FilePath:   "foo/new.pdf",
 			Content:    bytes.NewBufferString(content),
 			UploadedBy: &users.ExampleAlice,

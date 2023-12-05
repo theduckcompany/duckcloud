@@ -42,6 +42,7 @@ func Test_Walk(t *testing.T) {
 
 	t.Run("with a simple file", func(t *testing.T) {
 		err := ffs.Upload(ctx, &dfs.UploadCmd{
+			Space:      space,
 			FilePath:   "/foo.txt",
 			Content:    http.NoBody,
 			UploadedBy: serv.User,
@@ -106,6 +107,7 @@ func Test_Walk(t *testing.T) {
 
 	t.Run("do all the sub spaces", func(t *testing.T) {
 		err := ffs.Upload(ctx, &dfs.UploadCmd{
+			Space:      space,
 			FilePath:   "/dir-a/file-a.txt",
 			Content:    http.NoBody,
 			UploadedBy: serv.User,
@@ -138,6 +140,7 @@ func Test_Walk(t *testing.T) {
 
 		for i := 0; i < 100; i++ {
 			err := ffs.Upload(ctx, &dfs.UploadCmd{
+				Space:      space,
 				FilePath:   fmt.Sprintf("/big-space/%d.txt", i),
 				Content:    http.NoBody,
 				UploadedBy: serv.User,

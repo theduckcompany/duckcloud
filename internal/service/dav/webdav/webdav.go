@@ -108,7 +108,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		case "DELETE":
 			status, err = h.handleDelete(w, r, fs, space)
 		case "PUT":
-			status, err = h.handlePut(w, r, fs, user)
+			status, err = h.handlePut(w, r, fs, user, space)
 		case "MKCOL":
 			status, err = h.handleMkcol(w, r, fs, user, space)
 		case "COPY", "MOVE":
@@ -213,7 +213,7 @@ func (h *Handler) handleDelete(w http.ResponseWriter, r *http.Request, fs dfs.FS
 	return http.StatusNoContent, nil
 }
 
-func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request, fs dfs.FS, user *users.User) (status int, err error) {
+func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request, fs dfs.FS, user *users.User, space *spaces.Space) (status int, err error) {
 	reqPath, status, err := h.stripPrefix(r.URL.Path)
 	if err != nil {
 		return status, err
@@ -224,6 +224,7 @@ func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request, fs dfs.FS, u
 	ctx := r.Context()
 
 	err = fs.Upload(ctx, &dfs.UploadCmd{
+		Space:      space,
 		FilePath:   reqPath,
 		Content:    r.Body,
 		UploadedBy: user,
