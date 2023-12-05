@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"io"
 
-	"github.com/theduckcompany/duckcloud/internal/service/dfs/internal/inodes"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
@@ -50,15 +49,13 @@ type Result struct {
 
 func Init(db *sql.DB, spaces spaces.Service, files files.Service, scheduler scheduler.Service, users users.Service, tools tools.Tools) (Result, error) {
 	storage := newSqlStorage(db, tools)
-	inodes := inodes.Init(scheduler, tools, db)
-
 	svc := NewFSService(storage, files, spaces, scheduler, tools)
 
 	return Result{
 		Service:                      svc,
 		FSGCTask:                     NewFSGGCTaskRunner(storage, files, spaces, tools),
 		FSMoveTask:                   NewFSMoveTaskRunner(svc, storage, spaces, users, scheduler),
-		FSRefreshSizeTask:            NewFSRefreshSizeTaskRunner(inodes, files),
+		FSRefreshSizeTask:            NewFSRefreshSizeTaskRunner(storage, files),
 		FSRemoveDuplicateFilesRunner: NewFSRemoveDuplicateFileRunner(storage, files, scheduler),
 	}, nil
 }
