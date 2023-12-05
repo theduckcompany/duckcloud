@@ -15,7 +15,7 @@ import (
 // copyFiles copies files and/or directories from src to dst.
 //
 // See section 9.8.5 for when various HTTP status codes apply.
-func copyFiles(ctx context.Context, user *users.User, fs dfs.FS, src, dst string, overwrite bool, depth, recursion int) (status int, err error) {
+func copyFiles(ctx context.Context, user *users.User, fs dfs.FS, src, dst *dfs.PathCmd, overwrite bool, depth, recursion int) (status int, err error) {
 	if recursion == 1000 {
 		return http.StatusInternalServerError, errRecursionTooDeep
 	}
@@ -40,7 +40,7 @@ func copyFiles(ctx context.Context, user *users.User, fs dfs.FS, src, dst string
 			return http.StatusForbidden, err
 		}
 
-		_, err := fs.Get(ctx, path.Dir(dst))
+		_, err := fs.Get(ctx, &dfs.PathCmd{Space: dst.Space, Path: path.Dir(dst.Path)})
 		if err != nil && errors.Is(err, errs.ErrNotFound) && !overwrite {
 			return http.StatusConflict, nil
 		}
@@ -55,7 +55,8 @@ func copyFiles(ctx context.Context, user *users.User, fs dfs.FS, src, dst string
 
 	if srcStat.IsDir() {
 		if _, err := fs.CreateDir(ctx, &dfs.CreateDirCmd{
-			FilePath:  dst,
+			Space:     dst.Space,
+			FilePath:  dst.Path,
 			CreatedBy: user,
 		}); err != nil {
 			return http.StatusForbidden, err
@@ -67,8 +68,8 @@ func copyFiles(ctx context.Context, user *users.User, fs dfs.FS, src, dst string
 			}
 			for _, c := range children {
 				name := c.Name()
-				s := path.Join(src, name)
-				d := path.Join(dst, name)
+				s := &dfs.PathCmd{Space: src.Space, Path: path.Join(src.Path, name)}
+				d := &dfs.PathCmd{Space: dst.Space, Path: path.Join(dst.Path, name)}
 				cStatus, cErr := copyFiles(ctx, user, fs, s, d, overwrite, depth, recursion)
 				if cErr != nil {
 					// TODO: MultiStatus.
@@ -88,7 +89,8 @@ func copyFiles(ctx context.Context, user *users.User, fs dfs.FS, src, dst string
 		defer reader.Close()
 
 		err = fs.Upload(ctx, &dfs.UploadCmd{
-			FilePath:   dst,
+			Space:      dst.Space,
+			FilePath:   dst.Path,
 			Content:    reader,
 			UploadedBy: user,
 		})

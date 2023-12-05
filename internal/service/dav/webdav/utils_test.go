@@ -43,19 +43,23 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 	require.NoError(t, err, "failed to get the user default space")
 	require.NotEmpty(t, spaces)
 
-	fs := serv.DFSSvc.GetSpaceFS(&spaces[0])
+	space := &spaces[0]
+
+	fs := serv.DFSSvc.GetSpaceFS(space)
 
 	for _, b := range buildfs {
 		op := strings.Split(b, " ")
 		switch op[0] {
 		case "mkdir":
 			_, err := fs.CreateDir(ctx, &dfs.CreateDirCmd{
+				Space:     space,
 				FilePath:  op[1],
 				CreatedBy: serv.User,
 			})
 			require.NoError(t, err)
 		case "touch":
 			err := fs.Upload(ctx, &dfs.UploadCmd{
+				Space:      space,
 				FilePath:   op[1],
 				Content:    http.NoBody,
 				UploadedBy: serv.User,
@@ -66,6 +70,7 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 			buf.Write([]byte(op[2]))
 
 			err := fs.Upload(ctx, &dfs.UploadCmd{
+				Space:      space,
 				FilePath:   op[1],
 				Content:    buf,
 				UploadedBy: serv.User,
@@ -99,19 +104,19 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 // analogous to the Unix find command.
 //
 // The returned strings are not guaranteed to be in any particular order.
-func find(ctx context.Context, ss []string, fs dfs.FS, name string) ([]string, error) {
-	stat, err := fs.Get(ctx, name)
+func find(ctx context.Context, ss []string, fs dfs.FS, cmd *dfs.PathCmd) ([]string, error) {
+	stat, err := fs.Get(ctx, cmd)
 	if err != nil {
 		return nil, err
 	}
-	ss = append(ss, name)
+	ss = append(ss, cmd.Path)
 	if stat.IsDir() {
-		children, err := fs.ListDir(ctx, name, nil)
+		children, err := fs.ListDir(ctx, cmd, nil)
 		if err != nil {
 			return nil, err
 		}
 		for _, c := range children {
-			ss, err = find(ctx, ss, fs, path.Join(name, c.Name()))
+			ss, err = find(ctx, ss, fs, &dfs.PathCmd{Space: cmd.Space, Path: path.Join(cmd.Path, c.Name())})
 			if err != nil {
 				return nil, err
 			}

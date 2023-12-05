@@ -18,15 +18,14 @@ import (
 
 //go:generate mockery --name FS
 type FS interface {
-	Space() *spaces.Space
 	CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, error)
-	ListDir(ctx context.Context, dirPath string, cmd *storage.PaginateCmd) ([]INode, error)
-	Remove(ctx context.Context, path string) error
+	ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error)
+	Remove(ctx context.Context, cmd *PathCmd) error
 	Rename(ctx context.Context, inode *INode, newName string) (*INode, error)
 	Move(ctx context.Context, cmd *MoveCmd) error
-	Get(ctx context.Context, path string) (*INode, error)
+	Get(ctx context.Context, cmd *PathCmd) (*INode, error)
 	Upload(ctx context.Context, cmd *UploadCmd) error
-	Download(ctx context.Context, filePath string) (io.ReadSeekCloser, error)
+	Download(ctx context.Context, cmd *PathCmd) (io.ReadSeekCloser, error)
 	createDir(ctx context.Context, createdBy *users.User, parent *INode, name string) (*INode, error)
 	removeINode(ctx context.Context, inode *INode) error
 }

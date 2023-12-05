@@ -27,6 +27,7 @@ func (t PathCmd) Validate() error {
 }
 
 type UploadCmd struct {
+	Space      *spaces.Space
 	FilePath   string
 	Content    io.Reader
 	UploadedBy *users.User
@@ -34,6 +35,7 @@ type UploadCmd struct {
 
 func (t UploadCmd) Validate() error {
 	return v.ValidateStruct(&t,
+		v.Field(&t.Space, v.Required, v.NotNil),
 		v.Field(&t.FilePath, v.Required, v.Length(1, 255)),
 		v.Field(&t.Content, v.Required),
 		v.Field(&t.UploadedBy, v.Required, v.NotNil),
@@ -41,27 +43,29 @@ func (t UploadCmd) Validate() error {
 }
 
 type CreateDirCmd struct {
+	Space     *spaces.Space
 	FilePath  string
 	CreatedBy *users.User
 }
 
 func (t CreateDirCmd) Validate() error {
 	return v.ValidateStruct(&t,
+		v.Field(&t.Space, v.Required, v.NotNil),
 		v.Field(&t.FilePath, v.Required, v.Length(1, 255)),
 		v.Field(&t.CreatedBy, v.Required, v.NotNil),
 	)
 }
 
 type MoveCmd struct {
-	SrcPath string
-	NewPath string
+	Src     *PathCmd
+	Dst     *PathCmd
 	MovedBy *users.User
 }
 
 func (t MoveCmd) Validate() error {
 	return v.ValidateStruct(&t,
-		v.Field(&t.SrcPath, v.Required, v.Length(1, 255)),
-		v.Field(&t.NewPath, v.Required, v.Length(1, 255)),
+		v.Field(&t.Src, v.Required, v.NotNil),
+		v.Field(&t.Dst, v.Required, v.NotNil),
 		v.Field(&t.MovedBy, v.Required, v.NotNil),
 	)
 }

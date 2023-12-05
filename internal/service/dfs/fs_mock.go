@@ -8,8 +8,6 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	spaces "github.com/theduckcompany/duckcloud/internal/service/spaces"
-
 	storage "github.com/theduckcompany/duckcloud/internal/tools/storage"
 
 	users "github.com/theduckcompany/duckcloud/internal/service/users"
@@ -46,25 +44,25 @@ func (_m *MockFS) CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, err
 	return r0, r1
 }
 
-// Download provides a mock function with given fields: ctx, filePath
-func (_m *MockFS) Download(ctx context.Context, filePath string) (io.ReadSeekCloser, error) {
-	ret := _m.Called(ctx, filePath)
+// Download provides a mock function with given fields: ctx, cmd
+func (_m *MockFS) Download(ctx context.Context, cmd *PathCmd) (io.ReadSeekCloser, error) {
+	ret := _m.Called(ctx, cmd)
 
 	var r0 io.ReadSeekCloser
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (io.ReadSeekCloser, error)); ok {
-		return rf(ctx, filePath)
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) (io.ReadSeekCloser, error)); ok {
+		return rf(ctx, cmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) io.ReadSeekCloser); ok {
-		r0 = rf(ctx, filePath)
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) io.ReadSeekCloser); ok {
+		r0 = rf(ctx, cmd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(io.ReadSeekCloser)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, filePath)
+	if rf, ok := ret.Get(1).(func(context.Context, *PathCmd) error); ok {
+		r1 = rf(ctx, cmd)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -72,25 +70,25 @@ func (_m *MockFS) Download(ctx context.Context, filePath string) (io.ReadSeekClo
 	return r0, r1
 }
 
-// Get provides a mock function with given fields: ctx, path
-func (_m *MockFS) Get(ctx context.Context, path string) (*INode, error) {
-	ret := _m.Called(ctx, path)
+// Get provides a mock function with given fields: ctx, cmd
+func (_m *MockFS) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
+	ret := _m.Called(ctx, cmd)
 
 	var r0 *INode
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*INode, error)); ok {
-		return rf(ctx, path)
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) (*INode, error)); ok {
+		return rf(ctx, cmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *INode); ok {
-		r0 = rf(ctx, path)
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) *INode); ok {
+		r0 = rf(ctx, cmd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*INode)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, path)
+	if rf, ok := ret.Get(1).(func(context.Context, *PathCmd) error); ok {
+		r1 = rf(ctx, cmd)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -98,25 +96,25 @@ func (_m *MockFS) Get(ctx context.Context, path string) (*INode, error) {
 	return r0, r1
 }
 
-// ListDir provides a mock function with given fields: ctx, dirPath, cmd
-func (_m *MockFS) ListDir(ctx context.Context, dirPath string, cmd *storage.PaginateCmd) ([]INode, error) {
-	ret := _m.Called(ctx, dirPath, cmd)
+// ListDir provides a mock function with given fields: ctx, cmd, paginateCmd
+func (_m *MockFS) ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
+	ret := _m.Called(ctx, cmd, paginateCmd)
 
 	var r0 []INode
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *storage.PaginateCmd) ([]INode, error)); ok {
-		return rf(ctx, dirPath, cmd)
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd, *storage.PaginateCmd) ([]INode, error)); ok {
+		return rf(ctx, cmd, paginateCmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, *storage.PaginateCmd) []INode); ok {
-		r0 = rf(ctx, dirPath, cmd)
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd, *storage.PaginateCmd) []INode); ok {
+		r0 = rf(ctx, cmd, paginateCmd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]INode)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, *storage.PaginateCmd) error); ok {
-		r1 = rf(ctx, dirPath, cmd)
+	if rf, ok := ret.Get(1).(func(context.Context, *PathCmd, *storage.PaginateCmd) error); ok {
+		r1 = rf(ctx, cmd, paginateCmd)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -138,13 +136,13 @@ func (_m *MockFS) Move(ctx context.Context, cmd *MoveCmd) error {
 	return r0
 }
 
-// Remove provides a mock function with given fields: ctx, path
-func (_m *MockFS) Remove(ctx context.Context, path string) error {
-	ret := _m.Called(ctx, path)
+// Remove provides a mock function with given fields: ctx, cmd
+func (_m *MockFS) Remove(ctx context.Context, cmd *PathCmd) error {
+	ret := _m.Called(ctx, cmd)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, path)
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd) error); ok {
+		r0 = rf(ctx, cmd)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -176,22 +174,6 @@ func (_m *MockFS) Rename(ctx context.Context, inode *INode, newName string) (*IN
 	}
 
 	return r0, r1
-}
-
-// Space provides a mock function with given fields:
-func (_m *MockFS) Space() *spaces.Space {
-	ret := _m.Called()
-
-	var r0 *spaces.Space
-	if rf, ok := ret.Get(0).(func() *spaces.Space); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*spaces.Space)
-		}
-	}
-
-	return r0
 }
 
 // Upload provides a mock function with given fields: ctx, cmd

@@ -102,21 +102,21 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	default:
 		switch r.Method {
 		case "OPTIONS":
-			status, err = h.handleOptions(w, r, fs)
+			status, err = h.handleOptions(w, r, fs, space)
 		case "GET", "HEAD", "POST":
-			status, err = h.handleGetHeadPost(w, r, fs)
+			status, err = h.handleGetHeadPost(w, r, fs, space)
 		case "DELETE":
-			status, err = h.handleDelete(w, r, fs)
+			status, err = h.handleDelete(w, r, fs, space)
 		case "PUT":
-			status, err = h.handlePut(w, r, fs, user)
+			status, err = h.handlePut(w, r, fs, user, space)
 		case "MKCOL":
-			status, err = h.handleMkcol(w, r, fs, user)
+			status, err = h.handleMkcol(w, r, fs, user, space)
 		case "COPY", "MOVE":
-			status, err = h.handleCopyMove(w, r, fs, user)
+			status, err = h.handleCopyMove(w, r, fs, user, space)
 		case "PROPFIND":
-			status, err = h.handlePropfind(w, r, fs)
+			status, err = h.handlePropfind(w, r, fs, space)
 		case "PROPPATCH":
-			status, err = h.handleProppatch(w, r, fs)
+			status, err = h.handleProppatch(w, r, fs, space)
 		}
 	}
 
@@ -131,14 +131,14 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) handleOptions(w http.ResponseWriter, r *http.Request, fs dfs.FS) (status int, err error) {
+func (h *Handler) handleOptions(w http.ResponseWriter, r *http.Request, fs dfs.FS, space *spaces.Space) (status int, err error) {
 	reqPath, status, err := h.stripPrefix(r.URL.Path)
 	if err != nil {
 		return status, err
 	}
 	ctx := r.Context()
 	allow := "OPTIONS, PUT, MKCOL"
-	if fi, err := fs.Get(ctx, reqPath); err == nil {
+	if fi, err := fs.Get(ctx, &dfs.PathCmd{Space: space, Path: reqPath}); err == nil {
 		if fi.IsDir() {
 			allow = "OPTIONS, DELETE, PROPPATCH, COPY, MOVE, PROPFIND"
 		} else {
@@ -153,14 +153,17 @@ func (h *Handler) handleOptions(w http.ResponseWriter, r *http.Request, fs dfs.F
 	return 0, nil
 }
 
-func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request, fs dfs.FS) (status int, err error) {
+func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request, fs dfs.FS, space *spaces.Space) (status int, err error) {
 	reqPath, status, err := h.stripPrefix(r.URL.Path)
 	if err != nil {
 		return status, err
 	}
+
+	pathCmd := &dfs.PathCmd{Space: space, Path: reqPath}
+
 	// TODO: check locks for read-only access??
 	ctx := r.Context()
-	info, err := fs.Get(ctx, reqPath)
+	info, err := fs.Get(ctx, pathCmd)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
@@ -169,7 +172,7 @@ func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request, fs d
 		return http.StatusMethodNotAllowed, nil
 	}
 
-	f, err := fs.Download(ctx, reqPath)
+	f, err := fs.Download(ctx, pathCmd)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -186,7 +189,7 @@ func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request, fs d
 	return 0, nil
 }
 
-func (h *Handler) handleDelete(w http.ResponseWriter, r *http.Request, fs dfs.FS) (status int, err error) {
+func (h *Handler) handleDelete(w http.ResponseWriter, r *http.Request, fs dfs.FS, space *spaces.Space) (status int, err error) {
 	reqPath, status, err := h.stripPrefix(r.URL.Path)
 	if err != nil {
 		return status, err
@@ -199,19 +202,21 @@ func (h *Handler) handleDelete(w http.ResponseWriter, r *http.Request, fs dfs.FS
 	// "godoc os RemoveAll" says that "If the path does not exist, RemoveAll
 	// returns nil (no error)." WebDAV semantics are that it should return a
 	// "404 Not Found". We therefore have to Stat before we RemoveAll.
-	if _, err := fs.Get(ctx, reqPath); err != nil {
+	pathCmd := &dfs.PathCmd{Space: space, Path: reqPath}
+
+	if _, err := fs.Get(ctx, pathCmd); err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return http.StatusNotFound, err
 		}
 		return http.StatusMethodNotAllowed, err
 	}
-	if err := fs.Remove(ctx, reqPath); err != nil {
+	if err := fs.Remove(ctx, pathCmd); err != nil {
 		return http.StatusMethodNotAllowed, err
 	}
 	return http.StatusNoContent, nil
 }
 
-func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request, fs dfs.FS, user *users.User) (status int, err error) {
+func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request, fs dfs.FS, user *users.User, space *spaces.Space) (status int, err error) {
 	reqPath, status, err := h.stripPrefix(r.URL.Path)
 	if err != nil {
 		return status, err
@@ -222,6 +227,7 @@ func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request, fs dfs.FS, u
 	ctx := r.Context()
 
 	err = fs.Upload(ctx, &dfs.UploadCmd{
+		Space:      space,
 		FilePath:   reqPath,
 		Content:    r.Body,
 		UploadedBy: user,
@@ -235,7 +241,7 @@ func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request, fs dfs.FS, u
 	return http.StatusCreated, nil
 }
 
-func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, fs dfs.FS, user *users.User) (status int, err error) {
+func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, fs dfs.FS, user *users.User, space *spaces.Space) (status int, err error) {
 	reqPath, status, err := h.stripPrefix(r.URL.Path)
 	if err != nil {
 		return status, err
@@ -248,7 +254,7 @@ func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, fs dfs.FS,
 	}
 
 	// No file or directory with the same name should already exists
-	res, err := fs.Get(ctx, reqPath)
+	res, err := fs.Get(ctx, &dfs.PathCmd{Space: space, Path: reqPath})
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		return http.StatusInternalServerError, err
 	}
@@ -259,7 +265,7 @@ func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, fs dfs.FS,
 
 	// All the parents must exists
 	if reqPath != "/" {
-		parent, err := fs.Get(ctx, path.Dir(reqPath))
+		parent, err := fs.Get(ctx, &dfs.PathCmd{Space: space, Path: path.Dir(reqPath)})
 		if err != nil && !errors.Is(err, errs.ErrNotFound) {
 			return http.StatusInternalServerError, err
 		}
@@ -270,6 +276,7 @@ func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, fs dfs.FS,
 	}
 
 	if _, err := fs.CreateDir(ctx, &dfs.CreateDirCmd{
+		Space:     space,
 		FilePath:  reqPath,
 		CreatedBy: user,
 	}); err != nil {
@@ -281,7 +288,7 @@ func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, fs dfs.FS,
 	return http.StatusCreated, nil
 }
 
-func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.FS, user *users.User) (status int, err error) {
+func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.FS, user *users.User, space *spaces.Space) (status int, err error) {
 	hdr := r.Header.Get("Destination")
 	if hdr == "" {
 		return http.StatusBadRequest, errInvalidDestination
@@ -298,11 +305,13 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.
 	if err != nil {
 		return status, err
 	}
+	srcPath := &dfs.PathCmd{Space: space, Path: src}
 
 	dst, status, err := h.stripPrefix(u.Path)
 	if err != nil {
 		return status, err
 	}
+	dstPath := &dfs.PathCmd{Space: space, Path: dst}
 
 	if dst == "" {
 		return http.StatusBadGateway, errInvalidDestination
@@ -313,7 +322,7 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.
 
 	ctx := r.Context()
 
-	_, err = fs.Get(ctx, src)
+	_, err = fs.Get(ctx, srcPath)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return http.StatusConflict, err
@@ -333,7 +342,7 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.
 				return http.StatusBadRequest, errInvalidDepth
 			}
 		}
-		return copyFiles(ctx, user, fs, src, dst, r.Header.Get("Overwrite") != "F", depth, 0)
+		return copyFiles(ctx, user, fs, srcPath, dstPath, r.Header.Get("Overwrite") != "F", depth, 0)
 	}
 
 	// Section 9.9.2 says that "The MOVE method on a collection must act as if
@@ -345,7 +354,7 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.
 		}
 	}
 
-	dstInfo, err := fs.Get(ctx, dst)
+	dstInfo, err := fs.Get(ctx, &dfs.PathCmd{Space: space, Path: dst})
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		return http.StatusInternalServerError, err
 	}
@@ -355,8 +364,14 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.
 	}
 
 	err = fs.Move(ctx, &dfs.MoveCmd{
-		SrcPath: src,
-		NewPath: dst,
+		Src: &dfs.PathCmd{
+			Space: space,
+			Path:  src,
+		},
+		Dst: &dfs.PathCmd{
+			Space: space,
+			Path:  dst,
+		},
 		MovedBy: user,
 	})
 	if err != nil {
@@ -370,13 +385,13 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, fs dfs.
 	return http.StatusCreated, nil
 }
 
-func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, fs dfs.FS) (status int, err error) {
+func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, fs dfs.FS, space *spaces.Space) (status int, err error) {
 	reqPath, status, err := h.stripPrefix(r.URL.Path)
 	if err != nil {
 		return status, err
 	}
 	ctx := r.Context()
-	fi, err := fs.Get(ctx, reqPath)
+	fi, err := fs.Get(ctx, &dfs.PathCmd{Space: space, Path: reqPath})
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return http.StatusNotFound, err
@@ -397,7 +412,7 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, fs dfs.
 
 	mw := multistatusWriter{w: w}
 
-	walkFn := func(reqPath string, info *dfs.INode, err error) error {
+	walkFn := func(cmd *dfs.PathCmd, info *dfs.INode, err error) error {
 		if err != nil {
 			return handlePropfindError(err, info)
 		}
@@ -435,7 +450,7 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, fs dfs.
 		return mw.write(makePropstatResponse(href, pstats))
 	}
 
-	walkErr := walkFS(ctx, fs, depth, reqPath, fi, walkFn)
+	walkErr := walkFS(ctx, fs, depth, &dfs.PathCmd{Space: space, Path: reqPath}, fi, walkFn)
 	closeErr := mw.close()
 	if walkErr != nil {
 		return http.StatusInternalServerError, walkErr
@@ -446,7 +461,7 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, fs dfs.
 	return 0, nil
 }
 
-func (h *Handler) handleProppatch(w http.ResponseWriter, r *http.Request, fs dfs.FS) (status int, err error) {
+func (h *Handler) handleProppatch(w http.ResponseWriter, r *http.Request, fs dfs.FS, space *spaces.Space) (status int, err error) {
 	reqPath, status, err := h.stripPrefix(r.URL.Path)
 	if err != nil {
 		return status, err
@@ -454,7 +469,7 @@ func (h *Handler) handleProppatch(w http.ResponseWriter, r *http.Request, fs dfs
 
 	ctx := r.Context()
 
-	if _, err := fs.Get(ctx, reqPath); err != nil {
+	if _, err := fs.Get(ctx, &dfs.PathCmd{Space: space, Path: reqPath}); err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return http.StatusNotFound, err
 		}
@@ -603,16 +618,16 @@ func slashClean(name string) string {
 	return path.Clean(name)
 }
 
-type WalkFunc func(path string, info *dfs.INode, err error) error
+type WalkFunc func(cmd *dfs.PathCmd, info *dfs.INode, err error) error
 
 // walkFS traverses filesystem fs starting at name up to depth levels.
 //
 // Allowed values for depth are 0, 1 or infiniteDepth. For each visited node,
 // walkFS calls walkFn. If a visited file system node is a directory and
 // walkFn returns filepath.SkipDir, walkFS will skip traversal of this node.
-func walkFS(ctx context.Context, fs dfs.FS, depth int, name string, info *dfs.INode, walkFn WalkFunc) error {
+func walkFS(ctx context.Context, fs dfs.FS, depth int, cmd *dfs.PathCmd, info *dfs.INode, walkFn WalkFunc) error {
 	// This implementation is based on Walk's code in the standard path/filepath package.
-	err := walkFn(name, info, nil)
+	err := walkFn(cmd, info, nil)
 	if err != nil {
 		if info.IsDir() && err == filepath.SkipDir {
 			return nil
@@ -627,14 +642,14 @@ func walkFS(ctx context.Context, fs dfs.FS, depth int, name string, info *dfs.IN
 	}
 
 	// Read directory names.
-	fileInfos, err := fs.ListDir(ctx, name, nil)
+	fileInfos, err := fs.ListDir(ctx, cmd, nil)
 	if err != nil {
-		return walkFn(name, info, err)
+		return walkFn(cmd, info, err)
 	}
 
 	for _, fileInfo := range fileInfos {
-		filename := path.Join(name, fileInfo.Name())
-		err = walkFS(ctx, fs, depth, filename, &fileInfo, walkFn)
+		newPath := &dfs.PathCmd{Space: cmd.Space, Path: path.Join(cmd.Path, fileInfo.Name())}
+		err = walkFS(ctx, fs, depth, newPath, &fileInfo, walkFn)
 		if err != nil {
 			if !fileInfo.IsDir() || err != filepath.SkipDir {
 				return err

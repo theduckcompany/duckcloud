@@ -18,6 +18,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
@@ -118,7 +119,7 @@ func (h *Handler) getBrowserContent(w http.ResponseWriter, r *http.Request) {
 
 	lastElem := r.URL.Query().Get("last")
 	if lastElem == "" {
-		h.renderBrowserContent(w, r, user, fs, fullPath)
+		h.renderBrowserContent(w, r, user, fs, &dfs.PathCmd{Space: space, Path: fullPath})
 		return
 	}
 
@@ -204,7 +205,7 @@ func (h *Handler) deleteAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fs := h.fs.GetSpaceFS(space)
-	err := fs.Remove(r.Context(), fullPath)
+	err := fs.Remove(r.Context(), &dfs.PathCmd{Space: space, Path: fullPath})
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Remove: %w", err))
 		return
@@ -221,16 +222,16 @@ type breadCrumbElement struct {
 	Current bool
 }
 
-func generateBreadCrumb(space *spaces.Space, fullPath string) []breadCrumbElement {
-	basePath := path.Join("/browser/", string(space.ID()))
+func generateBreadCrumb(cmd *dfs.PathCmd) []breadCrumbElement {
+	basePath := path.Join("/browser/", string(cmd.Space.ID()))
 
 	res := []breadCrumbElement{{
-		Name:    space.Name(),
+		Name:    cmd.Space.Name(),
 		Href:    basePath,
 		Current: false,
 	}}
 
-	fullPath = strings.TrimPrefix(fullPath, "/")
+	fullPath := strings.TrimPrefix(cmd.Path, "/")
 
 	if fullPath == "" {
 		res[0].Current = true
@@ -282,6 +283,7 @@ func (h *Handler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
 
 	dirPath := path.Dir(fullPath)
 	_, err = ffs.CreateDir(ctx, &dfs.CreateDirCmd{
+		Space:     space,
 		FilePath:  dirPath,
 		CreatedBy: cmd.user,
 	})
@@ -290,6 +292,7 @@ func (h *Handler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
 	}
 
 	err = ffs.Upload(ctx, &dfs.UploadCmd{
+		Space:      space,
 		FilePath:   fullPath,
 		Content:    cmd.fileReader,
 		UploadedBy: cmd.user,
@@ -337,24 +340,22 @@ func (h Handler) getSpaceAndPathFromURL(w http.ResponseWriter, r *http.Request, 
 	return space, fullPath, false
 }
 
-func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, ffs dfs.FS, fullPath string) {
-	inode, err := ffs.Get(r.Context(), fullPath)
-	if err != nil {
+func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, ffs dfs.FS, cmd *dfs.PathCmd) {
+	inode, err := ffs.Get(r.Context(), cmd)
+	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Get: %w", err))
 		return
 	}
 
-	space := ffs.Space()
-
 	if inode == nil {
-		w.Header().Set("Location", path.Join("/browser/", string(space.ID())))
+		w.Header().Set("Location", path.Join("/browser/", string(cmd.Space.ID())))
 		w.WriteHeader(http.StatusFound)
 		return
 	}
 
 	dirContent := []dfs.INode{}
 	if inode.IsDir() {
-		dirContent, err = ffs.ListDir(r.Context(), fullPath, &storage.PaginateCmd{
+		dirContent, err = ffs.ListDir(r.Context(), cmd, &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
 			Limit:      PageSize,
 		})
@@ -364,7 +365,7 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 		}
 	} else {
 		fileMeta, _ := h.files.GetMetadata(r.Context(), *inode.FileID())
-		file, err := ffs.Download(r.Context(), fullPath)
+		file, err := ffs.Download(r.Context(), cmd)
 		if err != nil {
 			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Download: %w", err))
 			return
@@ -383,9 +384,9 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 
 	h.html.WriteHTML(w, r, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
 		"host":       r.Host,
-		"fullPath":   fullPath,
-		"space":      space,
-		"breadcrumb": generateBreadCrumb(space, fullPath),
+		"fullPath":   cmd.Path,
+		"space":      cmd.Space,
+		"breadcrumb": generateBreadCrumb(cmd),
 		"spaces":     spaces,
 		"inodes":     dirContent,
 	})
@@ -393,7 +394,7 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 
 func (h *Handler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, space *spaces.Space, fullPath, lastElem string) {
 	ffs := h.fs.GetSpaceFS(space)
-	dirContent, err := ffs.ListDir(r.Context(), fullPath, &storage.PaginateCmd{
+	dirContent, err := ffs.ListDir(r.Context(), &dfs.PathCmd{Space: space, Path: fullPath}, &storage.PaginateCmd{
 		StartAfter: map[string]string{"name": lastElem},
 		Limit:      PageSize,
 	})
@@ -423,7 +424,9 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 
 	ffs := h.fs.GetSpaceFS(space)
 
-	inode, err := ffs.Get(r.Context(), fullPath)
+	pathCmd := &dfs.PathCmd{Space: space, Path: fullPath}
+
+	inode, err := ffs.Get(r.Context(), pathCmd)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Get: %w", err))
 		return
@@ -436,11 +439,11 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if inode.IsDir() {
-		h.serveSpaceContent(w, r, ffs, fullPath)
+		h.serveFolderContent(w, r, ffs, &dfs.PathCmd{Space: space, Path: fullPath})
 	} else {
 		fileMeta, _ := h.files.GetMetadata(r.Context(), *inode.FileID())
 
-		file, err := ffs.Download(r.Context(), fullPath)
+		file, err := ffs.Download(r.Context(), pathCmd)
 		if err != nil {
 			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Download: %w", err))
 			return
@@ -452,10 +455,10 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) serveSpaceContent(w http.ResponseWriter, r *http.Request, ffs dfs.FS, root string) {
+func (h *Handler) serveFolderContent(w http.ResponseWriter, r *http.Request, ffs dfs.FS, cmd *dfs.PathCmd) {
 	var err error
 
-	_, dir := path.Split(root)
+	_, dir := path.Split(cmd.Path)
 
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", dir))
@@ -463,7 +466,7 @@ func (h *Handler) serveSpaceContent(w http.ResponseWriter, r *http.Request, ffs 
 
 	writer := zip.NewWriter(w)
 
-	dfs.Walk(r.Context(), ffs, root, func(ctx context.Context, p string, i *dfs.INode) error {
+	dfs.Walk(r.Context(), ffs, cmd, func(ctx context.Context, p string, i *dfs.INode) error {
 		header := &zip.FileHeader{
 			Method:             zip.Deflate,
 			Comment:            "From DuckCloud with love",
@@ -478,7 +481,7 @@ func (h *Handler) serveSpaceContent(w http.ResponseWriter, r *http.Request, ffs 
 			header.SetMode(0o644)
 		}
 
-		header.Name, err = filepath.Rel(root, p)
+		header.Name, err = filepath.Rel(cmd.Path, p)
 		if err != nil {
 			return fmt.Errorf("failed to find the relative path: %w", err)
 		}
@@ -496,7 +499,7 @@ func (h *Handler) serveSpaceContent(w http.ResponseWriter, r *http.Request, ffs 
 			return nil
 		}
 
-		file, err := ffs.Download(ctx, path.Join(p, i.Name()))
+		file, err := ffs.Download(ctx, &dfs.PathCmd{Space: cmd.Space, Path: path.Join(p, i.Name())})
 		if err != nil {
 			return fmt.Errorf("failed to download for zip: %w", err)
 		}

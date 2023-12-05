@@ -2,14 +2,11 @@ package browser
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
-	"strings"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
@@ -113,12 +110,10 @@ func Test_Browser_Page(t *testing.T) {
 		spaceFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
 
-		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace)
-
 		// Then look for the path inside this space
-		spaceFSMock.On("Get", mock.Anything, "/foo/bar").Return(&dfs.ExampleAliceRoot, nil).Once()
+		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}).Return(&dfs.ExampleAliceRoot, nil).Once()
 
-		spaceFSMock.On("ListDir", mock.Anything, "/foo/bar", &storage.PaginateCmd{
+		spaceFSMock.On("ListDir", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}, &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
 			Limit:      PageSize,
 		}).Return([]dfs.INode{dfs.ExampleAliceFile}, nil).Once()
@@ -170,10 +165,9 @@ func Test_Browser_Page(t *testing.T) {
 
 		spaceFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace)
 
 		// Then look for the path inside this space
-		spaceFSMock.On("Get", mock.Anything, "/foo/bar").Return(&dfs.ExampleAliceFile, nil).Once()
+		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}).Return(&dfs.ExampleAliceFile, nil).Once()
 
 		filesMock.On("GetMetadata", mock.Anything, *dfs.ExampleAliceFile.FileID()).Return(&files.ExampleFile1, nil).Once()
 
@@ -181,7 +175,7 @@ func Test_Browser_Page(t *testing.T) {
 		file, err := afero.TempFile(afs, t.TempDir(), "")
 		require.NoError(t, err)
 
-		spaceFSMock.On("Download", mock.Anything, "/foo/bar").Return(file, nil).Once()
+		spaceFSMock.On("Download", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}).Return(file, nil).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/browser/space-id/foo/bar", nil)
@@ -309,10 +303,9 @@ func Test_Browser_Page(t *testing.T) {
 
 		spaceFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-		spaceFSMock.On("Space").Return(&spaces.ExampleAlicePersonalSpace)
 
 		// Then look for the path inside this space
-		spaceFSMock.On("Get", mock.Anything, "/invalid").Return(nil, nil).Once()
+		spaceFSMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/invalid"}).Return(nil, errs.ErrNotFound).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/browser/space-id/invalid", nil)
@@ -353,6 +346,7 @@ func Test_Browser_Page(t *testing.T) {
 		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
 
 		spaceFSMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
+			Space:     &spaces.ExampleAlicePersonalSpace,
 			FilePath:  "foo/bar",
 			CreatedBy: &users.ExampleAlice,
 		}).Return(&dfs.ExampleAliceDir, nil).Once()
@@ -420,6 +414,7 @@ func Test_Browser_Page(t *testing.T) {
 		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
 
 		spaceFSMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
+			Space:     &spaces.ExampleAlicePersonalSpace,
 			FilePath:  "foo/bar/baz",
 			CreatedBy: &users.ExampleAlice,
 		}).Return(&dfs.ExampleAliceDir, nil).Once()
@@ -486,7 +481,7 @@ func Test_Browser_Page(t *testing.T) {
 		spaceFSMock := dfs.NewMockFS(t)
 		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
 
-		spaceFSMock.On("Remove", mock.Anything, "/foo/bar").Return(nil).Once()
+		spaceFSMock.On("Remove", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}).Return(nil).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodDelete, "/browser/space-id/foo/bar", nil)
@@ -498,599 +493,5 @@ func Test_Browser_Page(t *testing.T) {
 		defer res.Body.Close()
 		assert.Equal(t, http.StatusNoContent, res.StatusCode)
 		assert.Equal(t, "refreshFolder", res.Header.Get("HX-Trigger"))
-	})
-
-	t.Run("getCreateDirModel success", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		webSessionsMock := websessions.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		usersMock := users.NewMockService(t)
-		htmlMock := html.NewMockWriter(t)
-		filesMock := files.NewMockService(t)
-		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := dfs.NewMockService(t)
-		handler := NewHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
-
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/create-dir.tmpl", map[string]any{
-			"directory": "/foo/bar",
-			"spaceID":   "some-space-id",
-		}).Once()
-
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/browser/create-dir", nil)
-		queries := url.Values{}
-		queries.Add("dir", "/foo/bar")
-		queries.Add("space", "some-space-id")
-
-		r.URL.RawQuery = queries.Encode()
-		srv := chi.NewRouter()
-		handler.Register(srv, nil)
-		srv.ServeHTTP(w, r)
-
-		res := w.Result()
-		defer res.Body.Close()
-		assert.Equal(t, http.StatusOK, res.StatusCode)
-	})
-
-	t.Run("getCreateDirModel with no auth", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		webSessionsMock := websessions.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		usersMock := users.NewMockService(t)
-		htmlMock := html.NewMockWriter(t)
-		filesMock := files.NewMockService(t)
-		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := dfs.NewMockService(t)
-		handler := NewHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
-
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrSessionNotFound).Once()
-
-		webSessionsMock.On("Logout", mock.Anything, mock.Anything).Return(nil).Once()
-
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/browser/create-dir", nil)
-		queries := url.Values{}
-		queries.Add("dir", "/foo/bar")
-		queries.Add("space", "some-space-id")
-
-		r.URL.RawQuery = queries.Encode()
-		srv := chi.NewRouter()
-		handler.Register(srv, nil)
-		srv.ServeHTTP(w, r)
-
-		res := w.Result()
-		defer res.Body.Close()
-		assert.Equal(t, http.StatusOK, res.StatusCode)
-	})
-
-	t.Run("getCreateDirModel with no dir query", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		webSessionsMock := websessions.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		usersMock := users.NewMockService(t)
-		htmlMock := html.NewMockWriter(t)
-		filesMock := files.NewMockService(t)
-		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := dfs.NewMockService(t)
-		handler := NewHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
-
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-
-		htmlMock.On("WriteHTMLErrorPage", mock.Anything, mock.Anything, errors.New("failed to get the dir path from the url query")).Once()
-
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/browser/create-dir", nil)
-		queries := url.Values{}
-		// queries.Add("dir", "/foo/bar")
-		queries.Add("space", "some-space-id")
-
-		r.URL.RawQuery = queries.Encode()
-		srv := chi.NewRouter()
-		handler.Register(srv, nil)
-		srv.ServeHTTP(w, r)
-	})
-
-	t.Run("getCreateDirModel with no dir query", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		webSessionsMock := websessions.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		usersMock := users.NewMockService(t)
-		htmlMock := html.NewMockWriter(t)
-		filesMock := files.NewMockService(t)
-		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := dfs.NewMockService(t)
-		handler := NewHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
-
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-
-		htmlMock.On("WriteHTMLErrorPage", mock.Anything, mock.Anything, errors.New("failed to get the space id from the url query")).Once()
-
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/browser/create-dir", nil)
-		queries := url.Values{}
-		queries.Add("dir", "/foo/bar")
-		// queries.Add("space", "some-space-id")
-
-		r.URL.RawQuery = queries.Encode()
-		srv := chi.NewRouter()
-		handler.Register(srv, nil)
-		srv.ServeHTTP(w, r)
-	})
-
-	t.Run("handleCreateDirReq", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		webSessionsMock := websessions.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		usersMock := users.NewMockService(t)
-		htmlMock := html.NewMockWriter(t)
-		filesMock := files.NewMockService(t)
-		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := dfs.NewMockService(t)
-		handler := NewHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
-
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-
-		tools.UUIDMock.On("Parse", "some-space-id").Return(uuid.UUID("some-space-id"), nil).Once()
-		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("some-space-id")).
-			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
-
-		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-
-		spaceFSMock.On("Get", mock.Anything, "/foo/New Dir").Return(nil, errs.ErrNotFound).Once()
-		spaceFSMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
-			FilePath:  "/foo/New Dir",
-			CreatedBy: &users.ExampleAlice,
-		}).Return(&dfs.ExampleAliceDir, nil).Once()
-
-		w := httptest.NewRecorder()
-		form := url.Values{}
-		form.Add("dirPath", "/foo")
-		form.Add("name", "New Dir")
-		form.Add("spaceID", "some-space-id")
-		r := httptest.NewRequest(http.MethodPost, "/browser/create-dir", strings.NewReader(form.Encode()))
-		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-
-		srv := chi.NewRouter()
-		handler.Register(srv, nil)
-		srv.ServeHTTP(w, r)
-
-		res := w.Result()
-		defer res.Body.Close()
-		assert.Equal(t, http.StatusCreated, res.StatusCode)
-		assert.Equal(t, "refreshFolder", res.Header.Get("HX-Trigger"))
-	})
-
-	t.Run("handleCreateDirReq with an authentication error", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		webSessionsMock := websessions.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		usersMock := users.NewMockService(t)
-		htmlMock := html.NewMockWriter(t)
-		filesMock := files.NewMockService(t)
-		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := dfs.NewMockService(t)
-		handler := NewHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
-
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
-
-		w := httptest.NewRecorder()
-		form := url.Values{}
-		form.Add("dirPath", "/foo")
-		form.Add("name", "New Dir")
-		form.Add("spaceID", "some-space-id")
-		r := httptest.NewRequest(http.MethodPost, "/browser/create-dir", strings.NewReader(form.Encode()))
-		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-
-		srv := chi.NewRouter()
-		handler.Register(srv, nil)
-		srv.ServeHTTP(w, r)
-
-		res := w.Result()
-		defer res.Body.Close()
-		assert.Equal(t, http.StatusFound, res.StatusCode)
-		assert.Equal(t, "/login", res.Header.Get("Location"))
-	})
-
-	t.Run("handleCreateDirReq with an invalid spaceID", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		webSessionsMock := websessions.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		usersMock := users.NewMockService(t)
-		htmlMock := html.NewMockWriter(t)
-		filesMock := files.NewMockService(t)
-		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := dfs.NewMockService(t)
-		handler := NewHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
-
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-
-		tools.UUIDMock.On("Parse", "some-space-id").Return(uuid.UUID(""), fmt.Errorf("some-error")).Once()
-		htmlMock.On("WriteHTMLErrorPage", mock.Anything, mock.Anything, errors.New("invalid space id param")).Once()
-
-		w := httptest.NewRecorder()
-		form := url.Values{}
-		form.Add("dirPath", "/foo")
-		// form.Add("name", "New Dir")
-		form.Add("spaceID", "some-space-id")
-		r := httptest.NewRequest(http.MethodPost, "/browser/create-dir", strings.NewReader(form.Encode()))
-		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-
-		srv := chi.NewRouter()
-		handler.Register(srv, nil)
-		srv.ServeHTTP(w, r)
-	})
-
-	t.Run("handleCreateDirReq with an empty name", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		webSessionsMock := websessions.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		usersMock := users.NewMockService(t)
-		htmlMock := html.NewMockWriter(t)
-		filesMock := files.NewMockService(t)
-		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := dfs.NewMockService(t)
-		handler := NewHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
-
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-
-		tools.UUIDMock.On("Parse", "some-space-id").Return(uuid.UUID("some-space-id"), nil).Once()
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusUnprocessableEntity, "browser/create-dir.tmpl", map[string]any{
-			"directory": "/foo",
-			"spaceID":   uuid.UUID("some-space-id"),
-			"error":     "Must not be empty",
-		}).Once()
-
-		w := httptest.NewRecorder()
-		form := url.Values{}
-		form.Add("dirPath", "/foo")
-		// form.Add("name", "New Dir")
-		form.Add("spaceID", "some-space-id")
-		r := httptest.NewRequest(http.MethodPost, "/browser/create-dir", strings.NewReader(form.Encode()))
-		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-
-		srv := chi.NewRouter()
-		handler.Register(srv, nil)
-		srv.ServeHTTP(w, r)
-	})
-
-	t.Run("handleCreateDirReq with a taken name", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		webSessionsMock := websessions.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		usersMock := users.NewMockService(t)
-		htmlMock := html.NewMockWriter(t)
-		filesMock := files.NewMockService(t)
-		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := dfs.NewMockService(t)
-		handler := NewHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
-
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-
-		tools.UUIDMock.On("Parse", "some-space-id").Return(uuid.UUID("some-space-id"), nil).Once()
-		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("some-space-id")).
-			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
-
-		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-
-		spaceFSMock.On("Get", mock.Anything, "/foo/New Dir").Return(&dfs.ExampleAliceDir, nil).Once()
-
-		// Render
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusUnprocessableEntity, "browser/create-dir.tmpl", map[string]any{
-			"directory": "/foo",
-			"spaceID":   uuid.UUID("some-space-id"),
-			"error":     "Already exists",
-		}).Once()
-
-		w := httptest.NewRecorder()
-		form := url.Values{}
-		form.Add("dirPath", "/foo")
-		form.Add("name", "New Dir")
-		form.Add("spaceID", "some-space-id")
-		r := httptest.NewRequest(http.MethodPost, "/browser/create-dir", strings.NewReader(form.Encode()))
-		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-
-		srv := chi.NewRouter()
-		handler.Register(srv, nil)
-		srv.ServeHTTP(w, r)
-	})
-
-	t.Run("handleCreateDirReq with a CreateDir error", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		webSessionsMock := websessions.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		usersMock := users.NewMockService(t)
-		htmlMock := html.NewMockWriter(t)
-		filesMock := files.NewMockService(t)
-		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := dfs.NewMockService(t)
-		handler := NewHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
-
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-
-		tools.UUIDMock.On("Parse", "some-space-id").Return(uuid.UUID("some-space-id"), nil).Once()
-		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("some-space-id")).
-			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
-
-		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-
-		err := fmt.Errorf("some-error")
-		spaceFSMock.On("Get", mock.Anything, "/foo/New Dir").Return(nil, errs.ErrNotFound).Once()
-		spaceFSMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
-			FilePath:  "/foo/New Dir",
-			CreatedBy: &users.ExampleAlice,
-		}).Return(nil, err).Once()
-
-		htmlMock.On("WriteHTMLErrorPage", mock.Anything, mock.Anything, fmt.Errorf("failed to create the directory: %w", err)).Once()
-
-		w := httptest.NewRecorder()
-		form := url.Values{}
-		form.Add("dirPath", "/foo")
-		form.Add("name", "New Dir")
-		form.Add("spaceID", "some-space-id")
-		r := httptest.NewRequest(http.MethodPost, "/browser/create-dir", strings.NewReader(form.Encode()))
-		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-
-		srv := chi.NewRouter()
-		handler.Register(srv, nil)
-		srv.ServeHTTP(w, r)
-	})
-
-	t.Run("getRenameModal success", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		webSessionsMock := websessions.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		usersMock := users.NewMockService(t)
-		htmlMock := html.NewMockWriter(t)
-		filesMock := files.NewMockService(t)
-		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := dfs.NewMockService(t)
-		handler := NewHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
-
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-
-		tools.UUIDMock.On("Parse", "some-space-id").Return(uuid.UUID("some-space-id"), nil).Once()
-		spacesMock.On("GetByID", mock.Anything, uuid.UUID("some-space-id")).
-			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
-
-		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-
-		spaceFSMock.On("Get", mock.Anything, "/foo/bar.jpg").Return(&dfs.ExampleAliceFile, nil).Once()
-
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/rename-form.tmpl", map[string]any{
-			"error":        "",
-			"path":         "/foo/bar.jpg",
-			"spaceID":      spaces.ExampleAlicePersonalSpace.ID(),
-			"value":        "bar.jpg",
-			"endSelection": 3, // name == bar.pdf / we want the selection at |bar|.pdf
-		}).Once()
-
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/browser/rename", nil)
-		r.URL.RawQuery = url.Values{
-			"path":    []string{"/foo/bar.jpg"},
-			"value":   []string{"bar.jpg"},
-			"spaceID": []string{"some-space-id"},
-		}.Encode()
-
-		srv := chi.NewRouter()
-		handler.Register(srv, nil)
-		srv.ServeHTTP(w, r)
-	})
-
-	t.Run("getRenameModal with an unauthenticated user", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		webSessionsMock := websessions.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		usersMock := users.NewMockService(t)
-		htmlMock := html.NewMockWriter(t)
-		filesMock := files.NewMockService(t)
-		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := dfs.NewMockService(t)
-		handler := NewHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
-
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
-
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/browser/rename", nil)
-		r.URL.RawQuery = url.Values{
-			"path":    []string{"/foo/bar.jpg"},
-			"value":   []string{"bar.jpg"},
-			"spaceID": []string{"some-space-id"},
-		}.Encode()
-
-		srv := chi.NewRouter()
-		handler.Register(srv, nil)
-		srv.ServeHTTP(w, r)
-
-		res := w.Result()
-		defer res.Body.Close()
-		assert.Equal(t, http.StatusFound, res.StatusCode)
-		assert.Equal(t, "/login", res.Header.Get("Location"))
-	})
-
-	t.Run("getRenameModal without the path param", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		webSessionsMock := websessions.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		usersMock := users.NewMockService(t)
-		htmlMock := html.NewMockWriter(t)
-		filesMock := files.NewMockService(t)
-		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := dfs.NewMockService(t)
-		handler := NewHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
-
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/browser/rename", nil)
-		r.URL.RawQuery = url.Values{
-			// "path":    []string{"/foo/bar.jpg"},
-			"value":   []string{"bar.jpg"},
-			"spaceID": []string{"some-space-id"},
-		}.Encode()
-
-		srv := chi.NewRouter()
-		handler.Register(srv, nil)
-		srv.ServeHTTP(w, r)
-
-		res := w.Result()
-		defer res.Body.Close()
-		assert.Equal(t, http.StatusNotFound, res.StatusCode)
-	})
-
-	t.Run("getRenameModal with an invalid spaceID", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		webSessionsMock := websessions.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		usersMock := users.NewMockService(t)
-		htmlMock := html.NewMockWriter(t)
-		filesMock := files.NewMockService(t)
-		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := dfs.NewMockService(t)
-		handler := NewHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
-
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-
-		tools.UUIDMock.On("Parse", "some-space-id").Return(uuid.UUID(""), fmt.Errorf("some-error")).Once()
-
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/browser/rename", nil)
-		r.URL.RawQuery = url.Values{
-			"path":    []string{"/foo/bar.jpg"},
-			"value":   []string{"bar.jpg"},
-			"spaceID": []string{"some-space-id"},
-		}.Encode()
-
-		srv := chi.NewRouter()
-		handler.Register(srv, nil)
-		srv.ServeHTTP(w, r)
-
-		res := w.Result()
-		defer res.Body.Close()
-		assert.Equal(t, http.StatusNotFound, res.StatusCode)
-	})
-
-	t.Run("handleRenameReq success", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		webSessionsMock := websessions.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		usersMock := users.NewMockService(t)
-		htmlMock := html.NewMockWriter(t)
-		filesMock := files.NewMockService(t)
-		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := dfs.NewMockService(t)
-		handler := NewHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
-
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-
-		tools.UUIDMock.On("Parse", "some-space-id").Return(uuid.UUID("some-space-id"), nil).Once()
-		spacesMock.On("GetByID", mock.Anything, uuid.UUID("some-space-id")).
-			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
-
-		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-		spaceFSMock.On("Get", mock.Anything, "/foo/bar.jpg").Return(&dfs.ExampleAliceFile, nil).Once()
-
-		spaceFSMock.On("Rename", mock.Anything, &dfs.ExampleAliceFile, "new-name.jpg").Return(&dfs.ExampleAliceFile, nil).Once()
-
-		w := httptest.NewRecorder()
-		form := url.Values{}
-		form.Add("path", "/foo/bar.jpg")
-		form.Add("name", "new-name.jpg")
-		form.Add("spaceID", "some-space-id")
-		r := httptest.NewRequest(http.MethodPost, "/browser/rename", strings.NewReader(form.Encode()))
-		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-
-		srv := chi.NewRouter()
-		handler.Register(srv, nil)
-		srv.ServeHTTP(w, r)
-
-		res := w.Result()
-		defer res.Body.Close()
-		assert.Equal(t, http.StatusOK, res.StatusCode)
-		assert.Equal(t, "refreshFolder", res.Header.Get("HX-Trigger"))
-	})
-
-	t.Run("handleRenameReq with a rename error", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		webSessionsMock := websessions.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		usersMock := users.NewMockService(t)
-		htmlMock := html.NewMockWriter(t)
-		filesMock := files.NewMockService(t)
-		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		fsMock := dfs.NewMockService(t)
-		handler := NewHandler(tools, htmlMock, spacesMock, filesMock, auth, fsMock)
-
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-
-		tools.UUIDMock.On("Parse", "some-space-id").Return(uuid.UUID("some-space-id"), nil).Once()
-		spacesMock.On("GetByID", mock.Anything, uuid.UUID("some-space-id")).
-			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
-
-		spaceFSMock := dfs.NewMockFS(t)
-		fsMock.On("GetSpaceFS", &spaces.ExampleAlicePersonalSpace).Return(spaceFSMock)
-		spaceFSMock.On("Get", mock.Anything, "/foo/bar.jpg").Return(&dfs.ExampleAliceFile, nil).Once()
-
-		spaceFSMock.On("Rename", mock.Anything, &dfs.ExampleAliceFile, "new-name").Return(nil, errs.Validation(errors.New("some-error"))).Once()
-
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusUnprocessableEntity, "browser/rename-form.tmpl", map[string]any{
-			"error":        "validation: some-error",
-			"path":         "/foo/bar.jpg",
-			"spaceID":      spaces.ExampleAlicePersonalSpace.ID(),
-			"value":        "new-name",
-			"endSelection": 8, // name == new-name / we want the selection at |new-name|.pdf
-		}).Once()
-
-		w := httptest.NewRecorder()
-		form := url.Values{}
-		form.Add("path", "/foo/bar.jpg")
-		form.Add("name", "new-name")
-		form.Add("spaceID", "some-space-id")
-		r := httptest.NewRequest(http.MethodPost, "/browser/rename", strings.NewReader(form.Encode()))
-		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-
-		srv := chi.NewRouter()
-		handler.Register(srv, nil)
-		srv.ServeHTTP(w, r)
-
-		res := w.Result()
-		defer res.Body.Close()
-		assert.Equal(t, http.StatusOK, res.StatusCode)
 	})
 }

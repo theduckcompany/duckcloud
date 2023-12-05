@@ -184,7 +184,7 @@ func TestPrefix(t *testing.T) {
 
 		require.NoError(t, tc.Runner.Run(ctx))
 
-		got, err := find(ctx, nil, fs, "/")
+		got, err := find(ctx, nil, fs, &dfs.PathCmd{Space: tc.Space, Path: "/"})
 		if err != nil {
 			t.Errorf("prefix=%-9q find: %v", prefix, err)
 			continue
@@ -312,6 +312,7 @@ func TestFilenameEscape(t *testing.T) {
 		if tt.name != "/" {
 			if strings.HasSuffix(tt.name, "/") {
 				if _, err := fs.CreateDir(ctx, &dfs.CreateDirCmd{
+					Space:     tc.Space,
 					FilePath:  tt.name,
 					CreatedBy: tc.User,
 				}); err != nil {
@@ -319,6 +320,7 @@ func TestFilenameEscape(t *testing.T) {
 				}
 			} else {
 				err := fs.Upload(ctx, &dfs.UploadCmd{
+					Space:      tc.Space,
 					FilePath:   tt.name,
 					Content:    http.NoBody,
 					UploadedBy: tc.User,
@@ -545,8 +547,8 @@ func TestWalkFS(t *testing.T) {
 		},
 		"/",
 		infiniteDepth,
-		func(path string, info *dfs.INode, err error) error {
-			if path == "/a/b/g" {
+		func(cmd *dfs.PathCmd, info *dfs.INode, err error) error {
+			if cmd.Path == "/a/b/g" {
 				return filepath.SkipDir
 			}
 			return nil
@@ -561,23 +563,24 @@ func TestWalkFS(t *testing.T) {
 	}}
 	ctx := context.Background()
 	for _, tc := range testCases {
-		fs := buildTestFS(t, tc.buildfs).FS
+		testContext := buildTestFS(t, tc.buildfs)
+		fs := testContext.FS
 		var got []string
-		traceFn := func(path string, info *dfs.INode, err error) error {
+		traceFn := func(cmd *dfs.PathCmd, info *dfs.INode, err error) error {
 			if tc.walkFn != nil {
-				err = tc.walkFn(path, info, err)
+				err = tc.walkFn(cmd, info, err)
 				if err != nil {
 					return err
 				}
 			}
-			got = append(got, path)
+			got = append(got, cmd.Path)
 			return nil
 		}
-		fi, err := fs.Get(ctx, tc.startAt)
+		fi, err := fs.Get(ctx, &dfs.PathCmd{Space: testContext.Space, Path: tc.startAt})
 		if err != nil {
 			t.Fatalf("%s: cannot stat: %v", tc.desc, err)
 		}
-		err = walkFS(ctx, fs, tc.depth, tc.startAt, fi, traceFn)
+		err = walkFS(ctx, fs, tc.depth, &dfs.PathCmd{Space: testContext.Space, Path: tc.startAt}, fi, traceFn)
 		if err != nil {
 			t.Errorf("%s:\ngot error %v, want nil", tc.desc, err)
 			continue
