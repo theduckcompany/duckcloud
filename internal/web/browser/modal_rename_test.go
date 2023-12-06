@@ -18,9 +18,11 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
+	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
+	"github.com/theduckcompany/duckcloud/internal/web/html/templates/browser"
 )
 
 func Test_RenameModalHandler(t *testing.T) {
@@ -44,12 +46,11 @@ func Test_RenameModalHandler(t *testing.T) {
 
 		fsMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.jpg"}).Return(&dfs.ExampleAliceFile, nil).Once()
 
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/rename-form.tmpl", map[string]any{
-			"error":        "",
-			"path":         "/foo/bar.jpg",
-			"spaceID":      spaces.ExampleAlicePersonalSpace.ID(),
-			"value":        "bar.jpg",
-			"endSelection": 3, // name == bar.pdf / we want the selection at |bar|.pdf
+		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &browser.RenameTemplate{
+			Error:               nil,
+			Target:              &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.jpg"},
+			FieldValue:          "bar.jpg",
+			FieldValueSelection: 3, // name == bar.pdf / we want the selection at |bar|.pdf
 		}).Once()
 
 		w := httptest.NewRecorder()
@@ -221,13 +222,11 @@ func Test_RenameModalHandler(t *testing.T) {
 		fsMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.jpg"}).Return(&dfs.ExampleAliceFile, nil).Once()
 
 		fsMock.On("Rename", mock.Anything, &dfs.ExampleAliceFile, "new-name").Return(nil, errs.Validation(errors.New("some-error"))).Once()
-
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusUnprocessableEntity, "browser/rename-form.tmpl", map[string]any{
-			"error":        "validation: some-error",
-			"path":         "/foo/bar.jpg",
-			"spaceID":      spaces.ExampleAlicePersonalSpace.ID(),
-			"value":        "new-name",
-			"endSelection": 8, // name == new-name / we want the selection at |new-name|.pdf
+		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusUnprocessableEntity, &browser.RenameTemplate{
+			Error:               ptr.To("validation: some-error"),
+			Target:              &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.jpg"},
+			FieldValue:          "new-name",
+			FieldValueSelection: 8, // name == new-name / we want the selection at |new-name|.pdf
 		}).Once()
 
 		w := httptest.NewRecorder()

@@ -8,6 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/theduckcompany/duckcloud/internal/service/dfs"
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
@@ -37,6 +39,15 @@ func Test_Templates(t *testing.T) {
 				DirPath: "/foo/bar",
 				SpaceID: uuid.UUID("some-space-id"),
 				Error:   ptr.To("Some-error"),
+			},
+		},
+		{
+			Name: "modal_rename ",
+			Template: &RenameTemplate{
+				Error:               nil,
+				Target:              &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+				FieldValue:          "New Dir",
+				FieldValueSelection: 0,
 			},
 		},
 	}
