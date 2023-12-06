@@ -18,13 +18,6 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/web/html/templates/browser"
 )
 
-type renameModalCmd struct {
-	ErrorMsg string
-	Space    *spaces.Space
-	Value    string
-	Path     string
-}
-
 type renameModalHandler struct {
 	auth   *auth.Authenticator
 	spaces spaces.Service
