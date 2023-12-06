@@ -21,3 +21,10 @@ type RenameTemplate struct {
 }
 
 func (t *RenameTemplate) Template() string { return "browser/modal_rename.tmpl" }
+
+type RowsTemplate struct {
+	Inodes []dfs.INode
+	Folder *dfs.PathCmd
+}
+
+func (t *RowsTemplate) Template() string { return "browser/rows.tmpl" }

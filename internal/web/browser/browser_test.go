@@ -25,6 +25,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
+	"github.com/theduckcompany/duckcloud/internal/web/html/templates/browser"
 )
 
 func Test_Browser_Page(t *testing.T) {
@@ -126,7 +127,10 @@ func Test_Browser_Page(t *testing.T) {
 				{Name: "bar", Href: "/browser/" + spaceID + "/foo/bar", Current: true},
 			},
 			"spaces": []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
-			"inodes": []dfs.INode{dfs.ExampleAliceFile},
+			"RowsContent": &browser.RowsTemplate{
+				Folder: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
+				Inodes: []dfs.INode{dfs.ExampleAliceFile},
+			},
 		}).Once()
 
 		w := httptest.NewRecorder()

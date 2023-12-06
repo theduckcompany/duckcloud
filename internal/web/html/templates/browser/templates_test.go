@@ -42,12 +42,19 @@ func Test_Templates(t *testing.T) {
 			},
 		},
 		{
-			Name: "modal_rename ",
+			Name: "modal_rename",
 			Template: &RenameTemplate{
 				Error:               nil,
 				Target:              &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
 				FieldValue:          "New Dir",
 				FieldValueSelection: 0,
+			},
+		},
+		{
+			Name: "rows",
+			Template: &RowsTemplate{
+				Folder: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+				Inodes: []dfs.INode{dfs.ExampleAliceFile, dfs.ExampleAliceFile2},
 			},
 		},
 	}

@@ -25,6 +25,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
+	"github.com/theduckcompany/duckcloud/internal/web/html/templates/browser"
 )
 
 const (
@@ -384,7 +385,10 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 		"space":      cmd.Space,
 		"breadcrumb": generateBreadCrumb(cmd),
 		"spaces":     spaces,
-		"inodes":     dirContent,
+		"RowsContent": &browser.RowsTemplate{
+			Folder: cmd,
+			Inodes: dirContent,
+		},
 	})
 }
 
