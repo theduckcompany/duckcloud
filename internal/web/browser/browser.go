@@ -375,15 +375,16 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 
-	h.html.WriteHTML(w, r, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
-		"host":       r.Host,
-		"fullPath":   cmd.Path,
-		"space":      cmd.Space,
-		"Breadcrumb": generateBreadCrumb(cmd),
-		"spaces":     spaces,
-		"RowsContent": &browser.RowsTemplate{
+	h.html.WriteHTMLTemplate(w, r, http.StatusOK, &browser.ContentTemplate{
+		Folder:     cmd,
+		Breadcrumb: generateBreadCrumb(cmd),
+		Rows: &browser.RowsTemplate{
 			Folder: cmd,
 			Inodes: dirContent,
+		},
+		Layout: &browser.LayoutTemplate{
+			CurrentSpace: cmd.Space,
+			Spaces:       spaces,
 		},
 	})
 }

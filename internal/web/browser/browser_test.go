@@ -117,21 +117,22 @@ func Test_Browser_Page(t *testing.T) {
 		}).Return([]dfs.INode{dfs.ExampleAliceFile}, nil).Once()
 
 		spaceID := string(spaces.ExampleAlicePersonalSpace.ID())
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
-			"host":     "example.com",
-			"fullPath": "/foo/bar",
-			"space":    &spaces.ExampleAlicePersonalSpace,
-			"Breadcrumb": &browser.BreadCrumbTemplate{
+		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &browser.ContentTemplate{
+			Folder: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
+			Breadcrumb: &browser.BreadCrumbTemplate{
 				Elements: []browser.BreadCrumbElement{
 					{Name: spaces.ExampleAlicePersonalSpace.Name(), Href: "/browser/" + spaceID, Current: false},
 					{Name: "foo", Href: "/browser/" + spaceID + "/foo", Current: false},
 					{Name: "bar", Href: "/browser/" + spaceID + "/foo/bar", Current: true},
 				},
 			},
-			"spaces": []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
-			"RowsContent": &browser.RowsTemplate{
+			Rows: &browser.RowsTemplate{
 				Folder: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
 				Inodes: []dfs.INode{dfs.ExampleAliceFile},
+			},
+			Layout: &browser.LayoutTemplate{
+				CurrentSpace: &spaces.ExampleAlicePersonalSpace,
+				Spaces:       []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
 			},
 		}).Once()
 

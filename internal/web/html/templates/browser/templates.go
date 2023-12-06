@@ -2,8 +2,25 @@ package browser
 
 import (
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
+	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
+
+type LayoutTemplate struct {
+	CurrentSpace *spaces.Space
+	Spaces       []spaces.Space
+}
+
+func (t *LayoutTemplate) Template() string { return "browser/layout.tmpl" }
+
+type ContentTemplate struct {
+	Layout     *LayoutTemplate
+	Folder     *dfs.PathCmd
+	Breadcrumb *BreadCrumbTemplate
+	Rows       *RowsTemplate
+}
+
+func (t *ContentTemplate) Template() string { return "browser/content.tmpl" }
 
 type CreateDirTemplate struct {
 	DirPath string

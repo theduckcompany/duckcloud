@@ -24,9 +24,11 @@ func Test_Templates(t *testing.T) {
 	tests := []struct {
 		Name     string
 		Template html.Templater
+		Layout   bool
 	}{
 		{
-			Name: "modal_create_dir",
+			Name:   "modal_create_dir",
+			Layout: false,
 			Template: &CreateDirTemplate{
 				DirPath: "/foo/bar",
 				SpaceID: uuid.UUID("some-space-id"),
@@ -34,7 +36,8 @@ func Test_Templates(t *testing.T) {
 			},
 		},
 		{
-			Name: "modal_create_dir with error",
+			Name:   "modal_create_dir with error",
+			Layout: false,
 			Template: &CreateDirTemplate{
 				DirPath: "/foo/bar",
 				SpaceID: uuid.UUID("some-space-id"),
@@ -42,7 +45,8 @@ func Test_Templates(t *testing.T) {
 			},
 		},
 		{
-			Name: "modal_rename",
+			Name:   "modal_rename",
+			Layout: false,
 			Template: &RenameTemplate{
 				Error:               nil,
 				Target:              &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
@@ -51,14 +55,16 @@ func Test_Templates(t *testing.T) {
 			},
 		},
 		{
-			Name: "rows",
+			Name:   "rows",
+			Layout: false,
 			Template: &RowsTemplate{
 				Folder: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
 				Inodes: []dfs.INode{dfs.ExampleAliceFile, dfs.ExampleAliceFile2},
 			},
 		},
 		{
-			Name: "breadcrumb",
+			Name:   "breadcrumb",
+			Layout: false,
 			Template: &BreadCrumbTemplate{
 				Elements: []BreadCrumbElement{
 					{
@@ -74,13 +80,40 @@ func Test_Templates(t *testing.T) {
 				},
 			},
 		},
+		{
+			Name:   "content",
+			Layout: true,
+			Template: &ContentTemplate{
+				Folder: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+				Breadcrumb: &BreadCrumbTemplate{
+					Elements: []BreadCrumbElement{
+						{
+							Name:    "",
+							Href:    "/browser/some-space-id",
+							Current: true,
+						},
+					},
+				},
+				Rows: &RowsTemplate{
+					Folder: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+					Inodes: []dfs.INode{dfs.ExampleAliceFile, dfs.ExampleAliceFile2},
+				},
+				Layout: &LayoutTemplate{
+					CurrentSpace: &spaces.ExampleAlicePersonalSpace,
+					Spaces:       []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
+				},
+			},
+		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/foo", nil)
-			r.Header.Add("HX-Boosted", "true")
+
+			if !test.Layout {
+				r.Header.Add("HX-Boosted", "true")
+			}
 
 			renderer.WriteHTMLTemplate(w, r, http.StatusOK, test.Template)
 
