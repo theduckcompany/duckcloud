@@ -1,8 +1,8 @@
-<div class="modal-dialog modal-dialog-centered" hx-target-4*="this">
+<div class="modal-dialog modal-dialog" hx-target-4*="this">
   <div class="modal-content">
     <div class="modal-header">
-      <h5 class="modal-title">Create Directory</h5>
-      <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+      <h5 class="modal-title"><i class="bi bi-folder-fill me-2"></i>Create Directory</h5>
+      <button type=" button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
     </div>
 
     <form action="/browser/create-dir" method="post" target="_top" hx-post="/browser/create-dir" hx-target="#content"
@@ -14,12 +14,12 @@
             value="New Folder" />
         </div>
 
-        <input type="hidden" name="dirPath" value="{{.directory}}" />
-        <input type="hidden" name="spaceID" value="{{.spaceID}}" />
+        <input type="hidden" name="dirPath" value="{{.DirPath}}" />
+        <input type="hidden" name="spaceID" value="{{.SpaceID}}" />
 
-        {{if .error}}
+        {{if .Error}}
         <br>
-        <div id="validation-alert" class="alert alert-danger role=">{{.error}}</div>
+        <div id="validation-alert" class="alert alert-danger role=">{{.Error}}</div>
         {{end}}
 
       </div>

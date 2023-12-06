@@ -25,6 +25,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
+	"github.com/theduckcompany/duckcloud/internal/web/html/templates/browser"
 )
 
 const (
@@ -214,16 +215,12 @@ func (h *Handler) deleteAll(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-type breadCrumbElement struct {
-	Name    string
-	Href    string
-	Current bool
-}
-
-func generateBreadCrumb(cmd *dfs.PathCmd) []breadCrumbElement {
+func generateBreadCrumb(cmd *dfs.PathCmd) *browser.BreadCrumbTemplate {
 	basePath := path.Join("/browser/", string(cmd.Space.ID()))
 
-	res := []breadCrumbElement{{
+	res := &browser.BreadCrumbTemplate{}
+
+	res.Elements = []browser.BreadCrumbElement{{
 		Name:    cmd.Space.Name(),
 		Href:    basePath,
 		Current: false,
@@ -232,21 +229,21 @@ func generateBreadCrumb(cmd *dfs.PathCmd) []breadCrumbElement {
 	fullPath := strings.TrimPrefix(cmd.Path, "/")
 
 	if fullPath == "" {
-		res[0].Current = true
+		res.Elements[0].Current = true
 		return res
 	}
 
 	for _, elem := range strings.Split(fullPath, "/") {
 		basePath = path.Join(basePath, elem)
 
-		res = append(res, breadCrumbElement{
+		res.Elements = append(res.Elements, browser.BreadCrumbElement{
 			Name:    elem,
 			Href:    basePath,
 			Current: false,
 		})
 	}
 
-	res[len(res)-1].Current = true
+	res.Elements[len(res.Elements)-1].Current = true
 
 	return res
 }
@@ -378,13 +375,17 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 
-	h.html.WriteHTML(w, r, http.StatusOK, "browser/content.tmpl", map[string]interface{}{
-		"host":       r.Host,
-		"fullPath":   cmd.Path,
-		"space":      cmd.Space,
-		"breadcrumb": generateBreadCrumb(cmd),
-		"spaces":     spaces,
-		"inodes":     dirContent,
+	h.html.WriteHTMLTemplate(w, r, http.StatusOK, &browser.ContentTemplate{
+		Folder:     cmd,
+		Breadcrumb: generateBreadCrumb(cmd),
+		Rows: &browser.RowsTemplate{
+			Folder: cmd,
+			Inodes: dirContent,
+		},
+		Layout: &browser.LayoutTemplate{
+			CurrentSpace: cmd.Space,
+			Spaces:       spaces,
+		},
 	})
 }
 

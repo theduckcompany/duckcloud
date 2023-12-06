@@ -23,6 +23,11 @@ func (_m *MockWriter) WriteHTMLErrorPage(w http.ResponseWriter, r *http.Request,
 	_m.Called(w, r, err)
 }
 
+// WriteHTMLTemplate provides a mock function with given fields: w, r, status, template
+func (_m *MockWriter) WriteHTMLTemplate(w http.ResponseWriter, r *http.Request, status int, template Templater) {
+	_m.Called(w, r, status, template)
+}
+
 // NewMockWriter creates a new instance of MockWriter. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockWriter(t interface {

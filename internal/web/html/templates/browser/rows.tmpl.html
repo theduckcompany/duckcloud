@@ -1,15 +1,15 @@
-{{range $idx, $val := .inodes}}
-{{ $currentURL := pathJoin "/browser" $.space.ID $.fullPath}}
-{{ $url := pathJoin $currentURL $val.Name}}
-{{ $downloadURL := pathJoin "/download" $.space.ID $.fullPath $val.Name}}
-{{ $lastIdx := sub (len $.inodes) 1}}
-{{ $fileFullPath := pathJoin $.fullPath .Name}}
+{{range $idx, $inode := $.Inodes}}
+{{ $folderURL := pathJoin "/browser" $.Folder.Space.ID $.Folder.Path}}
+{{ $fileURL := pathJoin $folderURL $inode.Name}}
+{{ $downloadURL := pathJoin "/download" $.Folder.Space.ID $.Folder.Path .Name}}
+{{ $lastIdx := sub (len $.Inodes) 1}}
+{{ $filePath := pathJoin $.Folder.Path .Name}}
 
-<div {{if (eq $idx $lastIdx)}}hx-get="{{$currentURL}}?last={{.Name}}" hx-trigger="revealed" hx-swap="afterend" {{end}}
+<div {{if (eq $idx $lastIdx)}}hx-get="{{$folderURL}}?last={{.Name}}" hx-trigger="revealed" hx-swap="afterend" {{end}}
   class="row border-bottom py-1 d-flex justify-content-between">
   <div class="col-9 col-md-7 position-relative text-truncate">
-    <a class="link-dark user-select-none stretched-link" href="{{$url}}">
-      <i class="bi {{getInodeIconClass $val.Name $val.IsDir}} me-2" style="font-size: 2rem;"></i>
+    <a class="link-dark user-select-none stretched-link" href="{{$fileURL}}">
+      <i class="bi {{getInodeIconClass .Name .IsDir}} me-2" style="font-size: 2rem;"></i>
       {{.Name}}
     </a>
   </div>
@@ -24,10 +24,10 @@
         <li><a class="dropdown-item text-black" href="{{$downloadURL}}" download><i
               class="bi bi-download me-2"></i>Download {{if .IsDir}}Folder{{else}}File{{end}}</a>
         </li>
-        <li><a class="dropdown-item" href="/browser/rename?path={{$fileFullPath}}&spaceID={{$.space.ID}}"
+        <li><a class="dropdown-item" href="/browser/rename?path={{$filePath}}&spaceID={{$.Folder.Space.ID}}"
             hx-target="#modal-target" data-mdb-target="#modal-target" data-mdb-ripple-init data-mdb-modal-init
             data-mdb-toggle="modal" hx-trigger="click" hx-swap="innerHTML"
-            hx-get="/browser/rename?path={{$fileFullPath}}&spaceID={{$.space.ID}}"><i
+            hx-get="/browser/rename?path={{$filePath}}&spaceID={{$.Folder.Space.ID}}"><i
               class="bi bi-pencil-fill me-2"></i>Rename</a>
         </li>
 
@@ -35,12 +35,13 @@
           <hr class="dropdown-divider" />
         </li>
         <li><a class="dropdown-item text-danger" href="#" hx-target="#content" hx-swap="outerHTML"
-            hx-delete="{{$url}}"><i class="bi bi-trash-fill me-2"></i>Delete {{if .IsDir}}Folder{{else}}File{{end}}</a>
+            hx-delete="{{$fileURL}}"><i class="bi bi-trash-fill me-2"></i>Delete {{if
+            .IsDir}}Folder{{else}}File{{end}}</a>
         </li>
       </ul>
     </div>
 
-    <div class="col-4 text-muted d-none d-md-block d-lg-block d-xxl-block d-xl-block"> {{humanSize $val.Size}} </div>
+    <div class="col-4 text-muted d-none d-md-block d-lg-block d-xxl-block d-xl-block"> {{humanSize .Size}} </div>
 
     <div class="col-5 text-muted d-none d-md-block d-lg-block d-xxl-block d-xl-block"><a href="#"
         data-mdb-toggle="tooltip" class="text-muted" title="{{humanDate .LastModifiedAt}}">

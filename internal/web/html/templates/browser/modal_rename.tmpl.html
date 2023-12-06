@@ -11,15 +11,15 @@
 
         <div class="input-group input-group-lg">
           <input type="text" name="name" id="renameInput" class="form-control" aria-label="New name"
-            value="{{.value}}" />
+            value="{{.FieldValue}}" />
         </div>
 
-        <input type="hidden" name="path" value="{{.path}}" />
-        <input type="hidden" name="spaceID" value="{{.spaceID}}" />
+        <input type="hidden" name="path" value="{{.Target.Path}}" />
+        <input type="hidden" name="spaceID" value="{{.Target.Space.ID}}" />
 
-        {{if .error}}
+        {{if .Error}}
         <br>
-        <div id="validation-alert" class="alert alert-danger role=">{{.error}}</div>
+        <div id="validation-alert" class="alert alert-danger role=">{{.Error}}</div>
         {{end}}
 
       </div>
@@ -36,7 +36,7 @@
   var input = document.getElementById('renameInput');
 
   myModal.addEventListener('shown.mdb.modal', () => {
-    input.setSelectionRange(0, {{.endSelection}})
+    input.setSelectionRange(0, {{.FieldValueSelection}})
   input.focus();
   });
 </script>

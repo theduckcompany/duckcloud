@@ -43,22 +43,12 @@
         <li class="sidenav-item pt-3">
           <span class="sidenav-subheading text-muted text-uppercase fw-bold">Spaces</span>
         </li>
-        {{range .spaces}}
+        {{range .Layout.Spaces}}
         <li class="sidenav-item">
-          <a class="sidenav-link {{if (eq $.space.ID .ID)}}text-primary bg-light{{end}}" href="/browser/{{.ID}}"
-            hx-target="#content" , hx-swap="outerHTML">
+          <a class="sidenav-link {{if (eq $.Layout.CurrentSpace.ID .ID)}}text-primary bg-light{{end}}"
+            href="/browser/{{.ID}}" hx-target="#content" , hx-swap="outerHTML">
             <i
-              class="bi bi-folder-fill me-3 {{if (eq $.space.ID .ID)}}text-primary{{end}}"></i><span>{{.Name}}</span></a>
-        </li>
-        {{end}}
-
-        {{ if (eq .isAdmin true)}}
-        <li class="sidenav-item pt-3">
-          <span class="sidenav-subheading text-muted text-uppercase fw-bold">Admin</span>
-        </li>
-        <li class="sidenav-item">
-          <a class="sidenav-link" href="/settings/users" hx-target="#content" , hx-swap="outerHTML">
-            <i class="bi bi-people-fill me-3"></i><span>User Management</span></a>
+              class="bi bi-folder-fill me-3 {{if (eq $.Layout.CurrentSpace.ID .ID)}}text-primary{{end}}"></i><span>{{.Name}}</span></a>
         </li>
         {{end}}
       </ul>

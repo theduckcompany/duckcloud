@@ -10,18 +10,13 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
+	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
+	"github.com/theduckcompany/duckcloud/internal/web/html/templates/browser"
 )
-
-type renameModalCmd struct {
-	ErrorMsg string
-	Space    *spaces.Space
-	Value    string
-	Path     string
-}
 
 type renameModalHandler struct {
 	auth   *auth.Authenticator
@@ -63,49 +58,41 @@ func (h *renameModalHandler) getRenameModal(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	_, err := h.fs.Get(ctx, &dfs.PathCmd{Space: space, Path: filePath})
+	targetPath := &dfs.PathCmd{Space: space, Path: filePath}
+
+	_, err := h.fs.Get(ctx, targetPath)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to get the file %q: %w", filePath, err))
 	}
 
-	h.renderRenameModal(w, r, &renameModalCmd{
-		ErrorMsg: "",
-		Space:    space,
-		Path:     filePath,
-		Value:    path.Base(filePath),
+	h.renderRenameModal(w, r, &browser.RenameTemplate{
+		Error:               nil,
+		Target:              targetPath,
+		FieldValue:          path.Base(filePath),
+		FieldValueSelection: 0, // Filled by renderRenameModal
 	})
 }
 
-func (h *renameModalHandler) renderRenameModal(w http.ResponseWriter, r *http.Request, cmd *renameModalCmd) {
+func (h *renameModalHandler) renderRenameModal(w http.ResponseWriter, r *http.Request, cmd *browser.RenameTemplate) {
 	status := http.StatusOK
-	if cmd.ErrorMsg != "" {
+	if cmd.Error != nil {
 		status = http.StatusUnprocessableEntity
 	}
 
-	value := cmd.Value
-	// endSelection indicate to the js when to stop the text selection.
-	// For the files we want to select only the name, without the extension in
-	// order to allow a quick name change without impacting the extension.
-	var endSelection int
+	value := cmd.FieldValue
 
 	for i := len(value) - 1; i >= 0 && value[i] != '/'; i-- {
 		if value[i] == '.' {
-			endSelection = i
+			cmd.FieldValueSelection = i
 			break
 		}
 	}
 
-	if endSelection == 0 {
-		endSelection = len(value)
+	if cmd.FieldValueSelection == 0 {
+		cmd.FieldValueSelection = len(value)
 	}
 
-	h.html.WriteHTML(w, r, status, "browser/rename-form.tmpl", map[string]interface{}{
-		"error":        cmd.ErrorMsg,
-		"path":         cmd.Path,
-		"value":        value,
-		"spaceID":      cmd.Space.ID(),
-		"endSelection": endSelection,
-	})
+	h.html.WriteHTMLTemplate(w, r, status, cmd)
 }
 
 func (h *renameModalHandler) handleRenameReq(w http.ResponseWriter, r *http.Request) {
@@ -121,18 +108,20 @@ func (h *renameModalHandler) handleRenameReq(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	inode, err := h.fs.Get(ctx, &dfs.PathCmd{Space: space, Path: filePath})
+	targetPath := &dfs.PathCmd{Space: space, Path: filePath}
+
+	inode, err := h.fs.Get(ctx, targetPath)
 	if errors.Is(err, errs.ErrNotFound) {
 		w.WriteHeader(http.StatusNotFound)
 	}
 
 	_, err = h.fs.Rename(ctx, inode, r.FormValue("name"))
 	if errors.Is(err, errs.ErrValidation) {
-		h.renderRenameModal(w, r, &renameModalCmd{
-			ErrorMsg: err.Error(),
-			Space:    space,
-			Value:    r.FormValue("name"),
-			Path:     filePath,
+		h.renderRenameModal(w, r, &browser.RenameTemplate{
+			Error:               ptr.To(err.Error()),
+			Target:              targetPath,
+			FieldValue:          r.FormValue("name"),
+			FieldValueSelection: 0, // Filled by renderRenameModal
 		})
 		return
 	}
