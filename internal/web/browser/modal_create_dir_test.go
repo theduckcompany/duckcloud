@@ -18,9 +18,11 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
+	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
+	"github.com/theduckcompany/duckcloud/internal/web/html/templates/browser"
 )
 
 func TestCreateDirModal(t *testing.T) {
@@ -37,10 +39,11 @@ func TestCreateDirModal(t *testing.T) {
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+		tools.UUIDMock.On("Parse", "some-space-id").Return(uuid.UUID("some-space-id"), nil).Once()
 
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "browser/create-dir.tmpl", map[string]any{
-			"directory": "/foo/bar",
-			"spaceID":   "some-space-id",
+		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &browser.CreateDirTemplate{
+			DirPath: "/foo/bar",
+			SpaceID: uuid.UUID("some-space-id"),
 		}).Once()
 
 		w := httptest.NewRecorder()
@@ -118,7 +121,7 @@ func TestCreateDirModal(t *testing.T) {
 		srv.ServeHTTP(w, r)
 	})
 
-	t.Run("getCreateDirModel with no dir query", func(t *testing.T) {
+	t.Run("getCreateDirModel with no space query", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		spacesMock := spaces.NewMockService(t)
@@ -131,6 +134,7 @@ func TestCreateDirModal(t *testing.T) {
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+		tools.UUIDMock.On("Parse", "").Return(uuid.UUID(""), errs.Validation(fmt.Errorf("invalid field"))).Once()
 
 		htmlMock.On("WriteHTMLErrorPage", mock.Anything, mock.Anything, errors.New("failed to get the space id from the url query")).Once()
 
@@ -265,10 +269,10 @@ func TestCreateDirModal(t *testing.T) {
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
 		tools.UUIDMock.On("Parse", "some-space-id").Return(uuid.UUID("some-space-id"), nil).Once()
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusUnprocessableEntity, "browser/create-dir.tmpl", map[string]any{
-			"directory": "/foo",
-			"spaceID":   uuid.UUID("some-space-id"),
-			"error":     "Must not be empty",
+		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusUnprocessableEntity, &browser.CreateDirTemplate{
+			DirPath: "/foo",
+			SpaceID: uuid.UUID("some-space-id"),
+			Error:   ptr.To("Must not be empty"),
 		}).Once()
 
 		w := httptest.NewRecorder()
@@ -305,10 +309,10 @@ func TestCreateDirModal(t *testing.T) {
 		fsMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/New Dir"}).Return(&dfs.ExampleAliceDir, nil).Once()
 
 		// Render
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusUnprocessableEntity, "browser/create-dir.tmpl", map[string]any{
-			"directory": "/foo",
-			"spaceID":   uuid.UUID("some-space-id"),
-			"error":     "Already exists",
+		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusUnprocessableEntity, &browser.CreateDirTemplate{
+			DirPath: "/foo",
+			SpaceID: uuid.UUID("some-space-id"),
+			Error:   ptr.To("Already exists"),
 		}).Once()
 
 		w := httptest.NewRecorder()

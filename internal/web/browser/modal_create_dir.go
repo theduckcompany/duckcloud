@@ -10,10 +10,12 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
+	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
+	"github.com/theduckcompany/duckcloud/internal/web/html/templates/browser"
 )
 
 type createDirModalHandler struct {
@@ -55,15 +57,16 @@ func (h *createDirModalHandler) getCreateDirModal(w http.ResponseWriter, r *http
 		return
 	}
 
-	spaceID := r.URL.Query().Get("space")
-	if spaceID == "" {
+	spaceID, err := h.uuid.Parse(r.URL.Query().Get("space"))
+	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, errors.New("failed to get the space id from the url query"))
 		return
 	}
 
-	h.html.WriteHTML(w, r, http.StatusOK, "browser/create-dir.tmpl", map[string]interface{}{
-		"directory": dir,
-		"spaceID":   spaceID,
+	h.html.WriteHTMLTemplate(w, r, http.StatusOK, &browser.CreateDirTemplate{
+		DirPath: dir,
+		SpaceID: spaceID,
+		Error:   nil,
 	})
 }
 
@@ -82,10 +85,10 @@ func (h *createDirModalHandler) handleCreateDirReq(w http.ResponseWriter, r *htt
 	}
 
 	if name == "" {
-		h.html.WriteHTML(w, r, http.StatusUnprocessableEntity, "browser/create-dir.tmpl", map[string]interface{}{
-			"directory": dir,
-			"spaceID":   spaceID,
-			"error":     "Must not be empty",
+		h.html.WriteHTMLTemplate(w, r, http.StatusUnprocessableEntity, &browser.CreateDirTemplate{
+			DirPath: dir,
+			SpaceID: spaceID,
+			Error:   ptr.To("Must not be empty"),
 		})
 		return
 	}
@@ -103,10 +106,10 @@ func (h *createDirModalHandler) handleCreateDirReq(w http.ResponseWriter, r *htt
 	}
 
 	if existingDir != nil {
-		h.html.WriteHTML(w, r, http.StatusUnprocessableEntity, "browser/create-dir.tmpl", map[string]interface{}{
-			"directory": dir,
-			"spaceID":   spaceID,
-			"error":     "Already exists",
+		h.html.WriteHTMLTemplate(w, r, http.StatusUnprocessableEntity, &browser.CreateDirTemplate{
+			DirPath: dir,
+			SpaceID: spaceID,
+			Error:   ptr.To("Already exists"),
 		})
 		return
 	}

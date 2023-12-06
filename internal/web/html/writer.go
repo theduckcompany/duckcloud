@@ -20,6 +20,10 @@ import (
 //go:embed *
 var embeddedTemplates embed.FS
 
+type Templater interface {
+	Template() string
+}
+
 type Config struct {
 	PrettyRender bool `mapstructure:"prettyRender"`
 	HotReload    bool `mapstructure:"hotReload"`
@@ -28,6 +32,7 @@ type Config struct {
 //go:generate mockery --name Writer
 type Writer interface {
 	WriteHTML(w http.ResponseWriter, r *http.Request, status int, template string, args any)
+	WriteHTMLTemplate(w http.ResponseWriter, r *http.Request, status int, template Templater)
 	WriteHTMLErrorPage(w http.ResponseWriter, r *http.Request, err error)
 }
 
@@ -125,6 +130,10 @@ func (t *Renderer) WriteHTML(w http.ResponseWriter, r *http.Request, status int,
 	if err := t.render.HTML(w, status, template, args, render.HTMLOptions{Layout: layout}); err != nil {
 		logger.LogEntrySetAttrs(r, slog.String("render-error", err.Error()))
 	}
+}
+
+func (t *Renderer) WriteHTMLTemplate(w http.ResponseWriter, r *http.Request, status int, template Templater) {
+	t.WriteHTML(w, r, status, template.Template(), template)
 }
 
 func (t *Renderer) WriteHTMLErrorPage(w http.ResponseWriter, r *http.Request, err error) {
