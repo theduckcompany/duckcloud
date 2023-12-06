@@ -57,6 +57,23 @@ func Test_Templates(t *testing.T) {
 				Inodes: []dfs.INode{dfs.ExampleAliceFile, dfs.ExampleAliceFile2},
 			},
 		},
+		{
+			Name: "breadcrumb",
+			Template: &BreadCrumbTemplate{
+				Elements: []BreadCrumbElement{
+					{
+						Name:    "",
+						Href:    "/browser/some-space-id",
+						Current: false,
+					},
+					{
+						Name:    "foo",
+						Href:    "/browser/some-space-id/foo",
+						Current: true,
+					},
+				},
+			},
+		},
 	}
 
 	for _, test := range tests {

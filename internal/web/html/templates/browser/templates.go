@@ -28,3 +28,15 @@ type RowsTemplate struct {
 }
 
 func (t *RowsTemplate) Template() string { return "browser/rows.tmpl" }
+
+type BreadCrumbTemplate struct {
+	Elements []BreadCrumbElement
+}
+
+func (t *BreadCrumbTemplate) Template() string { return "browser/breadcrumb.tmpl" }
+
+type BreadCrumbElement struct {
+	Name    string
+	Href    string
+	Current bool
+}

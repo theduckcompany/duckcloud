@@ -3,18 +3,7 @@
 
   <div id="status-bar"></div>
   <div class="row justify-content-between">
-    <div class="col-md-10 col-8">
-      <nav aria-label="breadcrumb">
-        <ol class="breadcrumb user-select-none">
-          {{range .breadcrumb}}
-          <li class="breadcrumb-item {{if not .Current}}active{{else}} fw-bold{{end}} fs-4" {{if
-            .Current}}aria_current="page" {{end}}>
-            {{if not .Current}}<a href="{{.Href}}" class="text-truncate">{{.Name}}</a>{{else}}{{.Name}}{{end}}
-          </li>
-          {{end}}
-        </ol>
-      </nav>
-    </div>
+    {{template "browser/breadcrumb.tmpl" (.Breadcrumb)}}
 
     <div class="col-md-2 col-4">
       <div class="dropdown">

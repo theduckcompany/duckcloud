@@ -121,10 +121,12 @@ func Test_Browser_Page(t *testing.T) {
 			"host":     "example.com",
 			"fullPath": "/foo/bar",
 			"space":    &spaces.ExampleAlicePersonalSpace,
-			"breadcrumb": []breadCrumbElement{
-				{Name: spaces.ExampleAlicePersonalSpace.Name(), Href: "/browser/" + spaceID, Current: false},
-				{Name: "foo", Href: "/browser/" + spaceID + "/foo", Current: false},
-				{Name: "bar", Href: "/browser/" + spaceID + "/foo/bar", Current: true},
+			"Breadcrumb": &browser.BreadCrumbTemplate{
+				Elements: []browser.BreadCrumbElement{
+					{Name: spaces.ExampleAlicePersonalSpace.Name(), Href: "/browser/" + spaceID, Current: false},
+					{Name: "foo", Href: "/browser/" + spaceID + "/foo", Current: false},
+					{Name: "bar", Href: "/browser/" + spaceID + "/foo/bar", Current: true},
+				},
 			},
 			"spaces": []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
 			"RowsContent": &browser.RowsTemplate{
