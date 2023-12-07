@@ -30,7 +30,7 @@ import (
 
 const (
 	MaxMemoryCache = 20 * 1024 * 1024 // 20MB
-	PageSize       = 50
+	PageSize       = 30
 )
 
 var ErrInvalidSpaceID = errors.New("invalid spaceID")
@@ -388,7 +388,9 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 }
 
 func (h *Handler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, space *spaces.Space, fullPath, lastElem string) {
-	dirContent, err := h.fs.ListDir(r.Context(), &dfs.PathCmd{Space: space, Path: fullPath}, &storage.PaginateCmd{
+	folderPath := &dfs.PathCmd{Space: space, Path: fullPath}
+
+	dirContent, err := h.fs.ListDir(r.Context(), folderPath, &storage.PaginateCmd{
 		StartAfter: map[string]string{"name": lastElem},
 		Limit:      PageSize,
 	})
@@ -397,11 +399,9 @@ func (h *Handler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, s
 		return
 	}
 
-	h.html.WriteHTML(w, r, http.StatusOK, "browser/rows.tmpl", map[string]interface{}{
-		"host":     r.Host,
-		"fullPath": fullPath,
-		"space":    space,
-		"inodes":   dirContent,
+	h.html.WriteHTMLTemplate(w, r, http.StatusOK, &browser.RowsTemplate{
+		Inodes: dirContent,
+		Folder: folderPath,
 	})
 }
 
