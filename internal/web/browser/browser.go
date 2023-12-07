@@ -210,9 +210,7 @@ func (h *Handler) deleteAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Add("HX-Trigger", "refreshFolder")
-	w.Header().Add("HX-Reswap", "none")
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusOK)
 }
 
 func generateBreadCrumb(cmd *dfs.PathCmd) *browser.BreadCrumbTemplate {
