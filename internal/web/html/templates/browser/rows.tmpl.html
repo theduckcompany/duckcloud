@@ -1,6 +1,6 @@
 {{range $idx, $inode := $.Inodes}}
 {{ $folderURL := pathJoin "/browser" $.Folder.Space.ID $.Folder.Path}}
-{{ $fileURL := pathJoin $folderURL $inode.Name}}
+{{ $inodeURL := pathJoin $folderURL $inode.Name}}
 {{ $downloadURL := pathJoin "/download" $.Folder.Space.ID $.Folder.Path .Name}}
 {{ $lastIdx := sub (len $.Inodes) 1}}
 {{ $filePath := pathJoin $.Folder.Path .Name}}
@@ -8,7 +8,8 @@
 <div {{if (eq $idx $lastIdx)}}hx-get="{{$folderURL}}?last={{.Name}}" hx-trigger="revealed" hx-swap="afterend" {{end}}
   class="row border-bottom py-1 d-flex justify-content-between" id="row-{{.ID}}">
   <div class="col-9 col-md-7 position-relative text-truncate">
-    <a class="link-dark user-select-none stretched-link" href="{{$fileURL}}">
+    <a class="link-dark user-select-none stretched-link" href="{{$inodeURL}}" hx-boost="true" hx-swap="outerHTML"
+      hx-target="#content">
       <i class="bi {{getInodeIconClass .Name .IsDir}} me-2" style="font-size: 2rem;"></i>
       {{.Name}}
     </a>
@@ -35,7 +36,7 @@
           <hr class="dropdown-divider" />
         </li>
         <li><a class="dropdown-item text-danger" hx-target="#row-{{.ID}}" hx-swap="outerHTML"
-            hx-delete="{{$fileURL}}"><i class="bi bi-trash-fill me-2"></i>Delete {{if
+            hx-delete="{{$inodeURL}}"><i class="bi bi-trash-fill me-2"></i>Delete {{if
             .IsDir}}Folder{{else}}File{{end}}</a>
         </li>
       </ul>
