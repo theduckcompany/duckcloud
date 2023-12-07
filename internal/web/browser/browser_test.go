@@ -480,7 +480,9 @@ func Test_Browser_Page(t *testing.T) {
 
 		res := w.Result()
 		defer res.Body.Close()
-		assert.Equal(t, http.StatusNoContent, res.StatusCode)
-		assert.Equal(t, "refreshFolder", res.Header.Get("HX-Trigger"))
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		body, err := io.ReadAll(res.Body)
+		require.NoError(t, err)
+		assert.Empty(t, body)
 	})
 }
