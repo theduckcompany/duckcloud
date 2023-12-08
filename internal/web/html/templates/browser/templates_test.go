@@ -66,42 +66,17 @@ func Test_Templates(t *testing.T) {
 			Name:   "breadcrumb",
 			Layout: false,
 			Template: &BreadCrumbTemplate{
-				Elements: []BreadCrumbElement{
-					{
-						Name:    "",
-						Href:    "/browser/some-space-id",
-						Current: false,
-					},
-					{
-						Name:    "foo",
-						Href:    "/browser/some-space-id/foo",
-						Current: true,
-					},
-				},
+				Path: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
 			},
 		},
 		{
 			Name:   "content",
 			Layout: true,
 			Template: &ContentTemplate{
-				Folder: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
-				Breadcrumb: &BreadCrumbTemplate{
-					Elements: []BreadCrumbElement{
-						{
-							Name:    "",
-							Href:    "/browser/some-space-id",
-							Current: true,
-						},
-					},
-				},
-				Rows: &RowsTemplate{
-					Folder: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
-					Inodes: []dfs.INode{dfs.ExampleAliceFile, dfs.ExampleAliceFile2},
-				},
-				Layout: &LayoutTemplate{
-					CurrentSpace: &spaces.ExampleAlicePersonalSpace,
-					Spaces:       []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
-				},
+				Folder:       &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+				Inodes:       []dfs.INode{dfs.ExampleAliceFile, dfs.ExampleAliceFile2},
+				CurrentSpace: &spaces.ExampleAlicePersonalSpace,
+				AllSpaces:    []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
 			},
 		},
 	}

@@ -116,24 +116,11 @@ func Test_Browser_Page(t *testing.T) {
 			Limit:      PageSize,
 		}).Return([]dfs.INode{dfs.ExampleAliceFile}, nil).Once()
 
-		spaceID := string(spaces.ExampleAlicePersonalSpace.ID())
 		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &browser.ContentTemplate{
-			Folder: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
-			Breadcrumb: &browser.BreadCrumbTemplate{
-				Elements: []browser.BreadCrumbElement{
-					{Name: spaces.ExampleAlicePersonalSpace.Name(), Href: "/browser/" + spaceID, Current: false},
-					{Name: "foo", Href: "/browser/" + spaceID + "/foo", Current: false},
-					{Name: "bar", Href: "/browser/" + spaceID + "/foo/bar", Current: true},
-				},
-			},
-			Rows: &browser.RowsTemplate{
-				Folder: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
-				Inodes: []dfs.INode{dfs.ExampleAliceFile},
-			},
-			Layout: &browser.LayoutTemplate{
-				CurrentSpace: &spaces.ExampleAlicePersonalSpace,
-				Spaces:       []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
-			},
+			Folder:       &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
+			Inodes:       []dfs.INode{dfs.ExampleAliceFile},
+			CurrentSpace: &spaces.ExampleAlicePersonalSpace,
+			AllSpaces:    []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
 		}).Once()
 
 		w := httptest.NewRecorder()
