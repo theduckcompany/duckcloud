@@ -215,39 +215,6 @@ func (h *Handler) deleteAll(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func generateBreadCrumb(cmd *dfs.PathCmd) *browser.BreadCrumbTemplate {
-	basePath := path.Join("/browser/", string(cmd.Space.ID()))
-
-	res := &browser.BreadCrumbTemplate{}
-
-	res.Elements = []browser.BreadCrumbElement{{
-		Name:    cmd.Space.Name(),
-		Href:    basePath,
-		Current: false,
-	}}
-
-	fullPath := strings.TrimPrefix(cmd.Path, "/")
-
-	if fullPath == "" {
-		res.Elements[0].Current = true
-		return res
-	}
-
-	for _, elem := range strings.Split(fullPath, "/") {
-		basePath = path.Join(basePath, elem)
-
-		res.Elements = append(res.Elements, browser.BreadCrumbElement{
-			Name:    elem,
-			Href:    basePath,
-			Current: false,
-		})
-	}
-
-	res.Elements[len(res.Elements)-1].Current = true
-
-	return res
-}
-
 type lauchUploadCmd struct {
 	user       *users.User
 	name       string
@@ -376,16 +343,10 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 	}
 
 	h.html.WriteHTMLTemplate(w, r, http.StatusOK, &browser.ContentTemplate{
-		Folder:     cmd,
-		Breadcrumb: generateBreadCrumb(cmd),
-		Rows: &browser.RowsTemplate{
-			Folder: cmd,
-			Inodes: dirContent,
-		},
-		Layout: &browser.LayoutTemplate{
-			CurrentSpace: cmd.Space,
-			Spaces:       spaces,
-		},
+		Folder:       cmd,
+		Inodes:       dirContent,
+		CurrentSpace: cmd.Space,
+		AllSpaces:    spaces,
 	})
 }
 
