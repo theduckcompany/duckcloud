@@ -2,6 +2,7 @@ package dfs
 
 import (
 	io "io"
+	"strings"
 	"time"
 
 	v "github.com/go-ozzo/ozzo-validation"
@@ -16,6 +17,28 @@ const NoParent = uuid.UUID("00000000-0000-0000-0000-00000000000")
 type PathCmd struct {
 	Space *spaces.Space
 	Path  string
+}
+
+func (t PathCmd) String() string {
+	return string(t.Space.ID()) + ":" + t.Path
+}
+
+// Contains returns true if the the arg `p` point to the same element
+// or an element contained by `t`.
+//
+// "/foo".Contains("/foo/") -> true
+// "/foo/bar".Contains("/foo") -> false
+// "/foo".Contains("/foo/bar") -> true
+func (t *PathCmd) Contains(p *PathCmd) bool {
+	if p == nil || t == nil {
+		return false
+	}
+
+	if t.Space != p.Space {
+		return false
+	}
+
+	return strings.Contains(CleanPath(p.Path), CleanPath(t.Path))
 }
 
 // Validate the fields.
