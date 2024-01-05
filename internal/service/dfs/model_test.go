@@ -1,9 +1,11 @@
 package dfs
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
@@ -52,4 +54,73 @@ func Test_Inodes_Commands(t *testing.T) {
 		err := cmd.Validate()
 		assert.EqualError(t, err, "CreatedBy: cannot be blank.")
 	})
+}
+
+func Test_PathCmd_Contains(t *testing.T) {
+	require.Implements(t, (*fmt.Stringer)(nil), new(PathCmd))
+
+	tests := []struct {
+		A        *PathCmd
+		B        *PathCmd
+		Expected bool
+	}{
+		{
+			A:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			B:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			Expected: true,
+		},
+		{
+			A:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			B:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
+			Expected: true,
+		},
+		{
+			A:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
+			B:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			Expected: false,
+		},
+		{
+			A:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/"},
+			B:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			Expected: true,
+		},
+		{
+			A:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "//foo"},
+			B:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo//"},
+			Expected: true,
+		},
+		{
+			A:        &PathCmd{Space: &spaces.ExampleBobPersonalSpace, Path: "/foo"},
+			B:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			Expected: false,
+		},
+		{
+			A:        nil,
+			B:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			Expected: false,
+		},
+		{
+			A:        &PathCmd{Space: &spaces.ExampleBobPersonalSpace, Path: "/foo"},
+			B:        nil,
+			Expected: false,
+		},
+		{
+			A:        nil,
+			B:        nil,
+			Expected: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run("", func(t *testing.T) {
+			res := test.A.Contains(test.B)
+			if res != test.Expected {
+				t.Fatalf("%q .Contains %q -> have %v, expected: %v", test.A, test.B, res, test.Expected)
+			}
+		})
+	}
+}
+
+func Test_PathCmd_String(t *testing.T) {
+	assert.Equal(t, PathCmd{Space: &spaces.ExampleBobPersonalSpace, Path: "/foo"}.String(), fmt.Sprintf("%s:/foo", spaces.ExampleBobPersonalSpace.ID()))
 }
