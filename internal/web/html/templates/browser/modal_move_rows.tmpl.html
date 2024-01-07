@@ -1,0 +1,32 @@
+{{ $idx := 0}}
+{{range $path, $inode := $.FolderContent}}
+{{ $folderURL := pathJoin "/browser/move" $.DstPath.Space.ID $.DstPath.Path}}
+{{ $inodeURL := pathJoin $folderURL $inode.Name}}
+{{ $filePath := pathJoin $.DstPath.Path .Name}}
+
+<div {{if (eq $idx (sub $.PageSize 1))}}
+  hx-get="/browser/move?srcPath={{$.SrcPath.Path}}&dstPath={{$.DstPath.Path}}&spaceID={{$.DstPath.Space.ID}}&last={{.Name}}"
+  hx-trigger="revealed" hx-swap="afterend" {{end}} class="row border-bottom py-1 d-flex justify-content-between"
+  id="row-{{.ID}}" {{if $.SrcPath.Contains $path}}data-mdb-tooltip-init title="You can't move a folder inside itself"
+  {{end}}>
+  <div class="col-9 col-md-7 position-relative text-truncate">
+    {{ if and (.IsDir) (not ($.SrcPath.Contains $path))}}
+    <a class="link-dark user-select-none stretched-link"
+      href="/browser/move?srcPath={{$.SrcPath.Path}}&dstPath={{$filePath}}&spaceID={{$.DstPath.Space.ID}}"
+      hx-get="/browser/move?srcPath={{$.SrcPath.Path}}&dstPath={{$filePath}}&spaceID={{$.DstPath.Space.ID}}"
+      hx-swap="outerHTML" hx-target="#modal-content">
+      <i class="bi {{getInodeIconClass .Name .IsDir}} me-2" style="font-size: 2rem;"></i>
+      {{.Name}}
+    </a>
+    {{else}}
+    <a class="pe-none link-dark user-select-none text-muted">
+      <i class="bi {{getInodeIconClass .Name .IsDir}} me-2" style="font-size: 2rem;"></i>
+      {{.Name}}
+    </a>
+    {{end}}
+  </div>
+</div>
+
+{{ $idx = add $idx 1}}
+
+{{end}}

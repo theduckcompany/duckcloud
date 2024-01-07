@@ -73,6 +73,9 @@ func NewRenderer(cfg Config) *Renderer {
 				"sub": func(a, b int) int { return a - b },
 			},
 			{
+				"add": func(a, b int) int { return a + b },
+			},
+			{
 				"pathJoin": func(elems ...any) string {
 					strElems := make([]string, len(elems))
 					for i, elem := range elems {

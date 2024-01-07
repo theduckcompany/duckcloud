@@ -60,53 +60,38 @@ func Test_PathCmd_Contains(t *testing.T) {
 	require.Implements(t, (*fmt.Stringer)(nil), new(PathCmd))
 
 	tests := []struct {
-		A        *PathCmd
-		B        *PathCmd
+		A        PathCmd
+		B        PathCmd
 		Expected bool
 	}{
 		{
-			A:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
-			B:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			A:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			B:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
 			Expected: true,
 		},
 		{
-			A:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
-			B:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
+			A:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			B:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
 			Expected: true,
 		},
 		{
-			A:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
-			B:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			A:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
+			B:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
 			Expected: false,
 		},
 		{
-			A:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/"},
-			B:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			A:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/"},
+			B:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
 			Expected: true,
 		},
 		{
-			A:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "//foo"},
-			B:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo//"},
+			A:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "//foo"},
+			B:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo//"},
 			Expected: true,
 		},
 		{
-			A:        &PathCmd{Space: &spaces.ExampleBobPersonalSpace, Path: "/foo"},
-			B:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
-			Expected: false,
-		},
-		{
-			A:        nil,
-			B:        &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
-			Expected: false,
-		},
-		{
-			A:        &PathCmd{Space: &spaces.ExampleBobPersonalSpace, Path: "/foo"},
-			B:        nil,
-			Expected: false,
-		},
-		{
-			A:        nil,
-			B:        nil,
+			A:        PathCmd{Space: &spaces.ExampleBobPersonalSpace, Path: "/foo"},
+			B:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
 			Expected: false,
 		},
 	}

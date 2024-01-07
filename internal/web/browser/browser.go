@@ -76,6 +76,7 @@ func (h *Handler) Register(r chi.Router, mids *router.Middlewares) {
 
 	newCreateDirModalHandler(h.auth, h.spaces, h.html, h.uuid, h.fs).Register(r, mids)
 	newRenameModalHandler(h.auth, h.spaces, h.html, h.uuid, h.fs).Register(r, mids)
+	newMoveModalHandler(h.auth, h.spaces, h.html, h.uuid, h.fs).Register(r, mids)
 }
 
 func (h *Handler) String() string {
@@ -341,10 +342,11 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 	}
 
 	h.html.WriteHTMLTemplate(w, r, http.StatusOK, &browser.ContentTemplate{
-		Folder:       cmd,
-		Inodes:       dirContent,
-		CurrentSpace: cmd.Space,
-		AllSpaces:    spaces,
+		Folder:        cmd,
+		Inodes:        dirContent,
+		CurrentSpace:  cmd.Space,
+		AllSpaces:     spaces,
+		ContentTarget: "#content",
 	})
 }
 
@@ -361,8 +363,9 @@ func (h *Handler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, s
 	}
 
 	h.html.WriteHTMLTemplate(w, r, http.StatusOK, &browser.RowsTemplate{
-		Inodes: dirContent,
-		Folder: folderPath,
+		Inodes:        dirContent,
+		Folder:        folderPath,
+		ContentTarget: "#content",
 	})
 }
 

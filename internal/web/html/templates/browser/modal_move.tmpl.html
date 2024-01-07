@@ -1,0 +1,28 @@
+<div id="modal-content" class="modal-dialog modal-dialog-scrollable modal-lg" hx-target-2*="this" hx-target-4*="this">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Move "{{.SrcInode.Name}}" to...</h5>
+      <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+      {{template "browser/breadcrumb.tmpl" (.Breadcrumb)}}
+
+      {{template "browser/modal_move_rows.tmpl" (.MoveRows)}}
+
+
+    </div>
+
+    <div class="modal-footer">
+      <form action="/browser/move" method="post" target="_top" hx-post="/browser/move"
+        hx-on::after-request="document.getElementById('closeBtn').click()">
+
+        <input type="hidden" name="srcPath" value="{{.SrcPath.Path}}" />
+        <input type="hidden" name="dstPath" value="{{.DstPath.Path}}" />
+        <input type="hidden" name="spaceID" value="{{.SrcPath.Space.ID}}" />
+
+        <button type="button" id="closeBtn" class="btn btn-secondary" data-mdb-dismiss="modal">Close</button>
+        <button type="submit" type="button" class="btn btn-primary">Move</button>
+      </form>
+    </div>
+  </div>
+</div>
