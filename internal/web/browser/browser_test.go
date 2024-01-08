@@ -7,6 +7,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"path"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
@@ -133,6 +134,7 @@ func Test_Browser_Page(t *testing.T) {
 		res := w.Result()
 		defer res.Body.Close()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Equal(t, w.Header().Get("HX-Push-Url"), path.Join("/browser", string(spaces.ExampleAlicePersonalSpace.ID()), "/foo/bar"))
 	})
 
 	t.Run("getBrowserContent success with dir and a last attribute", func(t *testing.T) {
@@ -175,6 +177,7 @@ func Test_Browser_Page(t *testing.T) {
 		res := w.Result()
 		defer res.Body.Close()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Empty(t, w.Header().Get("HX-Push-Url"))
 	})
 
 	t.Run("getBrowserContent success with file", func(t *testing.T) {

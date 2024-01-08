@@ -341,6 +341,8 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 
+	w.Header().Set("HX-Push-Url", path.Join("/browser", string(cmd.Space.ID()), cmd.Path))
+
 	h.html.WriteHTMLTemplate(w, r, http.StatusOK, &browser.ContentTemplate{
 		Folder:        cmd,
 		Inodes:        dirContent,
