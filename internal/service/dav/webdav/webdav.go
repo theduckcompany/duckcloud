@@ -45,21 +45,21 @@ type Handler struct {
 }
 
 func (h *Handler) stripPrefix(p string) (string, int, error) {
+	if h.Prefix != "" {
+		if !strings.HasPrefix(p, h.Prefix) {
+			return p, http.StatusNotFound, errPrefixMismatch
+		}
+
+		p = p[len(h.Prefix):]
+	}
+
 	p = path.Clean(strings.TrimSuffix(p, "/"))
 
 	if p == "." {
 		p = "/"
 	}
 
-	if h.Prefix == "" {
-		return p, http.StatusOK, nil
-	}
-
-	if r := strings.TrimPrefix(p, h.Prefix); len(r) < len(p) {
-		return r, http.StatusOK, nil
-	}
-
-	return p, http.StatusNotFound, errPrefixMismatch
+	return p, http.StatusOK, nil
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -112,7 +112,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		case "OPTIONS":
 			status, err = h.handleOptions(w, r, pathCmd)
 		case "GET", "HEAD", "POST":
-			status, err = h.handleGetHeadPost(w, r, space)
+			status, err = h.handleGetHeadPost(w, r, pathCmd)
 		case "DELETE":
 			status, err = h.handleDelete(w, r, pathCmd)
 		case "PUT":
@@ -157,14 +157,7 @@ func (h *Handler) handleOptions(w http.ResponseWriter, r *http.Request, pathCmd 
 	return 0, nil
 }
 
-func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request, space *spaces.Space) (status int, err error) {
-	reqPath, status, err := h.stripPrefix(r.URL.Path)
-	if err != nil {
-		return status, err
-	}
-
-	pathCmd := &dfs.PathCmd{Space: space, Path: reqPath}
-
+func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request, pathCmd *dfs.PathCmd) (status int, err error) {
 	// TODO: check locks for read-only access??
 	ctx := r.Context()
 	info, err := h.FileSystem.Get(ctx, pathCmd)
@@ -187,9 +180,9 @@ func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request, spac
 		return http.StatusInternalServerError, fmt.Errorf("failed to get the file metadatas: %w", err)
 	}
 
-	w.Header().Set("ETag", fileMetas.Checksum())
+	w.Header().Set("ETag", fmt.Sprintf("W/%q", fileMetas.Checksum()))
 	w.Header().Set("Content-Type", fileMetas.MimeType())
-	http.ServeContent(w, r, reqPath, info.LastModifiedAt(), f)
+	http.ServeContent(w, r, pathCmd.Path, info.LastModifiedAt(), f)
 	return 0, nil
 }
 
