@@ -8,8 +8,8 @@
 <div {{if (eq $idx $lastIdx)}}hx-get="{{$folderURL}}?last={{.Name}}" hx-trigger="revealed" hx-swap="afterend" {{end}}
   class="row border-bottom py-1 d-flex justify-content-between" id="row-{{.ID}}">
   <div class="col-9 col-md-7 position-relative text-truncate">
-    <a class="link-dark user-select-none stretched-link" href="{{$inodeURL}}" hx-boost=true hx-swap="outerHTML"
-      hx-target="{{$.ContentTarget}}">
+    <a class="link-dark user-select-none stretched-link" href="{{$inodeURL}}" {{if .IsDir}}hx-boost=true
+      hx-swap="outerHTML" hx-target="{{$.ContentTarget}}" {{end}}>
       <i class="bi {{getInodeIconClass .Name .IsDir}} me-2" style="font-size: 2rem;"></i>
       {{.Name}}
     </a>
