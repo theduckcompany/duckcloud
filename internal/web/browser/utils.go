@@ -1,6 +1,7 @@
 package browser
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -11,7 +12,7 @@ import (
 
 func serveContent(w http.ResponseWriter, r *http.Request, inode *dfs.INode, file io.ReadSeeker, fileMeta *files.FileMeta) {
 	if fileMeta != nil {
-		w.Header().Set("Etag", fileMeta.Checksum())
+		w.Header().Set("ETag", fmt.Sprintf("W/%q", fileMeta.Checksum()))
 		w.Header().Set("Content-Type", fileMeta.MimeType())
 	}
 
