@@ -94,6 +94,16 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	status, err := http.StatusBadRequest, errUnsupportedMethod
+
+	reqPath, status, err := h.stripPrefix(r.URL.Path)
+	if err != nil {
+		w.WriteHeader(status)
+		w.Write([]byte(StatusText(status)))
+		return
+	}
+
+	pathCmd := &dfs.PathCmd{Space: space, Path: reqPath}
+
 	switch {
 	case h.FileSystem == nil:
 		status, err = http.StatusInternalServerError, errNoFileSystem
@@ -112,7 +122,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		case "COPY", "MOVE":
 			status, err = h.handleCopyMove(w, r, user, space)
 		case "PROPFIND":
-			status, err = h.handlePropfind(w, r, space)
+			status, err = h.handlePropfind(w, r, pathCmd)
 		case "PROPPATCH":
 			status, err = h.handleProppatch(w, r, space)
 		}
@@ -383,13 +393,9 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, user *u
 	return http.StatusCreated, nil
 }
 
-func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, space *spaces.Space) (status int, err error) {
-	reqPath, status, err := h.stripPrefix(r.URL.Path)
-	if err != nil {
-		return status, err
-	}
+func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, cmd *dfs.PathCmd) (status int, err error) {
 	ctx := r.Context()
-	fi, err := h.FileSystem.Get(ctx, &dfs.PathCmd{Space: space, Path: reqPath})
+	fi, err := h.FileSystem.Get(ctx, cmd)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return http.StatusNotFound, err
@@ -424,7 +430,7 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, space *
 		var pstats []Propstat
 		switch {
 		case pf.Propname != nil:
-			pnames, err := propnames(ctx, info, reqPath)
+			pnames, err := propnames(ctx, info, cmd)
 			if err != nil {
 				return handlePropfindError(err, info)
 			}
@@ -434,21 +440,21 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, space *
 			}
 			pstats = append(pstats, pstat)
 		case pf.Allprop != nil:
-			pstats, err = allprop(ctx, info, fileMeta, reqPath, pf.Prop)
+			pstats, err = allprop(ctx, info, fileMeta, cmd, pf.Prop)
 		default:
-			pstats, err = props(ctx, info, fileMeta, reqPath, pf.Prop)
+			pstats, err = props(ctx, info, fileMeta, cmd, pf.Prop)
 		}
 		if err != nil {
 			return handlePropfindError(err, info)
 		}
-		href := path.Join(h.Prefix, reqPath)
+		href := path.Join(h.Prefix, cmd.Path)
 		if href != "/" && info.IsDir() {
 			href += "/"
 		}
 		return mw.write(makePropstatResponse(href, pstats))
 	}
 
-	walkErr := walkFS(ctx, h.FileSystem, depth, &dfs.PathCmd{Space: space, Path: reqPath}, fi, walkFn)
+	walkErr := walkFS(ctx, h.FileSystem, depth, cmd, fi, walkFn)
 	closeErr := mw.close()
 	if walkErr != nil {
 		return http.StatusInternalServerError, walkErr

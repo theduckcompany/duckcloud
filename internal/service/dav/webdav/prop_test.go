@@ -43,7 +43,7 @@ func TestMemPS(t *testing.T) {
 					if fi.IsDir() {
 						continue
 					}
-					etag, err := findETag(ctx, cmd.Path, fi, meta)
+					etag, err := findETag(ctx, cmd, fi, meta)
 					if err != nil {
 						return err
 					}
@@ -526,7 +526,9 @@ func TestMemPS(t *testing.T) {
 				t.Fatalf("%s: calcProps: %v", desc, err)
 			}
 
-			info, err := fs.Get(ctx, &dfs.PathCmd{Space: testContext.Space, Path: op.name})
+			path := &dfs.PathCmd{Space: testContext.Space, Path: op.name}
+
+			info, err := fs.Get(ctx, path)
 			if err != nil {
 				t.Fatalf("failed to get %q\n", op.name)
 			}
@@ -540,7 +542,7 @@ func TestMemPS(t *testing.T) {
 			var propstats []Propstat
 			switch op.op {
 			case "propname":
-				pnames, err := propnames(ctx, info, op.name)
+				pnames, err := propnames(ctx, info, path)
 				if err != nil {
 					t.Errorf("%s: got error %v, want nil", desc, err)
 					continue
@@ -552,9 +554,9 @@ func TestMemPS(t *testing.T) {
 				}
 				continue
 			case "allprop":
-				propstats, err = allprop(ctx, info, meta, op.name, op.pnames)
+				propstats, err = allprop(ctx, info, meta, path, op.pnames)
 			case "propfind":
-				propstats, err = props(ctx, info, meta, op.name, op.pnames)
+				propstats, err = props(ctx, info, meta, path, op.pnames)
 			case "proppatch":
 				propstats, err = patch(ctx, fs, op.name, op.patches)
 			default:
