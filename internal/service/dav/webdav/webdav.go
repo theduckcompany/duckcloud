@@ -45,21 +45,21 @@ type Handler struct {
 }
 
 func (h *Handler) stripPrefix(p string) (string, int, error) {
+	if h.Prefix != "" {
+		if !strings.HasPrefix(p, h.Prefix) {
+			return p, http.StatusNotFound, errPrefixMismatch
+		}
+
+		p = p[len(h.Prefix):]
+	}
+
 	p = path.Clean(strings.TrimSuffix(p, "/"))
 
 	if p == "." {
 		p = "/"
 	}
 
-	if h.Prefix == "" {
-		return p, http.StatusOK, nil
-	}
-
-	if r := strings.TrimPrefix(p, h.Prefix); len(r) < len(p) {
-		return r, http.StatusOK, nil
-	}
-
-	return p, http.StatusNotFound, errPrefixMismatch
+	return p, http.StatusOK, nil
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -94,27 +94,37 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	status, err := http.StatusBadRequest, errUnsupportedMethod
+
+	reqPath, status, err := h.stripPrefix(r.URL.Path)
+	if err != nil {
+		w.WriteHeader(status)
+		w.Write([]byte(StatusText(status)))
+		return
+	}
+
+	pathCmd := &dfs.PathCmd{Space: space, Path: reqPath}
+
 	switch {
 	case h.FileSystem == nil:
 		status, err = http.StatusInternalServerError, errNoFileSystem
 	default:
 		switch r.Method {
 		case "OPTIONS":
-			status, err = h.handleOptions(w, r, space)
+			status, err = h.handleOptions(w, r, pathCmd)
 		case "GET", "HEAD", "POST":
-			status, err = h.handleGetHeadPost(w, r, space)
+			status, err = h.handleGetHeadPost(w, r, pathCmd)
 		case "DELETE":
-			status, err = h.handleDelete(w, r, space)
+			status, err = h.handleDelete(w, r, pathCmd)
 		case "PUT":
-			status, err = h.handlePut(w, r, user, space)
+			status, err = h.handlePut(w, r, user, pathCmd)
 		case "MKCOL":
-			status, err = h.handleMkcol(w, r, user, space)
+			status, err = h.handleMkcol(w, r, user, pathCmd)
 		case "COPY", "MOVE":
 			status, err = h.handleCopyMove(w, r, user, space)
 		case "PROPFIND":
-			status, err = h.handlePropfind(w, r, space)
+			status, err = h.handlePropfind(w, r, pathCmd)
 		case "PROPPATCH":
-			status, err = h.handleProppatch(w, r, space)
+			status, err = h.handleProppatch(w, r, pathCmd)
 		}
 	}
 
@@ -129,14 +139,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) handleOptions(w http.ResponseWriter, r *http.Request, space *spaces.Space) (status int, err error) {
-	reqPath, status, err := h.stripPrefix(r.URL.Path)
-	if err != nil {
-		return status, err
-	}
+func (h *Handler) handleOptions(w http.ResponseWriter, r *http.Request, pathCmd *dfs.PathCmd) (status int, err error) {
 	ctx := r.Context()
 	allow := "OPTIONS, PUT, MKCOL"
-	if fi, err := h.FileSystem.Get(ctx, &dfs.PathCmd{Space: space, Path: reqPath}); err == nil {
+	if fi, err := h.FileSystem.Get(ctx, pathCmd); err == nil {
 		if fi.IsDir() {
 			allow = "OPTIONS, DELETE, PROPPATCH, COPY, MOVE, PROPFIND"
 		} else {
@@ -151,14 +157,7 @@ func (h *Handler) handleOptions(w http.ResponseWriter, r *http.Request, space *s
 	return 0, nil
 }
 
-func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request, space *spaces.Space) (status int, err error) {
-	reqPath, status, err := h.stripPrefix(r.URL.Path)
-	if err != nil {
-		return status, err
-	}
-
-	pathCmd := &dfs.PathCmd{Space: space, Path: reqPath}
-
+func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request, pathCmd *dfs.PathCmd) (status int, err error) {
 	// TODO: check locks for read-only access??
 	ctx := r.Context()
 	info, err := h.FileSystem.Get(ctx, pathCmd)
@@ -181,18 +180,13 @@ func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request, spac
 		return http.StatusInternalServerError, fmt.Errorf("failed to get the file metadatas: %w", err)
 	}
 
-	w.Header().Set("ETag", fileMetas.Checksum())
+	w.Header().Set("ETag", fmt.Sprintf("W/%q", fileMetas.Checksum()))
 	w.Header().Set("Content-Type", fileMetas.MimeType())
-	http.ServeContent(w, r, reqPath, info.LastModifiedAt(), f)
+	http.ServeContent(w, r, pathCmd.Path, info.LastModifiedAt(), f)
 	return 0, nil
 }
 
-func (h *Handler) handleDelete(w http.ResponseWriter, r *http.Request, space *spaces.Space) (status int, err error) {
-	reqPath, status, err := h.stripPrefix(r.URL.Path)
-	if err != nil {
-		return status, err
-	}
-
+func (h *Handler) handleDelete(w http.ResponseWriter, r *http.Request, pathCmd *dfs.PathCmd) (status int, err error) {
 	ctx := r.Context()
 
 	// TODO: return MultiStatus where appropriate.
@@ -200,8 +194,6 @@ func (h *Handler) handleDelete(w http.ResponseWriter, r *http.Request, space *sp
 	// "godoc os RemoveAll" says that "If the path does not exist, RemoveAll
 	// returns nil (no error)." WebDAV semantics are that it should return a
 	// "404 Not Found". We therefore have to Stat before we RemoveAll.
-	pathCmd := &dfs.PathCmd{Space: space, Path: reqPath}
-
 	if _, err := h.FileSystem.Get(ctx, pathCmd); err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return http.StatusNotFound, err
@@ -214,19 +206,14 @@ func (h *Handler) handleDelete(w http.ResponseWriter, r *http.Request, space *sp
 	return http.StatusNoContent, nil
 }
 
-func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request, user *users.User, space *spaces.Space) (status int, err error) {
-	reqPath, status, err := h.stripPrefix(r.URL.Path)
-	if err != nil {
-		return status, err
-	}
-
+func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request, user *users.User, pathCmd *dfs.PathCmd) (status int, err error) {
 	// TODO(rost): Support the If-Match, If-None-Match headers? See bradfitz'
 	// comments in http.checkEtag.
 	ctx := r.Context()
 
 	err = h.FileSystem.Upload(ctx, &dfs.UploadCmd{
-		Space:      space,
-		FilePath:   reqPath,
+		Space:      pathCmd.Space,
+		FilePath:   pathCmd.Path,
 		Content:    r.Body,
 		UploadedBy: user,
 	})
@@ -239,12 +226,7 @@ func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request, user *users.
 	return http.StatusCreated, nil
 }
 
-func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, user *users.User, space *spaces.Space) (status int, err error) {
-	reqPath, status, err := h.stripPrefix(r.URL.Path)
-	if err != nil {
-		return status, err
-	}
-
+func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, user *users.User, pathCmd *dfs.PathCmd) (status int, err error) {
 	ctx := r.Context()
 
 	if r.ContentLength > 0 {
@@ -252,7 +234,7 @@ func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, user *user
 	}
 
 	// No file or directory with the same name should already exists
-	res, err := h.FileSystem.Get(ctx, &dfs.PathCmd{Space: space, Path: reqPath})
+	res, err := h.FileSystem.Get(ctx, pathCmd)
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		return http.StatusInternalServerError, err
 	}
@@ -262,8 +244,8 @@ func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, user *user
 	}
 
 	// All the parents must exists
-	if reqPath != "/" {
-		parent, err := h.FileSystem.Get(ctx, &dfs.PathCmd{Space: space, Path: path.Dir(reqPath)})
+	if pathCmd.Path != "/" {
+		parent, err := h.FileSystem.Get(ctx, &dfs.PathCmd{Space: pathCmd.Space, Path: path.Dir(pathCmd.Path)})
 		if err != nil && !errors.Is(err, errs.ErrNotFound) {
 			return http.StatusInternalServerError, err
 		}
@@ -274,8 +256,8 @@ func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, user *user
 	}
 
 	if _, err := h.FileSystem.CreateDir(ctx, &dfs.CreateDirCmd{
-		Space:     space,
-		FilePath:  reqPath,
+		Space:     pathCmd.Space,
+		FilePath:  pathCmd.Path,
 		CreatedBy: user,
 	}); err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
@@ -383,13 +365,9 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, user *u
 	return http.StatusCreated, nil
 }
 
-func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, space *spaces.Space) (status int, err error) {
-	reqPath, status, err := h.stripPrefix(r.URL.Path)
-	if err != nil {
-		return status, err
-	}
+func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, cmd *dfs.PathCmd) (status int, err error) {
 	ctx := r.Context()
-	fi, err := h.FileSystem.Get(ctx, &dfs.PathCmd{Space: space, Path: reqPath})
+	fi, err := h.FileSystem.Get(ctx, cmd)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return http.StatusNotFound, err
@@ -424,7 +402,7 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, space *
 		var pstats []Propstat
 		switch {
 		case pf.Propname != nil:
-			pnames, err := propnames(ctx, info, reqPath)
+			pnames, err := propnames(ctx, info, cmd)
 			if err != nil {
 				return handlePropfindError(err, info)
 			}
@@ -434,21 +412,21 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, space *
 			}
 			pstats = append(pstats, pstat)
 		case pf.Allprop != nil:
-			pstats, err = allprop(ctx, info, fileMeta, reqPath, pf.Prop)
+			pstats, err = allprop(ctx, info, fileMeta, cmd, pf.Prop)
 		default:
-			pstats, err = props(ctx, info, fileMeta, reqPath, pf.Prop)
+			pstats, err = props(ctx, info, fileMeta, cmd, pf.Prop)
 		}
 		if err != nil {
 			return handlePropfindError(err, info)
 		}
-		href := path.Join(h.Prefix, reqPath)
+		href := path.Join(h.Prefix, cmd.Path)
 		if href != "/" && info.IsDir() {
 			href += "/"
 		}
 		return mw.write(makePropstatResponse(href, pstats))
 	}
 
-	walkErr := walkFS(ctx, h.FileSystem, depth, &dfs.PathCmd{Space: space, Path: reqPath}, fi, walkFn)
+	walkErr := walkFS(ctx, h.FileSystem, depth, cmd, fi, walkFn)
 	closeErr := mw.close()
 	if walkErr != nil {
 		return http.StatusInternalServerError, walkErr
@@ -459,15 +437,10 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, space *
 	return 0, nil
 }
 
-func (h *Handler) handleProppatch(w http.ResponseWriter, r *http.Request, space *spaces.Space) (status int, err error) {
-	reqPath, status, err := h.stripPrefix(r.URL.Path)
-	if err != nil {
-		return status, err
-	}
-
+func (h *Handler) handleProppatch(w http.ResponseWriter, r *http.Request, pathCmd *dfs.PathCmd) (status int, err error) {
 	ctx := r.Context()
 
-	if _, err := h.FileSystem.Get(ctx, &dfs.PathCmd{Space: space, Path: reqPath}); err != nil {
+	if _, err := h.FileSystem.Get(ctx, pathCmd); err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return http.StatusNotFound, err
 		}
@@ -477,7 +450,7 @@ func (h *Handler) handleProppatch(w http.ResponseWriter, r *http.Request, space 
 	if err != nil {
 		return status, err
 	}
-	pstats, err := patch(ctx, h.FileSystem, reqPath, patches)
+	pstats, err := patch(ctx, h.FileSystem, pathCmd, patches)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
