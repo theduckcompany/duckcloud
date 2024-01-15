@@ -18,6 +18,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
+	"github.com/theduckcompany/duckcloud/internal/web/html/templates/settings/security"
 )
 
 type securityCmd struct {
@@ -119,9 +120,9 @@ func (h *securityPage) createDavSession(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	h.html.WriteHTML(w, r, http.StatusCreated, "settings/security/webdav-result.tmpl", map[string]interface{}{
-		"secret":     secret,
-		"newSession": newSession,
+	h.html.WriteHTMLTemplate(w, r, http.StatusCreated, &security.WebdavResultTemplate{
+		Secret:     secret, // TODO: Use secrets.String
+		NewSession: newSession,
 	})
 }
 
@@ -237,8 +238,8 @@ func (h *securityPage) renderPasswordForm(w http.ResponseWriter, r *http.Request
 		errStr = cmd.Error.Error()
 	}
 
-	h.html.WriteHTML(w, r, status, "settings/security/password-form.tmpl", map[string]interface{}{
-		"error": errStr,
+	h.html.WriteHTMLTemplate(w, r, status, &security.PasswordFormTemplate{
+		Error: errStr,
 	})
 }
 
@@ -268,12 +269,12 @@ func (h *securityPage) renderSecurityPage(w http.ResponseWriter, r *http.Request
 		spacesMap[space.ID()] = space
 	}
 
-	h.html.WriteHTML(w, r, http.StatusOK, "settings/security/content.tmpl", map[string]interface{}{
-		"isAdmin":        cmd.User.IsAdmin(),
-		"currentSession": cmd.Session,
-		"webSessions":    webSessions,
-		"devices":        davSessions,
-		"spaces":         spacesMap,
+	h.html.WriteHTMLTemplate(w, r, http.StatusOK, &security.ContentTemplate{
+		IsAdmin:        cmd.User.IsAdmin(),
+		CurrentSession: cmd.Session,
+		WebSessions:    webSessions,
+		Devices:        davSessions,
+		Spaces:         spacesMap,
 	})
 }
 
@@ -289,8 +290,8 @@ func (h *securityPage) renderWebDAVForm(w http.ResponseWriter, r *http.Request, 
 		status = http.StatusUnprocessableEntity
 	}
 
-	h.html.WriteHTML(w, r, status, "settings/security/webdav-form.tmpl", map[string]interface{}{
-		"error":  cmd.Error,
-		"spaces": spaces,
+	h.html.WriteHTMLTemplate(w, r, status, &security.WebdavFormTemplate{
+		Error:  cmd.Error,
+		Spaces: spaces,
 	})
 }

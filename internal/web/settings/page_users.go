@@ -15,6 +15,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
+	userstmpl "github.com/theduckcompany/duckcloud/internal/web/html/templates/settings/users"
 )
 
 type usersPage struct {
@@ -113,15 +114,15 @@ func (h *usersPage) renderUsersRegistrationForm(w http.ResponseWriter, r *http.R
 		status = http.StatusUnprocessableEntity
 	}
 
-	h.html.WriteHTML(w, r, status, "settings/users/registration-form.tmpl", map[string]interface{}{
-		"error": err,
+	h.html.WriteHTMLTemplate(w, r, status, &userstmpl.RegistrationFormTemplate{
+		Error: err,
 	})
 }
 
 func (h *usersPage) renderUsers(w http.ResponseWriter, r *http.Request, cmd renderUsersCmd) {
 	ctx := r.Context()
 
-	users, err := h.users.GetAll(ctx, &storage.PaginateCmd{
+	allUsers, err := h.users.GetAll(ctx, &storage.PaginateCmd{
 		StartAfter: map[string]string{"username": ""},
 		Limit:      20,
 	})
@@ -135,10 +136,10 @@ func (h *usersPage) renderUsers(w http.ResponseWriter, r *http.Request, cmd rend
 		status = http.StatusUnprocessableEntity
 	}
 
-	h.html.WriteHTML(w, r, status, "settings/users/content.tmpl", map[string]interface{}{
-		"isAdmin": cmd.User.IsAdmin(),
-		"current": cmd.User,
-		"users":   users,
-		"error":   cmd.Error,
+	h.html.WriteHTMLTemplate(w, r, status, &userstmpl.ContentTemplate{
+		IsAdmin: cmd.User.IsAdmin(),
+		Current: cmd.User,
+		Users:   allUsers,
+		Error:   cmd.Error,
 	})
 }

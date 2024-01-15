@@ -1,6 +1,7 @@
-package general
+package users
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 )
 
@@ -23,10 +25,20 @@ func Test_Templates(t *testing.T) {
 		Layout   bool
 	}{
 		{
-			Name:   "modal_create_dir",
+			Name:   "ContentTemplate",
 			Layout: true,
-			Template: &LayoutTemplate{
+			Template: &ContentTemplate{
 				IsAdmin: true,
+				Current: &users.ExampleAlice,
+				Users:   []users.User{users.ExampleAlice, users.ExampleBob},
+				Error:   nil,
+			},
+		},
+		{
+			Name:   "RegistrationFormTemplate",
+			Layout: false,
+			Template: &RegistrationFormTemplate{
+				Error: fmt.Errorf("some-error"),
 			},
 		},
 	}
