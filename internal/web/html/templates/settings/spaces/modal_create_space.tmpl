@@ -1,0 +1,32 @@
+<div id="modal-content" class="modal-dialog modal-md" hx-target-2*="this" hx-target-4*="this">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Create a new Space</h5>
+      <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+    </div>
+
+    <form action="/settings/spaces/create" method="post" target="_top" hx-post="/settings/spaces/create"
+      hx-on::after-request="document.getElementById('closeBtn').click()" hx-swap="outerHTML" hx-target="body">
+      <div class="modal-body">
+        <div class="form-outline mb-4" data-mdb-input-init>
+          <input type="text" id="spaceNameInput" name="name" class="form-control" />
+          <label class="form-label" for="spaceNameInput">Space Name</label>
+        </div>
+        <hr>
+        {{template "settings/spaces/user_selection" .Selection}}
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="closeBtn" class="btn btn-secondary" data-mdb-dismiss="modal">Close</button>
+        <button type="submit" type="button" class="btn btn-primary">Create</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+  import {Input} from "/assets/js/libs/mdb.es.min.js";
+
+  document.querySelectorAll('.form-outline').forEach((formOutline) => {
+    new Input(formOutline).init();
+  });
+</script>

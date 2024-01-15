@@ -84,13 +84,13 @@ func (_m *MockService) Create(ctx context.Context, cmd *CreateCmd) (*Space, erro
 	return r0, r1
 }
 
-// Delete provides a mock function with given fields: ctx, spaceID
-func (_m *MockService) Delete(ctx context.Context, spaceID uuid.UUID) error {
-	ret := _m.Called(ctx, spaceID)
+// Delete provides a mock function with given fields: ctx, user, spaceID
+func (_m *MockService) Delete(ctx context.Context, user *users.User, spaceID uuid.UUID) error {
+	ret := _m.Called(ctx, user, spaceID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
-		r0 = rf(ctx, spaceID)
+	if rf, ok := ret.Get(0).(func(context.Context, *users.User, uuid.UUID) error); ok {
+		r0 = rf(ctx, user, spaceID)
 	} else {
 		r0 = ret.Error(0)
 	}

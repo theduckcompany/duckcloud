@@ -58,8 +58,13 @@ func (j *UserDeleteTaskRunner) Run(ctx context.Context, rawArgs json.RawMessage)
 }
 
 func (r *UserDeleteTaskRunner) RunArgs(ctx context.Context, args *scheduler.UserDeleteArgs) error {
+	user, err := r.users.GetByID(ctx, args.UserID)
+	if err != nil {
+		return fmt.Errorf("failed to find the user user %q: %w", args.UserID, err)
+	}
+
 	// First delete the accesses
-	err := r.webSessions.DeleteAll(ctx, args.UserID)
+	err = r.webSessions.DeleteAll(ctx, args.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to delete all web sessions: %w", err)
 	}
@@ -74,21 +79,21 @@ func (r *UserDeleteTaskRunner) RunArgs(ctx context.Context, args *scheduler.User
 		return fmt.Errorf("failed to delete all oauth sessions: %w", err)
 	}
 
-	_, err = r.spaces.GetAllUserSpaces(ctx, args.UserID, nil)
+	userSpaces, err := r.spaces.GetAllUserSpaces(ctx, args.UserID, nil)
 	if err != nil {
 		return fmt.Errorf("failed to GetAllUserSpaces: %w", err)
 	}
 
-	// for _, space := range spaces {
-	// if space.IsPublic() {
-	// 	continue
-	// }
-
-	// err = r.fs.Destroy(ctx, &space)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to RemoveFS: %w", err)
-	// }
-	// }
+	for _, space := range userSpaces {
+		_, err := r.spaces.RemoveOwner(ctx, &spaces.RemoveOwnerCmd{
+			User:    user,
+			Owner:   user,
+			SpaceID: space.ID(),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to remove the user %q from the space %q: %w", user.ID(), space.ID(), err)
+		}
+	}
 
 	err = r.oauthConsents.DeleteAll(ctx, args.UserID)
 	if err != nil {

@@ -55,8 +55,8 @@ func (a *Authenticator) GetUserAndSession(w http.ResponseWriter, r *http.Request
 	}
 
 	if access == AdminOnly && !user.IsAdmin() {
-		w.Write([]byte(`<div class="alert alert-danger role="alert">Action reserved to admins</div>`))
 		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`<div class="alert alert-danger role="alert">Action reserved to admins</div>`))
 		return nil, nil, true
 	}
 

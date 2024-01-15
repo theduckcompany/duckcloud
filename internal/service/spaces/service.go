@@ -62,11 +62,22 @@ func (s *SpaceService) Create(ctx context.Context, cmd *CreateCmd) (*Space, erro
 		return nil, errs.ErrUnauthorized
 	}
 
+	// Ensure that the owners are set only once.
+	uniqOwnersMap := make(map[uuid.UUID]struct{})
+	for _, owner := range cmd.Owners {
+		uniqOwnersMap[owner] = struct{}{}
+	}
+
+	uniqOwners := []uuid.UUID{}
+	for owner := range uniqOwnersMap {
+		uniqOwners = append(uniqOwners, owner)
+	}
+
 	now := s.clock.Now()
 	space := Space{
 		id:        s.uuid.New(),
 		name:      cmd.Name,
-		owners:    cmd.Owners,
+		owners:    uniqOwners,
 		createdAt: now,
 		createdBy: cmd.User.ID(),
 	}
@@ -79,7 +90,11 @@ func (s *SpaceService) Create(ctx context.Context, cmd *CreateCmd) (*Space, erro
 	return &space, nil
 }
 
-func (s *SpaceService) Delete(ctx context.Context, spaceID uuid.UUID) error {
+func (s *SpaceService) Delete(ctx context.Context, user *users.User, spaceID uuid.UUID) error {
+	if !user.IsAdmin() {
+		return errs.Unauthorized(fmt.Errorf("%q is not an admin", user.Username()))
+	}
+
 	err := s.storage.Delete(ctx, spaceID)
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to Delete: %w", err))
@@ -152,7 +167,8 @@ func (s *SpaceService) AddOwner(ctx context.Context, cmd *AddOwnerCmd) (*Space, 
 }
 
 func (s *SpaceService) RemoveOwner(ctx context.Context, cmd *RemoveOwnerCmd) (*Space, error) {
-	if !cmd.User.IsAdmin() {
+	// Anyone can remove itself from a space but only the admin can remove an another user.
+	if !cmd.User.IsAdmin() && cmd.User != cmd.Owner {
 		return nil, errs.ErrUnauthorized
 	}
 

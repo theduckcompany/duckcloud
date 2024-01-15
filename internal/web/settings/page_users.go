@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
+	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
@@ -17,6 +18,12 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 	userstmpl "github.com/theduckcompany/duckcloud/internal/web/html/templates/settings/users"
 )
+
+type renderUsersCmd struct {
+	User    *users.User
+	Session *websessions.Session
+	Error   error
+}
 
 type usersPage struct {
 	html  html.Writer

@@ -8,6 +8,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/oauthclients"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
@@ -38,6 +39,7 @@ func NewHTTPHandler(
 	oauthConsent oauthconsents.Service,
 	webSessions websessions.Service,
 	spaces spaces.Service,
+	scheduler scheduler.Service,
 	davSessions davsessions.Service,
 	fs dfs.Service,
 ) *HTTPHandler {
@@ -47,7 +49,7 @@ func NewHTTPHandler(
 	return &HTTPHandler{
 		auth:     auth.NewHandler(tools, htmlRenderer, authenticator, users, clients, oauthConsent, webSessions),
 		browser:  browser.NewHandler(tools, htmlRenderer, spaces, files, authenticator, fs),
-		settings: settings.NewHandler(tools, htmlRenderer, webSessions, davSessions, spaces, users, authenticator),
+		settings: settings.NewHandler(tools, htmlRenderer, webSessions, davSessions, spaces, scheduler, users, authenticator),
 		home:     newHomeHandler(htmlRenderer, authenticator),
 	}
 }
