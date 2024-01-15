@@ -18,7 +18,7 @@
       <h5>Web browsers</h5>
       <p class="text-muted">These browsers are currently logged in to your account.</p>
 
-      {{ $nbWebSessions := len .webSessions }}
+      {{ $nbWebSessions := len .WebSessions }}
       <table class="table table-hover align-middle mt-4 border">
         <thead class="bg-light">
           <tr>
@@ -29,11 +29,11 @@
           </tr>
         </thead>
         <tbody class="table-group-divider table-divider-color">
-          {{range .webSessions}}
+          {{range .WebSessions}}
           <tr>
             <td>
               {{.Device}}
-              {{ if (eq .Token $.currentSession.Token) }}
+              {{ if (eq .Token $.CurrentSession.Token) }}
               <span class="badge text-bg-secondary">Current Session</span>
               {{ end }}
             </td>
@@ -44,7 +44,7 @@
               <form action="/settings/security/browsers/{{.Token.Raw}}/delete" method="post" target="_top"
                 hx-post="/settings/security/browsers/{{.Token.Raw}}/delete" hx-target="#content" hx-swap="outerHTML">
                 <button type="submit"
-                  class="btn btn-link btn-sm btn-rounded {{if (eq .Token $.currentSession.Token)}}disabled{{end}}">Disconnect</button>
+                  class="btn btn-link btn-sm btn-rounded {{if (eq .Token $.CurrentSession.Token)}}disabled{{end}}">Disconnect</button>
               </form>
             </td>
           </tr>
@@ -57,7 +57,7 @@
       <h5>Devices & sessions</h5>
       <p class="text-muted">Webdav or Oauth2 clients logged in to your account.</p>
 
-      <table class="table {{ if (gt (len .devices) 0)}}table-hover{{end}} align-middle mt-4 border">
+      <table class="table {{ if (gt (len .Devices) 0)}}table-hover{{end}} align-middle mt-4 border">
         <thead class="bg-light">
           <tr>
             <th>Name</th>
@@ -67,16 +67,16 @@
           </tr>
         </thead>
         <tbody class="table-group-divider table-divider-color">
-          {{ if (eq (len .devices) 0)}}
+          {{ if (eq (len .Devices) 0)}}
           <tr>
             <td class="text-center user-select-none" colspan="4">You haven’t linked any devices to your account yet.
             </td>
           </tr>
           {{end}}
-          {{range .devices}}
+          {{range .Devices}}
           <tr>
             <td>{{.Name}}</td>
-            <td>{{with $space := index $.spaces .SpaceID}}{{ $space.Name }}{{end}}</td>
+            <td>{{with $space := index $.Spaces .SpaceID}}{{ $space.Name }}{{end}}</td>
             <td> Seconds ago </td>
             <td>
               <form action="/settings/security/webdav/{{.ID}}/delete" method="post" target="_top"

@@ -18,6 +18,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
+	userstmpl "github.com/theduckcompany/duckcloud/internal/web/html/templates/settings/users"
 )
 
 func Test_UsersPage(t *testing.T) {
@@ -38,11 +39,11 @@ func Test_UsersPage(t *testing.T) {
 			Limit:      20,
 		}).Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
 
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/users/content.tmpl", map[string]interface{}{
-			"isAdmin": users.ExampleAlice.IsAdmin(),
-			"current": &users.ExampleAlice,
-			"users":   []users.User{users.ExampleAlice, users.ExampleBob},
-			"error":   nil,
+		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &userstmpl.ContentTemplate{
+			IsAdmin: users.ExampleAlice.IsAdmin(),
+			Current: &users.ExampleAlice,
+			Users:   []users.User{users.ExampleAlice, users.ExampleBob},
+			Error:   nil,
 		}).Once()
 
 		w := httptest.NewRecorder()
@@ -77,11 +78,11 @@ func Test_UsersPage(t *testing.T) {
 			Limit:      20,
 		}).Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
 
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/users/content.tmpl", map[string]interface{}{
-			"isAdmin": users.ExampleAlice.IsAdmin(),
-			"current": &users.ExampleAlice,
-			"users":   []users.User{users.ExampleAlice, users.ExampleBob},
-			"error":   nil,
+		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &userstmpl.ContentTemplate{
+			IsAdmin: users.ExampleAlice.IsAdmin(),
+			Current: &users.ExampleAlice,
+			Users:   []users.User{users.ExampleAlice, users.ExampleBob},
+			Error:   nil,
 		}).Once()
 
 		w := httptest.NewRecorder()
@@ -119,11 +120,11 @@ func Test_UsersPage(t *testing.T) {
 			Limit:      20,
 		}).Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
 
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/users/content.tmpl", map[string]interface{}{
-			"isAdmin": users.ExampleAlice.IsAdmin(),
-			"current": &users.ExampleAlice,
-			"users":   []users.User{users.ExampleAlice, users.ExampleBob},
-			"error":   nil,
+		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &userstmpl.ContentTemplate{
+			IsAdmin: users.ExampleAlice.IsAdmin(),
+			Current: &users.ExampleAlice,
+			Users:   []users.User{users.ExampleAlice, users.ExampleBob},
+			Error:   nil,
 		}).Once()
 
 		w := httptest.NewRecorder()

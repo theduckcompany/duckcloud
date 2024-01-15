@@ -23,6 +23,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
+	"github.com/theduckcompany/duckcloud/internal/web/html/templates/settings/security"
 )
 
 func Test_SecurityPage(t *testing.T) {
@@ -44,12 +45,12 @@ func Test_SecurityPage(t *testing.T) {
 		davSessionsMock.On("GetAllForUser", mock.Anything, users.ExampleAlice.ID(), &storage.PaginateCmd{Limit: 20}).Return([]davsessions.DavSession{davsessions.ExampleAliceSession}, nil).Once()
 		spacesMock.On("GetAllUserSpaces", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]spaces.Space{spaces.ExampleAlicePersonalSpace}, nil).Once()
 
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/security/content.tmpl", map[string]interface{}{
-			"isAdmin":        users.ExampleAlice.IsAdmin(),
-			"currentSession": &websessions.AliceWebSessionExample,
-			"webSessions":    []websessions.Session{websessions.AliceWebSessionExample},
-			"devices":        []davsessions.DavSession{davsessions.ExampleAliceSession},
-			"spaces": map[uuid.UUID]spaces.Space{
+		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &security.ContentTemplate{
+			IsAdmin:        users.ExampleAlice.IsAdmin(),
+			CurrentSession: &websessions.AliceWebSessionExample,
+			WebSessions:    []websessions.Session{websessions.AliceWebSessionExample},
+			Devices:        []davsessions.DavSession{davsessions.ExampleAliceSession},
+			Spaces: map[uuid.UUID]spaces.Space{
 				spaces.ExampleAlicePersonalSpace.ID(): spaces.ExampleAlicePersonalSpace,
 			},
 		}).Once()
@@ -113,9 +114,9 @@ func Test_SecurityPage(t *testing.T) {
 			SpaceID:  uuid.UUID("space-id-1"),
 		}).Return(&davsessions.ExampleAliceSession2, "some-session-secret", nil).Once()
 
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusCreated, "settings/security/webdav-result.tmpl", map[string]interface{}{
-			"newSession": &davsessions.ExampleAliceSession2,
-			"secret":     "some-session-secret",
+		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusCreated, &security.WebdavResultTemplate{
+			NewSession: &davsessions.ExampleAliceSession2,
+			Secret:     "some-session-secret",
 		}).Once()
 
 		w := httptest.NewRecorder()
@@ -155,12 +156,12 @@ func Test_SecurityPage(t *testing.T) {
 		davSessionsMock.On("GetAllForUser", mock.Anything, users.ExampleAlice.ID(), &storage.PaginateCmd{Limit: 20}).Return([]davsessions.DavSession{davsessions.ExampleAliceSession}, nil).Once()
 		spacesMock.On("GetAllUserSpaces", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]spaces.Space{spaces.ExampleAlicePersonalSpace}, nil).Once()
 
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/security/content.tmpl", map[string]interface{}{
-			"isAdmin":        users.ExampleAlice.IsAdmin(),
-			"currentSession": &websessions.AliceWebSessionExample,
-			"webSessions":    []websessions.Session{websessions.AliceWebSessionExample},
-			"devices":        []davsessions.DavSession{davsessions.ExampleAliceSession},
-			"spaces": map[uuid.UUID]spaces.Space{
+		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &security.ContentTemplate{
+			IsAdmin:        users.ExampleAlice.IsAdmin(),
+			CurrentSession: &websessions.AliceWebSessionExample,
+			WebSessions:    []websessions.Session{websessions.AliceWebSessionExample},
+			Devices:        []davsessions.DavSession{davsessions.ExampleAliceSession},
+			Spaces: map[uuid.UUID]spaces.Space{
 				spaces.ExampleAlicePersonalSpace.ID(): spaces.ExampleAlicePersonalSpace,
 			},
 		}).Once()
@@ -198,12 +199,12 @@ func Test_SecurityPage(t *testing.T) {
 		davSessionsMock.On("GetAllForUser", mock.Anything, users.ExampleAlice.ID(), &storage.PaginateCmd{Limit: 20}).Return([]davsessions.DavSession{davsessions.ExampleAliceSession}, nil).Once()
 		spacesMock.On("GetAllUserSpaces", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]spaces.Space{spaces.ExampleAlicePersonalSpace}, nil).Once()
 
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/security/content.tmpl", map[string]interface{}{
-			"isAdmin":        users.ExampleAlice.IsAdmin(),
-			"currentSession": &websessions.AliceWebSessionExample,
-			"webSessions":    []websessions.Session{websessions.AliceWebSessionExample},
-			"devices":        []davsessions.DavSession{davsessions.ExampleAliceSession},
-			"spaces": map[uuid.UUID]spaces.Space{
+		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &security.ContentTemplate{
+			IsAdmin:        users.ExampleAlice.IsAdmin(),
+			CurrentSession: &websessions.AliceWebSessionExample,
+			WebSessions:    []websessions.Session{websessions.AliceWebSessionExample},
+			Devices:        []davsessions.DavSession{davsessions.ExampleAliceSession},
+			Spaces: map[uuid.UUID]spaces.Space{
 				spaces.ExampleAlicePersonalSpace.ID(): spaces.ExampleAlicePersonalSpace,
 			},
 		}).Once()
@@ -245,12 +246,12 @@ func Test_SecurityPage(t *testing.T) {
 		webSessionsMock.On("GetAllForUser", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]websessions.Session{websessions.AliceWebSessionExample}, nil).Once()
 		davSessionsMock.On("GetAllForUser", mock.Anything, users.ExampleAlice.ID(), &storage.PaginateCmd{Limit: 20}).Return([]davsessions.DavSession{davsessions.ExampleAliceSession}, nil).Once()
 		spacesMock.On("GetAllUserSpaces", mock.Anything, users.ExampleAlice.ID(), (*storage.PaginateCmd)(nil)).Return([]spaces.Space{spaces.ExampleAlicePersonalSpace}, nil).Once()
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/security/content.tmpl", map[string]interface{}{
-			"isAdmin":        users.ExampleAlice.IsAdmin(),
-			"currentSession": &websessions.AliceWebSessionExample,
-			"webSessions":    []websessions.Session{websessions.AliceWebSessionExample},
-			"devices":        []davsessions.DavSession{davsessions.ExampleAliceSession},
-			"spaces": map[uuid.UUID]spaces.Space{
+		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &security.ContentTemplate{
+			IsAdmin:        users.ExampleAlice.IsAdmin(),
+			CurrentSession: &websessions.AliceWebSessionExample,
+			WebSessions:    []websessions.Session{websessions.AliceWebSessionExample},
+			Devices:        []davsessions.DavSession{davsessions.ExampleAliceSession},
+			Spaces: map[uuid.UUID]spaces.Space{
 				spaces.ExampleAlicePersonalSpace.ID(): spaces.ExampleAlicePersonalSpace,
 			},
 		}).Once()
@@ -288,11 +289,9 @@ func Test_SecurityPage(t *testing.T) {
 		usersMock.On("Authenticate", mock.Anything, users.ExampleAlice.Username(), secret.NewText("old-password")).
 			Return(nil, users.ErrInvalidPassword).Once()
 
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusUnprocessableEntity,
-			"settings/security/password-form.tmpl",
-			map[string]any{
-				"error": "invalid current password",
-			}).Once()
+		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusUnprocessableEntity, &security.PasswordFormTemplate{
+			Error: "invalid current password",
+		}).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodPost, "/settings/security/password", strings.NewReader(url.Values{
@@ -327,11 +326,9 @@ func Test_SecurityPage(t *testing.T) {
 		usersMock.On("Authenticate", mock.Anything, users.ExampleAlice.Username(), secret.NewText("old-password")).
 			Return(&users.ExampleAlice, nil).Once()
 
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusUnprocessableEntity,
-			"settings/security/password-form.tmpl",
-			map[string]any{
-				"error": "the new password and the confirmation are different",
-			}).Once()
+		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusUnprocessableEntity, &security.PasswordFormTemplate{
+			Error: "the new password and the confirmation are different",
+		}).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodPost, "/settings/security/password", strings.NewReader(url.Values{
@@ -406,11 +403,9 @@ func Test_SecurityPage(t *testing.T) {
 			NewPassword: secret.NewText("new-password"),
 		}).Return(errs.Validation(fmt.Errorf("some-error"))).Once()
 
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusUnprocessableEntity,
-			"settings/security/password-form.tmpl",
-			map[string]any{
-				"error": "validation: some-error",
-			}).Once()
+		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusUnprocessableEntity, &security.PasswordFormTemplate{
+			Error: "validation: some-error",
+		}).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodPost, "/settings/security/password", strings.NewReader(url.Values{
@@ -442,11 +437,9 @@ func Test_SecurityPage(t *testing.T) {
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK,
-			"settings/security/password-form.tmpl",
-			map[string]any{
-				"error": "",
-			}).Once()
+		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &security.PasswordFormTemplate{
+			Error: "",
+		}).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/settings/security/password", nil)

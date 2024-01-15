@@ -30,8 +30,8 @@
         <label class="form-label select-label">Role</label>
       </div>
 
-      {{if .error}}
-      <div id="validation-alert" class="alert alert-danger role=">{{.error.Error}}</div>
+      {{if .Error}}
+      <div id="validation-alert" class="alert alert-danger role=">{{.Error.Error}}</div>
       {{end}}
 
       <div class="modal-footer">

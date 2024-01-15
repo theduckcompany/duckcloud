@@ -20,7 +20,7 @@
 
         <div class="row-auto mx-2 mb-4">
           <select name="space" class="select">
-            {{ range .spaces}}
+            {{ range .Spaces}}
             <option value="{{.ID}}" selected>{{.Name}}</option>
             {{end}}
           </select>
@@ -28,8 +28,8 @@
         </div>
 
 
-        {{if .error}}
-        <div id="validation-alert" class="alert alert-danger role=">{{.error.Error}}</div>
+        {{if .Error}}
+        <div id="validation-alert" class="alert alert-danger role=">{{.Error.Error}}</div>
         {{end}}
 
       </div>
