@@ -15,6 +15,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/browser"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
+	"github.com/theduckcompany/duckcloud/internal/web/settings"
 )
 
 type Config struct {
@@ -24,7 +25,7 @@ type Config struct {
 type HTTPHandler struct {
 	auth     *auth.Handler
 	browser  *browser.Handler
-	settings *settingsHandler
+	settings *settings.Handler
 	home     *homeHandler
 }
 
@@ -46,7 +47,7 @@ func NewHTTPHandler(
 	return &HTTPHandler{
 		auth:     auth.NewHandler(tools, htmlRenderer, authenticator, users, clients, oauthConsent, webSessions),
 		browser:  browser.NewHandler(tools, htmlRenderer, spaces, files, authenticator, fs),
-		settings: newSettingsHandler(tools, htmlRenderer, webSessions, davSessions, spaces, users, authenticator),
+		settings: settings.NewHandler(tools, htmlRenderer, webSessions, davSessions, spaces, users, authenticator),
 		home:     newHomeHandler(htmlRenderer, authenticator),
 	}
 }

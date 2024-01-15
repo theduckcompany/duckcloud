@@ -1,4 +1,4 @@
-package web
+package settings
 
 import (
 	"errors"
@@ -25,7 +25,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 )
 
-func Test_Settings(t *testing.T) {
+func Test_SecurityPage(t *testing.T) {
 	t.Run("getSecurityPage success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
@@ -34,7 +34,7 @@ func Test_Settings(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
+		handler := newSecurityPage(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -73,7 +73,7 @@ func Test_Settings(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
+		handler := newSecurityPage(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
@@ -98,7 +98,7 @@ func Test_Settings(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
+		handler := newSecurityPage(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -138,7 +138,7 @@ func Test_Settings(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
+		handler := newSecurityPage(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -181,7 +181,7 @@ func Test_Settings(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
+		handler := newSecurityPage(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -219,133 +219,6 @@ func Test_Settings(t *testing.T) {
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 	})
 
-	t.Run("getUsers success", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		webSessionsMock := websessions.NewMockService(t)
-		davSessionsMock := davsessions.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		usersMock := users.NewMockService(t)
-		htmlMock := html.NewMockWriter(t)
-		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
-
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-
-		usersMock.On("GetAll", mock.Anything, &storage.PaginateCmd{
-			StartAfter: map[string]string{"username": ""},
-			Limit:      20,
-		}).Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
-
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/users/content.tmpl", map[string]interface{}{
-			"isAdmin": users.ExampleAlice.IsAdmin(),
-			"current": &users.ExampleAlice,
-			"users":   []users.User{users.ExampleAlice, users.ExampleBob},
-			"error":   nil,
-		}).Once()
-
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/settings/users", nil)
-		srv := chi.NewRouter()
-		handler.Register(srv, nil)
-		srv.ServeHTTP(w, r)
-
-		res := w.Result()
-		defer res.Body.Close()
-		assert.Equal(t, http.StatusOK, res.StatusCode)
-	})
-
-	t.Run("deleteUser success", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		webSessionsMock := websessions.NewMockService(t)
-		davSessionsMock := davsessions.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		usersMock := users.NewMockService(t)
-		htmlMock := html.NewMockWriter(t)
-		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
-
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-
-		tools.UUIDMock.On("Parse", "some-user-id").Return(uuid.UUID("some-user-id"), nil).Once()
-
-		usersMock.On("AddToDeletion", mock.Anything, uuid.UUID("some-user-id")).Return(nil).Once()
-
-		usersMock.On("GetAll", mock.Anything, &storage.PaginateCmd{
-			StartAfter: map[string]string{"username": ""},
-			Limit:      20,
-		}).Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
-
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/users/content.tmpl", map[string]interface{}{
-			"isAdmin": users.ExampleAlice.IsAdmin(),
-			"current": &users.ExampleAlice,
-			"users":   []users.User{users.ExampleAlice, users.ExampleBob},
-			"error":   nil,
-		}).Once()
-
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodPost, "/settings/users/some-user-id/delete", nil)
-		srv := chi.NewRouter()
-		handler.Register(srv, nil)
-		srv.ServeHTTP(w, r)
-
-		res := w.Result()
-		defer res.Body.Close()
-		assert.Equal(t, http.StatusOK, res.StatusCode)
-	})
-
-	t.Run("createUser success", func(t *testing.T) {
-		tools := tools.NewMock(t)
-		webSessionsMock := websessions.NewMockService(t)
-		davSessionsMock := davsessions.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		usersMock := users.NewMockService(t)
-		htmlMock := html.NewMockWriter(t)
-		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
-
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
-
-		usersMock.On("Create", mock.Anything, &users.CreateCmd{
-			User:     &users.ExampleAlice,
-			Username: "some-username",
-			Password: secret.NewText("my-little-secret"),
-			IsAdmin:  true,
-		}).Return(&users.ExampleAlice, nil).Once()
-
-		usersMock.On("GetAll", mock.Anything, &storage.PaginateCmd{
-			StartAfter: map[string]string{"username": ""},
-			Limit:      20,
-		}).Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
-
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "settings/users/content.tmpl", map[string]interface{}{
-			"isAdmin": users.ExampleAlice.IsAdmin(),
-			"current": &users.ExampleAlice,
-			"users":   []users.User{users.ExampleAlice, users.ExampleBob},
-			"error":   nil,
-		}).Once()
-
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodPost, "/settings/users", strings.NewReader(url.Values{
-			"username": []string{"some-username"},
-			"password": []string{"my-little-secret"},
-			"role":     []string{"admin"},
-		}.Encode()))
-		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		srv := chi.NewRouter()
-		handler.Register(srv, nil)
-		srv.ServeHTTP(w, r)
-
-		res := w.Result()
-		defer res.Body.Close()
-		assert.Equal(t, http.StatusOK, res.StatusCode)
-	})
-
 	t.Run("updatePassword success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
@@ -354,7 +227,7 @@ func Test_Settings(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
+		handler := newSecurityPage(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -406,7 +279,7 @@ func Test_Settings(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
+		handler := newSecurityPage(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -445,7 +318,7 @@ func Test_Settings(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
+		handler := newSecurityPage(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -484,7 +357,7 @@ func Test_Settings(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
+		handler := newSecurityPage(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -519,7 +392,7 @@ func Test_Settings(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
+		handler := newSecurityPage(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -563,7 +436,7 @@ func Test_Settings(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
+		handler := newSecurityPage(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -594,7 +467,7 @@ func Test_Settings(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSettingsHandler(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
+		handler := newSecurityPage(tools, htmlMock, webSessionsMock, davSessionsMock, spacesMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
