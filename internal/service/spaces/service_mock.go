@@ -8,6 +8,8 @@ import (
 	mock "github.com/stretchr/testify/mock"
 	storage "github.com/theduckcompany/duckcloud/internal/tools/storage"
 
+	users "github.com/theduckcompany/duckcloud/internal/service/users"
+
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -54,6 +56,32 @@ func (_m *MockService) Delete(ctx context.Context, spaceID uuid.UUID) error {
 	}
 
 	return r0
+}
+
+// GetAllSpaces provides a mock function with given fields: ctx, user, cmd
+func (_m *MockService) GetAllSpaces(ctx context.Context, user *users.User, cmd *storage.PaginateCmd) ([]Space, error) {
+	ret := _m.Called(ctx, user, cmd)
+
+	var r0 []Space
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *users.User, *storage.PaginateCmd) ([]Space, error)); ok {
+		return rf(ctx, user, cmd)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *users.User, *storage.PaginateCmd) []Space); ok {
+		r0 = rf(ctx, user, cmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]Space)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *users.User, *storage.PaginateCmd) error); ok {
+		r1 = rf(ctx, user, cmd)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetAllUserSpaces provides a mock function with given fields: ctx, userID, cmd

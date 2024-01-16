@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -204,5 +205,32 @@ func Test_SpaceService(t *testing.T) {
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrUnauthorized)
 		assert.ErrorIs(t, err, ErrInvalidSpaceAccess)
+	})
+
+	t.Run("GetAllSpaces success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		svc := NewService(tools, storageMock)
+
+		require.True(t, users.ExampleAlice.IsAdmin())
+
+		storageMock.On("GetAllSpaces", mock.Anything, &storage.PaginateCmd{}).
+			Return([]Space{ExampleAlicePersonalSpace, ExampleBobPersonalSpace}, nil).Once()
+
+		res, err := svc.GetAllSpaces(ctx, &users.ExampleAlice, &storage.PaginateCmd{})
+		assert.NoError(t, err)
+		assert.Equal(t, res, []Space{ExampleAlicePersonalSpace, ExampleBobPersonalSpace})
+	})
+
+	t.Run("GetAllSpaces with a user not admin", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		svc := NewService(tools, storageMock)
+
+		require.False(t, users.ExampleBob.IsAdmin())
+
+		res, err := svc.GetAllSpaces(ctx, &users.ExampleBob, &storage.PaginateCmd{StartAfter: map[string]string{}, Limit: 4})
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrUnauthorized)
 	})
 }

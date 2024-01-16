@@ -18,7 +18,7 @@ var ExampleAlicePersonalSpace = Space{
 }
 
 var ExampleBobPersonalSpace = Space{
-	id:        uuid.UUID("e97b60f7-add2-43e1-a9bd-e2dac9ce69ec"),
+	id:        uuid.UUID("614431ca-2493-41be-85e3-81fb2323f048"),
 	name:      "Bob's Space",
 	owners:    Owners{"0923c86c-24b6-4b9d-9050-e82b8408edf4"},
 	createdAt: now,

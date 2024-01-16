@@ -40,6 +40,18 @@ func TestSpaceSqlstore(t *testing.T) {
 		assert.ErrorIs(t, err, errNotFound)
 	})
 
+	t.Run("Create success", func(t *testing.T) {
+		err := store.Save(ctx, &ExampleBobPersonalSpace)
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("GetAllSpaces success", func(t *testing.T) {
+		res, err := store.GetAllSpaces(ctx, nil)
+		assert.NoError(t, err)
+		assert.EqualValues(t, []Space{ExampleAlicePersonalSpace, ExampleBobPersonalSpace}, res)
+	})
+
 	t.Run("GetAllUserSpaces with only personal success", func(t *testing.T) {
 		res, err := store.GetAllUserSpaces(ctx, AliceID, nil)
 		assert.NoError(t, err)
