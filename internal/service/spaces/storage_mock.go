@@ -30,6 +30,32 @@ func (_m *MockStorage) Delete(ctx context.Context, spaceID uuid.UUID) error {
 	return r0
 }
 
+// GetAllSpaces provides a mock function with given fields: ctx, cmd
+func (_m *MockStorage) GetAllSpaces(ctx context.Context, cmd *storage.PaginateCmd) ([]Space, error) {
+	ret := _m.Called(ctx, cmd)
+
+	var r0 []Space
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *storage.PaginateCmd) ([]Space, error)); ok {
+		return rf(ctx, cmd)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *storage.PaginateCmd) []Space); ok {
+		r0 = rf(ctx, cmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]Space)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *storage.PaginateCmd) error); ok {
+		r1 = rf(ctx, cmd)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetAllUserSpaces provides a mock function with given fields: ctx, userID, cmd
 func (_m *MockStorage) GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Space, error) {
 	ret := _m.Called(ctx, userID, cmd)

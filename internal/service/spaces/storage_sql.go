@@ -42,6 +42,10 @@ func (s *sqlStorage) Save(ctx context.Context, space *Space) error {
 	return nil
 }
 
+func (s *sqlStorage) GetAllSpaces(ctx context.Context, cmd *storage.PaginateCmd) ([]Space, error) {
+	return s.getAllbyKeys(ctx, cmd)
+}
+
 func (s *sqlStorage) GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Space, error) {
 	return s.getAllbyKeys(ctx, cmd, sq.Like{"owners": fmt.Sprintf("%%%s%%", userID)})
 }

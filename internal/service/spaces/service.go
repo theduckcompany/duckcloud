@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -26,6 +27,7 @@ type Storage interface {
 	Save(ctx context.Context, space *Space) error
 	GetByID(ctx context.Context, id uuid.UUID) (*Space, error)
 	GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Space, error)
+	GetAllSpaces(ctx context.Context, cmd *storage.PaginateCmd) ([]Space, error)
 	Delete(ctx context.Context, spaceID uuid.UUID) error
 	Patch(ctx context.Context, spaceID uuid.UUID, fields map[string]any) error
 }
@@ -38,6 +40,14 @@ type SpaceService struct {
 
 func NewService(tools tools.Tools, storage Storage) *SpaceService {
 	return &SpaceService{storage, tools.Clock(), tools.UUID()}
+}
+
+func (s *SpaceService) GetAllSpaces(ctx context.Context, user *users.User, cmd *storage.PaginateCmd) ([]Space, error) {
+	if !user.IsAdmin() {
+		return nil, errs.ErrUnauthorized
+	}
+
+	return s.storage.GetAllSpaces(ctx, cmd)
 }
 
 func (s *SpaceService) Create(ctx context.Context, cmd *CreateCmd) (*Space, error) {
