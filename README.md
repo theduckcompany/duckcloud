@@ -38,36 +38,42 @@ Nextcloud alternative with more simplicity for both the user and the administrat
 
 
 
-## Features
-- A file systeme accessible via a browser application
-- A Webdav integration to connect all your devices
-- An backup service with end-to-end encryption available with a few clicks
-- A quick an easy installation, 5mn max.
-- A lot will come soon.
+## Features / Roadmap
+- [x] A virtual file systeme with a deduplication system and a data at rest encryption
+- [x] A WebDAV integration to connect all your webdav compliante devices 
+- [x] A web interface for managing the users, settings and navigate the files
+- [] A contact registry with a CarDAV integration and a web interface
+- [] An event registry with a CalDAV integration and a web interface
+- [] A backup service with end-to-end encryption available with a few clicks
 
 ## Installation
 
+| **OS/Distro** | **Command**   |
+|---------------|---------------|
+| Archlinux     | yay duckcloud |
 
-
-#### Download a binary
-
-> This solution should be reserved for a quick test as no automatic updates are possible
-
-Duckcloud is a single binary without any dependences. It's really easy to install. Download a binary from the realease page and put it on your PATH. We have a bunch 
-of ways to make this even easier for most platforms. 
 
 
 #### From sources
 
-> This solution should be reserved for a quick test as no automatic updates are possible
-
 Make sure you have Go installed, and that go is in your path.
 
 Clone this repository and cd into the go directory. Then run:
+
 ```sh
-git clone https://github.com/theduckcompany/duckcloud
-go install ./cmd/duckserver
+go install github.com/theduckcompany/duckcloud@{{version}}
 ```
+
+
+#### From binaries
+
+Duckcloud is a single binary without any dependences. It's really easy to install. Download a binary from the realease page and put it on your PATH. We have a bunch 
+of ways to make this even easier for most platforms. 
+
+The [release page](https://github.com/theduckcompany/duckcloud/releases) includes precompiled binaries for Linux, macOS and Windows for every release. You can also get 
+the latest binary of `master` branch from the "Coming soon" pre-release.
+
+> This solution should be reserved for a quick test as no automatic updates are possible
 
 
 ## Configuration
