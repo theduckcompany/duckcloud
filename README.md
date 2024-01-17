@@ -42,9 +42,9 @@ Nextcloud alternative with more simplicity for both the user and the administrat
 - [x] A virtual file systeme with a deduplication system and a data at rest encryption
 - [x] A WebDAV integration to connect all your webdav compliante devices 
 - [x] A web interface for managing the users, settings and navigate the files
-- [] A contact registry with a CarDAV integration and a web interface
-- [] An event registry with a CalDAV integration and a web interface
-- [] A backup service with end-to-end encryption available with a few clicks
+- [ ] A contact registry with a CarDAV integration and a web interface
+- [ ] An event registry with a CalDAV integration and a web interface
+- [ ] A backup service with end-to-end encryption available with a few clicks
 
 ## Installation
 
@@ -68,6 +68,8 @@ Clone this repository and cd into the go directory. Then run:
 ```sh
 go install github.com/theduckcompany/duckcloud@{{version}}
 ```
+
+The versions can be found inside the [release page](https://github.com/theduckcompany/duckcloud/releases).
 
 
 #### From binaries
