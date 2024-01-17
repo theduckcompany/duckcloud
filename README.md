@@ -50,9 +50,14 @@ Nextcloud alternative with more simplicity for both the user and the administrat
 
 | **OS/Distro** | **Command**   |
 |---------------|---------------|
-| Archlinux     | yay duckcloud |
+| Archlinux     | `yay duckcloud` |
 
-
+<details>
+<summary>Packaging status</summary>
+<a href="https://repology.org/project/duckcloud/versions">
+    <img src="https://repology.org/badge/vertical-allrepos/duckcloud.svg?columns=3" alt="Packaging status">
+</a>
+</details>
 
 #### From sources
 
