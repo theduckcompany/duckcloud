@@ -57,7 +57,7 @@ func NewService(tools tools.Tools, storage Storage, scheduler scheduler.Service)
 	}
 }
 
-func (s *UserService) bootstrap(ctx context.Context) (*User, error) {
+func (s *UserService) Bootstrap(ctx context.Context) (*User, error) {
 	newUserID := s.uuid.New()
 	return s.createUser(ctx, newUserID, BoostrapUsername, secret.NewText(BoostrapPassword), true, newUserID)
 }

@@ -131,6 +131,8 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 
 		fx.Invoke(migrations.Run),
 
+		fx.Invoke(bootstrap),
+
 		// Start the tasks-runner
 		fx.Invoke(func(svc runner.Service, lc fx.Lifecycle, tools tools.Tools) {
 			cronSvc := cron.New("tasks-runner", 500*time.Millisecond, tools, svc)

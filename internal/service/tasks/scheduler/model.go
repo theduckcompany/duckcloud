@@ -91,3 +91,17 @@ func (a FSRemoveDuplicateFileArgs) Validate() error {
 		v.Field(&a.ExistingFileID, v.Required, is.UUIDv4),
 	)
 }
+
+type SpaceCreateArgs struct {
+	UserID uuid.UUID   `json:"user-id"`
+	Name   string      `json:"name"`
+	Owners []uuid.UUID `json:"owners"`
+}
+
+func (a SpaceCreateArgs) Validate() error {
+	return v.ValidateStruct(&a,
+		v.Field(&a.UserID, v.Required, is.UUIDv4),
+		v.Field(&a.Name, v.Required, v.Length(1, 30)),
+		v.Field(&a.Owners, v.Required, v.Each(is.UUIDv4)),
+	)
+}

@@ -44,6 +44,20 @@ func (_m *MockService) AddOwner(ctx context.Context, cmd *AddOwnerCmd) (*Space, 
 	return r0, r1
 }
 
+// Bootstrap provides a mock function with given fields: ctx, user
+func (_m *MockService) Bootstrap(ctx context.Context, user *users.User) error {
+	ret := _m.Called(ctx, user)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *users.User) error); ok {
+		r0 = rf(ctx, user)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Create provides a mock function with given fields: ctx, cmd
 func (_m *MockService) Create(ctx context.Context, cmd *CreateCmd) (*Space, error) {
 	ret := _m.Called(ctx, cmd)

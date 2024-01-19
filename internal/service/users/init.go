@@ -3,7 +3,6 @@ package users
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
@@ -20,6 +19,7 @@ const (
 //go:generate mockery --name Service
 type Service interface {
 	Create(ctx context.Context, user *CreateCmd) (*User, error)
+	Bootstrap(ctx context.Context) (*User, error)
 	GetByID(ctx context.Context, userID uuid.UUID) (*User, error)
 	Authenticate(ctx context.Context, username string, password secret.Text) (*User, error)
 	GetAll(ctx context.Context, paginateCmd *storage.PaginateCmd) ([]User, error)
@@ -31,26 +31,11 @@ type Service interface {
 }
 
 func Init(
-	ctx context.Context,
 	tools tools.Tools,
 	db *sql.DB,
 	scheduler scheduler.Service,
-) (Service, error) {
+) Service {
 	store := newSqlStorage(db, tools)
 
-	svc := NewService(tools, store, scheduler)
-
-	res, err := svc.GetAll(ctx, &storage.PaginateCmd{Limit: 4})
-	if err != nil {
-		return nil, fmt.Errorf("failed to GetAll users: %w", err)
-	}
-
-	if len(res) == 0 {
-		_, err = svc.bootstrap(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create the first user: %w", err)
-		}
-	}
-
-	return svc, nil
+	return NewService(tools, store, scheduler)
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
@@ -33,13 +34,14 @@ type Storage interface {
 }
 
 type SpaceService struct {
-	storage Storage
-	clock   clock.Clock
-	uuid    uuid.Service
+	storage   Storage
+	clock     clock.Clock
+	uuid      uuid.Service
+	scheduler scheduler.Service
 }
 
-func NewService(tools tools.Tools, storage Storage) *SpaceService {
-	return &SpaceService{storage, tools.Clock(), tools.UUID()}
+func NewService(tools tools.Tools, storage Storage, scheduler scheduler.Service) *SpaceService {
+	return &SpaceService{storage, tools.Clock(), tools.UUID(), scheduler}
 }
 
 func (s *SpaceService) GetAllSpaces(ctx context.Context, user *users.User, cmd *storage.PaginateCmd) ([]Space, error) {
@@ -64,7 +66,6 @@ func (s *SpaceService) Create(ctx context.Context, cmd *CreateCmd) (*Space, erro
 	space := Space{
 		id:        s.uuid.New(),
 		name:      cmd.Name,
-		isPublic:  len(cmd.Owners) > 1,
 		owners:    cmd.Owners,
 		createdAt: now,
 		createdBy: cmd.User.ID(),
@@ -137,7 +138,7 @@ func (s *SpaceService) AddOwner(ctx context.Context, cmd *AddOwnerCmd) (*Space, 
 
 	currentOwners := space.Owners()
 	if slices.Contains[[]uuid.UUID, uuid.UUID](currentOwners, cmd.Owner.ID()) {
-		return nil, nil
+		return space, nil
 	}
 
 	space.owners = append(currentOwners, cmd.Owner.ID())
@@ -160,12 +161,11 @@ func (s *SpaceService) RemoveOwner(ctx context.Context, cmd *RemoveOwnerCmd) (*S
 		return nil, fmt.Errorf("failed to get the space: %w", err)
 	}
 
-	currentOwners := space.Owners()
-	if !slices.Contains(currentOwners, cmd.Owner.ID()) {
-		return nil, nil
+	if !slices.Contains(space.Owners(), cmd.Owner.ID()) {
+		return space, nil
 	}
 
-	space.owners = slices.DeleteFunc(currentOwners, func(id uuid.UUID) bool {
+	space.owners = slices.DeleteFunc(space.Owners(), func(id uuid.UUID) bool {
 		return id == cmd.Owner.ID()
 	})
 
@@ -175,4 +175,26 @@ func (s *SpaceService) RemoveOwner(ctx context.Context, cmd *RemoveOwnerCmd) (*S
 	}
 
 	return space, nil
+}
+
+func (s *SpaceService) Bootstrap(ctx context.Context, user *users.User) error {
+	res, err := s.storage.GetAllSpaces(ctx, &storage.PaginateCmd{Limit: 1})
+	if err != nil {
+		return fmt.Errorf("faile to get all the spaces: %w", err)
+	}
+
+	if len(res) > 0 {
+		return nil
+	}
+
+	err = s.scheduler.RegisterSpaceCreateTask(ctx, &scheduler.SpaceCreateArgs{
+		UserID: user.ID(),
+		Name:   BootstrapSpaceName,
+		Owners: []uuid.UUID{user.ID()},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to RegisterSpaceCreateTask: %w", err)
+	}
+
+	return nil
 }

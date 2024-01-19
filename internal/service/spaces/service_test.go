@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -23,7 +24,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("Create success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
 
 		tools.UUIDMock.On("New").Return(ExampleAlicePersonalSpace.ID()).Once()
 		tools.ClockMock.On("Now").Return(now).Once()
@@ -41,7 +43,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("Create with a validation error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
 
 		res, err := svc.Create(ctx, &CreateCmd{
 			User:   &users.ExampleAlice,
@@ -56,7 +59,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("Create with a non admin user", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
 
 		res, err := svc.Create(ctx, &CreateCmd{
 			User:   &users.ExampleBob,
@@ -70,7 +74,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("Create with a Save error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
 
 		tools.UUIDMock.On("New").Return(ExampleAlicePersonalSpace.ID()).Once()
 		tools.ClockMock.On("Now").Return(now).Once()
@@ -89,7 +94,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetAlluserSpaces success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetAllUserSpaces", mock.Anything, AliceID, (*storage.PaginateCmd)(nil)).Return([]Space{ExampleAlicePersonalSpace}, nil).Once()
 
@@ -101,7 +107,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetAlluserSpaces with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetAllUserSpaces", mock.Anything, AliceID, (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
 
@@ -114,7 +121,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetByID success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(&ExampleAlicePersonalSpace, nil).Once()
 
@@ -126,7 +134,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetByID not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil, errNotFound).Once()
 
@@ -138,7 +147,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetByID with an error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil, fmt.Errorf("some-error")).Once()
 
@@ -151,7 +161,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("Delete success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
 
 		storageMock.On("Delete", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil).Once()
 
@@ -162,7 +173,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("Delete with an error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
 
 		storageMock.On("Delete", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(fmt.Errorf("some-error"))
 
@@ -174,7 +186,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetUserSpace success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(&ExampleAlicePersonalSpace, nil).Once()
 
@@ -186,7 +199,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetUserSpace not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil, errNotFound).Once()
 
@@ -198,7 +212,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetUserSpace with an error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil, fmt.Errorf("some-error")).Once()
 
@@ -211,7 +226,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetUserSpace with an existing space but an invalid user id", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(&ExampleAlicePersonalSpace, nil).Once()
 
@@ -224,7 +240,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetAllSpaces success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
 
 		require.True(t, users.ExampleAlice.IsAdmin())
 
@@ -239,7 +256,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("GetAllSpaces with a user not admin", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
 
 		require.False(t, users.ExampleBob.IsAdmin())
 
@@ -251,7 +269,8 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("RemoveOwner success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		svc := NewService(tools, storageMock)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
 
 		require.True(t, users.ExampleAlice.IsAdmin())
 
@@ -275,5 +294,273 @@ func Test_SpaceService(t *testing.T) {
 		expected := ExampleAlicePersonalSpace
 		expected.owners = Owners{}
 		assert.Equal(t, &expected, res)
+	})
+
+	t.Run("RemoveOwner with a non admin user", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
+
+		require.False(t, users.ExampleBob.IsAdmin())
+
+		res, err := svc.RemoveOwner(ctx, &RemoveOwnerCmd{
+			User:    &users.ExampleBob,
+			Owner:   &users.ExampleBob,
+			SpaceID: ExampleBobPersonalSpace.ID(),
+		})
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrUnauthorized)
+	})
+
+	t.Run("RemoveOwner with a GetByID error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
+
+		require.True(t, users.ExampleAlice.IsAdmin())
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).
+			Return(nil, errs.ErrInternal).Once()
+
+		res, err := svc.RemoveOwner(ctx, &RemoveOwnerCmd{
+			User:    &users.ExampleAlice,
+			Owner:   &users.ExampleAlice,
+			SpaceID: ExampleAlicePersonalSpace.ID(),
+		})
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrInternal)
+	})
+
+	t.Run("RemoveOwner with a user not present in perms", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
+
+		require.True(t, users.ExampleAlice.IsAdmin())
+
+		// copy the struct to avoid any changes and impact on other tests
+		copyAliceSpace := ExampleAlicePersonalSpace
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).
+			Return(&copyAliceSpace, nil).Once()
+
+		res, err := svc.RemoveOwner(ctx, &RemoveOwnerCmd{
+			User:    &users.ExampleAlice,
+			Owner:   &users.ExampleBob, // Bob is not set as owner inside ExampleAlicePersonalSpace
+			SpaceID: ExampleAlicePersonalSpace.ID(),
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, &ExampleAlicePersonalSpace, res) // nothing change
+	})
+
+	t.Run("RemoveOwner with a Patch error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
+
+		require.True(t, users.ExampleAlice.IsAdmin())
+
+		// copy the struct to avoid any changes and impact on other tests
+		copyAliceSpace := ExampleAlicePersonalSpace
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).
+			Return(&copyAliceSpace, nil).Once()
+
+		storageMock.On("Patch", mock.Anything, ExampleAlicePersonalSpace.ID(), map[string]interface{}{
+			"owners": Owners{},
+		}).Return(errs.ErrInternal).Once()
+
+		res, err := svc.RemoveOwner(ctx, &RemoveOwnerCmd{
+			User:    &users.ExampleAlice,
+			Owner:   &users.ExampleAlice,
+			SpaceID: ExampleAlicePersonalSpace.ID(),
+		})
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrInternal)
+	})
+
+	t.Run("AddOwner success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
+
+		require.True(t, users.ExampleAlice.IsAdmin())
+
+		// copy the struct to avoid any changes and impact on other tests
+		copyAliceSpace := ExampleAlicePersonalSpace
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).
+			Return(&copyAliceSpace, nil).Once()
+
+		storageMock.On("Patch", mock.Anything, ExampleAlicePersonalSpace.ID(), map[string]interface{}{
+			"owners": Owners{users.ExampleAlice.ID(), users.ExampleBob.ID()},
+		}).Return(nil).Once()
+
+		res, err := svc.AddOwner(ctx, &AddOwnerCmd{
+			User:    &users.ExampleAlice,
+			Owner:   &users.ExampleBob,
+			SpaceID: ExampleAlicePersonalSpace.ID(),
+		})
+		assert.NoError(t, err)
+
+		expected := ExampleAlicePersonalSpace
+		expected.owners = Owners{users.ExampleAlice.ID(), users.ExampleBob.ID()}
+		assert.Equal(t, &expected, res)
+	})
+
+	t.Run("AddOwner with a User not admin", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
+
+		require.False(t, users.ExampleBob.IsAdmin())
+
+		res, err := svc.AddOwner(ctx, &AddOwnerCmd{
+			User:    &users.ExampleBob,
+			Owner:   &users.ExampleBob,
+			SpaceID: ExampleAlicePersonalSpace.ID(),
+		})
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrUnauthorized)
+	})
+
+	t.Run("AddOwner with a GetByID error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
+
+		require.True(t, users.ExampleAlice.IsAdmin())
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).
+			Return(nil, errs.ErrInternal).Once()
+
+		res, err := svc.AddOwner(ctx, &AddOwnerCmd{
+			User:    &users.ExampleAlice,
+			Owner:   &users.ExampleBob,
+			SpaceID: ExampleAlicePersonalSpace.ID(),
+		})
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrInternal)
+	})
+
+	t.Run("AddOwner with a user already present in perms", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
+
+		require.True(t, users.ExampleAlice.IsAdmin())
+
+		// copy the struct to avoid any changes and impact on other tests
+		copyAliceSpace := ExampleAlicePersonalSpace
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).
+			Return(&copyAliceSpace, nil).Once()
+
+		res, err := svc.AddOwner(ctx, &AddOwnerCmd{
+			User:    &users.ExampleAlice,
+			Owner:   &users.ExampleAlice, // Alice is already present in perms
+			SpaceID: ExampleAlicePersonalSpace.ID(),
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, &ExampleAlicePersonalSpace, res) // nothing change
+	})
+
+	t.Run("AddOwner with a Patch error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
+
+		require.True(t, users.ExampleAlice.IsAdmin())
+
+		// copy the struct to avoid any changes and impact on other tests
+		copyAliceSpace := ExampleAlicePersonalSpace
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).
+			Return(&copyAliceSpace, nil).Once()
+
+		storageMock.On("Patch", mock.Anything, ExampleAlicePersonalSpace.ID(), map[string]interface{}{
+			"owners": Owners{users.ExampleAlice.ID(), users.ExampleBob.ID()},
+		}).Return(errs.ErrInternal).Once()
+
+		res, err := svc.AddOwner(ctx, &AddOwnerCmd{
+			User:    &users.ExampleAlice,
+			Owner:   &users.ExampleBob,
+			SpaceID: ExampleAlicePersonalSpace.ID(),
+		})
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrInternal)
+	})
+
+	t.Run("Bootstrap success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
+
+		storageMock.On("GetAllSpaces", mock.Anything, &storage.PaginateCmd{Limit: 1}).
+			Return([]Space{}, nil).Once()
+
+		schedulerMock.On("RegisterSpaceCreateTask", mock.Anything, &scheduler.SpaceCreateArgs{
+			UserID: users.ExampleAlice.ID(),
+			Name:   BootstrapSpaceName,
+			Owners: []uuid.UUID{users.ExampleAlice.ID()},
+		}).Return(nil).Once()
+
+		err := svc.Bootstrap(ctx, &users.ExampleAlice)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Bootstrap with a GetAllSpaces error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
+
+		storageMock.On("GetAllSpaces", mock.Anything, &storage.PaginateCmd{Limit: 1}).
+			Return(nil, errs.ErrInternal).Once()
+
+		err := svc.Bootstrap(ctx, &users.ExampleAlice)
+		assert.ErrorIs(t, err, errs.ErrInternal)
+	})
+
+	t.Run("Bootstrap with an already bootstraped service", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
+
+		storageMock.On("GetAllSpaces", mock.Anything, &storage.PaginateCmd{Limit: 1}).
+			Return([]Space{ExampleAlicePersonalSpace}, nil).Once()
+
+		err := svc.Bootstrap(ctx, &users.ExampleAlice)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Bootstrap with a Scheduler error", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
+
+		storageMock.On("GetAllSpaces", mock.Anything, &storage.PaginateCmd{Limit: 1}).
+			Return([]Space{}, nil).Once()
+
+		schedulerMock.On("RegisterSpaceCreateTask", mock.Anything, &scheduler.SpaceCreateArgs{
+			UserID: users.ExampleAlice.ID(),
+			Name:   BootstrapSpaceName,
+			Owners: []uuid.UUID{users.ExampleAlice.ID()},
+		}).Return(errs.ErrInternal).Once()
+
+		err := svc.Bootstrap(ctx, &users.ExampleAlice)
+		assert.ErrorIs(t, err, errs.ErrInternal)
 	})
 }

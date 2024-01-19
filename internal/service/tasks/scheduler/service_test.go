@@ -12,12 +12,51 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/model"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 func TestSchdulerService(t *testing.T) {
 	ctx := context.Background()
 	now := time.Date(2020, time.February, 12, 11, 10, 0, 0, time.UTC)
+
+	t.Run("RegisterSpaceCreateTask", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := storage.NewMockStorage(t)
+		svc := NewService(storageMock, tools)
+
+		tools.UUIDMock.On("New").Return(uuid.UUID("some-uuid")).Once()
+		tools.ClockMock.On("Now").Return(now).Once()
+
+		storageMock.On("Save", mock.Anything, &model.Task{
+			ID:           uuid.UUID("some-uuid"),
+			Priority:     1,
+			Status:       model.Queuing,
+			Name:         "space-create",
+			RegisteredAt: now,
+			Args:         json.RawMessage(`{"user-id":"ad7dfbfd-fed3-4ee0-8d61-5321986aa6b0","name":"First Space","owners":["fac2e836-eb4b-4eba-8184-25c332180326"]}`),
+		}).Return(nil).Once()
+
+		err := svc.RegisterSpaceCreateTask(ctx, &SpaceCreateArgs{
+			UserID: uuid.UUID("ad7dfbfd-fed3-4ee0-8d61-5321986aa6b0"),
+			Name:   "First Space",
+			Owners: []uuid.UUID{uuid.UUID("fac2e836-eb4b-4eba-8184-25c332180326")},
+		})
+		assert.NoError(t, err)
+	})
+
+	t.Run("RegisterSpaceCreateTask", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := storage.NewMockStorage(t)
+		svc := NewService(storageMock, tools)
+
+		err := svc.RegisterSpaceCreateTask(ctx, &SpaceCreateArgs{
+			UserID: uuid.UUID("invalid"),
+			Name:   "First Space",
+			Owners: []uuid.UUID{uuid.UUID("fac2e836-eb4b-4eba-8184-25c332180326")},
+		})
+		assert.ErrorIs(t, err, errs.ErrValidation)
+	})
 
 	t.Run("RegisterFSGCTask", func(t *testing.T) {
 		tools := tools.NewMock(t)

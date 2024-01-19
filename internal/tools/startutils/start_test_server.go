@@ -21,7 +21,6 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tasks"
 	"github.com/theduckcompany/duckcloud/internal/tools"
-	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
@@ -58,20 +57,18 @@ func NewServer(t *testing.T) *Server {
 	afs := afero.NewMemMapFs()
 
 	configSvc := config.Init(ctx, db)
-	spacesSvc := spaces.Init(tools, db)
 	schedulerSvc := scheduler.Init(db, tools)
+	spacesSvc := spaces.Init(tools, db, schedulerSvc)
 	webSessionsSvc := websessions.Init(tools, db)
 	davSessionsSvc := davsessions.Init(db, spacesSvc, tools)
 	oauthSessionsSvc := oauthsessions.Init(tools, db)
 	oauthConsentsSvc := oauthconsents.Init(tools, db)
+	usersSvc := users.Init(tools, db, schedulerSvc)
 
 	masterKeySvc, err := masterkey.Init(ctx, configSvc, afs, masterkey.Config{DevMode: true})
 	require.NoError(t, err)
 
 	filesInit, err := files.Init(masterKeySvc, "/", afs, tools, db)
-	require.NoError(t, err)
-
-	usersSvc, err := users.Init(ctx, tools, db, schedulerSvc)
 	require.NoError(t, err)
 
 	dfsInit, err := dfs.Init(db, spacesSvc, filesInit.Service, schedulerSvc, usersSvc, tools)
@@ -87,12 +84,19 @@ func NewServer(t *testing.T) *Server {
 			dfsInit.FSRemoveDuplicateFilesRunner,
 			tasks.UserCreateTask,
 			tasks.UserDeleteTask,
+			tasks.SpaceCreateTask,
 		}, tools, db)
 
 	err = runnerSvc.Run(ctx)
 	require.NoError(t, err)
 
-	user, err := usersSvc.Authenticate(ctx, users.BoostrapUsername, secret.NewText(users.BoostrapPassword))
+	user, err := usersSvc.Bootstrap(ctx)
+	require.NoError(t, err)
+
+	err = spacesSvc.Bootstrap(ctx, user)
+	require.NoError(t, err)
+
+	err = runnerSvc.Run(ctx)
 	require.NoError(t, err)
 
 	return &Server{

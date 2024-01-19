@@ -14,8 +14,9 @@ import (
 
 type Result struct {
 	fx.Out
-	UserDeleteTask runner.TaskRunner `group:"tasks"`
-	UserCreateTask runner.TaskRunner `group:"tasks"`
+	UserDeleteTask  runner.TaskRunner `group:"tasks"`
+	UserCreateTask  runner.TaskRunner `group:"tasks"`
+	SpaceCreateTask runner.TaskRunner `group:"tasks"`
 }
 
 func Init(
@@ -28,7 +29,8 @@ func Init(
 	oauthConsents oauthconsents.Service,
 ) Result {
 	return Result{
-		UserCreateTask: NewUserCreateTaskRunner(users, spaces, fs),
-		UserDeleteTask: NewUserDeleteTaskRunner(users, webSessions, davSessions, oauthSessions, oauthConsents, spaces, fs),
+		UserCreateTask:  NewUserCreateTaskRunner(users, spaces, fs),
+		UserDeleteTask:  NewUserDeleteTaskRunner(users, webSessions, davSessions, oauthSessions, oauthConsents, spaces, fs),
+		SpaceCreateTask: NewSpaceCreateTaskRunner(users, spaces, fs),
 	}
 }

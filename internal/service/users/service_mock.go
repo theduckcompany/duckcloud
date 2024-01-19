@@ -58,6 +58,32 @@ func (_m *MockService) Authenticate(ctx context.Context, username string, passwo
 	return r0, r1
 }
 
+// Bootstrap provides a mock function with given fields: ctx
+func (_m *MockService) Bootstrap(ctx context.Context) (*User, error) {
+	ret := _m.Called(ctx)
+
+	var r0 *User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (*User, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) *User); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Create provides a mock function with given fields: ctx, user
 func (_m *MockService) Create(ctx context.Context, user *CreateCmd) (*User, error) {
 	ret := _m.Called(ctx, user)
