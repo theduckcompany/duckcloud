@@ -70,3 +70,33 @@ func (t CreateCmd) Validate() error {
 		v.Field(&t.Owners, v.Required, v.Each(is.UUIDv4)),
 	)
 }
+
+type AddOwnerCmd struct {
+	User    *users.User
+	Owner   *users.User
+	SpaceID uuid.UUID
+}
+
+// Validate the fields.
+func (t AddOwnerCmd) Validate() error {
+	return v.ValidateStruct(&t,
+		v.Field(&t.User, v.Required),
+		v.Field(&t.Owner, v.Required),
+		v.Field(&t.SpaceID, v.Required, is.UUIDv4),
+	)
+}
+
+type RemoveOwnerCmd struct {
+	User    *users.User
+	Owner   *users.User
+	SpaceID uuid.UUID
+}
+
+// Validate the fields.
+func (t RemoveOwnerCmd) Validate() error {
+	return v.ValidateStruct(&t,
+		v.Field(&t.User, v.Required),
+		v.Field(&t.Owner, v.Required),
+		v.Field(&t.SpaceID, v.Required, is.UUIDv4),
+	)
+}

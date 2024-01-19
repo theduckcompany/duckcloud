@@ -247,4 +247,33 @@ func Test_SpaceService(t *testing.T) {
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrUnauthorized)
 	})
+
+	t.Run("RemoveOwner success", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		svc := NewService(tools, storageMock)
+
+		require.True(t, users.ExampleAlice.IsAdmin())
+
+		// copy the struct to avoid any changes and impact on other tests
+		copyAliceSpace := ExampleAlicePersonalSpace
+
+		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).
+			Return(&copyAliceSpace, nil).Once()
+
+		storageMock.On("Patch", mock.Anything, ExampleAlicePersonalSpace.ID(), map[string]interface{}{
+			"owners": Owners{},
+		}).Return(nil).Once()
+
+		res, err := svc.RemoveOwner(ctx, &RemoveOwnerCmd{
+			User:    &users.ExampleAlice,
+			Owner:   &users.ExampleAlice,
+			SpaceID: ExampleAlicePersonalSpace.ID(),
+		})
+		assert.NoError(t, err)
+
+		expected := ExampleAlicePersonalSpace
+		expected.owners = Owners{}
+		assert.Equal(t, &expected, res)
+	})
 }

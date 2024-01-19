@@ -18,6 +18,8 @@ type Service interface {
 	GetUserSpace(ctx context.Context, userID, spaceID uuid.UUID) (*Space, error)
 	GetByID(ctx context.Context, spaceID uuid.UUID) (*Space, error)
 	Delete(ctx context.Context, spaceID uuid.UUID) error
+	AddOwner(ctx context.Context, cmd *AddOwnerCmd) (*Space, error)
+	RemoveOwner(ctx context.Context, cmd *RemoveOwnerCmd) (*Space, error)
 }
 
 func Init(tools tools.Tools, db *sql.DB) Service {

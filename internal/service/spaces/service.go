@@ -124,3 +124,55 @@ func (s *SpaceService) GetUserSpace(ctx context.Context, userID, spaceID uuid.UU
 
 	return space, nil
 }
+
+func (s *SpaceService) AddOwner(ctx context.Context, cmd *AddOwnerCmd) (*Space, error) {
+	if !cmd.User.IsAdmin() {
+		return nil, errs.ErrUnauthorized
+	}
+
+	space, err := s.storage.GetByID(ctx, cmd.SpaceID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get the space: %w", err)
+	}
+
+	currentOwners := space.Owners()
+	if slices.Contains[[]uuid.UUID, uuid.UUID](currentOwners, cmd.Owner.ID()) {
+		return nil, nil
+	}
+
+	space.owners = append(currentOwners, cmd.Owner.ID())
+
+	err = s.storage.Patch(ctx, space.ID(), map[string]any{"owners": space.owners})
+	if err != nil {
+		return nil, fmt.Errorf("failed to patch the space's owners field: %w", err)
+	}
+
+	return space, nil
+}
+
+func (s *SpaceService) RemoveOwner(ctx context.Context, cmd *RemoveOwnerCmd) (*Space, error) {
+	if !cmd.User.IsAdmin() {
+		return nil, errs.ErrUnauthorized
+	}
+
+	space, err := s.storage.GetByID(ctx, cmd.SpaceID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get the space: %w", err)
+	}
+
+	currentOwners := space.Owners()
+	if !slices.Contains(currentOwners, cmd.Owner.ID()) {
+		return nil, nil
+	}
+
+	space.owners = slices.DeleteFunc(currentOwners, func(id uuid.UUID) bool {
+		return id == cmd.Owner.ID()
+	})
+
+	err = s.storage.Patch(ctx, space.ID(), map[string]any{"owners": space.owners})
+	if err != nil {
+		return nil, fmt.Errorf("failed to patch the space's owners field: %w", err)
+	}
+
+	return space, nil
+}
