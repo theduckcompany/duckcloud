@@ -53,6 +53,20 @@ func Test_SpaceService(t *testing.T) {
 		assert.ErrorContains(t, err, "Name: cannot be blank.")
 	})
 
+	t.Run("Create with a non admin user", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		svc := NewService(tools, storageMock)
+
+		res, err := svc.Create(ctx, &CreateCmd{
+			User:   &users.ExampleBob,
+			Name:   "First space",
+			Owners: []uuid.UUID{AliceID},
+		})
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, errs.ErrUnauthorized)
+	})
+
 	t.Run("Create with a Save error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
