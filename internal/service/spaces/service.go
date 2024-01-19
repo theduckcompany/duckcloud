@@ -56,6 +56,10 @@ func (s *SpaceService) Create(ctx context.Context, cmd *CreateCmd) (*Space, erro
 		return nil, errs.Validation(err)
 	}
 
+	if !cmd.User.IsAdmin() {
+		return nil, errs.ErrUnauthorized
+	}
+
 	now := s.clock.Now()
 	space := Space{
 		id:        s.uuid.New(),
