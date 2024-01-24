@@ -9,7 +9,6 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
-	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 type UserCreateTaskRunner struct {
@@ -48,28 +47,6 @@ func (r *UserCreateTaskRunner) RunArgs(ctx context.Context, args *scheduler.User
 		return nil
 	default:
 		return fmt.Errorf("unepected user status: %s", user.Status())
-	}
-
-	existingSpaces, err := r.spaces.GetAllUserSpaces(ctx, user.ID(), nil)
-	if err != nil {
-		return fmt.Errorf("failed to GetAllUserSpaces: %w", err)
-	}
-
-	var firstSpace *spaces.Space
-	switch len(existingSpaces) {
-	case 0:
-		firstSpace = nil
-	case 1:
-		firstSpace = &existingSpaces[0]
-	default:
-		return fmt.Errorf("the new user already have several space: %+v", existingSpaces)
-	}
-
-	if firstSpace == nil {
-		firstSpace, err = r.fs.CreateFS(ctx, user, []uuid.UUID{user.ID()})
-		if err != nil {
-			return fmt.Errorf("failed to CreateFS: %w", err)
-		}
 	}
 
 	_, err = r.users.MarkInitAsFinished(ctx, args.UserID)

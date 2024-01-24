@@ -80,9 +80,9 @@ func (r *UserDeleteTaskRunner) RunArgs(ctx context.Context, args *scheduler.User
 	}
 
 	for _, space := range spaces {
-		if space.IsPublic() {
-			continue
-		}
+		// if space.IsPublic() {
+		// 	continue
+		// }
 
 		err = r.fs.Destroy(ctx, &space)
 		if err != nil {

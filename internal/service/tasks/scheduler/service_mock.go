@@ -69,6 +69,20 @@ func (_m *MockService) RegisterFileUploadTask(ctx context.Context, args *FileUpl
 	return r0
 }
 
+// RegisterSpaceCreateTask provides a mock function with given fields: ctx, args
+func (_m *MockService) RegisterSpaceCreateTask(ctx context.Context, args *SpaceCreateArgs) error {
+	ret := _m.Called(ctx, args)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *SpaceCreateArgs) error); ok {
+		r0 = rf(ctx, args)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // RegisterUserCreateTask provides a mock function with given fields: ctx, args
 func (_m *MockService) RegisterUserCreateTask(ctx context.Context, args *UserCreateArgs) error {
 	ret := _m.Called(ctx, args)

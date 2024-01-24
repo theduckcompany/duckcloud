@@ -11,13 +11,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
-	"github.com/theduckcompany/duckcloud/internal/service/spaces"
-	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/startutils"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
-	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 func Test_DFS_Integration(t *testing.T) {
@@ -25,37 +22,13 @@ func Test_DFS_Integration(t *testing.T) {
 
 	serv := startutils.NewServer(t)
 
-	dfsSvc := serv.DFSSvc
-
-	var space spaces.Space
 	var rootFS *dfs.INode
 
-	t.Run("CreateFS and RemoveFS success", func(t *testing.T) {
-		tmpSpace, err := dfsSvc.CreateFS(ctx, &users.ExampleAlice, []uuid.UUID{serv.User.ID()})
-		require.NoError(t, err)
+	spaces, err := serv.SpacesSvc.GetAllUserSpaces(ctx, serv.User.ID(), nil)
+	require.NoError(t, err)
+	require.Len(t, spaces, 1)
 
-		// Check that a new space have been created
-		spaces, err := serv.SpacesSvc.GetAllUserSpaces(ctx, serv.User.ID(), nil)
-		require.NoError(t, err)
-		require.Len(t, spaces, 2) // the default one + the new one
-
-		// Delete the new space
-		err = dfsSvc.Destroy(ctx, tmpSpace)
-		require.NoError(t, err)
-
-		// Check that a new space have been created
-		spaces, err = serv.SpacesSvc.GetAllUserSpaces(ctx, serv.User.ID(), nil)
-		require.NoError(t, err)
-		require.Len(t, spaces, 1) // only the default one
-	})
-
-	t.Run("Retrieve the default user space", func(t *testing.T) {
-		spaces, err := serv.SpacesSvc.GetAllUserSpaces(ctx, serv.User.ID(), nil)
-		require.NoError(t, err)
-		require.Len(t, spaces, 1)
-
-		space = spaces[0]
-	})
+	space := spaces[0]
 
 	t.Run("Get the rootFS success", func(t *testing.T) {
 		var err error

@@ -111,6 +111,15 @@ func (t *TasksService) RegisterUserDeleteTask(ctx context.Context, args *UserDel
 	return t.registerTask(ctx, 1, "user-delete", args)
 }
 
+func (t *TasksService) RegisterSpaceCreateTask(ctx context.Context, args *SpaceCreateArgs) error {
+	err := args.Validate()
+	if err != nil {
+		return errs.Validation(err)
+	}
+
+	return t.registerTask(ctx, 1, "space-create", args)
+}
+
 func (t *TasksService) registerTask(ctx context.Context, priority int, name string, args any) error {
 	rawArgs, err := json.Marshal(args)
 	if err != nil {

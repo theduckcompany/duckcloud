@@ -18,6 +18,46 @@ type MockService struct {
 	mock.Mock
 }
 
+// AddOwner provides a mock function with given fields: ctx, cmd
+func (_m *MockService) AddOwner(ctx context.Context, cmd *AddOwnerCmd) (*Space, error) {
+	ret := _m.Called(ctx, cmd)
+
+	var r0 *Space
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *AddOwnerCmd) (*Space, error)); ok {
+		return rf(ctx, cmd)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *AddOwnerCmd) *Space); ok {
+		r0 = rf(ctx, cmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*Space)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *AddOwnerCmd) error); ok {
+		r1 = rf(ctx, cmd)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Bootstrap provides a mock function with given fields: ctx, user
+func (_m *MockService) Bootstrap(ctx context.Context, user *users.User) error {
+	ret := _m.Called(ctx, user)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *users.User) error); ok {
+		r0 = rf(ctx, user)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Create provides a mock function with given fields: ctx, cmd
 func (_m *MockService) Create(ctx context.Context, cmd *CreateCmd) (*Space, error) {
 	ret := _m.Called(ctx, cmd)
@@ -155,6 +195,32 @@ func (_m *MockService) GetUserSpace(ctx context.Context, userID uuid.UUID, space
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
 		r1 = rf(ctx, userID, spaceID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RemoveOwner provides a mock function with given fields: ctx, cmd
+func (_m *MockService) RemoveOwner(ctx context.Context, cmd *RemoveOwnerCmd) (*Space, error) {
+	ret := _m.Called(ctx, cmd)
+
+	var r0 *Space
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *RemoveOwnerCmd) (*Space, error)); ok {
+		return rf(ctx, cmd)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *RemoveOwnerCmd) *Space); ok {
+		r0 = rf(ctx, cmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*Space)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *RemoveOwnerCmd) error); ok {
+		r1 = rf(ctx, cmd)
 	} else {
 		r1 = ret.Error(1)
 	}

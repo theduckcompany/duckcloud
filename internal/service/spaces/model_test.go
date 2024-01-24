@@ -8,18 +8,9 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
-func Test_CreateCmd_Validate(t *testing.T) {
-	assert.EqualError(t, CreateCmd{
-		User:   &users.ExampleAlice,
-		Name:   "My space",
-		Owners: []uuid.UUID{"some-invalid-uuid"},
-	}.Validate(), "Owners: (0: must be a valid UUID v4.).")
-}
-
 func Test_Space_Getters(t *testing.T) {
 	assert.Equal(t, ExampleAlicePersonalSpace.ID(), ExampleAlicePersonalSpace.id)
 	assert.Equal(t, ExampleAlicePersonalSpace.Name(), ExampleAlicePersonalSpace.name)
-	assert.Equal(t, ExampleAlicePersonalSpace.IsPublic(), ExampleAlicePersonalSpace.isPublic)
 	assert.Equal(t, ExampleAlicePersonalSpace.Owners(), ExampleAlicePersonalSpace.owners)
 	assert.Equal(t, ExampleAlicePersonalSpace.CreatedAt(), ExampleAlicePersonalSpace.createdAt)
 	assert.Equal(t, ExampleAlicePersonalSpace.CreatedBy(), ExampleAlicePersonalSpace.createdBy)
@@ -55,4 +46,28 @@ func Test_Owners_Getters(t *testing.T) {
 		assert.Equal(t, owners.String(), val)
 		assert.NoError(t, err)
 	})
+}
+
+func Test_CreateCmd_Validate(t *testing.T) {
+	assert.EqualError(t, CreateCmd{
+		User:   &users.ExampleAlice,
+		Name:   "My space",
+		Owners: []uuid.UUID{"some-invalid-uuid"},
+	}.Validate(), "Owners: (0: must be a valid UUID v4.).")
+}
+
+func Test_AddOwnerCmd_Validate(t *testing.T) {
+	assert.EqualError(t, AddOwnerCmd{
+		User:    &users.ExampleAlice,
+		Owner:   &users.ExampleAlice,
+		SpaceID: "",
+	}.Validate(), "SpaceID: cannot be blank.")
+}
+
+func Test_RemoveOwnerCmd_Validate(t *testing.T) {
+	assert.EqualError(t, RemoveOwnerCmd{
+		User:    &users.ExampleAlice,
+		Owner:   &users.ExampleAlice,
+		SpaceID: "",
+	}.Validate(), "SpaceID: cannot be blank.")
 }

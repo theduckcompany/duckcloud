@@ -12,10 +12,11 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
+const BootstrapSpaceName = "Everyone"
+
 type Space struct {
 	id        uuid.UUID
 	name      string
-	isPublic  bool
 	owners    Owners
 	createdAt time.Time
 	createdBy uuid.UUID
@@ -23,7 +24,6 @@ type Space struct {
 
 func (f Space) ID() uuid.UUID        { return f.id }
 func (f Space) Name() string         { return f.name }
-func (f Space) IsPublic() bool       { return f.isPublic }
 func (f Space) Owners() Owners       { return f.owners }
 func (f Space) CreatedAt() time.Time { return f.createdAt }
 func (f Space) CreatedBy() uuid.UUID { return f.createdBy }
@@ -68,5 +68,35 @@ func (t CreateCmd) Validate() error {
 		v.Field(&t.User, v.Required),
 		v.Field(&t.Name, v.Required, v.Length(1, 30)),
 		v.Field(&t.Owners, v.Required, v.Each(is.UUIDv4)),
+	)
+}
+
+type AddOwnerCmd struct {
+	User    *users.User
+	Owner   *users.User
+	SpaceID uuid.UUID
+}
+
+// Validate the fields.
+func (t AddOwnerCmd) Validate() error {
+	return v.ValidateStruct(&t,
+		v.Field(&t.User, v.Required),
+		v.Field(&t.Owner, v.Required),
+		v.Field(&t.SpaceID, v.Required, is.UUIDv4),
+	)
+}
+
+type RemoveOwnerCmd struct {
+	User    *users.User
+	Owner   *users.User
+	SpaceID uuid.UUID
+}
+
+// Validate the fields.
+func (t RemoveOwnerCmd) Validate() error {
+	return v.ValidateStruct(&t,
+		v.Field(&t.User, v.Required),
+		v.Field(&t.Owner, v.Required),
+		v.Field(&t.SpaceID, v.Required, is.UUIDv4),
 	)
 }

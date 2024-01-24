@@ -69,34 +69,20 @@ func NewService(
 }
 
 func (s *DFSService) Destroy(ctx context.Context, space *spaces.Space) error {
-	err := s.Remove(ctx, &PathCmd{Space: space, Path: "/"})
+	rootFS, err := s.storage.GetSpaceRoot(ctx, space.ID())
+	if errors.Is(err, errs.ErrNotFound) {
+		return nil
+	}
 	if err != nil {
-		return fmt.Errorf("failed to remove the fs: %w", err)
+		return errs.Internal(fmt.Errorf("failed to Get inode: %w", err))
 	}
 
-	// XXX:MULTI-WRITE
-	//
-	err = s.spaces.Delete(ctx, space.ID())
-	if err != nil {
-		return fmt.Errorf("failed to delete the space %q: %w", space.ID(), err)
-	}
-
-	return nil
+	return s.removeINode(ctx, rootFS)
 }
 
-func (s *DFSService) CreateFS(ctx context.Context, user *users.User, owners []uuid.UUID) (*spaces.Space, error) {
-	// XXX:MULTI-WRITE
-	space, err := s.spaces.Create(ctx, &spaces.CreateCmd{
-		User:   user,
-		Name:   DefaultSpaceName,
-		Owners: owners,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create the space: %w", err)
-	}
-
+func (s *DFSService) CreateFS(ctx context.Context, user *users.User, space *spaces.Space) (*INode, error) {
 	now := s.clock.Now()
-	node := INode{
+	fsRoot := INode{
 		id:             s.uuid.New(),
 		parent:         nil,
 		name:           "",
@@ -107,12 +93,12 @@ func (s *DFSService) CreateFS(ctx context.Context, user *users.User, owners []uu
 		fileID:         nil,
 	}
 
-	err = s.storage.Save(ctx, &node)
+	err := s.storage.Save(ctx, &fsRoot)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to Save: %w", err))
 	}
 
-	return space, nil
+	return &fsRoot, nil
 }
 
 func (s *DFSService) ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
@@ -242,6 +228,10 @@ func (s *DFSService) CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, 
 }
 
 func (s *DFSService) Remove(ctx context.Context, cmd *PathCmd) error {
+	if CleanPath(cmd.Path) == "/" {
+		return fmt.Errorf("%w: can't remove /", errs.ErrUnauthorized)
+	}
+
 	inode, err := s.Get(ctx, cmd)
 	if errors.Is(err, errs.ErrNotFound) {
 		return nil
