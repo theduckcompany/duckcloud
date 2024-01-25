@@ -72,13 +72,13 @@ func (_m *MockService) CreateFS(ctx context.Context, user *users.User, space *sp
 	return r0, r1
 }
 
-// Destroy provides a mock function with given fields: ctx, space
-func (_m *MockService) Destroy(ctx context.Context, space *spaces.Space) error {
-	ret := _m.Called(ctx, space)
+// Destroy provides a mock function with given fields: ctx, user, space
+func (_m *MockService) Destroy(ctx context.Context, user *users.User, space *spaces.Space) error {
+	ret := _m.Called(ctx, user, space)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *spaces.Space) error); ok {
-		r0 = rf(ctx, space)
+	if rf, ok := ret.Get(0).(func(context.Context, *users.User, *spaces.Space) error); ok {
+		r0 = rf(ctx, user, space)
 	} else {
 		r0 = ret.Error(0)
 	}

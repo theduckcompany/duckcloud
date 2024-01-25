@@ -74,21 +74,21 @@ func (r *UserDeleteTaskRunner) RunArgs(ctx context.Context, args *scheduler.User
 		return fmt.Errorf("failed to delete all oauth sessions: %w", err)
 	}
 
-	spaces, err := r.spaces.GetAllUserSpaces(ctx, args.UserID, nil)
+	_, err = r.spaces.GetAllUserSpaces(ctx, args.UserID, nil)
 	if err != nil {
 		return fmt.Errorf("failed to GetAllUserSpaces: %w", err)
 	}
 
-	for _, space := range spaces {
-		// if space.IsPublic() {
-		// 	continue
-		// }
+	// for _, space := range spaces {
+	// if space.IsPublic() {
+	// 	continue
+	// }
 
-		err = r.fs.Destroy(ctx, &space)
-		if err != nil {
-			return fmt.Errorf("failed to RemoveFS: %w", err)
-		}
-	}
+	// err = r.fs.Destroy(ctx, &space)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to RemoveFS: %w", err)
+	// }
+	// }
 
 	err = r.oauthConsents.DeleteAll(ctx, args.UserID)
 	if err != nil {
