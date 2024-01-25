@@ -2,7 +2,6 @@ package logger
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,7 +12,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 )
 
@@ -300,17 +298,4 @@ func TestFxLogger(t *testing.T) {
 			assert.Equal(t, tt.wantFields, got)
 		})
 	}
-}
-
-func ExampleNew() {
-	app := fx.New(
-		fx.Provide(func() *slog.Logger {
-			return slog.New(slog.NewJSONHandler(os.Stdout, nil))
-		}),
-		fx.WithLogger(func(logger *slog.Logger) fxevent.Logger {
-			return NewFxLogger(logger)
-		}),
-	)
-	defer app.Stop(context.TODO())
-	app.Start(context.TODO())
 }
