@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
@@ -31,20 +30,6 @@ func TestInodeGetter(t *testing.T) {
 }
 
 func Test_Inodes_Commands(t *testing.T) {
-	t.Run("CreateFileCmd", func(t *testing.T) {
-		cmd := CreateFileCmd{
-			Space:      nil, // invalid
-			Parent:     &ExampleAliceRoot,
-			Name:       "Foobar",
-			File:       &files.ExampleFile1,
-			UploadedAt: now,
-			UploadedBy: &users.ExampleAlice,
-		}
-
-		err := cmd.Validate()
-		assert.EqualError(t, err, "Space: cannot be blank.")
-	})
-
 	t.Run("CreateRootDirCmd", func(t *testing.T) {
 		cmd := CreateRootDirCmd{
 			CreatedBy: nil,

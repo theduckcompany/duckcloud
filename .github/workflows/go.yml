@@ -66,5 +66,6 @@ jobs:
       - id: deadcode
         uses: lost-coders/deadcode-action@v0.1.0
         with:
+          flags: "-test"
           go-version: "1.21"
           go-package: "./..."

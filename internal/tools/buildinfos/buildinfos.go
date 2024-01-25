@@ -2,12 +2,11 @@ package buildinfos
 
 import (
 	"errors"
-	"time"
 )
 
 var (
-	version   string = "unknown"
-	buildTime string = "unknown"
+	version string = "unknown"
+	// buildTime string = "unknown"
 	isRelease string = "false"
 )
 
@@ -24,14 +23,16 @@ func Version() string {
 	return version
 }
 
-// BuildTime is ISO-8601 UTC string representation of the time of
-// the build or "time.Time{}"
-func BuildTime() (time.Time, error) {
-	if buildTime == "unknown" {
-		return time.Time{}, ErrNotSet
-	}
+// XXX: Unused
+//
+// // BuildTime is ISO-8601 UTC string representation of the time of
+// // the build or "time.Time{}"
+// func BuildTime() (time.Time, error) {
+// 	if buildTime == "unknown" {
+// 		return time.Time{}, ErrNotSet
+// 	}
 
-	raw, err := time.Parse(time.RFC3339, buildTime)
+// 	raw, err := time.Parse(time.RFC3339, buildTime)
 
-	return raw, err
-}
+// 	return raw, err
+// }
