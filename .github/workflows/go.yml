@@ -58,3 +58,13 @@ jobs:
         run: |
           echo "Changes exist"
           exit 1
+
+  deadcode:
+    runs-on: ubuntu-latest
+    name: Run deadcode
+    steps:
+      - id: deadcode
+        uses: lost-coders/deadcode-action@v0.1.0
+        with:
+          go-version: "1.21"
+          go-package: "./..."
