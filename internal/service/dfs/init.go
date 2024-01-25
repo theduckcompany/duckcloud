@@ -17,7 +17,7 @@ import (
 
 //go:generate mockery --name Service
 type Service interface {
-	Destroy(ctx context.Context, space *spaces.Space) error
+	Destroy(ctx context.Context, user *users.User, space *spaces.Space) error
 	CreateFS(ctx context.Context, user *users.User, space *spaces.Space) (*INode, error)
 	CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, error)
 	ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error)

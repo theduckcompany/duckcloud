@@ -762,8 +762,20 @@ func Test_DFS_Service(t *testing.T) {
 			"last_modified_at": now,
 		}).Return(nil).Once()
 
-		err := spaceFS.Destroy(ctx, &spaces.ExampleAlicePersonalSpace)
+		err := spaceFS.Destroy(ctx, &users.ExampleAlice, &spaces.ExampleAlicePersonalSpace)
 		assert.NoError(t, err)
+	})
+
+	t.Run("Destroy with an non admin user", func(t *testing.T) {
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		spaceFS := NewService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
+
+		err := spaceFS.Destroy(ctx, &users.ExampleBob, &spaces.ExampleAlicePersonalSpace)
+		assert.ErrorIs(t, err, errs.ErrUnauthorized)
 	})
 
 	t.Run("Destroy with a root already removed", func(t *testing.T) {
@@ -778,7 +790,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).
 			Return(nil, errs.ErrNotFound).Once()
 
-		err := spaceFS.Destroy(ctx, &spaces.ExampleAlicePersonalSpace)
+		err := spaceFS.Destroy(ctx, &users.ExampleAlice, &spaces.ExampleAlicePersonalSpace)
 		assert.NoError(t, err)
 	})
 
@@ -794,7 +806,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).
 			Return(nil, fmt.Errorf("some-error")).Once()
 
-		err := spaceFS.Destroy(ctx, &spaces.ExampleAlicePersonalSpace)
+		err := spaceFS.Destroy(ctx, &users.ExampleAlice, &spaces.ExampleAlicePersonalSpace)
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})
@@ -816,7 +828,7 @@ func Test_DFS_Service(t *testing.T) {
 			"last_modified_at": now,
 		}).Return(fmt.Errorf("some-error")).Once()
 
-		err := spaceFS.Destroy(ctx, &spaces.ExampleAlicePersonalSpace)
+		err := spaceFS.Destroy(ctx, &users.ExampleAlice, &spaces.ExampleAlicePersonalSpace)
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})

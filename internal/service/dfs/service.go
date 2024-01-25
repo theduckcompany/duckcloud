@@ -68,7 +68,11 @@ func NewService(
 	return &DFSService{storage, files, spaces, tasks, tools.Clock(), tools.UUID()}
 }
 
-func (s *DFSService) Destroy(ctx context.Context, space *spaces.Space) error {
+func (s *DFSService) Destroy(ctx context.Context, user *users.User, space *spaces.Space) error {
+	if !user.IsAdmin() {
+		return errs.Unauthorized(fmt.Errorf("%q is not an admin", user.Username()))
+	}
+
 	rootFS, err := s.storage.GetSpaceRoot(ctx, space.ID())
 	if errors.Is(err, errs.ErrNotFound) {
 		return nil
