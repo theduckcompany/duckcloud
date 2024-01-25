@@ -232,32 +232,6 @@ func (_m *MockService) Upload(ctx context.Context, cmd *UploadCmd) error {
 	return r0
 }
 
-// createDir provides a mock function with given fields: ctx, createdBy, parent, name
-func (_m *MockService) createDir(ctx context.Context, createdBy *users.User, parent *INode, name string) (*INode, error) {
-	ret := _m.Called(ctx, createdBy, parent, name)
-
-	var r0 *INode
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *users.User, *INode, string) (*INode, error)); ok {
-		return rf(ctx, createdBy, parent, name)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, *users.User, *INode, string) *INode); ok {
-		r0 = rf(ctx, createdBy, parent, name)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*INode)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, *users.User, *INode, string) error); ok {
-		r1 = rf(ctx, createdBy, parent, name)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // removeINode provides a mock function with given fields: ctx, inode
 func (_m *MockService) removeINode(ctx context.Context, inode *INode) error {
 	ret := _m.Called(ctx, inode)
