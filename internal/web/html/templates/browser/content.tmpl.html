@@ -7,14 +7,14 @@
 
     <div class="col-md-2 col-4">
       <div class="dropdown">
-        <button class="d-flex btn btn-primary button-lg dropdown-toggle align-items-center fs-6" type="button"
-          id="add-button" data-mdb-toggle="dropdown" aria-expanded="false"><i
-            class="bi bi-plus me-1 fs-4"></i>Add</button>
+        <button class="d-flex btn btn-primary button-lg dropdown-toggle align-items-center fs-6" data-mdb-dropdown-init
+          type="button" id="add-button" aria-expanded="false"><i class="bi bi-plus me-1 fs-4"></i>Add</button>
         <ul class="dropdown-menu" aria-labelledby="add-button">
           <li><a class="dropdown-item text-dark"
               hx-get="/browser/create-dir?space={{$.Folder.Space.ID}}&dir={{$.Folder.Path}}" hx-target="#modal-target"
-              hx-trigger="click" data-mdb-toggle="modal" hx-swap="innerHTML" data-mdb-target="#modal-target"><i
-                class="bi bi-folder-fill me-2" style="font-size: 1.1rem; color: cornflowerblue;"></i>New folder</a></li>
+              data-mdb-modal-init hx-trigger="click" data-mdb-toggle="modal" hx-swap="innerHTML"
+              data-mdb-target="#modal-target"><i class="bi bi-folder-fill me-2"
+                style="font-size: 1.1rem; color: cornflowerblue;"></i>New folder</a></li>
           <li>
             <hr class="dropdown-divider" />
           </li>
@@ -43,62 +43,16 @@
   {{template "browser/rows.tmpl" (.Rows)}}
 </section>
 
+<input type="hidden" id="folder-path-meta" value="{{$.Folder.Path}}">
+<input type="hidden" id="space-id-meta" value="{{$.Folder.Space.ID}}">
+<script type="module" src="/assets/js/file-upload.mjs"></script>
+
 <script type="module">
-  import {Uppy, XHRUpload, StatusBar} from "/assets/js/uppy.min.mjs"
-  let client = new Uppy().use(XHRUpload, {
-    endpoint: '/browser/upload',
-    allowMultipleUploadBatches: true
-  })
+  import {Dropdown, initMDB} from "/assets/js/libs/mdb.es.min.js";
 
-  client.setMeta({rootPath: {{$.Folder.Path}}})
-  client.setMeta({spaceID: {{$.Folder.Space.ID}}})
-  client.use(StatusBar, {target: '#status-bar'});
-
-  client.on('complete', (result) => {
-    htmx.trigger("#content", "refreshFolder");
+  document.querySelectorAll('.dropdown').forEach((dropdown) => {
+    new Dropdown(dropdown);
   });
 
-  document.getElementById('upload-file-btn').
-    addEventListener("click", (e) => {
-      var input = document.createElement('input');
-      input.type = 'file';
-      input.multiple = true
 
-      input.onchange = e => {
-        for (const file of e.target.files) {
-          client.addFile(file)
-        }
-
-        client.upload()
-      }
-
-      input.click();
-    })
-
-  document.getElementById('upload-folder-btn').
-    addEventListener("click", (e) => {
-      var input = document.createElement('input');
-      input.type = 'file';
-      input.multiple = true
-      input.webkitdirectory = true
-      input.mozdirectory = true
-      input.directory = true
-
-      input.onchange = e => {
-        for (const file of e.target.files) {
-          client.addFile({
-
-            name: file.webkitRelativePath,
-            data: file,
-            type: file.type,
-            source: 'Local',
-            isRemote: false,
-          })
-        }
-
-        client.upload()
-      }
-
-      input.click();
-    })
 </script>
