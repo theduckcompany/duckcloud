@@ -11,13 +11,11 @@
   <link rel="manifest" href="/assets/site.webmanifest">
   <link rel="mask-icon" href="/assets/images/favicons/safari-pinned-tab.svg" color="#5bbad5">
   <meta name="msapplication-TileColor" content="#da532c">
-
   <meta name="theme-color" content="#ffffff">
-  <link href="/assets/css/mdb.min.css" rel="stylesheet"
-    integrity="sha384-GAkRUzqpI8nibf6tuqfCK86JNY1HieP/R1SC9biUAe2WHx9yWOd/n/F6LmMJE5rT" crossorigin="anonymous">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="/assets/css/bootstrap-icons.min.css"
-    integrity="sha384-sAjZvrYXacB9bJ0LVUOAvlGp7N5A9s6krO+1oZ2bSc1hG7q3UpoTU50kWYTKDOQC" crossorigin="anonymous">
+
+  <link href="/assets/css/mdb.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/bootstrap-icons.min.css">
 </head>
 
 <body hx-ext="response-targets" hx-target-5*="this">
@@ -33,8 +31,8 @@
   <!--Main Navigation-->
   <header>
     <!-- Sidenav -->
-    <nav id="main-sidenav" class="sidenav sidenav-sm shadow-1" data-mdb-mode="side" data-mdb-hidden="false"
-      data-mdb-accordion="true">
+    <nav id="main-sidenav" class="sidenav sidenav-sm shadow-1" data-mdb-sidenav-init data-mdb-mode="side"
+      data-mdb-hidden="false" data-mdb-accordion="true">
       <a class="ripple d-flex justify-content-center pt-4 pb-2" href="/" data-mdb-ripple-color="primary">
         <!-- <img id="MDB-logo" src="https://mdbcdn.b-cdn.net/wp-content/uploads/2018/06/logo-mdb-jquery-small.webp"
           alt="MDB Logo" draggable="false" /> -->
@@ -119,9 +117,6 @@
           <div class="modal-content"></div>
         </div>
       </div>
-      <script src="/assets/js/mdb.min.js"
-        integrity="sha384-jpB2wBnaVr2DL2gW6vwW6a7dhvwUr34KRXgoCzlU2aM0EJ0ePpKAnVIgyvDBP3Rx"
-        crossorigin="anonymous"> </script>
 
       {{ yield }}
     </div>
@@ -144,16 +139,16 @@
 
 
   <footer></footer>
-  <script src="/assets/js/htmx.min.js"
-    integrity="sha384-UA0tebWwml7YAJLaVDuzHObJRsmBMTLreFpmSf5x8bNLyEekjwDKMgyPF1epRXNh"
-    crossorigin="anonymous"></script>
-  <script src="/assets/js/response-targets.js"
-    integrity="sha384-gusmZslx0upZyzPbfjGh/OqGlmWvx5bzxyM8yYKj67DTIsUhzEo44hVhrgAgAv9V"
-    crossorigin="anonymous"></script>
+  <script src="/assets/js/libs/htmx.min.js"></script>
+  <script src="/assets/js/libs/response-targets.js"></script>
 
-  <script>
+  <script type="module">
+    import {Sidenav, Navbar, Select, Modal, initMDB} from "/assets/js/libs/mdb.es.min.js";
+
+    initMDB({Sidenav, Navbar, Select, Modal});
+
     const sidenav = document.getElementById("main-sidenav");
-    const sidenavInstance = mdb.Sidenav.getInstance(sidenav);
+    const sidenavInstance = Sidenav.getInstance(sidenav);
 
     let innerWidth = null;
 
@@ -182,11 +177,11 @@
     // Make all the selects pretty even with the dynamic content
     document.body.addEventListener("htmx:afterSwap", function (evt) {
       document.querySelectorAll('.select').forEach((select) => {
-        const res = mdb.Select.getInstance(select);
+        const res = Select.getInstance(select);
         if (res) {
           res.dispose();
         }
-        new mdb.Select(select);
+        new Select(select);
       });
     })
 
