@@ -41,6 +41,44 @@ func Test_Inodes_Commands(t *testing.T) {
 	})
 }
 
+func Test_PathCmd_Equal(t *testing.T) {
+	tests := []struct {
+		A        PathCmd
+		B        PathCmd
+		Expected bool
+	}{
+		{
+			A:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			B:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			Expected: true,
+		},
+		{
+			A:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			B:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
+			Expected: false,
+		},
+		{
+			A:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
+			B:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			Expected: false,
+		},
+		{
+			A:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/"},
+			B:        PathCmd{Space: &spaces.ExampleBobPersonalSpace, Path: "/foo/"},
+			Expected: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run("", func(t *testing.T) {
+			res := test.A.Equal(test.B)
+			if res != test.Expected {
+				t.Fatalf("%q .Equal %q -> have %v, expected: %v", test.A, test.B, res, test.Expected)
+			}
+		})
+	}
+}
+
 func Test_PathCmd_Contains(t *testing.T) {
 	require.Implements(t, (*fmt.Stringer)(nil), new(PathCmd))
 

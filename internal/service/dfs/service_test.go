@@ -620,6 +620,22 @@ func Test_DFS_Service(t *testing.T) {
 		assert.EqualError(t, err, "validation: Src: (Path: cannot be blank.).")
 	})
 
+	t.Run("Move to the same place", func(t *testing.T) {
+		filesMock := files.NewMockService(t)
+		spacesMock := spaces.NewMockService(t)
+		schedulerMock := scheduler.NewMockService(t)
+		toolsMock := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		spaceFS := NewService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
+
+		err := spaceFS.Move(ctx, &MoveCmd{
+			Src:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"},
+			Dst:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"},
+			MovedBy: &users.ExampleAlice,
+		})
+		assert.NoError(t, err)
+	})
+
 	t.Run("Move with a source not found", func(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		spacesMock := spaces.NewMockService(t)

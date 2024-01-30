@@ -349,66 +349,99 @@ func Test_DFS_Integration(t *testing.T) {
 			err = serv.RunnerSvc.Run(ctx)
 			require.NoError(t, err)
 		})
+	})
 
-		t.Run("Move with the same name", func(t *testing.T) {
-			t.Run("Setup", func(t *testing.T) {
-				_, err := serv.DFSSvc.CreateDir(ctx, &dfs.CreateDirCmd{
-					Space:     &space,
-					FilePath:  "/move-same-name",
-					CreatedBy: serv.User,
-				})
-				require.NoError(t, err)
-
-				err = serv.DFSSvc.Upload(ctx, &dfs.UploadCmd{
-					Space:      &space,
-					FilePath:   "/move-same-name/foo.txt",
-					Content:    http.NoBody,
-					UploadedBy: serv.User,
-				})
-				require.NoError(t, err)
-
-				err = serv.RunnerSvc.Run(ctx)
-				require.NoError(t, err)
+	t.Run("Rename with a name already taken", func(t *testing.T) {
+		t.Run("Setup", func(t *testing.T) {
+			_, err := serv.DFSSvc.CreateDir(ctx, &dfs.CreateDirCmd{
+				Space:     &space,
+				FilePath:  "/rename-name-taken",
+				CreatedBy: serv.User,
 			})
+			require.NoError(t, err)
 
-			t.Run("Move success", func(t *testing.T) {
-				file, err := serv.DFSSvc.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/move-same-name/foo.txt"})
-				require.NoError(t, err)
-
-				res, err := serv.DFSSvc.Rename(ctx, file, "foo2.txt")
-				require.NoError(t, err)
-
-				require.Equal(t, "foo2.txt", res.Name())
+			err = serv.DFSSvc.Upload(ctx, &dfs.UploadCmd{
+				Space:      &space,
+				FilePath:   "/rename-name-taken/foo.txt",
+				Content:    http.NoBody,
+				UploadedBy: serv.User,
 			})
+			require.NoError(t, err)
 
-			t.Run("Move with a file with the same name", func(t *testing.T) {
-				err := serv.DFSSvc.Upload(ctx, &dfs.UploadCmd{
-					Space:      &space,
-					FilePath:   "/move-same-name/bar.txt",
-					Content:    http.NoBody,
-					UploadedBy: serv.User,
-				})
-				require.NoError(t, err)
-
-				err = serv.RunnerSvc.Run(ctx)
-				require.NoError(t, err)
-
-				file, err := serv.DFSSvc.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/move-same-name/foo2.txt"})
-				require.NoError(t, err)
-
-				res, err := serv.DFSSvc.Rename(ctx, file, "bar.txt")
-				require.NoError(t, err)
-
-				require.Equal(t, "bar (1).txt", res.Name())
-			})
-
-			t.Run("Destroy", func(t *testing.T) {
-				err := serv.DFSSvc.Remove(ctx, &dfs.PathCmd{Space: &space, Path: "/move-same-name"})
-				require.NoError(t, err)
-
-				err = serv.RunnerSvc.Run(ctx)
-				require.NoError(t, err)
-			})
+			err = serv.RunnerSvc.Run(ctx)
+			require.NoError(t, err)
 		})
+
+		t.Run("Classic rename success", func(t *testing.T) {
+			file, err := serv.DFSSvc.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/rename-name-taken/foo.txt"})
+			require.NoError(t, err)
+
+			res, err := serv.DFSSvc.Rename(ctx, file, "foo2.txt")
+			require.NoError(t, err)
+
+			require.Equal(t, "foo2.txt", res.Name())
+		})
+
+		t.Run("Rename with name already taken", func(t *testing.T) {
+			err := serv.DFSSvc.Upload(ctx, &dfs.UploadCmd{
+				Space:      &space,
+				FilePath:   "/rename-name-taken/bar.txt",
+				Content:    http.NoBody,
+				UploadedBy: serv.User,
+			})
+			require.NoError(t, err)
+
+			err = serv.RunnerSvc.Run(ctx)
+			require.NoError(t, err)
+
+			file, err := serv.DFSSvc.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/rename-name-taken/foo2.txt"})
+			require.NoError(t, err)
+
+			res, err := serv.DFSSvc.Rename(ctx, file, "bar.txt")
+			require.NoError(t, err)
+
+			require.Equal(t, "bar (1).txt", res.Name())
+		})
+
+		t.Run("Destroy", func(t *testing.T) {
+			err := serv.DFSSvc.Remove(ctx, &dfs.PathCmd{Space: &space, Path: "/rename-name-taken"})
+			require.NoError(t, err)
+
+			err = serv.RunnerSvc.Run(ctx)
+			require.NoError(t, err)
+		})
+	})
+
+	t.Run("Move to the same place", func(t *testing.T) {
+		_, err := serv.DFSSvc.CreateDir(ctx, &dfs.CreateDirCmd{
+			Space:     &space,
+			FilePath:  "/move-same-place",
+			CreatedBy: serv.User,
+		})
+		require.NoError(t, err)
+
+		err = serv.DFSSvc.Upload(ctx, &dfs.UploadCmd{
+			Space:      &space,
+			FilePath:   "/move-same-place/foo.txt",
+			Content:    http.NoBody,
+			UploadedBy: serv.User,
+		})
+		require.NoError(t, err)
+
+		err = serv.RunnerSvc.Run(ctx)
+		require.NoError(t, err)
+
+		expected, err := serv.DFSSvc.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/move-same-place/foo.txt"})
+		require.NoError(t, err)
+
+		serv.DFSSvc.Move(ctx, &dfs.MoveCmd{
+			Src:     &dfs.PathCmd{Space: &space, Path: "/move-same-place/foo.txt"},
+			Dst:     &dfs.PathCmd{Space: &space, Path: "/move-same-place/foo.txt"}, // same path
+			MovedBy: serv.User,
+		})
+
+		res, err := serv.DFSSvc.Get(ctx, &dfs.PathCmd{Space: &space, Path: "/move-same-place/foo.txt"})
+		assert.NoError(t, err)
+		assert.Equal(t, expected, res)
 	})
 }

@@ -18,6 +18,10 @@ type PathCmd struct {
 	Path  string
 }
 
+func (t PathCmd) Equal(p PathCmd) bool {
+	return t.Space == p.Space && t.Path == p.Path
+}
+
 func (t PathCmd) String() string {
 	return string(t.Space.ID()) + ":" + t.Path
 }
