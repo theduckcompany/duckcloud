@@ -92,8 +92,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("Save", mock.Anything, &ExampleAliceEmptyDir).Return(nil).Once()
 
 		res, err := spaceFS.CreateDir(ctx, &CreateDirCmd{
-			Space:     &spaces.ExampleAlicePersonalSpace,
-			FilePath:  "/new-dir",
+			Path:      &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/new-dir"},
 			CreatedBy: &users.ExampleAlice,
 		})
 		assert.NoError(t, err)
@@ -109,8 +108,7 @@ func Test_DFS_Service(t *testing.T) {
 		spaceFS := NewService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		res, err := spaceFS.CreateDir(ctx, &CreateDirCmd{
-			Space:     &spaces.ExampleAlicePersonalSpace,
-			FilePath:  "/some-dir-name",
+			Path:      &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/some-dir-name"},
 			CreatedBy: nil,
 		})
 		assert.Nil(t, res)
@@ -130,8 +128,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "some-dir-name", ExampleAliceRoot.ID()).Return(&ExampleAliceFile, nil).Once()
 
 		res, err := spaceFS.CreateDir(ctx, &CreateDirCmd{
-			Space:     &spaces.ExampleAlicePersonalSpace,
-			FilePath:  "/some-dir-name",
+			Path:      &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/some-dir-name"},
 			CreatedBy: &users.ExampleAlice,
 		})
 		assert.Nil(t, res)
@@ -152,8 +149,7 @@ func Test_DFS_Service(t *testing.T) {
 			Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
 
 		res, err := spaceFS.CreateDir(ctx, &CreateDirCmd{
-			Space:     &spaces.ExampleAlicePersonalSpace,
-			FilePath:  "/some-dir-name",
+			Path:      &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/some-dir-name"},
 			CreatedBy: &users.ExampleAlice,
 		})
 		assert.Nil(t, res)
@@ -172,8 +168,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 
 		res, err := spaceFS.CreateDir(ctx, &CreateDirCmd{
-			Space:     &spaces.ExampleAlicePersonalSpace,
-			FilePath:  "/",
+			Path:      &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/"},
 			CreatedBy: &users.ExampleAlice,
 		})
 		assert.NoError(t, err)

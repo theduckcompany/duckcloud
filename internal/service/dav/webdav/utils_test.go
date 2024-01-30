@@ -52,8 +52,7 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 		switch op[0] {
 		case "mkdir":
 			_, err := fsSvc.CreateDir(ctx, &dfs.CreateDirCmd{
-				Space:     space,
-				FilePath:  op[1],
+				Path:      &dfs.PathCmd{Space: space, Path: op[1]},
 				CreatedBy: serv.User,
 			})
 			require.NoError(t, err)

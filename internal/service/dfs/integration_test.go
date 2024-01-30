@@ -57,8 +57,7 @@ func Test_DFS_Integration(t *testing.T) {
 
 	t.Run("CreateDir success", func(t *testing.T) {
 		dir, err := serv.DFSSvc.CreateDir(ctx, &dfs.CreateDirCmd{
-			Space:     &space,
-			FilePath:  "/Documents/",
+			Path:      &dfs.PathCmd{Space: &space, Path: "/Documents/"},
 			CreatedBy: serv.User,
 		})
 		require.NoError(t, err)
@@ -90,8 +89,7 @@ func Test_DFS_Integration(t *testing.T) {
 
 		t.Run("Create the /foo/bar/baz directory", func(t *testing.T) {
 			dirBaz, err = serv.DFSSvc.CreateDir(ctx, &dfs.CreateDirCmd{
-				Space:     &space,
-				FilePath:  "/foo/bar/baz",
+				Path:      &dfs.PathCmd{Space: &space, Path: "/foo/bar/baz"},
 				CreatedBy: serv.User,
 			})
 			require.NoError(t, err)
@@ -277,8 +275,7 @@ func Test_DFS_Integration(t *testing.T) {
 
 		t.Run("Create the test directory", func(t *testing.T) {
 			_, err := serv.DFSSvc.CreateDir(ctx, &dfs.CreateDirCmd{
-				Space:     &space,
-				FilePath:  "/Duplicate",
+				Path:      &dfs.PathCmd{Space: &space, Path: "/Duplicate"},
 				CreatedBy: serv.User,
 			})
 			require.NoError(t, err)
@@ -354,8 +351,7 @@ func Test_DFS_Integration(t *testing.T) {
 	t.Run("Rename with a name already taken", func(t *testing.T) {
 		t.Run("Setup", func(t *testing.T) {
 			_, err := serv.DFSSvc.CreateDir(ctx, &dfs.CreateDirCmd{
-				Space:     &space,
-				FilePath:  "/rename-name-taken",
+				Path:      &dfs.PathCmd{Space: &space, Path: "/rename-name-taken"},
 				CreatedBy: serv.User,
 			})
 			require.NoError(t, err)
@@ -414,8 +410,7 @@ func Test_DFS_Integration(t *testing.T) {
 
 	t.Run("Move to the same place", func(t *testing.T) {
 		_, err := serv.DFSSvc.CreateDir(ctx, &dfs.CreateDirCmd{
-			Space:     &space,
-			FilePath:  "/move-same-place",
+			Path:      &dfs.PathCmd{Space: &space, Path: "/move-same-place"},
 			CreatedBy: serv.User,
 		})
 		require.NoError(t, err)

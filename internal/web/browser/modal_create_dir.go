@@ -115,8 +115,7 @@ func (h *createDirModalHandler) handleCreateDirReq(w http.ResponseWriter, r *htt
 	}
 
 	_, err = h.fs.CreateDir(r.Context(), &dfs.CreateDirCmd{
-		Space:     space,
-		FilePath:  path.Join(dir, name),
+		Path:      &dfs.PathCmd{Space: space, Path: path.Join(dir, name)},
 		CreatedBy: user,
 	})
 	if err != nil {

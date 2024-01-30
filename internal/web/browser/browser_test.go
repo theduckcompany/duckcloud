@@ -374,8 +374,7 @@ func Test_Browser_Page(t *testing.T) {
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		fsMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
-			Space:     &spaces.ExampleAlicePersonalSpace,
-			FilePath:  "foo/bar",
+			Path:      &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo/bar"},
 			CreatedBy: &users.ExampleAlice,
 		}).Return(&dfs.ExampleAliceDir, nil).Once()
 		fsMock.On("Upload", mock.Anything, mock.Anything).
@@ -439,8 +438,7 @@ func Test_Browser_Page(t *testing.T) {
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		fsMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
-			Space:     &spaces.ExampleAlicePersonalSpace,
-			FilePath:  "foo/bar/baz",
+			Path:      &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo/bar/baz"},
 			CreatedBy: &users.ExampleAlice,
 		}).Return(&dfs.ExampleAliceDir, nil).Once()
 

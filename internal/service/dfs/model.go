@@ -65,16 +65,14 @@ func (t UploadCmd) Validate() error {
 }
 
 type CreateDirCmd struct {
-	Space     *spaces.Space
-	FilePath  string
+	Path      *PathCmd
 	CreatedBy *users.User
 }
 
 func (t CreateDirCmd) Validate() error {
 	return v.ValidateStruct(&t,
-		v.Field(&t.Space, v.Required, v.NotNil),
-		v.Field(&t.FilePath, v.Required, v.Length(1, 255)),
-		v.Field(&t.CreatedBy, v.Required, v.NotNil),
+		v.Field(&t.Path, v.Required),
+		v.Field(&t.CreatedBy, v.Required),
 	)
 }
 

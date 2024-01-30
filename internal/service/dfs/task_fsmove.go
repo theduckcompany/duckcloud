@@ -61,8 +61,7 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 	dir, filename := path.Split(args.TargetPath)
 
 	targetDir, err := r.fs.CreateDir(ctx, &CreateDirCmd{
-		Space:     space,
-		FilePath:  dir,
+		Path:      &PathCmd{Space: space, Path: dir},
 		CreatedBy: user,
 	})
 	if err != nil {
