@@ -20,7 +20,7 @@
         <input type="text" aria-label="username" aria-describedby="button-copy-username" id="copy-username-target"
           class="form-control" value="{{.NewSession.Username}}" readonly />
         <button class="btn btn-outline-primary" data-mdb-clipboard-init
-          data-mdb-clipboard-target="#copy-username-target" data-mdb-ripple-color="dark">
+          data-mdb-clipboard-target="#copy-username-target">
           Copy
         </button>
       </div>
@@ -28,13 +28,11 @@
 
     <div class="col mx-2">
       <div class="input-group mb-3">
-        <span class="input-group-text" id="button-copy-password">Password</span>
-        <input type="text" aria-label="password" aria-describedby="button-copy-password" id="copy-password-target"
-          class="form-control text-truncate" value="{{.Secret}}" readonly />
+        <span class="input-group-text">Password</span>
+        <input type="text" aria-label="password" id="copy-password-target" class="form-control text-truncate"
+          value="{{.Secret}}" readonly />
         <button class="btn btn-outline-primary" data-mdb-clipboard-init
-          data-mdb-clipboard-target="#copy-password-target" data-mdb-ripple-color="dark">
-          Copy
-        </button>
+          data-mdb-clipboard-target="#copy-password-target"> Copy </button>
       </div>
     </div>
 
@@ -44,5 +42,8 @@
   </div>
 </div>
 
-<script src="/assets/js/clipboard.min.js"
-  integrity="sha384-ptFWW7bjswooaMTG3G8e7ZVjzIR4RCr49XGy7yyAN3H0BsoSKz7feyBYIyKUl7JJ" crossorigin="anonymous"></script>
+<script type="module">
+  import {Clipboard, Input, initMDB} from "/assets/js/libs/mdb.es.min.js";
+
+  initMDB({Clipboard, Input});
+</script>

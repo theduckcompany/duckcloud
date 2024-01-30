@@ -11,13 +11,11 @@
   <link rel="manifest" href="/assets/site.webmanifest">
   <link rel="mask-icon" href="/assets/images/favicons/safari-pinned-tab.svg" color="#5bbad5">
   <meta name="msapplication-TileColor" content="#da532c">
-
   <meta name="theme-color" content="#ffffff">
-  <link href="/assets/css/mdb.min.css" rel="stylesheet"
-    integrity="sha384-GAkRUzqpI8nibf6tuqfCK86JNY1HieP/R1SC9biUAe2WHx9yWOd/n/F6LmMJE5rT" crossorigin="anonymous">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="/assets/css/bootstrap-icons.min.css"
-    integrity="sha384-sAjZvrYXacB9bJ0LVUOAvlGp7N5A9s6krO+1oZ2bSc1hG7q3UpoTU50kWYTKDOQC" crossorigin="anonymous">
+
+  <link href="/assets/css/mdb.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/bootstrap-icons.min.css">
 </head>
 
 <body hx-ext="response-targets" hx-target-5*="this">
@@ -33,8 +31,8 @@
   <!--Main Navigation-->
   <header>
     <!-- Sidenav -->
-    <nav id="main-sidenav" class="sidenav sidenav-sm shadow-1" data-mdb-mode="side" data-mdb-hidden="false"
-      data-mdb-accordion="true">
+    <nav id="main-sidenav" class="sidenav sidenav-sm shadow-1" data-mdb-sidenav-init data-mdb-mode="side"
+      data-mdb-hidden="false" data-mdb-accordion="true">
       <a class="ripple d-flex justify-content-center pt-4 pb-2" href="/" data-mdb-ripple-color="primary">
         <!-- <img id="MDB-logo" src="https://mdbcdn.b-cdn.net/wp-content/uploads/2018/06/logo-mdb-jquery-small.webp"
           alt="MDB Logo" draggable="false" /> -->
@@ -80,7 +78,7 @@
 
           <!-- Avatar -->
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle hidden-arrow d-flex align-items-center" href="#"
+            <a class="nav-link dropdown-toggle hidden-arrow d-flex align-items-center" href="#" data-mdb-dropdown-init
               id="navbarDropdownMenuLink" role="button" data-mdb-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-person-circle"></i>
             </a>
@@ -119,9 +117,6 @@
           <div class="modal-content"></div>
         </div>
       </div>
-      <script src="/assets/js/mdb.min.js"
-        integrity="sha384-jpB2wBnaVr2DL2gW6vwW6a7dhvwUr34KRXgoCzlU2aM0EJ0ePpKAnVIgyvDBP3Rx"
-        crossorigin="anonymous"> </script>
 
       {{ yield }}
     </div>
@@ -144,57 +139,10 @@
 
 
   <footer></footer>
-  <script src="/assets/js/htmx.min.js"
-    integrity="sha384-UA0tebWwml7YAJLaVDuzHObJRsmBMTLreFpmSf5x8bNLyEekjwDKMgyPF1epRXNh"
-    crossorigin="anonymous"></script>
-  <script src="/assets/js/response-targets.js"
-    integrity="sha384-gusmZslx0upZyzPbfjGh/OqGlmWvx5bzxyM8yYKj67DTIsUhzEo44hVhrgAgAv9V"
-    crossorigin="anonymous"></script>
+  <script type="module" src="/assets/js/sidenav.mjs"></script>
+  <script src="/assets/js/libs/htmx.min.js"></script>
+  <script src="/assets/js/libs/response-targets.js"></script>
 
-  <script>
-    const sidenav = document.getElementById("main-sidenav");
-    const sidenavInstance = mdb.Sidenav.getInstance(sidenav);
-
-    let innerWidth = null;
-
-    const setMode = (e) => {
-      // Check necessary for Android devices
-      if (window.innerWidth === innerWidth) {
-        return;
-      }
-
-      innerWidth = window.innerWidth;
-
-      if (window.innerWidth < 1400) {
-        sidenavInstance.changeMode("over");
-        sidenavInstance.hide();
-      } else {
-        sidenavInstance.changeMode("side");
-        sidenavInstance.show();
-      }
-    };
-
-    setMode();
-
-    // Event listeners
-    window.addEventListener("resize", setMode);
-
-    // Make all the selects pretty even with the dynamic content
-    document.body.addEventListener("htmx:afterSwap", function (evt) {
-      document.querySelectorAll('.select').forEach((select) => {
-        const res = mdb.Select.getInstance(select);
-        if (res) {
-          res.dispose();
-        }
-        new mdb.Select(select);
-      });
-    })
-
-    document.body.addEventListener("htmx:afterSettle", function (evt) {
-      document.querySelectorAll('.select').forEach((select) => {
-        select.classList.add('select-initialized');
-      });
-    });
 
   </script>
 </body>
