@@ -27,10 +27,10 @@ func Walk(ctx context.Context, ffs Service, cmd *PathCmd, fn WalkDirFunc) error 
 	}
 
 	if !inode.IsDir() {
-		return fn(ctx, cmd.Path, inode)
+		return fn(ctx, cmd.Path(), inode)
 	}
 
-	err = fn(ctx, cmd.Path, inode)
+	err = fn(ctx, cmd.Path(), inode)
 	if err != nil {
 		return err
 	}
@@ -42,11 +42,11 @@ func Walk(ctx context.Context, ffs Service, cmd *PathCmd, fn WalkDirFunc) error 
 			Limit:      WalkBatchSize,
 		})
 		if err != nil && !errors.Is(err, io.EOF) {
-			return fmt.Errorf("failed to ListDir %q: %w", cmd.Path, err)
+			return fmt.Errorf("failed to ListDir %q: %w", cmd.Path(), err)
 		}
 
 		for _, elem := range dirContent {
-			err = Walk(ctx, ffs, &PathCmd{Space: cmd.Space, Path: path.Join(cmd.Path, elem.Name())}, fn)
+			err = Walk(ctx, ffs, NewPathCmd(cmd.space, path.Join(cmd.Path(), elem.Name())), fn)
 			if err != nil {
 				return err
 			}

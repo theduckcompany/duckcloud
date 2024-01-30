@@ -102,7 +102,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pathCmd := &dfs.PathCmd{Space: space, Path: reqPath}
+	pathCmd := dfs.NewPathCmd(space, reqPath)
 
 	switch {
 	case h.FileSystem == nil:
@@ -182,7 +182,7 @@ func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request, path
 
 	w.Header().Set("ETag", fmt.Sprintf("W/%q", fileMetas.Checksum()))
 	w.Header().Set("Content-Type", fileMetas.MimeType())
-	http.ServeContent(w, r, pathCmd.Path, info.LastModifiedAt(), f)
+	http.ServeContent(w, r, pathCmd.Path(), info.LastModifiedAt(), f)
 	return 0, nil
 }
 
@@ -212,8 +212,8 @@ func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request, user *users.
 	ctx := r.Context()
 
 	err = h.FileSystem.Upload(ctx, &dfs.UploadCmd{
-		Space:      pathCmd.Space,
-		FilePath:   pathCmd.Path,
+		Space:      pathCmd.Space(),
+		FilePath:   pathCmd.Path(),
 		Content:    r.Body,
 		UploadedBy: user,
 	})
@@ -244,8 +244,8 @@ func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, user *user
 	}
 
 	// All the parents must exists
-	if pathCmd.Path != "/" {
-		parent, err := h.FileSystem.Get(ctx, &dfs.PathCmd{Space: pathCmd.Space, Path: path.Dir(pathCmd.Path)})
+	if pathCmd.Path() != "/" {
+		parent, err := h.FileSystem.Get(ctx, dfs.NewPathCmd(pathCmd.Space(), path.Dir(pathCmd.Path())))
 		if err != nil && !errors.Is(err, errs.ErrNotFound) {
 			return http.StatusInternalServerError, err
 		}
@@ -281,13 +281,13 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, user *u
 	if err != nil {
 		return status, err
 	}
-	srcPath := &dfs.PathCmd{Space: space, Path: src}
+	srcPath := dfs.NewPathCmd(space, src)
 
 	dst, status, err := h.stripPrefix(u.Path)
 	if err != nil {
 		return status, err
 	}
-	dstPath := &dfs.PathCmd{Space: space, Path: dst}
+	dstPath := dfs.NewPathCmd(space, dst)
 
 	if dst == "" {
 		return http.StatusBadGateway, errInvalidDestination
@@ -330,7 +330,7 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, user *u
 		}
 	}
 
-	dstInfo, err := h.FileSystem.Get(ctx, &dfs.PathCmd{Space: space, Path: dst})
+	dstInfo, err := h.FileSystem.Get(ctx, dfs.NewPathCmd(space, dst))
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		return http.StatusInternalServerError, err
 	}
@@ -340,14 +340,8 @@ func (h *Handler) handleCopyMove(w http.ResponseWriter, r *http.Request, user *u
 	}
 
 	err = h.FileSystem.Move(ctx, &dfs.MoveCmd{
-		Src: &dfs.PathCmd{
-			Space: space,
-			Path:  src,
-		},
-		Dst: &dfs.PathCmd{
-			Space: space,
-			Path:  dst,
-		},
+		Src:     dfs.NewPathCmd(space, src),
+		Dst:     dfs.NewPathCmd(space, dst),
 		MovedBy: user,
 	})
 	if err != nil {
@@ -415,7 +409,7 @@ func (h *Handler) handlePropfind(w http.ResponseWriter, r *http.Request, cmd *df
 		if err != nil {
 			return handlePropfindError(err, info)
 		}
-		href := path.Join(h.Prefix, cmd.Path)
+		href := path.Join(h.Prefix, cmd.Path())
 		if href != "/" && info.IsDir() {
 			href += "/"
 		}
@@ -574,15 +568,6 @@ var (
 	errUnsupportedMethod       = errors.New("webdav: unsupported method")
 )
 
-// slashClean is equivalent to but slightly more efficient than
-// path.Clean("/" + name).
-func slashClean(name string) string {
-	if name == "" || name[0] != '/' {
-		name = "/" + name
-	}
-	return path.Clean(name)
-}
-
 type WalkFunc func(cmd *dfs.PathCmd, info *dfs.INode, err error) error
 
 // walkFS traverses filesystem fs starting at name up to depth levels.
@@ -613,7 +598,7 @@ func walkFS(ctx context.Context, fs dfs.Service, depth int, cmd *dfs.PathCmd, in
 	}
 
 	for _, fileInfo := range fileInfos {
-		newPath := &dfs.PathCmd{Space: cmd.Space, Path: path.Join(cmd.Path, fileInfo.Name())}
+		newPath := dfs.NewPathCmd(cmd.Space(), path.Join(cmd.Path(), fileInfo.Name()))
 		err = walkFS(ctx, fs, depth, newPath, &fileInfo, walkFn)
 		if err != nil {
 			if !fileInfo.IsDir() || err != filepath.SkipDir {

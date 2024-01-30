@@ -58,7 +58,7 @@ func (h *renameModalHandler) getRenameModal(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	targetPath := &dfs.PathCmd{Space: space, Path: filePath}
+	targetPath := dfs.NewPathCmd(space, filePath)
 
 	_, err := h.fs.Get(ctx, targetPath)
 	if err != nil {
@@ -108,7 +108,7 @@ func (h *renameModalHandler) handleRenameReq(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	targetPath := &dfs.PathCmd{Space: space, Path: filePath}
+	targetPath := dfs.NewPathCmd(space, filePath)
 
 	inode, err := h.fs.Get(ctx, targetPath)
 	if errors.Is(err, errs.ErrNotFound) {

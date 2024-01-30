@@ -28,15 +28,15 @@ type ContentTemplate struct {
 func (t *ContentTemplate) Template() string { return "browser/content.tmpl" }
 
 func (t *ContentTemplate) Breadcrumb() *BreadCrumbTemplate {
-	basePath := path.Join("/browser/", string(t.Folder.Space.ID()))
+	basePath := path.Join("/browser/", string(t.Folder.Space().ID()))
 
 	elements := []BreadCrumbElement{{
-		Name:    t.Folder.Space.Name(),
+		Name:    t.Folder.Space().Name(),
 		Href:    basePath,
 		Current: false,
 	}}
 
-	fullPath := strings.TrimPrefix(t.Folder.Path, "/")
+	fullPath := strings.TrimPrefix(t.Folder.Path(), "/")
 
 	if fullPath == "" {
 		elements[0].Current = true
@@ -121,32 +121,32 @@ type MoveTemplate struct {
 
 func (t *MoveTemplate) Breadcrumb() *BreadCrumbTemplate {
 	vals := url.Values{
-		"srcPath": []string{t.SrcPath.Path},
+		"srcPath": []string{t.SrcPath.Path()},
 		"dstPath": []string{"/"},
-		"spaceID": []string{string(t.SrcPath.Space.ID())},
+		"spaceID": []string{string(t.SrcPath.Space().ID())},
 	}
 
 	basePath := url.URL{Path: "/browser/move", RawQuery: vals.Encode()}
 
 	elements := []BreadCrumbElement{{
-		Name:    t.SrcPath.Space.Name(),
+		Name:    t.SrcPath.Space().Name(),
 		Href:    basePath.String(),
 		Current: false,
 	}}
 
-	if t.DstPath.Path == "/" {
+	if t.DstPath.Path() == "/" {
 		elements[0].Current = true
 		return &BreadCrumbTemplate{Elements: elements, Target: "#modal-content"}
 	}
 
 	dstPath := "/"
-	for _, elem := range strings.Split(strings.TrimPrefix(t.DstPath.Path, "/"), "/") {
+	for _, elem := range strings.Split(strings.TrimPrefix(t.DstPath.Path(), "/"), "/") {
 		dstPath = path.Join(dstPath, elem)
 
 		vals := url.Values{
-			"srcPath": []string{t.SrcPath.Path},
+			"srcPath": []string{t.SrcPath.Path()},
 			"dstPath": []string{dstPath},
-			"spaceID": []string{string(t.SrcPath.Space.ID())},
+			"spaceID": []string{string(t.SrcPath.Space().ID())},
 		}
 
 		basePath := url.URL{Path: "/browser/move", RawQuery: vals.Encode()}

@@ -120,7 +120,7 @@ func (h *Handler) getBrowserContent(w http.ResponseWriter, r *http.Request) {
 
 	lastElem := r.URL.Query().Get("last")
 	if lastElem == "" {
-		h.renderBrowserContent(w, r, user, &dfs.PathCmd{Space: space, Path: fullPath})
+		h.renderBrowserContent(w, r, user, dfs.NewPathCmd(space, fullPath))
 		return
 	}
 
@@ -205,7 +205,7 @@ func (h *Handler) deleteAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.fs.Remove(r.Context(), &dfs.PathCmd{Space: space, Path: fullPath})
+	err := h.fs.Remove(r.Context(), dfs.NewPathCmd(space, fullPath))
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Remove: %w", err))
 		return
@@ -242,7 +242,7 @@ func (h *Handler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
 
 	dirPath := path.Dir(fullPath)
 	_, err = h.fs.CreateDir(ctx, &dfs.CreateDirCmd{
-		Path:      &dfs.PathCmd{Space: space, Path: dirPath},
+		Path:      dfs.NewPathCmd(space, dirPath),
 		CreatedBy: cmd.user,
 	})
 	if err != nil && !errors.Is(err, dfs.ErrAlreadyExists) {
@@ -306,7 +306,7 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 	}
 
 	if inode == nil {
-		w.Header().Set("Location", path.Join("/browser/", string(cmd.Space.ID())))
+		w.Header().Set("Location", path.Join("/browser/", string(cmd.Space().ID())))
 		w.WriteHeader(http.StatusFound)
 		return
 	}
@@ -340,19 +340,19 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 
-	w.Header().Set("HX-Push-Url", path.Join("/browser", string(cmd.Space.ID()), cmd.Path))
+	w.Header().Set("HX-Push-Url", path.Join("/browser", string(cmd.Space().ID()), cmd.Path()))
 
 	h.html.WriteHTMLTemplate(w, r, http.StatusOK, &browser.ContentTemplate{
 		Folder:        cmd,
 		Inodes:        dirContent,
-		CurrentSpace:  cmd.Space,
+		CurrentSpace:  cmd.Space(),
 		AllSpaces:     spaces,
 		ContentTarget: "#content",
 	})
 }
 
 func (h *Handler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, space *spaces.Space, fullPath, lastElem string) {
-	folderPath := &dfs.PathCmd{Space: space, Path: fullPath}
+	folderPath := dfs.NewPathCmd(space, fullPath)
 
 	dirContent, err := h.fs.ListDir(r.Context(), folderPath, &storage.PaginateCmd{
 		StartAfter: map[string]string{"name": lastElem},
@@ -381,7 +381,7 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pathCmd := &dfs.PathCmd{Space: space, Path: fullPath}
+	pathCmd := dfs.NewPathCmd(space, fullPath)
 
 	inode, err := h.fs.Get(r.Context(), pathCmd)
 	if err != nil {
@@ -396,7 +396,7 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if inode.IsDir() {
-		h.serveFolderContent(w, r, &dfs.PathCmd{Space: space, Path: fullPath})
+		h.serveFolderContent(w, r, dfs.NewPathCmd(space, fullPath))
 	} else {
 		fileMeta, _ := h.files.GetMetadata(r.Context(), *inode.FileID())
 
@@ -415,7 +415,7 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) serveFolderContent(w http.ResponseWriter, r *http.Request, cmd *dfs.PathCmd) {
 	var err error
 
-	_, dir := path.Split(cmd.Path)
+	_, dir := path.Split(cmd.Path())
 
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", dir))
@@ -438,7 +438,7 @@ func (h *Handler) serveFolderContent(w http.ResponseWriter, r *http.Request, cmd
 			header.SetMode(0o644)
 		}
 
-		header.Name, err = filepath.Rel(cmd.Path, p)
+		header.Name, err = filepath.Rel(cmd.Path(), p)
 		if err != nil {
 			return fmt.Errorf("failed to find the relative path: %w", err)
 		}
@@ -456,7 +456,7 @@ func (h *Handler) serveFolderContent(w http.ResponseWriter, r *http.Request, cmd
 			return nil
 		}
 
-		file, err := h.fs.Download(ctx, &dfs.PathCmd{Space: cmd.Space, Path: path.Join(p, i.Name())})
+		file, err := h.fs.Download(ctx, dfs.NewPathCmd(cmd.Space(), path.Join(p, i.Name())))
 		if err != nil {
 			return fmt.Errorf("failed to download for zip: %w", err)
 		}

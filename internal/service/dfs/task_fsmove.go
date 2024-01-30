@@ -48,7 +48,7 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 		return fmt.Errorf("failed to get the user: %w", err)
 	}
 
-	existingFile, err := r.fs.Get(ctx, &PathCmd{Space: space, Path: args.TargetPath})
+	existingFile, err := r.fs.Get(ctx, NewPathCmd(space, args.TargetPath))
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		return fmt.Errorf("failed to check if a file already existed: %w", err)
 	}
@@ -61,7 +61,7 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 	dir, filename := path.Split(args.TargetPath)
 
 	targetDir, err := r.fs.CreateDir(ctx, &CreateDirCmd{
-		Path:      &PathCmd{Space: space, Path: dir},
+		Path:      NewPathCmd(space, dir),
 		CreatedBy: user,
 	})
 	if err != nil {

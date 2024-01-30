@@ -186,8 +186,6 @@ func (s *DFSService) CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, 
 		return nil, errs.Validation(err)
 	}
 
-	cmd.Path.Path = CleanPath(cmd.Path.Path)
-
 	var inode *INode
 	currentPath := "/"
 	err = s.walk(ctx, cmd.Path, "mkdir", func(dir *INode, frag string, _ bool) error {
@@ -231,7 +229,7 @@ func (s *DFSService) CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, 
 }
 
 func (s *DFSService) Remove(ctx context.Context, cmd *PathCmd) error {
-	if CleanPath(cmd.Path) == "/" {
+	if cmd.Path() == "/" {
 		return fmt.Errorf("%w: can't remove /", errs.ErrUnauthorized)
 	}
 
@@ -285,9 +283,9 @@ func (s *DFSService) Move(ctx context.Context, cmd *MoveCmd) error {
 	}
 
 	err = s.scheduler.RegisterFSMoveTask(ctx, &scheduler.FSMoveArgs{
-		SpaceID:     cmd.Src.Space.ID(),
+		SpaceID:     cmd.Src.Space().ID(),
 		SourceInode: sourceINode.ID(),
-		TargetPath:  cmd.Dst.Path,
+		TargetPath:  cmd.Dst.Path(),
 		MovedAt:     s.clock.Now(),
 		MovedBy:     cmd.MovedBy.ID(),
 	})
@@ -306,8 +304,6 @@ func (s *DFSService) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 
 	var inode *INode
 	currentPath := "/"
-
-	cmd.Path = CleanPath(cmd.Path)
 
 	err = s.walk(ctx, cmd, "open", func(dir *INode, frag string, final bool) error {
 		currentPath = path.Join(currentPath, dir.Name())
@@ -372,7 +368,7 @@ func (s *DFSService) Upload(ctx context.Context, cmd *UploadCmd) error {
 
 	dirPath, fileName := path.Split(filePath)
 
-	dir, err := s.Get(ctx, &PathCmd{Space: cmd.Space, Path: dirPath})
+	dir, err := s.Get(ctx, NewPathCmd(cmd.Space, dirPath))
 	if err != nil {
 		return fmt.Errorf("failed to get the dir: %w", err)
 	}
@@ -463,7 +459,7 @@ func (s *DFSService) createDir(ctx context.Context, createdBy *users.User, paren
 // The frag argument will be empty only if dir is the root node and the walk
 // ends at that root node.
 func (s *DFSService) walk(ctx context.Context, cmd *PathCmd, op string, f func(dir *INode, frag string, final bool) error) error {
-	fullname := CleanPath(cmd.Path)
+	fullname := cmd.Path()
 
 	// Strip any leading "/"s to make fullname a relative path, as the walk
 	// starts at fs.root.
@@ -471,9 +467,9 @@ func (s *DFSService) walk(ctx context.Context, cmd *PathCmd, op string, f func(d
 		fullname = fullname[1:]
 	}
 
-	dir, err := s.storage.GetSpaceRoot(ctx, cmd.Space.ID())
+	dir, err := s.storage.GetSpaceRoot(ctx, cmd.Space().ID())
 	if errors.Is(err, errNotFound) {
-		return errs.NotFound(ErrInvalidRoot, "failed to fetch the root dir for space %q", cmd.Space.Name())
+		return errs.NotFound(ErrInvalidRoot, "failed to fetch the root dir for space %q", cmd.Space().Name())
 	}
 	rootFS := dir
 

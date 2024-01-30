@@ -522,11 +522,11 @@ func TestMemPS(t *testing.T) {
 		var err error
 		for _, op := range tc.propOp {
 			desc := fmt.Sprintf("%s: %s %s", tc.desc, op.op, op.name)
-			if err = calcProps(&dfs.PathCmd{Space: testContext.Space, Path: op.name}, fs, files, op.wantPropstats); err != nil {
+			if err = calcProps(dfs.NewPathCmd(testContext.Space, op.name), fs, files, op.wantPropstats); err != nil {
 				t.Fatalf("%s: calcProps: %v", desc, err)
 			}
 
-			path := &dfs.PathCmd{Space: testContext.Space, Path: op.name}
+			path := dfs.NewPathCmd(testContext.Space, op.name)
 
 			info, err := fs.Get(ctx, path)
 			if err != nil {

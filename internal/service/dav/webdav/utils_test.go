@@ -52,7 +52,7 @@ func buildTestFS(t *testing.T, buildfs []string) *TestContext {
 		switch op[0] {
 		case "mkdir":
 			_, err := fsSvc.CreateDir(ctx, &dfs.CreateDirCmd{
-				Path:      &dfs.PathCmd{Space: space, Path: op[1]},
+				Path:      dfs.NewPathCmd(space, op[1]),
 				CreatedBy: serv.User,
 			})
 			require.NoError(t, err)
@@ -108,14 +108,14 @@ func find(ctx context.Context, ss []string, fs dfs.Service, cmd *dfs.PathCmd) ([
 	if err != nil {
 		return nil, err
 	}
-	ss = append(ss, cmd.Path)
+	ss = append(ss, cmd.Path())
 	if stat.IsDir() {
 		children, err := fs.ListDir(ctx, cmd, nil)
 		if err != nil {
 			return nil, err
 		}
 		for _, c := range children {
-			ss, err = find(ctx, ss, fs, &dfs.PathCmd{Space: cmd.Space, Path: path.Join(cmd.Path, c.Name())})
+			ss, err = find(ctx, ss, fs, dfs.NewPathCmd(cmd.Space(), path.Join(cmd.Path(), c.Name())))
 			if err != nil {
 				return nil, err
 			}
