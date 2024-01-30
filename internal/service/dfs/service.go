@@ -276,6 +276,10 @@ func (s *DFSService) Move(ctx context.Context, cmd *MoveCmd) error {
 		return errs.Validation(err)
 	}
 
+	if cmd.Src.Equal(*cmd.Dst) {
+		return nil
+	}
+
 	sourceINode, err := s.Get(ctx, cmd.Src)
 	if err != nil {
 		return fmt.Errorf("invalid source: %w", err)
