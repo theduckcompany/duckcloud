@@ -49,7 +49,7 @@ func Test_Templates(t *testing.T) {
 			Layout: false,
 			Template: &RenameTemplate{
 				Error:               nil,
-				Target:              &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+				Target:              dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo"),
 				FieldValue:          "New Dir",
 				FieldValueSelection: 0,
 			},
@@ -58,7 +58,7 @@ func Test_Templates(t *testing.T) {
 			Name:   "rows",
 			Layout: false,
 			Template: &RowsTemplate{
-				Folder:        &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+				Folder:        dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo"),
 				Inodes:        []dfs.INode{dfs.ExampleAliceFile, dfs.ExampleAliceFile2},
 				ContentTarget: "#content",
 			},
@@ -78,7 +78,7 @@ func Test_Templates(t *testing.T) {
 			Name:   "content",
 			Layout: true,
 			Template: &ContentTemplate{
-				Folder:       &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+				Folder:       dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo"),
 				Inodes:       []dfs.INode{dfs.ExampleAliceFile, dfs.ExampleAliceFile2},
 				CurrentSpace: &spaces.ExampleAlicePersonalSpace,
 				AllSpaces:    []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
@@ -88,12 +88,12 @@ func Test_Templates(t *testing.T) {
 			Name:   "move modal",
 			Layout: false,
 			Template: &MoveTemplate{
-				SrcPath:  &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+				SrcPath:  dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo"),
 				SrcInode: &dfs.ExampleAliceDir,
-				DstPath:  &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar"},
+				DstPath:  dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar"),
 				FolderContent: map[dfs.PathCmd]dfs.INode{
-					{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/file1.jpg"}: dfs.ExampleAliceFile,
-					{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/file2.jpg"}: dfs.ExampleAliceFile2,
+					*dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/file1.jpg"): dfs.ExampleAliceFile,
+					*dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/file2.jpg"): dfs.ExampleAliceFile2,
 				},
 				PageSize: 10,
 			},
@@ -102,11 +102,11 @@ func Test_Templates(t *testing.T) {
 			Name:   "move rows",
 			Layout: false,
 			Template: &MoveRowsTemplate{
-				SrcPath: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
-				DstPath: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar"},
+				SrcPath: dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo"),
+				DstPath: dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar"),
 				FolderContent: map[dfs.PathCmd]dfs.INode{
-					{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/file1.jpg"}: dfs.ExampleAliceFile,
-					{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/file2.jpg"}: dfs.ExampleAliceFile2,
+					*dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/file1.jpg"): dfs.ExampleAliceFile,
+					*dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/file2.jpg"): dfs.ExampleAliceFile2,
 				},
 				PageSize: 10,
 			},
@@ -143,7 +143,7 @@ func TestMoveTemplateBreadcrumb(t *testing.T) {
 	}{
 		{
 			Name: "Simple",
-			Path: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar"},
+			Path: dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar"),
 			Expected: []BreadCrumbElement{
 				{
 					Name:    spaces.ExampleAlicePersonalSpace.Name(),
@@ -159,7 +159,7 @@ func TestMoveTemplateBreadcrumb(t *testing.T) {
 		},
 		{
 			Name: "Space root",
-			Path: &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/"},
+			Path: dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/"),
 			Expected: []BreadCrumbElement{
 				{
 					Name:    spaces.ExampleAlicePersonalSpace.Name(),
@@ -173,12 +173,12 @@ func TestMoveTemplateBreadcrumb(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			moveTemplate := MoveTemplate{
-				SrcPath:  &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+				SrcPath:  dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo"),
 				SrcInode: &dfs.ExampleAliceDir,
 				DstPath:  test.Path, // The breadcrumb is created based on the destination path.
 				FolderContent: map[dfs.PathCmd]dfs.INode{
-					{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/file1.jpg"}: dfs.ExampleAliceFile,
-					{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/file2.jpg"}: dfs.ExampleAliceFile2,
+					*dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/file1.jpg"): dfs.ExampleAliceFile,
+					*dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/file2.jpg"): dfs.ExampleAliceFile2,
 				},
 				PageSize: 10,
 			}

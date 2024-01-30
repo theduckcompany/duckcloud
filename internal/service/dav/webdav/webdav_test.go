@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"path"
 	"path/filepath"
 	"reflect"
 	"regexp"
@@ -184,7 +183,7 @@ func TestPrefix(t *testing.T) {
 
 		require.NoError(t, tc.Runner.Run(ctx))
 
-		got, err := find(ctx, nil, fs, &dfs.PathCmd{Space: tc.Space, Path: "/"})
+		got, err := find(ctx, nil, fs, dfs.NewPathCmd(tc.Space, "/"))
 		if err != nil {
 			t.Errorf("prefix=%-9q find: %v", prefix, err)
 			continue
@@ -312,7 +311,7 @@ func TestFilenameEscape(t *testing.T) {
 		if tt.name != "/" {
 			if strings.HasSuffix(tt.name, "/") {
 				if _, err := fs.CreateDir(ctx, &dfs.CreateDirCmd{
-					Path:      &dfs.PathCmd{Space: tc.Space, Path: tt.name},
+					Path:      dfs.NewPathCmd(tc.Space, tt.name),
 					CreatedBy: tc.User,
 				}); err != nil {
 					t.Fatalf("name=%q: Mkdir: %v", tt.name, err)
@@ -378,30 +377,6 @@ func TestFilenameEscape(t *testing.T) {
 		}
 		if gotDisplayName != tc.wantDisplayName {
 			t.Errorf("name=%q: got dispayname %q, want %q", tc.name, gotDisplayName, tc.wantDisplayName)
-		}
-	}
-}
-
-func TestSlashClean(t *testing.T) {
-	testCases := []string{
-		"",
-		".",
-		"/",
-		"/./",
-		"//",
-		"//.",
-		"//a",
-		"/a",
-		"/a/b/c",
-		"/a//b/./../c/d/",
-		"a",
-		"a/b/c",
-	}
-	for _, tc := range testCases {
-		got := slashClean(tc)
-		want := path.Clean("/" + tc)
-		if got != want {
-			t.Errorf("tc=%q: got %q, want %q", tc, got, want)
 		}
 	}
 }
@@ -547,7 +522,7 @@ func TestWalkFS(t *testing.T) {
 		"/",
 		infiniteDepth,
 		func(cmd *dfs.PathCmd, info *dfs.INode, err error) error {
-			if cmd.Path == "/a/b/g" {
+			if cmd.Path() == "/a/b/g" {
 				return filepath.SkipDir
 			}
 			return nil
@@ -572,14 +547,14 @@ func TestWalkFS(t *testing.T) {
 					return err
 				}
 			}
-			got = append(got, cmd.Path)
+			got = append(got, cmd.Path())
 			return nil
 		}
-		fi, err := fs.Get(ctx, &dfs.PathCmd{Space: testContext.Space, Path: tc.startAt})
+		fi, err := fs.Get(ctx, dfs.NewPathCmd(testContext.Space, tc.startAt))
 		if err != nil {
 			t.Fatalf("%s: cannot stat: %v", tc.desc, err)
 		}
-		err = walkFS(ctx, fs, tc.depth, &dfs.PathCmd{Space: testContext.Space, Path: tc.startAt}, fi, traceFn)
+		err = walkFS(ctx, fs, tc.depth, dfs.NewPathCmd(testContext.Space, tc.startAt), fi, traceFn)
 		if err != nil {
 			t.Errorf("%s:\ngot error %v, want nil", tc.desc, err)
 			continue

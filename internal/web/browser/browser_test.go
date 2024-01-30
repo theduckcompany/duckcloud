@@ -110,15 +110,15 @@ func Test_Browser_Page(t *testing.T) {
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		// Then look for the path inside this space
-		fsMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}).Return(&dfs.ExampleAliceRoot, nil).Once()
+		fsMock.On("Get", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar")).Return(&dfs.ExampleAliceRoot, nil).Once()
 
-		fsMock.On("ListDir", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}, &storage.PaginateCmd{
+		fsMock.On("ListDir", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar"), &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
 			Limit:      PageSize,
 		}).Return([]dfs.INode{dfs.ExampleAliceFile}, nil).Once()
 
 		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &browser.ContentTemplate{
-			Folder:        &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
+			Folder:        dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar"),
 			Inodes:        []dfs.INode{dfs.ExampleAliceFile},
 			CurrentSpace:  &spaces.ExampleAlicePersonalSpace,
 			AllSpaces:     []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
@@ -157,13 +157,13 @@ func Test_Browser_Page(t *testing.T) {
 		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("space-id")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
-		fsMock.On("ListDir", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}, &storage.PaginateCmd{
+		fsMock.On("ListDir", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar"), &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": "some-filename"},
 			Limit:      PageSize,
 		}).Return([]dfs.INode{dfs.ExampleAliceFile}, nil).Once()
 
 		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &browser.RowsTemplate{
-			Folder:        &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
+			Folder:        dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar"),
 			Inodes:        []dfs.INode{dfs.ExampleAliceFile},
 			ContentTarget: "#content",
 		}).Once()
@@ -201,7 +201,7 @@ func Test_Browser_Page(t *testing.T) {
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		// Then look for the path inside this space
-		fsMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}).Return(&dfs.ExampleAliceFile, nil).Once()
+		fsMock.On("Get", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar")).Return(&dfs.ExampleAliceFile, nil).Once()
 
 		filesMock.On("GetMetadata", mock.Anything, *dfs.ExampleAliceFile.FileID()).Return(&files.ExampleFile1, nil).Once()
 
@@ -209,7 +209,7 @@ func Test_Browser_Page(t *testing.T) {
 		file, err := afero.TempFile(afs, t.TempDir(), "")
 		require.NoError(t, err)
 
-		fsMock.On("Download", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}).Return(file, nil).Once()
+		fsMock.On("Download", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar")).Return(file, nil).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/browser/space-id/foo/bar", nil)
@@ -336,7 +336,7 @@ func Test_Browser_Page(t *testing.T) {
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		// Then look for the path inside this space
-		fsMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/invalid"}).Return(nil, errs.ErrNotFound).Once()
+		fsMock.On("Get", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/invalid")).Return(nil, errs.ErrNotFound).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/browser/space-id/invalid", nil)
@@ -374,7 +374,7 @@ func Test_Browser_Page(t *testing.T) {
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		fsMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
-			Path:      &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo/bar"},
+			Path:      dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo/bar"),
 			CreatedBy: &users.ExampleAlice,
 		}).Return(&dfs.ExampleAliceDir, nil).Once()
 		fsMock.On("Upload", mock.Anything, mock.Anything).
@@ -438,7 +438,7 @@ func Test_Browser_Page(t *testing.T) {
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		fsMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
-			Path:      &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo/bar/baz"},
+			Path:      dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo/bar/baz"),
 			CreatedBy: &users.ExampleAlice,
 		}).Return(&dfs.ExampleAliceDir, nil).Once()
 
@@ -501,7 +501,7 @@ func Test_Browser_Page(t *testing.T) {
 		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("space-id")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
-		fsMock.On("Remove", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"}).Return(nil).Once()
+		fsMock.On("Remove", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar")).Return(nil).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodDelete, "/browser/space-id/foo/bar", nil)

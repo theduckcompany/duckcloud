@@ -14,16 +14,35 @@ import (
 const NoParent = uuid.UUID("00000000-0000-0000-0000-00000000000")
 
 type PathCmd struct {
-	Space *spaces.Space
-	Path  string
+	space *spaces.Space
+	path  string
+}
+
+func NewPathCmd(space *spaces.Space, path string) *PathCmd {
+	if space == nil {
+		panic("NewPathCmd invoked with an nil space")
+	}
+
+	return &PathCmd{
+		space: space,
+		path:  CleanPath(path),
+	}
+}
+
+func (t PathCmd) Path() string {
+	return t.path
+}
+
+func (t PathCmd) Space() *spaces.Space {
+	return t.space
 }
 
 func (t PathCmd) Equal(p PathCmd) bool {
-	return t.Space == p.Space && t.Path == p.Path
+	return t.space == p.space && t.path == p.path
 }
 
 func (t PathCmd) String() string {
-	return string(t.Space.ID()) + ":" + t.Path
+	return string(t.space.ID()) + ":" + t.path
 }
 
 // Contains returns true if the the arg `p` point to the same element
@@ -33,18 +52,18 @@ func (t PathCmd) String() string {
 // "/foo/bar".Contains("/foo") -> false
 // "/foo".Contains("/foo/bar") -> true
 func (t PathCmd) Contains(p PathCmd) bool {
-	if t.Space != p.Space {
+	if t.space != p.space {
 		return false
 	}
 
-	return strings.Contains(CleanPath(p.Path), CleanPath(t.Path))
+	return strings.Contains(CleanPath(p.path), CleanPath(t.path))
 }
 
 // Validate the fields.
 func (t PathCmd) Validate() error {
 	return v.ValidateStruct(&t,
-		v.Field(&t.Space, v.Required),
-		v.Field(&t.Path, v.Required, v.Length(1, 1024)),
+		v.Field(&t.space, v.Required),
+		v.Field(&t.path, v.Required, v.Length(1, 1024)),
 	)
 }
 

@@ -340,7 +340,7 @@ func findResourceType(ctx context.Context, cmd *dfs.PathCmd, fi *dfs.INode, meta
 }
 
 func findDisplayName(ctx context.Context, cmd *dfs.PathCmd, fi *dfs.INode, meta *files.FileMeta) (string, error) {
-	if slashClean(cmd.Path) == "/" {
+	if cmd.Path() == "/" {
 		// Hide the real name of a possibly prefixed root directory.
 		return "", nil
 	}

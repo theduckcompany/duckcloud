@@ -44,11 +44,11 @@ func Test_RenameModalHandler(t *testing.T) {
 		spacesMock.On("GetByID", mock.Anything, uuid.UUID("some-space-id")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
-		fsMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.jpg"}).Return(&dfs.ExampleAliceFile, nil).Once()
+		fsMock.On("Get", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar.jpg")).Return(&dfs.ExampleAliceFile, nil).Once()
 
 		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &browser.RenameTemplate{
 			Error:               nil,
-			Target:              &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.jpg"},
+			Target:              dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar.jpg"),
 			FieldValue:          "bar.jpg",
 			FieldValueSelection: 3, // name == bar.pdf / we want the selection at |bar|.pdf
 		}).Once()
@@ -179,7 +179,7 @@ func Test_RenameModalHandler(t *testing.T) {
 		spacesMock.On("GetByID", mock.Anything, uuid.UUID("some-space-id")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
-		fsMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.jpg"}).Return(&dfs.ExampleAliceFile, nil).Once()
+		fsMock.On("Get", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar.jpg")).Return(&dfs.ExampleAliceFile, nil).Once()
 
 		fsMock.On("Rename", mock.Anything, &dfs.ExampleAliceFile, "new-name.jpg").Return(&dfs.ExampleAliceFile, nil).Once()
 
@@ -219,12 +219,12 @@ func Test_RenameModalHandler(t *testing.T) {
 		spacesMock.On("GetByID", mock.Anything, uuid.UUID("some-space-id")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
-		fsMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.jpg"}).Return(&dfs.ExampleAliceFile, nil).Once()
+		fsMock.On("Get", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar.jpg")).Return(&dfs.ExampleAliceFile, nil).Once()
 
 		fsMock.On("Rename", mock.Anything, &dfs.ExampleAliceFile, "new-name").Return(nil, errs.Validation(errors.New("some-error"))).Once()
 		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusUnprocessableEntity, &browser.RenameTemplate{
 			Error:               ptr.To("validation: some-error"),
-			Target:              &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.jpg"},
+			Target:              dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar.jpg"),
 			FieldValue:          "new-name",
 			FieldValueSelection: 8, // name == new-name / we want the selection at |new-name|.pdf
 		}).Once()

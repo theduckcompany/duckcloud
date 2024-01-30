@@ -28,10 +28,7 @@ func Test_Walk(t *testing.T) {
 	t.Run("with an empty space", func(t *testing.T) {
 		res := []string{}
 
-		err = dfs.Walk(ctx, fsService, &dfs.PathCmd{
-			Space: space,
-			Path:  ".",
-		}, func(_ context.Context, p string, _ *dfs.INode) error {
+		err = dfs.Walk(ctx, fsService, dfs.NewPathCmd(space, "."), func(_ context.Context, p string, _ *dfs.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -53,10 +50,7 @@ func Test_Walk(t *testing.T) {
 		require.NoError(t, err)
 
 		res := []string{}
-		err = dfs.Walk(ctx, fsService, &dfs.PathCmd{
-			Space: space,
-			Path:  "foo.txt",
-		}, func(_ context.Context, p string, _ *dfs.INode) error {
+		err = dfs.Walk(ctx, fsService, dfs.NewPathCmd(space, "foo.txt"), func(_ context.Context, p string, _ *dfs.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -66,10 +60,7 @@ func Test_Walk(t *testing.T) {
 	})
 
 	t.Run("with an empty directory", func(t *testing.T) {
-		_, err := fsService.CreateDir(ctx, &dfs.CreateDirCmd{
-			Path:      &dfs.PathCmd{Space: space, Path: "dir-a"},
-			CreatedBy: serv.User,
-		})
+		_, err := fsService.CreateDir(ctx, &dfs.CreateDirCmd{Path: dfs.NewPathCmd(space, "dir-a"), CreatedBy: serv.User})
 		require.NoError(t, err)
 
 		err = serv.RunnerSvc.Run(ctx)
@@ -77,10 +68,7 @@ func Test_Walk(t *testing.T) {
 
 		res := []string{}
 
-		err = dfs.Walk(ctx, fsService, &dfs.PathCmd{
-			Space: space,
-			Path:  "dir-a",
-		}, func(_ context.Context, p string, _ *dfs.INode) error {
+		err = dfs.Walk(ctx, fsService, dfs.NewPathCmd(space, "dir-a"), func(_ context.Context, p string, _ *dfs.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -92,10 +80,7 @@ func Test_Walk(t *testing.T) {
 	t.Run("the root with a file and a dir", func(t *testing.T) {
 		res := []string{}
 
-		err = dfs.Walk(ctx, fsService, &dfs.PathCmd{
-			Space: space,
-			Path:  ".",
-		}, func(_ context.Context, p string, _ *dfs.INode) error {
+		err = dfs.Walk(ctx, fsService, dfs.NewPathCmd(space, "."), func(_ context.Context, p string, _ *dfs.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -117,10 +102,7 @@ func Test_Walk(t *testing.T) {
 		require.NoError(t, err)
 
 		res := []string{}
-		err = dfs.Walk(ctx, fsService, &dfs.PathCmd{
-			Space: space,
-			Path:  ".",
-		}, func(_ context.Context, p string, _ *dfs.INode) error {
+		err = dfs.Walk(ctx, fsService, dfs.NewPathCmd(space, "."), func(_ context.Context, p string, _ *dfs.INode) error {
 			res = append(res, p)
 			return nil
 		})
@@ -131,7 +113,7 @@ func Test_Walk(t *testing.T) {
 
 	t.Run("with a big space and pagination", func(t *testing.T) {
 		_, err := fsService.CreateDir(ctx, &dfs.CreateDirCmd{
-			Path:      &dfs.PathCmd{Space: space, Path: "big-space"},
+			Path:      dfs.NewPathCmd(space, "big-space"),
 			CreatedBy: serv.User,
 		})
 		require.NoError(t, err)
@@ -151,10 +133,7 @@ func Test_Walk(t *testing.T) {
 
 		res := []string{}
 
-		err = dfs.Walk(ctx, fsService, &dfs.PathCmd{
-			Space: space,
-			Path:  "big-space",
-		}, func(_ context.Context, p string, _ *dfs.INode) error {
+		err = dfs.Walk(ctx, fsService, dfs.NewPathCmd(space, "big-space"), func(_ context.Context, p string, _ *dfs.INode) error {
 			res = append(res, p)
 			return nil
 		})

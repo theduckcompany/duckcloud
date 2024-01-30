@@ -43,35 +43,35 @@ func Test_Inodes_Commands(t *testing.T) {
 
 func Test_PathCmd_Equal(t *testing.T) {
 	tests := []struct {
-		A        PathCmd
-		B        PathCmd
+		A        *PathCmd
+		B        *PathCmd
 		Expected bool
 	}{
 		{
-			A:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
-			B:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			A:        NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo"),
+			B:        NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo"),
 			Expected: true,
 		},
 		{
-			A:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
-			B:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
+			A:        NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo"),
+			B:        NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar"),
 			Expected: false,
 		},
 		{
-			A:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
-			B:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			A:        NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar"),
+			B:        NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo"),
 			Expected: false,
 		},
 		{
-			A:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/"},
-			B:        PathCmd{Space: &spaces.ExampleBobPersonalSpace, Path: "/foo/"},
+			A:        NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/"),
+			B:        NewPathCmd(&spaces.ExampleBobPersonalSpace, "/foo/"),
 			Expected: false,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run("", func(t *testing.T) {
-			res := test.A.Equal(test.B)
+			res := test.A.Equal(*test.B)
 			if res != test.Expected {
 				t.Fatalf("%q .Equal %q -> have %v, expected: %v", test.A, test.B, res, test.Expected)
 			}
@@ -83,45 +83,45 @@ func Test_PathCmd_Contains(t *testing.T) {
 	require.Implements(t, (*fmt.Stringer)(nil), new(PathCmd))
 
 	tests := []struct {
-		A        PathCmd
-		B        PathCmd
+		A        *PathCmd
+		B        *PathCmd
 		Expected bool
 	}{
 		{
-			A:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
-			B:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			A:        NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo"),
+			B:        NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo"),
 			Expected: true,
 		},
 		{
-			A:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
-			B:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
+			A:        NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo"),
+			B:        NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar"),
 			Expected: true,
 		},
 		{
-			A:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"},
-			B:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			A:        NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar"),
+			B:        NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo"),
 			Expected: false,
 		},
 		{
-			A:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/"},
-			B:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			A:        NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/"),
+			B:        NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo"),
 			Expected: true,
 		},
 		{
-			A:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "//foo"},
-			B:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo//"},
+			A:        NewPathCmd(&spaces.ExampleAlicePersonalSpace, "//foo"),
+			B:        NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo//"),
 			Expected: true,
 		},
 		{
-			A:        PathCmd{Space: &spaces.ExampleBobPersonalSpace, Path: "/foo"},
-			B:        PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"},
+			A:        NewPathCmd(&spaces.ExampleBobPersonalSpace, "/foo"),
+			B:        NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo"),
 			Expected: false,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run("", func(t *testing.T) {
-			res := test.A.Contains(test.B)
+			res := test.A.Contains(*test.B)
 			if res != test.Expected {
 				t.Fatalf("%q .Contains %q -> have %v, expected: %v", test.A, test.B, res, test.Expected)
 			}
@@ -130,5 +130,5 @@ func Test_PathCmd_Contains(t *testing.T) {
 }
 
 func Test_PathCmd_String(t *testing.T) {
-	assert.Equal(t, PathCmd{Space: &spaces.ExampleBobPersonalSpace, Path: "/foo"}.String(), fmt.Sprintf("%s:/foo", spaces.ExampleBobPersonalSpace.ID()))
+	assert.Equal(t, NewPathCmd(&spaces.ExampleBobPersonalSpace, "/foo").String(), fmt.Sprintf("%s:/foo", spaces.ExampleBobPersonalSpace.ID()))
 }

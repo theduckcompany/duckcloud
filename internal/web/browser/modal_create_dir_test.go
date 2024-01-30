@@ -168,9 +168,9 @@ func TestCreateDirModal(t *testing.T) {
 		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("some-space-id")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
-		fsMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/New Dir"}).Return(nil, errs.ErrNotFound).Once()
+		fsMock.On("Get", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/New Dir")).Return(nil, errs.ErrNotFound).Once()
 		fsMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
-			Path:      &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/New Dir"},
+			Path:      dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/New Dir"),
 			CreatedBy: &users.ExampleAlice,
 		}).Return(&dfs.ExampleAliceDir, nil).Once()
 
@@ -305,7 +305,7 @@ func TestCreateDirModal(t *testing.T) {
 		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("some-space-id")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
-		fsMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/New Dir"}).Return(&dfs.ExampleAliceDir, nil).Once()
+		fsMock.On("Get", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/New Dir")).Return(&dfs.ExampleAliceDir, nil).Once()
 
 		// Render
 		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusUnprocessableEntity, &browser.CreateDirTemplate{
@@ -346,9 +346,9 @@ func TestCreateDirModal(t *testing.T) {
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		err := fmt.Errorf("some-error")
-		fsMock.On("Get", mock.Anything, &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/New Dir"}).Return(nil, errs.ErrNotFound).Once()
+		fsMock.On("Get", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/New Dir")).Return(nil, errs.ErrNotFound).Once()
 		fsMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
-			Path:      &dfs.PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/New Dir"},
+			Path:      dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/New Dir"),
 			CreatedBy: &users.ExampleAlice,
 		}).Return(nil, err).Once()
 

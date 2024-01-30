@@ -40,7 +40,7 @@ func copyFiles(ctx context.Context, user *users.User, fs dfs.Service, src, dst *
 			return http.StatusForbidden, err
 		}
 
-		_, err := fs.Get(ctx, &dfs.PathCmd{Space: dst.Space, Path: path.Dir(dst.Path)})
+		_, err := fs.Get(ctx, dfs.NewPathCmd(dst.Space(), path.Dir(dst.Path())))
 		if err != nil && errors.Is(err, errs.ErrNotFound) && !overwrite {
 			return http.StatusConflict, nil
 		}
@@ -64,8 +64,8 @@ func copyFiles(ctx context.Context, user *users.User, fs dfs.Service, src, dst *
 			}
 			for _, c := range children {
 				name := c.Name()
-				s := &dfs.PathCmd{Space: src.Space, Path: path.Join(src.Path, name)}
-				d := &dfs.PathCmd{Space: dst.Space, Path: path.Join(dst.Path, name)}
+				s := dfs.NewPathCmd(src.Space(), path.Join(src.Path(), name))
+				d := dfs.NewPathCmd(dst.Space(), path.Join(dst.Path(), name))
 				cStatus, cErr := copyFiles(ctx, user, fs, s, d, overwrite, depth, recursion)
 				if cErr != nil {
 					// TODO: MultiStatus.
@@ -85,8 +85,8 @@ func copyFiles(ctx context.Context, user *users.User, fs dfs.Service, src, dst *
 		defer reader.Close()
 
 		err = fs.Upload(ctx, &dfs.UploadCmd{
-			Space:      dst.Space,
-			FilePath:   dst.Path,
+			Space:      dst.Space(),
+			FilePath:   dst.Path(),
 			Content:    reader,
 			UploadedBy: user,
 		})

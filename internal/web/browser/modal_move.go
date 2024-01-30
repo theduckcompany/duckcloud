@@ -90,22 +90,19 @@ func (h *moveModalHandler) renderMoveModal(w http.ResponseWriter, r *http.Reques
 		Limit:      PageSize,
 	})
 	if err != nil {
-		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to list dir for elem %s: %w", cmd.Dst.Path, err))
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to list dir for elem %s: %w", cmd.Dst.Path(), err))
 		return
 	}
 
 	srcInode, err := h.fs.Get(r.Context(), cmd.Src)
 	if err != nil {
-		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to get the source file %s: %w", cmd.Src.Path, err))
+		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to get the source file %s: %w", cmd.Src.Path(), err))
 		return
 	}
 
 	folderContent := make(map[dfs.PathCmd]dfs.INode, len(childs))
 	for _, child := range childs {
-		folderContent[dfs.PathCmd{
-			Space: cmd.Dst.Space,
-			Path:  path.Join(cmd.Dst.Path, child.Name()),
-		}] = child
+		folderContent[*dfs.NewPathCmd(cmd.Dst.Space(), path.Join(cmd.Dst.Path(), child.Name()))] = child
 	}
 
 	h.html.WriteHTMLTemplate(w, r, status, &browser.MoveTemplate{
@@ -129,10 +126,7 @@ func (h *moveModalHandler) renderMoreContent(w http.ResponseWriter, r *http.Requ
 
 	folderContent := make(map[dfs.PathCmd]dfs.INode, len(childs))
 	for _, child := range childs {
-		folderContent[dfs.PathCmd{
-			Space: cmd.Dst.Space,
-			Path:  path.Join(cmd.Dst.Path, child.Name()),
-		}] = child
+		folderContent[*dfs.NewPathCmd(cmd.Dst.Space(), path.Join(cmd.Dst.Path(), child.Name()))] = child
 	}
 
 	h.html.WriteHTMLTemplate(w, r, http.StatusOK, &browser.MoveRowsTemplate{
@@ -157,11 +151,8 @@ func (h *moveModalHandler) handleMoveReq(w http.ResponseWriter, r *http.Request)
 	}
 
 	err := h.fs.Move(ctx, &dfs.MoveCmd{
-		Src: srcPath,
-		Dst: &dfs.PathCmd{
-			Space: dstPath.Space,
-			Path:  path.Join(dstPath.Path, path.Base(srcPath.Path)),
-		},
+		Src:     srcPath,
+		Dst:     dfs.NewPathCmd(dstPath.Space(), path.Join(dstPath.Path(), path.Base(srcPath.Path()))),
 		MovedBy: user,
 	})
 	if errors.Is(err, errs.ErrValidation) {
@@ -208,8 +199,8 @@ func (h *moveModalHandler) getMoveParams(w http.ResponseWriter, r *http.Request)
 		return nil, nil, true
 	}
 
-	srcCmd := &dfs.PathCmd{Space: space, Path: srcPath}
-	dstCmd := &dfs.PathCmd{Space: space, Path: dstPath}
+	srcCmd := dfs.NewPathCmd(space, srcPath)
+	dstCmd := dfs.NewPathCmd(space, dstPath)
 
 	return srcCmd, dstCmd, false
 }

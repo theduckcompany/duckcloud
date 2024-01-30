@@ -36,7 +36,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&ExampleAliceDir, nil).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, "bar", ExampleAliceDir.ID()).Return(&ExampleAliceFile, nil).Once()
 
-		res, err := spaceFS.Get(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"})
+		res, err := spaceFS.Get(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar"))
 		assert.NoError(t, err)
 		assert.Equal(t, &ExampleAliceFile, res)
 	})
@@ -52,7 +52,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errNotFound).Once()
 
-		res, err := spaceFS.Get(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo"})
+		res, err := spaceFS.Get(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo"))
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrNotFound)
 	})
@@ -68,7 +68,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, fmt.Errorf("some-error")).Once()
 
-		res, err := spaceFS.Get(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar"})
+		res, err := spaceFS.Get(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar"))
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
@@ -92,7 +92,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("Save", mock.Anything, &ExampleAliceEmptyDir).Return(nil).Once()
 
 		res, err := spaceFS.CreateDir(ctx, &CreateDirCmd{
-			Path:      &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/new-dir"},
+			Path:      NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/new-dir"),
 			CreatedBy: &users.ExampleAlice,
 		})
 		assert.NoError(t, err)
@@ -108,7 +108,7 @@ func Test_DFS_Service(t *testing.T) {
 		spaceFS := NewService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		res, err := spaceFS.CreateDir(ctx, &CreateDirCmd{
-			Path:      &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/some-dir-name"},
+			Path:      NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/some-dir-name"),
 			CreatedBy: nil,
 		})
 		assert.Nil(t, res)
@@ -128,7 +128,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "some-dir-name", ExampleAliceRoot.ID()).Return(&ExampleAliceFile, nil).Once()
 
 		res, err := spaceFS.CreateDir(ctx, &CreateDirCmd{
-			Path:      &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/some-dir-name"},
+			Path:      NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/some-dir-name"),
 			CreatedBy: &users.ExampleAlice,
 		})
 		assert.Nil(t, res)
@@ -149,7 +149,7 @@ func Test_DFS_Service(t *testing.T) {
 			Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
 
 		res, err := spaceFS.CreateDir(ctx, &CreateDirCmd{
-			Path:      &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/some-dir-name"},
+			Path:      NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/some-dir-name"),
 			CreatedBy: &users.ExampleAlice,
 		})
 		assert.Nil(t, res)
@@ -168,7 +168,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 
 		res, err := spaceFS.CreateDir(ctx, &CreateDirCmd{
-			Path:      &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/"},
+			Path:      NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/"),
 			CreatedBy: &users.ExampleAlice,
 		})
 		assert.NoError(t, err)
@@ -195,7 +195,7 @@ func Test_DFS_Service(t *testing.T) {
 			ModifiedAt: now,
 		}).Return(nil).Once()
 
-		err := spaceFS.Remove(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo"})
+		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"))
 		assert.NoError(t, err)
 	})
 
@@ -207,7 +207,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		spaceFS := NewService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
-		err := spaceFS.Remove(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/"})
+		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/"))
 		assert.ErrorIs(t, err, errs.ErrUnauthorized)
 		assert.ErrorContains(t, err, "can't remove /")
 	})
@@ -220,7 +220,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		spaceFS := NewService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
-		err := spaceFS.Remove(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: ""})
+		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, ""))
 		assert.ErrorIs(t, err, errs.ErrUnauthorized)
 		assert.ErrorContains(t, err, "can't remove /")
 	})
@@ -236,7 +236,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errs.ErrNotFound).Once()
 
-		err := spaceFS.Remove(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo"})
+		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"))
 		assert.NoError(t, err)
 	})
 
@@ -251,7 +251,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
 
-		err := spaceFS.Remove(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo"})
+		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"))
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})
@@ -272,7 +272,7 @@ func Test_DFS_Service(t *testing.T) {
 			"last_modified_at": now,
 		}).Return(fmt.Errorf("some-error")).Once()
 
-		err := spaceFS.Remove(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo"})
+		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"))
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})
@@ -297,7 +297,7 @@ func Test_DFS_Service(t *testing.T) {
 			ModifiedAt: now,
 		}).Return(errs.Internal(fmt.Errorf("some-error"))).Once()
 
-		err := spaceFS.Remove(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo"})
+		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"))
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})
@@ -317,7 +317,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetAllChildrens", mock.Anything, ExampleAliceDir.ID(), &storage.PaginateCmd{Limit: 2}).
 			Return([]INode{ExampleAliceFile}, nil).Once()
 
-		res, err := spaceFS.ListDir(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo"}, &storage.PaginateCmd{Limit: 2})
+		res, err := spaceFS.ListDir(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"), &storage.PaginateCmd{Limit: 2})
 		assert.NoError(t, err)
 		assert.Equal(t, []INode{ExampleAliceFile}, res)
 	})
@@ -334,7 +334,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errs.ErrNotFound).Once()
 
-		res, err := spaceFS.ListDir(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo"}, &storage.PaginateCmd{Limit: 2})
+		res, err := spaceFS.ListDir(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"), &storage.PaginateCmd{Limit: 2})
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrNotFound)
 	})
@@ -351,7 +351,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
 
-		res, err := spaceFS.ListDir(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo"}, &storage.PaginateCmd{Limit: 2})
+		res, err := spaceFS.ListDir(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"), &storage.PaginateCmd{Limit: 2})
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
@@ -372,7 +372,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetAllChildrens", mock.Anything, ExampleAliceDir.ID(), &storage.PaginateCmd{Limit: 2}).
 			Return(nil, fmt.Errorf("some-error")).Once()
 
-		res, err := spaceFS.ListDir(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "foo"}, &storage.PaginateCmd{Limit: 2})
+		res, err := spaceFS.ListDir(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"), &storage.PaginateCmd{Limit: 2})
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
@@ -398,7 +398,7 @@ func Test_DFS_Service(t *testing.T) {
 
 		filesMock.On("Download", mock.Anything, &files.ExampleFile1).Return(file, nil).Once()
 
-		res, err := spaceFS.Download(ctx, &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo/bar.txt"})
+		res, err := spaceFS.Download(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar.txt"))
 		assert.NoError(t, err)
 		assert.Equal(t, file, res)
 	})
@@ -591,8 +591,8 @@ func Test_DFS_Service(t *testing.T) {
 		}).Return(nil).Once()
 
 		err := spaceFS.Move(ctx, &MoveCmd{
-			Src:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo.txt"},
-			Dst:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"},
+			Src:     NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo.txt"),
+			Dst:     NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar.txt"),
 			MovedBy: &users.ExampleAlice,
 		})
 		assert.NoError(t, err)
@@ -607,12 +607,12 @@ func Test_DFS_Service(t *testing.T) {
 		spaceFS := NewService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		err := spaceFS.Move(ctx, &MoveCmd{
-			Src:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: ""},
-			Dst:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"},
+			Src:     nil,
+			Dst:     NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar.txt"),
 			MovedBy: &users.ExampleAlice,
 		})
 		assert.ErrorIs(t, err, errs.ErrValidation)
-		assert.EqualError(t, err, "validation: Src: (Path: cannot be blank.).")
+		assert.EqualError(t, err, "validation: Src: cannot be blank.")
 	})
 
 	t.Run("Move to the same place", func(t *testing.T) {
@@ -624,8 +624,8 @@ func Test_DFS_Service(t *testing.T) {
 		spaceFS := NewService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		err := spaceFS.Move(ctx, &MoveCmd{
-			Src:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"},
-			Dst:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"},
+			Src:     NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar.txt"),
+			Dst:     NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar.txt"),
 			MovedBy: &users.ExampleAlice,
 		})
 		assert.NoError(t, err)
@@ -644,8 +644,8 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo.txt", ExampleAliceRoot.ID()).Return(nil, errs.ErrNotFound).Once()
 
 		err := spaceFS.Move(ctx, &MoveCmd{
-			Src:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo.txt"},
-			Dst:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"},
+			Src:     NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo.txt"),
+			Dst:     NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar.txt"),
 			MovedBy: &users.ExampleAlice,
 		})
 		assert.ErrorIs(t, err, errs.ErrNotFound)
@@ -673,8 +673,8 @@ func Test_DFS_Service(t *testing.T) {
 		}).Return(errs.Internal(fmt.Errorf("some-error"))).Once()
 
 		err := spaceFS.Move(ctx, &MoveCmd{
-			Src:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/foo.txt"},
-			Dst:     &PathCmd{Space: &spaces.ExampleAlicePersonalSpace, Path: "/bar.txt"},
+			Src:     NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo.txt"),
+			Dst:     NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar.txt"),
 			MovedBy: &users.ExampleAlice,
 		})
 		assert.ErrorIs(t, err, errs.ErrInternal)
