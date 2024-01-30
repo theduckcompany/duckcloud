@@ -312,8 +312,7 @@ func TestFilenameEscape(t *testing.T) {
 		if tt.name != "/" {
 			if strings.HasSuffix(tt.name, "/") {
 				if _, err := fs.CreateDir(ctx, &dfs.CreateDirCmd{
-					Space:     tc.Space,
-					FilePath:  tt.name,
+					Path:      &dfs.PathCmd{Space: tc.Space, Path: tt.name},
 					CreatedBy: tc.User,
 				}); err != nil {
 					t.Fatalf("name=%q: Mkdir: %v", tt.name, err)

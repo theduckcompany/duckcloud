@@ -242,8 +242,7 @@ func (h *Handler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
 
 	dirPath := path.Dir(fullPath)
 	_, err = h.fs.CreateDir(ctx, &dfs.CreateDirCmd{
-		Space:     space,
-		FilePath:  dirPath,
+		Path:      &dfs.PathCmd{Space: space, Path: dirPath},
 		CreatedBy: cmd.user,
 	})
 	if err != nil && !errors.Is(err, dfs.ErrAlreadyExists) {

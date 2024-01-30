@@ -255,11 +255,7 @@ func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request, user *user
 		}
 	}
 
-	if _, err := h.FileSystem.CreateDir(ctx, &dfs.CreateDirCmd{
-		Space:     pathCmd.Space,
-		FilePath:  pathCmd.Path,
-		CreatedBy: user,
-	}); err != nil {
+	if _, err := h.FileSystem.CreateDir(ctx, &dfs.CreateDirCmd{Path: pathCmd, CreatedBy: user}); err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return http.StatusConflict, err
 		}

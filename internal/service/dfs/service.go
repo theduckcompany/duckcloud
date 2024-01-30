@@ -186,12 +186,11 @@ func (s *DFSService) CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, 
 		return nil, errs.Validation(err)
 	}
 
+	cmd.Path.Path = CleanPath(cmd.Path.Path)
+
 	var inode *INode
 	currentPath := "/"
-	err = s.walk(ctx, &PathCmd{
-		Space: cmd.Space,
-		Path:  CleanPath(cmd.FilePath),
-	}, "mkdir", func(dir *INode, frag string, _ bool) error {
+	err = s.walk(ctx, cmd.Path, "mkdir", func(dir *INode, frag string, _ bool) error {
 		currentPath = path.Join(currentPath, dir.Name())
 
 		if frag == "" {
@@ -307,6 +306,9 @@ func (s *DFSService) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 
 	var inode *INode
 	currentPath := "/"
+
+	cmd.Path = CleanPath(cmd.Path)
+
 	err = s.walk(ctx, cmd, "open", func(dir *INode, frag string, final bool) error {
 		currentPath = path.Join(currentPath, dir.Name())
 		if !final {

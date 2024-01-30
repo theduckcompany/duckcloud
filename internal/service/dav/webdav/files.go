@@ -54,11 +54,7 @@ func copyFiles(ctx context.Context, user *users.User, fs dfs.Service, src, dst *
 	}
 
 	if srcStat.IsDir() {
-		if _, err := fs.CreateDir(ctx, &dfs.CreateDirCmd{
-			Space:     dst.Space,
-			FilePath:  dst.Path,
-			CreatedBy: user,
-		}); err != nil {
+		if _, err := fs.CreateDir(ctx, &dfs.CreateDirCmd{Path: dst, CreatedBy: user}); err != nil {
 			return http.StatusForbidden, err
 		}
 		if depth == infiniteDepth {
