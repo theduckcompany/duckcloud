@@ -10,13 +10,6 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
-type LayoutTemplate struct {
-	CurrentSpace *spaces.Space
-	Spaces       []spaces.Space
-}
-
-func (t *LayoutTemplate) Template() string { return "browser/layout.tmpl" }
-
 type ContentTemplate struct {
 	Folder        *dfs.PathCmd
 	Inodes        []dfs.INode
@@ -63,13 +56,6 @@ func (t *ContentTemplate) Rows() *RowsTemplate {
 		Folder:        t.Folder,
 		Inodes:        t.Inodes,
 		ContentTarget: t.ContentTarget,
-	}
-}
-
-func (t *ContentTemplate) Layout() *LayoutTemplate {
-	return &LayoutTemplate{
-		CurrentSpace: t.CurrentSpace,
-		Spaces:       t.AllSpaces,
 	}
 }
 
