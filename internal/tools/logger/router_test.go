@@ -56,4 +56,34 @@ func Test_RouterLogger(t *testing.T) {
 		assert.EqualValues(t, http.StatusOK, httpRes["resp_status"])
 		assert.Less(t, httpRes["resp_elapsed_ms"], float64(0.05))
 	})
+
+	t.Run("Check the location field for redirects", func(t *testing.T) {
+		buf := new(bytes.Buffer)
+
+		logger := slog.New(slog.NewJSONHandler(buf, &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		}))
+		handler := NewRouterLogger(logger)
+
+		srv := chi.NewMux()
+		srv.Handle("/*", handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, "/foobar", http.StatusFound)
+		})))
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/settings/browsers", nil)
+		srv.ServeHTTP(w, r)
+
+		res := map[string]any{}
+		err := json.Unmarshal(buf.Bytes(), &res)
+		require.NoError(t, err)
+
+		t.Logf("Log line: %+v", buf.String())
+
+		assert.Equal(t, "request complete", res["msg"])
+		assert.Equal(t, "INFO", res["level"])
+
+		httpRes := res["http"].(map[string]any)
+		assert.Equal(t, "/foobar", httpRes["location"])
+	})
 }

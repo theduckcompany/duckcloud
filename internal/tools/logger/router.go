@@ -54,10 +54,20 @@ type structuredLoggerEntry struct {
 func (l *structuredLoggerEntry) Write(status, bytes int, header http.Header, elapsed time.Duration, extra interface{}) {
 	var level slog.Level
 
+	entries := []slog.Attr{
+		slog.Int("resp_status", status),
+		slog.Int("resp_byte_length", bytes),
+		slog.Float64("resp_elapsed_ms", float64(elapsed.Nanoseconds())/1000000.0),
+	}
+
 	switch {
 	case status >= 200 && status <= 299:
 		level = slog.LevelDebug
 	case status >= 300 && status <= 399:
+		if status == http.StatusFound || status == http.StatusPermanentRedirect {
+			entries = append(entries, slog.String("location", header.Get("Location")))
+		}
+
 		level = slog.LevelInfo
 	case status >= 400 && status <= 499:
 		level = slog.LevelWarn
@@ -65,11 +75,7 @@ func (l *structuredLoggerEntry) Write(status, bytes int, header http.Header, ela
 		level = slog.LevelError
 	}
 
-	slog.New(l.logger).LogAttrs(context.Background(), level, "request complete",
-		slog.Int("resp_status", status),
-		slog.Int("resp_byte_length", bytes),
-		slog.Float64("resp_elapsed_ms", float64(elapsed.Nanoseconds())/1000000.0),
-	)
+	slog.New(l.logger).LogAttrs(context.Background(), level, "request complete", entries...)
 }
 
 func (l *structuredLoggerEntry) Panic(v interface{}, stack []byte) {
