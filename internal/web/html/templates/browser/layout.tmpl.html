@@ -16,12 +16,12 @@
         <li class="sidenav-item pt-3">
           <span class="sidenav-subheading text-muted text-uppercase fw-bold">Spaces</span>
         </li>
-        {{range .Layout.Spaces}}
+        {{range .AllSpaces}}
         <li class="sidenav-item">
-          <a class="sidenav-link {{if (eq $.Layout.CurrentSpace.ID .ID)}}text-primary bg-light{{end}}"
-            href="/browser/{{.ID}}" hx-target="#content" , hx-swap="outerHTML">
+          <a class="sidenav-link {{if (eq $.CurrentSpace.ID .ID)}}text-primary bg-light{{end}}" href="/browser/{{.ID}}"
+            hx-target="#content" , hx-swap="outerHTML">
             <i
-              class="bi bi-folder-fill me-3 {{if (eq $.Layout.CurrentSpace.ID .ID)}}text-primary{{end}}"></i><span>{{.Name}}</span></a>
+              class="bi bi-folder-fill me-3 {{if (eq $.CurrentSpace.ID .ID)}}text-primary{{end}}"></i><span>{{.Name}}</span></a>
         </li>
         {{end}}
       </ul>
