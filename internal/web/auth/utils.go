@@ -36,8 +36,7 @@ func (a *Authenticator) GetUserAndSession(w http.ResponseWriter, r *http.Request
 		a.webSessions.Logout(r, w)
 		return nil, nil, true
 	case errors.Is(err, websessions.ErrMissingSessionToken):
-		w.Header().Set("Location", "/login")
-		w.WriteHeader(http.StatusFound)
+		http.Redirect(w, r, "/login", http.StatusFound)
 		return nil, nil, true
 	default:
 		a.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to websessions.GetFromReq: %w", err))

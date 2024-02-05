@@ -145,14 +145,11 @@ func (h *Handler) chooseRedirection(w http.ResponseWriter, r *http.Request) {
 
 	switch {
 	case client == nil:
-		w.Header().Set("Location", "/")
-		w.WriteHeader(http.StatusFound)
+		http.Redirect(w, r, "/", http.StatusFound)
 	case client.SkipValidation():
-		w.Header().Set("Location", "/auth/authorize")
-		w.WriteHeader(http.StatusFound)
+		http.Redirect(w, r, "/auth/authorize", http.StatusFound)
 	default:
-		w.Header().Set("Location", "/consent?"+r.Form.Encode())
-		w.WriteHeader(http.StatusFound)
+		http.Redirect(w, r, "/consent?"+r.Form.Encode(), http.StatusFound)
 	}
 }
 
@@ -193,8 +190,7 @@ func (h *Handler) handleConsentPage(w http.ResponseWriter, r *http.Request) {
 		}
 
 		r.Form.Add("consent_id", string(consent.ID()))
-		w.Header().Set("Location", "/auth/authorize?"+r.Form.Encode())
-		w.WriteHeader(http.StatusFound)
+		http.Redirect(w, r, "/auth/authorize?"+r.Form.Encode(), http.StatusFound)
 		return
 	}
 

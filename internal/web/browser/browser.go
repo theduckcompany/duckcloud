@@ -103,8 +103,7 @@ func (h *Handler) redirectDefaultBrowser(w http.ResponseWriter, r *http.Request)
 
 	spaceID := spaces[0].ID()
 
-	w.Header().Set("Location", path.Join("/browser/", string(spaceID)))
-	w.WriteHeader(http.StatusFound)
+	http.Redirect(w, r, path.Join("/browser/", string(spaceID)), http.StatusFound)
 }
 
 func (h *Handler) getBrowserContent(w http.ResponseWriter, r *http.Request) {
@@ -273,8 +272,7 @@ func (h Handler) getSpaceAndPathFromURL(w http.ResponseWriter, r *http.Request, 
 	// no need to check elems len as the url format force a len of 3 minimum
 	spaceID, err := h.uuid.Parse(elems[0])
 	if err != nil {
-		w.Header().Set("Location", "/browser")
-		w.WriteHeader(http.StatusFound)
+		http.Redirect(w, r, "/browser", http.StatusFound)
 		return nil, "", true
 	}
 
@@ -285,8 +283,7 @@ func (h Handler) getSpaceAndPathFromURL(w http.ResponseWriter, r *http.Request, 
 	}
 
 	if space == nil {
-		w.Header().Set("Location", "/browser")
-		w.WriteHeader(http.StatusFound)
+		http.Redirect(w, r, "/browser", http.StatusFound)
 		return nil, "", true
 	}
 
@@ -306,8 +303,7 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 	}
 
 	if inode == nil {
-		w.Header().Set("Location", path.Join("/browser/", string(cmd.Space().ID())))
-		w.WriteHeader(http.StatusFound)
+		http.Redirect(w, r, path.Join("/browser/", string(cmd.Space().ID())), http.StatusFound)
 		return
 	}
 
@@ -390,8 +386,7 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if inode == nil {
-		w.Header().Set("Location", path.Join("/browser/", string(space.ID())))
-		w.WriteHeader(http.StatusFound)
+		http.Redirect(w, r, path.Join("/browser/", string(space.ID())), http.StatusFound)
 		return
 	}
 
