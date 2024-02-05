@@ -105,8 +105,8 @@ func Test_Browser_Page(t *testing.T) {
 			Return([]spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace}, nil).Once()
 
 		// Get the space from the url
-		tools.UUIDMock.On("Parse", "space-id").Return(uuid.UUID("space-id"), nil).Once()
-		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("space-id")).
+		tools.UUIDMock.On("Parse", "d09f29f9-5131-4aa4-b69c-7717124b213e").Return(uuid.UUID("d09f29f9-5131-4aa4-b69c-7717124b213e"), nil).Once()
+		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("d09f29f9-5131-4aa4-b69c-7717124b213e")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		// Then look for the path inside this space
@@ -126,7 +126,7 @@ func Test_Browser_Page(t *testing.T) {
 		}).Once()
 
 		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/browser/space-id/foo/bar", nil)
+		r := httptest.NewRequest(http.MethodGet, "/browser/d09f29f9-5131-4aa4-b69c-7717124b213e/foo/bar", nil)
 		srv := chi.NewRouter()
 		handler.Register(srv, nil)
 		srv.ServeHTTP(w, r)
@@ -134,7 +134,7 @@ func Test_Browser_Page(t *testing.T) {
 		res := w.Result()
 		defer res.Body.Close()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
-		assert.Equal(t, w.Header().Get("HX-Push-Url"), path.Join("/browser", string(spaces.ExampleAlicePersonalSpace.ID()), "/foo/bar"))
+		assert.Equal(t, path.Join("/browser", string(spaces.ExampleAlicePersonalSpace.ID()), "/foo/bar"), w.Header().Get("HX-Push-Url"))
 	})
 
 	t.Run("getBrowserContent success with dir and a last attribute", func(t *testing.T) {
@@ -153,8 +153,8 @@ func Test_Browser_Page(t *testing.T) {
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
 		// Get the space from the url
-		tools.UUIDMock.On("Parse", "space-id").Return(uuid.UUID("space-id"), nil).Once()
-		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("space-id")).
+		tools.UUIDMock.On("Parse", "d09f29f9-5131-4aa4-b69c-7717124b213e").Return(uuid.UUID("d09f29f9-5131-4aa4-b69c-7717124b213e"), nil).Once()
+		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("d09f29f9-5131-4aa4-b69c-7717124b213e")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		fsMock.On("ListDir", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar"), &storage.PaginateCmd{
@@ -169,7 +169,7 @@ func Test_Browser_Page(t *testing.T) {
 		}).Once()
 
 		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/browser/space-id/foo/bar?last=some-filename", nil)
+		r := httptest.NewRequest(http.MethodGet, "/browser/d09f29f9-5131-4aa4-b69c-7717124b213e/foo/bar?last=some-filename", nil)
 		srv := chi.NewRouter()
 		handler.Register(srv, nil)
 		srv.ServeHTTP(w, r)
@@ -196,8 +196,8 @@ func Test_Browser_Page(t *testing.T) {
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
 		// Get the space from the url
-		tools.UUIDMock.On("Parse", "space-id").Return(uuid.UUID("space-id"), nil).Once()
-		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("space-id")).
+		tools.UUIDMock.On("Parse", "d09f29f9-5131-4aa4-b69c-7717124b213e").Return(uuid.UUID("d09f29f9-5131-4aa4-b69c-7717124b213e"), nil).Once()
+		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("d09f29f9-5131-4aa4-b69c-7717124b213e")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		// Then look for the path inside this space
@@ -212,7 +212,7 @@ func Test_Browser_Page(t *testing.T) {
 		fsMock.On("Download", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar")).Return(file, nil).Once()
 
 		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/browser/space-id/foo/bar", nil)
+		r := httptest.NewRequest(http.MethodGet, "/browser/d09f29f9-5131-4aa4-b69c-7717124b213e/foo/bar", nil)
 		srv := chi.NewRouter()
 		handler.Register(srv, nil)
 		srv.ServeHTTP(w, r)
@@ -237,7 +237,7 @@ func Test_Browser_Page(t *testing.T) {
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
 
 		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/browser/space-id/foo/bar", nil)
+		r := httptest.NewRequest(http.MethodGet, "/browser/d09f29f9-5131-4aa4-b69c-7717124b213e/foo/bar", nil)
 		srv := chi.NewRouter()
 		handler.Register(srv, nil)
 		srv.ServeHTTP(w, r)
@@ -265,10 +265,10 @@ func Test_Browser_Page(t *testing.T) {
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
-		tools.UUIDMock.On("Parse", "space-id").Return(uuid.UUID(""), fmt.Errorf("invalid id")).Once()
+		tools.UUIDMock.On("Parse", "d09f29f9-5131-4aa4-b69c-7717124b213e").Return(uuid.UUID(""), fmt.Errorf("invalid id")).Once()
 
 		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/browser/space-id/foo/bar", nil)
+		r := httptest.NewRequest(http.MethodGet, "/browser/d09f29f9-5131-4aa4-b69c-7717124b213e/foo/bar", nil)
 		srv := chi.NewRouter()
 		handler.Register(srv, nil)
 		srv.ServeHTTP(w, r)
@@ -297,12 +297,12 @@ func Test_Browser_Page(t *testing.T) {
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
 		// Get the space from the url
-		tools.UUIDMock.On("Parse", "space-id").Return(uuid.UUID("space-id"), nil).Once()
-		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("space-id")).
+		tools.UUIDMock.On("Parse", "d09f29f9-5131-4aa4-b69c-7717124b213e").Return(uuid.UUID("d09f29f9-5131-4aa4-b69c-7717124b213e"), nil).Once()
+		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("d09f29f9-5131-4aa4-b69c-7717124b213e")).
 			Return(nil, nil).Once()
 
 		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/browser/space-id/foo", nil)
+		r := httptest.NewRequest(http.MethodGet, "/browser/d09f29f9-5131-4aa4-b69c-7717124b213e/foo", nil)
 		srv := chi.NewRouter()
 		handler.Register(srv, nil)
 		srv.ServeHTTP(w, r)
@@ -331,15 +331,15 @@ func Test_Browser_Page(t *testing.T) {
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
 		// Get the space from the url
-		tools.UUIDMock.On("Parse", "space-id").Return(uuid.UUID("space-id"), nil).Once()
-		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("space-id")).
+		tools.UUIDMock.On("Parse", "d09f29f9-5131-4aa4-b69c-7717124b213e").Return(uuid.UUID("d09f29f9-5131-4aa4-b69c-7717124b213e"), nil).Once()
+		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("d09f29f9-5131-4aa4-b69c-7717124b213e")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		// Then look for the path inside this space
 		fsMock.On("Get", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/invalid")).Return(nil, errs.ErrNotFound).Once()
 
 		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/browser/space-id/invalid", nil)
+		r := httptest.NewRequest(http.MethodGet, "/browser/d09f29f9-5131-4aa4-b69c-7717124b213e/invalid", nil)
 		srv := chi.NewRouter()
 		handler.Register(srv, nil)
 		srv.ServeHTTP(w, r)
@@ -368,9 +368,9 @@ func Test_Browser_Page(t *testing.T) {
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
-		tools.UUIDMock.On("Parse", "space-id").Return(uuid.UUID("space-id"), nil).Once()
+		tools.UUIDMock.On("Parse", "d09f29f9-5131-4aa4-b69c-7717124b213e").Return(uuid.UUID("d09f29f9-5131-4aa4-b69c-7717124b213e"), nil).Once()
 
-		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("space-id")).
+		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("d09f29f9-5131-4aa4-b69c-7717124b213e")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		fsMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
@@ -395,7 +395,7 @@ func Test_Browser_Page(t *testing.T) {
 		form := multipart.NewWriter(buf)
 		form.WriteField("name", "hello.txt")
 		form.WriteField("rootPath", "/foo/bar") // This correspond to the DuckFS path where the upload append
-		form.WriteField("spaceID", "space-id")
+		form.WriteField("spaceID", "d09f29f9-5131-4aa4-b69c-7717124b213e")
 		writer, err := form.CreateFormFile("file", "hello.txt")
 		require.NoError(t, err)
 		_, err = writer.Write([]byte(content))
@@ -432,9 +432,9 @@ func Test_Browser_Page(t *testing.T) {
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
-		tools.UUIDMock.On("Parse", "space-id").Return(uuid.UUID("space-id"), nil).Once()
+		tools.UUIDMock.On("Parse", "d09f29f9-5131-4aa4-b69c-7717124b213e").Return(uuid.UUID("d09f29f9-5131-4aa4-b69c-7717124b213e"), nil).Once()
 
-		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("space-id")).
+		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("d09f29f9-5131-4aa4-b69c-7717124b213e")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		fsMock.On("CreateDir", mock.Anything, &dfs.CreateDirCmd{
@@ -460,7 +460,7 @@ func Test_Browser_Page(t *testing.T) {
 		form := multipart.NewWriter(buf)
 		form.WriteField("name", "hello.txt")
 		form.WriteField("rootPath", "/foo/bar")
-		form.WriteField("spaceID", "space-id")
+		form.WriteField("spaceID", "d09f29f9-5131-4aa4-b69c-7717124b213e")
 		form.WriteField("relativePath", "/baz/hello.txt")
 		writer, err := form.CreateFormFile("file", "hello.txt")
 		_, err = writer.Write([]byte(content))
@@ -497,14 +497,14 @@ func Test_Browser_Page(t *testing.T) {
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
 		// Get the space from the url
-		tools.UUIDMock.On("Parse", "space-id").Return(uuid.UUID("space-id"), nil).Once()
-		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("space-id")).
+		tools.UUIDMock.On("Parse", "d09f29f9-5131-4aa4-b69c-7717124b213e").Return(uuid.UUID("d09f29f9-5131-4aa4-b69c-7717124b213e"), nil).Once()
+		spacesMock.On("GetUserSpace", mock.Anything, users.ExampleAlice.ID(), uuid.UUID("d09f29f9-5131-4aa4-b69c-7717124b213e")).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		fsMock.On("Remove", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar")).Return(nil).Once()
 
 		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodDelete, "/browser/space-id/foo/bar", nil)
+		r := httptest.NewRequest(http.MethodDelete, "/browser/d09f29f9-5131-4aa4-b69c-7717124b213e/foo/bar", nil)
 		srv := chi.NewRouter()
 		handler.Register(srv, nil)
 		srv.ServeHTTP(w, r)

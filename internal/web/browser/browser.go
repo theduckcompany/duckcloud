@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
@@ -69,10 +68,9 @@ func (h *Handler) Register(r chi.Router, mids *router.Middlewares) {
 
 	r.Get("/browser", h.redirectDefaultBrowser)
 	r.Post("/browser/upload", h.upload)
-	r.Get("/download/*", h.download)
-	r.Get("/browser/*", h.getBrowserContent)
-
-	r.Delete("/browser/*", h.deleteAll)
+	r.Get("/download/{spaceID}/*", h.download)
+	r.Get("/browser/{spaceID}/*", h.getBrowserContent)
+	r.Delete("/browser/{spaceID}/*", h.deleteAll)
 
 	newCreateDirModalHandler(h.auth, h.spaces, h.html, h.uuid, h.fs).Register(r, mids)
 	newRenameModalHandler(h.auth, h.spaces, h.html, h.uuid, h.fs).Register(r, mids)
@@ -262,15 +260,8 @@ func (h *Handler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
 }
 
 func (h Handler) getSpaceAndPathFromURL(w http.ResponseWriter, r *http.Request, user *users.User, pathStr string) (*spaces.Space, string, bool) {
-	pathStr = strings.TrimPrefix(pathStr, "/")        // Trim for the urls like: /space-id/foo/bar
-	pathStr = strings.TrimPrefix(pathStr, "browser/") // Trim for the urls like: /browser/space-id/foo/bar
-
-	// For the path "{{spaceID}}/foo/bar/baz" the elems variable will have for content:
-	// []string{"{{spaceID}}", "/foo/bar/baz"}
-	elems := strings.SplitN(pathStr, "/", 2)
-
 	// no need to check elems len as the url format force a len of 3 minimum
-	spaceID, err := h.uuid.Parse(elems[0])
+	spaceID, err := h.uuid.Parse(chi.URLParam(r, "spaceID"))
 	if err != nil {
 		http.Redirect(w, r, "/browser", http.StatusFound)
 		return nil, "", true
@@ -287,10 +278,7 @@ func (h Handler) getSpaceAndPathFromURL(w http.ResponseWriter, r *http.Request, 
 		return nil, "", true
 	}
 
-	fullPath := "/"
-	if len(elems) == 2 {
-		fullPath = path.Clean("/" + elems[1])
-	}
+	fullPath := dfs.CleanPath(chi.URLParam(r, "*"))
 
 	return space, fullPath, false
 }
