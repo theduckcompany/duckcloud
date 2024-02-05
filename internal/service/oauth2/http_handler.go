@@ -102,8 +102,7 @@ func (h *HTTPHandler) userAuthorizationHandler(w http.ResponseWriter, r *http.Re
 		// Create a new session with a session_id, save all the form arguments in it
 		// and redirect the user to the login with the session_id as argument
 
-		w.Header().Set("Location", "/login?"+r.Form.Encode())
-		w.WriteHeader(http.StatusFound)
+		http.Redirect(w, r, "/login?"+r.Form.Encode(), http.StatusFound)
 
 		return "", nil
 	}
@@ -128,8 +127,7 @@ func (h *HTTPHandler) userAuthorizationHandler(w http.ResponseWriter, r *http.Re
 
 	err = h.oauthConsent.Check(r, client, session)
 	if errors.Is(err, oauthconsents.ErrConsentNotFound) {
-		w.Header().Set("Location", "/consent?"+r.Form.Encode())
-		w.WriteHeader(http.StatusFound)
+		http.Redirect(w, r, "/consent?"+r.Form.Encode(), http.StatusFound)
 		return "", nil
 	}
 

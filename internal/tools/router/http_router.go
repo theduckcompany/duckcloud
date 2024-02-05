@@ -118,9 +118,8 @@ func NewServer(routes []Registerer, cfg Config, lc fx.Lifecycle, mids *Middlewar
 
 func createHandler(cfg Config, routes []Registerer, mids *Middlewares) (chi.Router, error) {
 	r := chi.NewMux()
-	r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Location", "/")
-		w.WriteHeader(http.StatusFound)
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/", http.StatusFound)
 	})
 
 	if cfg.Secure {
