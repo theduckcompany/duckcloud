@@ -23,7 +23,7 @@ func Test_Templates(t *testing.T) {
 		Layout   bool
 	}{
 		{
-			Name:   "modal_create_dir",
+			Name:   "LayoutTemplate",
 			Layout: true,
 			Template: &LayoutTemplate{
 				IsAdmin: true,
