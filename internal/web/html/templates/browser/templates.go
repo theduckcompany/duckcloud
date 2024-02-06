@@ -18,7 +18,7 @@ type ContentTemplate struct {
 	ContentTarget string
 }
 
-func (t *ContentTemplate) Template() string { return "browser/page.tmpl" }
+func (t *ContentTemplate) Template() string { return "browser/page" }
 
 func (t *ContentTemplate) Breadcrumb() *BreadCrumbTemplate {
 	basePath := path.Join("/browser/", string(t.Folder.Space().ID()))
@@ -65,7 +65,7 @@ type CreateDirTemplate struct {
 	Error   *string
 }
 
-func (t *CreateDirTemplate) Template() string { return "browser/modal_create_dir.tmpl" }
+func (t *CreateDirTemplate) Template() string { return "browser/modal_create_dir" }
 
 type RenameTemplate struct {
 	Error               *string
@@ -74,7 +74,7 @@ type RenameTemplate struct {
 	FieldValueSelection int
 }
 
-func (t *RenameTemplate) Template() string { return "browser/modal_rename.tmpl" }
+func (t *RenameTemplate) Template() string { return "browser/modal_rename" }
 
 type RowsTemplate struct {
 	Inodes        []dfs.INode
@@ -82,14 +82,14 @@ type RowsTemplate struct {
 	ContentTarget string
 }
 
-func (t *RowsTemplate) Template() string { return "browser/rows.tmpl" }
+func (t *RowsTemplate) Template() string { return "browser/rows" }
 
 type BreadCrumbTemplate struct {
 	Elements []BreadCrumbElement
 	Target   string
 }
 
-func (t *BreadCrumbTemplate) Template() string { return "browser/breadcrumb.tmpl" }
+func (t *BreadCrumbTemplate) Template() string { return "browser/breadcrumb" }
 
 type BreadCrumbElement struct {
 	Name    string
@@ -149,7 +149,7 @@ func (t *MoveTemplate) Breadcrumb() *BreadCrumbTemplate {
 	return &BreadCrumbTemplate{Elements: elements, Target: "#modal-content"}
 }
 
-func (t *MoveTemplate) Template() string { return "browser/modal_move.tmpl" }
+func (t *MoveTemplate) Template() string { return "browser/modal_move" }
 
 func (t *MoveTemplate) MoveRows() *MoveRowsTemplate {
 	return &MoveRowsTemplate{
@@ -167,4 +167,4 @@ type MoveRowsTemplate struct {
 	PageSize      int
 }
 
-func (t *MoveRowsTemplate) Template() string { return "browser/modal_move_rows.tmpl" }
+func (t *MoveRowsTemplate) Template() string { return "browser/modal_move_rows" }

@@ -63,7 +63,7 @@ func NewRenderer(cfg Config) *Renderer {
 		FileSystem:    fs,
 		Layout:        "",
 		IsDevelopment: cfg.HotReload,
-		Extensions:    []string{".tmpl", ".html"},
+		Extensions:    []string{".tmpl"},
 		Funcs: []template.FuncMap{
 			{
 				"humanTime": humanize.Time,
@@ -113,11 +113,11 @@ func NewRenderer(cfg Config) *Renderer {
 func (t *Renderer) WriteHTML(w http.ResponseWriter, r *http.Request, status int, template string, args any) {
 	layout := ""
 
-	if strings.Contains(template, "page.tmpl") {
+	if strings.Contains(template, "page") {
 		dir := path.Dir(template)
 
 		for {
-			layout = path.Join(dir, "layout.tmpl")
+			layout = path.Join(dir, "layout")
 			if t.render.TemplateLookup(layout) != nil {
 				break
 			}
@@ -146,12 +146,12 @@ func (t *Renderer) WriteHTMLErrorPage(w http.ResponseWriter, r *http.Request, er
 	reqID := r.Context().Value(middleware.RequestIDKey).(string)
 
 	if r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == "" {
-		layout = path.Join("home/layout.tmpl")
+		layout = path.Join("home/layout")
 	}
 
 	logger.LogEntrySetError(r, err)
 
-	if err := t.render.HTML(w, http.StatusInternalServerError, "home/500.tmpl", map[string]any{
+	if err := t.render.HTML(w, http.StatusInternalServerError, "home/500", map[string]any{
 		"requestID": reqID,
 	}, render.HTMLOptions{Layout: layout}); err != nil {
 		logger.LogEntrySetAttrs(r, slog.String("render-error", err.Error()))

@@ -1,10 +1,7 @@
 <!doctype html>
-{{template "header.tmpl"}}
+{{template "header"}}
 
-{{ $folderURL := pathJoin "/browser" .Folder.Space.ID .Folder.Path}}
-
-<body hx-ext="response-targets" hx-target-5*="this" hx-get="{{$folderURL}}" hx-swap="outerHTML"
-  hx-trigger="refreshPage from:body">
+<body hx-ext="response-targets" hx-target-5*="this">
   <!--Main Navigation-->
   <header>
     <!-- Sidenav -->
@@ -14,16 +11,23 @@
       </a>
 
       <ul class="sidenav-menu px-2 pb-5" hx-boost="true">
-
-        <li class="sidenav-item pt-3">
-          <span class="sidenav-subheading text-muted text-uppercase fw-bold">Spaces</span>
-        </li>
-        {{range .AllSpaces}}
         <li class="sidenav-item">
-          <a class="sidenav-link {{if (eq $.CurrentSpace.ID .ID)}}text-primary bg-light{{end}}" href="/browser/{{.ID}}"
-            hx-target="body" , hx-swap="outerHTML">
-            <i
-              class="bi bi-folder-fill me-3 {{if (eq $.CurrentSpace.ID .ID)}}text-primary{{end}}"></i><span>{{.Name}}</span></a>
+          <a class="sidenav-link" href="/settings/general" hx-target="body" hx-swap="outerHTML">
+            <i class="bi bi-person-fill me-3"></i><span>General</span></a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link {{ if (eq .Template "settings/security/page.tmpl")}}text-primary bg-light{{end}}" href="/settings/security" hx-target="body" hx-swap="outerHTML">
+            <i class="bi bi-lock-fill me-3"></i><span>Security</span></a>
+        </li>
+
+
+        {{ if (eq .IsAdmin true)}}
+        <li class="sidenav-item pt-3">
+          <span class="sidenav-subheading text-muted text-uppercase fw-bold">Admin</span>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link" href="/settings/users" hx-target="body" hx-swap="outerHTML">
+            <i class="bi bi-people-fill me-3"></i><span>User Management</span></a>
         </li>
         {{end}}
       </ul>
@@ -31,12 +35,12 @@
     <!-- Sidenav -->
 
     <!-- Navbar -->
-    <nav id="main-navbar" class="navbar navbar-expand-lg navbar-light bg-white shadow-1">
+    <nav id="main-navbar" class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-0">
       <!-- Container wrapper -->
       <div class="container-fluid">
         <!-- Toggler -->
-        <button id="toggler" data-mdb-toggle="sidenav" data-mdb-target="#main-sidenav" class="btn shadow-0 p-0 me-3"
-          aria-controls="#main-sidenav" aria-haspopup="true">
+        <button id="toggler" data-mdb-toggle="sidenav" data-mdb-target="#main-sidenav"
+          class="btn shadow-0 p-0 me-3 d-block d-xxl-none" aria-controls="#main-sidenav" aria-haspopup="true">
           <i class="bi bi-list"></i>
         </button>
 
@@ -47,7 +51,7 @@
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle hidden-arrow d-flex align-items-center" href="#" data-mdb-dropdown-init
               id="navbarDropdownMenuLink" role="button" data-mdb-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-person-circle bi-lg"></i>
+              <i class="bi bi-person-circle"></i>
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink" hx-boost="true"
               hx-target="body" hx-swap="outerHTML">
@@ -61,9 +65,9 @@
       <!-- Container wrapper -->
     </nav>
     <!-- Navbar -->
+
   </header>
   <!--Main Navigation-->
-
 
   <!--Main layout-->
   <main id="main" class="container-fluid">

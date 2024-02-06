@@ -44,5 +44,5 @@ func (h *homeHandler) getHome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.html.WriteHTML(w, r, http.StatusOK, "home/page.tmpl", map[string]interface{}{})
+	h.html.WriteHTML(w, r, http.StatusOK, "home/page", map[string]interface{}{})
 }
