@@ -122,7 +122,7 @@ func Test_Browser_Page(t *testing.T) {
 			Inodes:        []dfs.INode{dfs.ExampleAliceFile},
 			CurrentSpace:  &spaces.ExampleAlicePersonalSpace,
 			AllSpaces:     []spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleAliceBobSharedSpace},
-			ContentTarget: "#content",
+			ContentTarget: "body",
 		}).Once()
 
 		w := httptest.NewRecorder()
@@ -165,7 +165,7 @@ func Test_Browser_Page(t *testing.T) {
 		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &browser.RowsTemplate{
 			Folder:        dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar"),
 			Inodes:        []dfs.INode{dfs.ExampleAliceFile},
-			ContentTarget: "#content",
+			ContentTarget: "body",
 		}).Once()
 
 		w := httptest.NewRecorder()

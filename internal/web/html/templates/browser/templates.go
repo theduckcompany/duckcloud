@@ -18,7 +18,7 @@ type ContentTemplate struct {
 	ContentTarget string
 }
 
-func (t *ContentTemplate) Template() string { return "browser/content.tmpl" }
+func (t *ContentTemplate) Template() string { return "browser/page.tmpl" }
 
 func (t *ContentTemplate) Breadcrumb() *BreadCrumbTemplate {
 	basePath := path.Join("/browser/", string(t.Folder.Space().ID()))
@@ -33,7 +33,7 @@ func (t *ContentTemplate) Breadcrumb() *BreadCrumbTemplate {
 
 	if fullPath == "" {
 		elements[0].Current = true
-		return &BreadCrumbTemplate{Elements: elements, Target: "#content"}
+		return &BreadCrumbTemplate{Elements: elements, Target: "body"}
 	}
 
 	for _, elem := range strings.Split(fullPath, "/") {
@@ -48,7 +48,7 @@ func (t *ContentTemplate) Breadcrumb() *BreadCrumbTemplate {
 
 	elements[len(elements)-1].Current = true
 
-	return &BreadCrumbTemplate{Elements: elements, Target: "#content"}
+	return &BreadCrumbTemplate{Elements: elements, Target: "body"}
 }
 
 func (t *ContentTemplate) Rows() *RowsTemplate {

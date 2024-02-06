@@ -5,7 +5,7 @@
       <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
     </div>
 
-    <form action="/browser/rename" method="post" target="_top" hx-post="/browser/rename" hx-target="#content"
+    <form action="/browser/rename" method="post" target="_top" hx-post="/browser/rename" hx-target="body"
       hx-on::after-request="document.getElementById('closeBtn').click()" hx-swap="outerHTML">
       <div class="modal-body">
 

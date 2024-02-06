@@ -189,7 +189,7 @@ func TestCreateDirModal(t *testing.T) {
 		res := w.Result()
 		defer res.Body.Close()
 		assert.Equal(t, http.StatusCreated, res.StatusCode)
-		assert.Equal(t, "refreshFolder", res.Header.Get("HX-Trigger"))
+		assert.Equal(t, "refreshPage", res.Header.Get("HX-Trigger"))
 	})
 
 	t.Run("handleCreateDirReq with an authentication error", func(t *testing.T) {

@@ -8,18 +8,15 @@
     <nav id="main-sidenav" class="sidenav sidenav-sm shadow-1" data-mdb-sidenav-init data-mdb-mode="side"
       data-mdb-hidden="false" data-mdb-accordion="true">
       <a class="ripple d-flex justify-content-center pt-4 pb-2" href="/" data-mdb-ripple-color="primary">
-        <!-- <img id="MDB-logo" src="https://mdbcdn.b-cdn.net/wp-content/uploads/2018/06/logo-mdb-jquery-small.webp"
-          alt="MDB Logo" draggable="false" /> -->
       </a>
 
-      <hr class="hr">
       <ul class="sidenav-menu px-2 pb-5" hx-boost="true">
         <li class="sidenav-item">
-          <a class="sidenav-link" href="/settings/general" hx-target="#content" hx-swap="outerHTML">
+          <a class="sidenav-link" href="/settings/general" hx-target="body" hx-swap="outerHTML">
             <i class="bi bi-person-fill me-3"></i><span>General</span></a>
         </li>
         <li class="sidenav-item">
-          <a class="sidenav-link" href="/settings/security" hx-target="#content" hx-swap="outerHTML">
+          <a class="sidenav-link" href="/settings/security" hx-target="body" hx-swap="outerHTML">
             <i class="bi bi-lock-fill me-3"></i><span>Security</span></a>
         </li>
 
@@ -29,7 +26,7 @@
           <span class="sidenav-subheading text-muted text-uppercase fw-bold">Admin</span>
         </li>
         <li class="sidenav-item">
-          <a class="sidenav-link" href="/settings/users" hx-target="#content" hx-swap="outerHTML">
+          <a class="sidenav-link" href="/settings/users" hx-target="body" hx-swap="outerHTML">
             <i class="bi bi-people-fill me-3"></i><span>User Management</span></a>
         </li>
         {{end}}
@@ -42,9 +39,9 @@
       <!-- Container wrapper -->
       <div class="container-fluid">
         <!-- Toggler -->
-        <button data-mdb-toggle="sidenav" data-mdb-target="#main-sidenav"
+        <button id="toggler" data-mdb-toggle="sidenav" data-mdb-target="#main-sidenav"
           class="btn shadow-0 p-0 me-3 d-block d-xxl-none" aria-controls="#main-sidenav" aria-haspopup="true">
-          <i class="bi bi-list bi-lg"></i>
+          <i class="bi bi-list"></i>
         </button>
 
         <!-- Right links -->
@@ -56,7 +53,8 @@
               id="navbarDropdownMenuLink" role="button" data-mdb-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-person-circle"></i>
             </a>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink">
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink" hx-boost="true"
+              hx-target="body" hx-swap="outerHTML">
               <li><a class="dropdown-item " href="/browser">Browser</a></li>
               <li><a class="dropdown-item" href="/settings">Settings</a></li>
               <li><a class="dropdown-item" href="/logout">Logout</a></li>
@@ -74,7 +72,7 @@
   <!--Main layout-->
   <main id="main" class="container-fluid">
     <!-- Modal -->
-    <div id="modal-target" class="modal modal-blur fade" style="display: none" aria-hidden="false">
+    <div id="modal-target" class="modal modal-blur fade" aria-hidden="false">
       <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content"></div>
       </div>
@@ -87,12 +85,9 @@
 
   <link rel="stylesheet" href="/assets/css/sidenav.css">
 
-  <script type="module" src="/assets/js/sidenav.mjs"></script>
   <script src="/assets/js/libs/htmx.min.js"></script>
   <script src="/assets/js/libs/response-targets.js"></script>
-
-
-  </script>
+  <script type="module" src="/assets/js/sidenav.mjs"></script>
 </body>
 
 </html>

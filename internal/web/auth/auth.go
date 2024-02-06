@@ -74,7 +74,7 @@ func (h *Handler) printLoginPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("HX-Refresh", "true")
-	h.html.WriteHTML(w, r, http.StatusOK, "auth/login.tmpl", nil)
+	h.html.WriteHTML(w, r, http.StatusOK, "auth/page.tmpl", nil)
 }
 
 func (h *Handler) applyLogin(w http.ResponseWriter, r *http.Request) {
@@ -102,7 +102,7 @@ func (h *Handler) applyLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(loginErrors) > 0 {
-		h.html.WriteHTML(w, r, status, "auth/login.tmpl", map[string]interface{}{
+		h.html.WriteHTML(w, r, status, "auth/page.tmpl", map[string]interface{}{
 			"inputs": inputs,
 			"errors": loginErrors,
 		})

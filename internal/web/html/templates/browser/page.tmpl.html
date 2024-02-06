@@ -1,6 +1,4 @@
-{{ $folderURL := pathJoin "/browser" .Folder.Space.ID .Folder.Path}}
-<section id="content" class="p-4" hx-get="{{$folderURL}}" hx-swap="outerHTML" hx-trigger="refreshFolder from:body">
-
+<section class="p-4">
   <div id="status-bar"></div>
   <div class="row justify-content-between">
     {{template "browser/breadcrumb.tmpl" (.Breadcrumb)}}
@@ -41,18 +39,10 @@
 
 
   {{template "browser/rows.tmpl" (.Rows)}}
+
+  <input type="hidden" id="folder-path-meta" value="{{$.Folder.Path}}">
+  <input type="hidden" id="space-id-meta" value="{{$.Folder.Space.ID}}">
 </section>
 
-<input type="hidden" id="folder-path-meta" value="{{$.Folder.Path}}">
-<input type="hidden" id="space-id-meta" value="{{$.Folder.Space.ID}}">
 <script type="module" src="/assets/js/file-upload.mjs"></script>
-
-<script type="module">
-  import {Dropdown, initMDB} from "/assets/js/libs/mdb.es.min.js";
-
-  document.querySelectorAll('.dropdown').forEach((dropdown) => {
-    new Dropdown(dropdown);
-  });
-
-
-</script>
+<script type="module" src="/assets/js/sidenav.mjs"></script>

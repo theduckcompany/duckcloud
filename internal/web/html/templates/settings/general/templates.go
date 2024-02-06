@@ -4,4 +4,4 @@ type LayoutTemplate struct {
 	IsAdmin bool
 }
 
-func (t *LayoutTemplate) Template() string { return "settings/general/content.tmpl" }
+func (t *LayoutTemplate) Template() string { return "settings/general/page.tmpl" }

@@ -1,4 +1,4 @@
-<section id="content" hx-target-4*="this">
+<section hx-target-4*="this">
   <div class="card shadow-0">
     <div class="card-header py-4 mb-3">
       <h4 class="mb-0">Security</h4>
@@ -42,7 +42,7 @@
             <td>
 
               <form action="/settings/security/browsers/{{.Token.Raw}}/delete" method="post" target="_top"
-                hx-post="/settings/security/browsers/{{.Token.Raw}}/delete" hx-target="#content" hx-swap="outerHTML">
+                hx-post="/settings/security/browsers/{{.Token.Raw}}/delete" hx-target="body" hx-swap="outerHTML">
                 <button type="submit"
                   class="btn btn-link btn-sm btn-rounded {{if (eq .Token $.CurrentSession.Token)}}disabled{{end}}">Disconnect</button>
               </form>
@@ -80,7 +80,7 @@
             <td> Seconds ago </td>
             <td>
               <form action="/settings/security/webdav/{{.ID}}/delete" method="post" target="_top"
-                hx-post="/settings/security/webdav/{{.ID}}/delete" hx-target="#content" hx-swap="outerHTML">
+                hx-post="/settings/security/webdav/{{.ID}}/delete" hx-target="body" hx-swap="outerHTML">
                 <button type="submit" class="btn btn-link btn-sm btn-rounded">Disconnect</button>
               </form>
             </td>
@@ -93,8 +93,6 @@
         data-mdb-ripple-init data-mdb-modal-init data-mdb-toggle="modal" hx-get="/settings/security/webdav"
         hx-target="#modal-target" hx-trigger="click" hx-swap="innerHTML"><i class="bi bi-folder-fill me-2"></i>Access
         files via WebDAV</button>
-
-
     </div>
   </div>
 </section>

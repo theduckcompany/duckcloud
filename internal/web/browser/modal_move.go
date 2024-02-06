@@ -169,7 +169,7 @@ func (h *moveModalHandler) handleMoveReq(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	w.Header().Add("HX-Trigger", "refreshFolder")
+	w.Header().Add("HX-Trigger", "refreshPage")
 	w.Header().Add("HX-Reswap", "none")
 	w.WriteHeader(http.StatusOK)
 }

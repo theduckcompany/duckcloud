@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -112,7 +113,7 @@ func NewRenderer(cfg Config) *Renderer {
 func (t *Renderer) WriteHTML(w http.ResponseWriter, r *http.Request, status int, template string, args any) {
 	layout := ""
 
-	if r.Header.Get("HX-Boosted") == "" && r.Header.Get("HX-Request") == "" {
+	if strings.Contains(template, "page.tmpl") {
 		dir := path.Dir(template)
 
 		for {

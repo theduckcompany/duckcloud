@@ -123,7 +123,7 @@ func (h *createDirModalHandler) handleCreateDirReq(w http.ResponseWriter, r *htt
 		return
 	}
 
-	w.Header().Add("HX-Trigger", "refreshFolder")
+	w.Header().Add("HX-Trigger", "refreshPage")
 	w.Header().Add("HX-Reswap", "none")
 	w.WriteHeader(http.StatusCreated)
 }

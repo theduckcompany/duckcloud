@@ -4,7 +4,19 @@
 
 #toggler {
   display: none;
+
+  i {
+    font-size: 2rem;
+  }
 }
+
+#modal-target {
+  display: none
+}
+
+/* #navbarDropdownMenuLink i {
+  font-size: 1.8rem;
+} */
 
 @media (max-width: 1200px) {
   #main {

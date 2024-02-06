@@ -332,7 +332,7 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 		Inodes:        dirContent,
 		CurrentSpace:  cmd.Space(),
 		AllSpaces:     spaces,
-		ContentTarget: "#content",
+		ContentTarget: "body",
 	})
 }
 
@@ -351,7 +351,7 @@ func (h *Handler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, s
 	h.html.WriteHTMLTemplate(w, r, http.StatusOK, &browser.RowsTemplate{
 		Inodes:        dirContent,
 		Folder:        folderPath,
-		ContentTarget: "#content",
+		ContentTarget: "body",
 	})
 }
 
