@@ -26,7 +26,7 @@ func Test_Home_Page(t *testing.T) {
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
-		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "home/page.tmpl", map[string]interface{}{}).Once()
+		htmlMock.On("WriteHTML", mock.Anything, mock.Anything, http.StatusOK, "home/page", map[string]interface{}{}).Once()
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/", nil)

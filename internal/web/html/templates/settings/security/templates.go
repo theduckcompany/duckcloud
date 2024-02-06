@@ -15,24 +15,24 @@ type ContentTemplate struct {
 	Spaces         map[uuid.UUID]spaces.Space
 }
 
-func (t *ContentTemplate) Template() string { return "settings/security/page.tmpl" }
+func (t *ContentTemplate) Template() string { return "settings/security/page" }
 
 type PasswordFormTemplate struct {
 	Error string
 }
 
-func (t *PasswordFormTemplate) Template() string { return "settings/security/password-form.tmpl" }
+func (t *PasswordFormTemplate) Template() string { return "settings/security/password-form" }
 
 type WebdavFormTemplate struct {
 	Error  error
 	Spaces []spaces.Space
 }
 
-func (t *WebdavFormTemplate) Template() string { return "settings/security/webdav-form.tmpl" }
+func (t *WebdavFormTemplate) Template() string { return "settings/security/webdav-form" }
 
 type WebdavResultTemplate struct {
 	Secret     string
 	NewSession *davsessions.DavSession
 }
 
-func (t *WebdavResultTemplate) Template() string { return "settings/security/webdav-result.tmpl" }
+func (t *WebdavResultTemplate) Template() string { return "settings/security/webdav-result" }

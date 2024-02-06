@@ -1,18 +1,27 @@
 <section class="p-4">
+
   <div id="status-bar"></div>
   <div class="row justify-content-between">
     {{template "browser/breadcrumb" (.Breadcrumb)}}
 
     <div class="col-md-2 col-4">
       <div class="dropdown">
-        <button class="d-flex btn btn-primary button-lg dropdown-toggle align-items-center fs-6" data-mdb-dropdown-init
-          type="button" id="add-button" aria-expanded="false"><i class="bi bi-plus me-1 fs-4"></i>Add</button>
+        <button class="d-flex btn btn-primary button-lg dropdown-toggle align-items-center fs-6" 
+                data-mdb-dropdown-init
+                type="button"
+                id="add-button"
+                aria-expanded="false">
+          <i class="bi bi-plus me-1 fs-4"></i>Add</button>
         <ul class="dropdown-menu" aria-labelledby="add-button">
           <li><a class="dropdown-item text-dark"
-              hx-get="/browser/create-dir?space={{$.Folder.Space.ID}}&dir={{$.Folder.Path}}" hx-target="#modal-target"
-              data-mdb-modal-init hx-trigger="click" data-mdb-toggle="modal" hx-swap="innerHTML"
-              data-mdb-target="#modal-target"><i class="bi bi-folder-fill me-2"
-                style="font-size: 1.1rem; color: cornflowerblue;"></i>New folder</a></li>
+                 hx-get="/browser/create-dir?space={{$.Folder.Space.ID}}&dir={{$.Folder.Path}}"
+                 hx-target="#modal-target"
+                 data-mdb-modal-init 
+                 hx-trigger="click"
+                 data-mdb-toggle="modal"
+                 hx-swap="innerHTML"
+                 data-mdb-target="#modal-target">
+              <i class="bi bi-folder-fill me-2" style="font-size: 1.1rem; color: cornflowerblue;"></i>New folder</a></li>
           <li>
             <hr class="dropdown-divider" />
           </li>
@@ -39,9 +48,10 @@
 
 
   {{template "browser/rows" (.Rows)}}
+</section>
 
-  <input type="hidden" id="folder-path-meta" value="{{$.Folder.Path}}">
-  <input type="hidden" id="space-id-meta" value="{{$.Folder.Space.ID}}">
+<input type="hidden" id="folder-path-meta" value="{{$.Folder.Path}}">
+<input type="hidden" id="space-id-meta" value="{{$.Folder.Space.ID}}">
 </section>
 
 <script type="module" src="/assets/js/file-upload.mjs"></script>
