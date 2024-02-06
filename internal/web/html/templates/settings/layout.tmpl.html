@@ -2,15 +2,6 @@
 {{template "header.tmpl"}}
 
 <body hx-ext="response-targets" hx-target-5*="this">
-  <style>
-    :root {
-      --mdb-primary: #0082C8;
-      --bs-primary: #0082C8;
-      --bs-primary-rgb: 0, 130, 200;
-      --mdb-primary-rgb: 0, 130, 200;
-    }
-  </style>
-
   <!--Main Navigation-->
   <header>
     <!-- Sidenav -->
@@ -77,51 +68,25 @@
     </nav>
     <!-- Navbar -->
 
-    <!-- Heading -->
-    <section class="">
-      <!-- Background gradient -->
-      <div class="p-5"
-        style="height: 200px; background: linear-gradient( to right, hsl(209, 42.2%, 65%), hsl(209, 42.2%, 85%));">
-      </div>
-      <!-- Background gradient -->
-    </section>
-    <!-- Heading -->
-
   </header>
   <!--Main Navigation-->
 
   <!--Main layout-->
-  <main class="mb-5" style="margin-top: -100px;">
-    <div class="container px-4">
-
-      <!-- Modal -->
-      <div id="modal-target" class="modal modal-blur fade" style="display: none" aria-hidden="false">
-        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-          <div class="modal-content"></div>
-        </div>
+  <main id="main" class="container-fluid">
+    <!-- Modal -->
+    <div id="modal-target" class="modal modal-blur fade" style="display: none" aria-hidden="false">
+      <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content"></div>
       </div>
-
-      {{ yield }}
     </div>
+
+    {{ yield }}
   </main>
 
-  <style>
-    body {
-      background-color: hsl(0, 0%, 97%);
-    }
-
-    @media (min-width: 1400px) {
-
-      main,
-      header,
-      #main-navbar {
-        padding-left: 240px;
-      }
-    }
-  </style>
-
-
   <footer></footer>
+
+  <link rel="stylesheet" href="/assets/css/sidenav.css">
+
   <script type="module" src="/assets/js/sidenav.mjs"></script>
   <script src="/assets/js/libs/htmx.min.js"></script>
   <script src="/assets/js/libs/response-targets.js"></script>
