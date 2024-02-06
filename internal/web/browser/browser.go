@@ -69,6 +69,7 @@ func (h *Handler) Register(r chi.Router, mids *router.Middlewares) {
 	r.Get("/browser", h.redirectDefaultBrowser)
 	r.Post("/browser/upload", h.upload)
 	r.Get("/download/{spaceID}/*", h.download)
+	r.Get("/browser/{spaceID}", h.getBrowserContent)
 	r.Get("/browser/{spaceID}/*", h.getBrowserContent)
 	r.Delete("/browser/{spaceID}/*", h.deleteAll)
 
