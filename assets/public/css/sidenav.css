@@ -1,0 +1,21 @@
+#main {
+  padding-left: 240px;
+}
+
+#toggler {
+  display: none;
+}
+
+@media (max-width: 1200px) {
+  #main {
+    padding-left: 0px;
+  }
+
+  #toggler {
+    display: unset;
+  }
+
+  .sidenav[data-mdb-hidden='false'] {
+    transform: translateX(-100%);
+  }
+}

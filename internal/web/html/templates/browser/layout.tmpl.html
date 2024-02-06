@@ -1,7 +1,10 @@
 <!doctype html>
 {{template "header.tmpl"}}
 
-<body hx-ext="response-targets" hx-target-5*="this">
+{{ $folderURL := pathJoin "/browser" .Folder.Space.ID .Folder.Path}}
+
+<body hx-ext="response-targets" hx-target-5*="this" hx-get="{{$folderURL}}" hx-swap="outerHTML"
+  hx-trigger="refreshPage from:body">
   <!--Main Navigation-->
   <header>
     <!-- Sidenav -->
@@ -19,7 +22,7 @@
         {{range .AllSpaces}}
         <li class="sidenav-item">
           <a class="sidenav-link {{if (eq $.CurrentSpace.ID .ID)}}text-primary bg-light{{end}}" href="/browser/{{.ID}}"
-            hx-target="#content" , hx-swap="outerHTML">
+            hx-target="body" , hx-swap="outerHTML">
             <i
               class="bi bi-folder-fill me-3 {{if (eq $.CurrentSpace.ID .ID)}}text-primary{{end}}"></i><span>{{.Name}}</span></a>
         </li>
@@ -74,31 +77,10 @@
     {{ yield }}
   </main>
 
-  <style>
-    #main {
-      padding-left: 240px;
-    }
-
-    #toggler {
-      display: none;
-    }
-
-    @media (max-width: 1200px) {
-      #main {
-        padding-left: 0px;
-      }
-
-      #toggler {
-        display: unset;
-      }
-
-      .sidenav[data-mdb-hidden='false'] {
-        transform: translateX(-100%);
-      }
-    }
-  </style>
-
   <footer></footer>
+
+  <link rel="stylesheet" href="/assets/css/sidenav.css">
+
   <script type="module" src="/assets/js/sidenav.mjs"></script>
   <script src="/assets/js/libs/htmx.min.js"></script>
   <script src="/assets/js/libs/response-targets.js"></script>
