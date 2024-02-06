@@ -12,12 +12,20 @@
 
       <ul class="sidenav-menu px-2 pb-5" hx-boost="true">
         <li class="sidenav-item">
-          <a class="sidenav-link" href="/settings/general" hx-target="body" hx-swap="outerHTML">
-            <i class="bi bi-person-fill me-3"></i><span>General</span></a>
+          <a class="sidenav-link {{if (eq .Template "settings/general/page")}}text-primary bg-light{{end}}" 
+            href="/settings/general" 
+            hx-target="body" 
+            hx-swap="outerHTML">
+            <i class="bi bi-person-fill me-3 {{if (eq .Template "settings/general/page")}}text-primary bg-light{{end}}"></i>
+            <span>General</span></a>
         </li>
         <li class="sidenav-item">
-          <a class="sidenav-link" href="/settings/security" hx-target="body" hx-swap="outerHTML">
-            <i class="bi bi-lock-fill me-3"></i><span>Security</span></a>
+          <a class="sidenav-link {{if (eq .Template "settings/security/page")}}text-primary bg-light{{end}}" 
+            href="/settings/security" 
+            hx-target="body" 
+            hx-swap="outerHTML">
+            <i class="bi bi-lock-fill me-3 {{if (eq .Template "settings/security/page")}}text-primary bg-light{{end}}"></i>
+            <span>Security</span></a>
         </li>
 
 
@@ -26,8 +34,12 @@
           <span class="sidenav-subheading text-muted text-uppercase fw-bold">Admin</span>
         </li>
         <li class="sidenav-item">
-          <a class="sidenav-link" href="/settings/users" hx-target="body" hx-swap="outerHTML">
-            <i class="bi bi-people-fill me-3"></i><span>User Management</span></a>
+          <a class="sidenav-link {{if (eq .Template "settings/users/page")}}text-primary bg-light{{end}}" 
+            href="/settings/users" 
+            hx-target="body" 
+            hx-swap="outerHTML">
+            <i class="bi bi-people-fill me-3 {{if (eq .Template "settings/users/page")}}text-primary bg-light{{end}}"></i>
+            <span>User Management</span></a>
         </li>
         {{end}}
       </ul>
