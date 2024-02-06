@@ -60,7 +60,7 @@ func Test_Templates(t *testing.T) {
 			Template: &RowsTemplate{
 				Folder:        dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo"),
 				Inodes:        []dfs.INode{dfs.ExampleAliceFile, dfs.ExampleAliceFile2},
-				ContentTarget: "#content",
+				ContentTarget: "body",
 			},
 		},
 		{
@@ -71,7 +71,7 @@ func Test_Templates(t *testing.T) {
 					{Name: "My Files", Href: "https://localhost/", Current: false},
 					{Name: "foo", Href: "https://localhost/foo", Current: true},
 				},
-				Target: "#content",
+				Target: "body",
 			},
 		},
 		{

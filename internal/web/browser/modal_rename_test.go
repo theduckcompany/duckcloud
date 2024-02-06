@@ -198,7 +198,7 @@ func Test_RenameModalHandler(t *testing.T) {
 		res := w.Result()
 		defer res.Body.Close()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
-		assert.Equal(t, "refreshFolder", res.Header.Get("HX-Trigger"))
+		assert.Equal(t, "refreshPage", res.Header.Get("HX-Trigger"))
 	})
 
 	t.Run("handleRenameReq with a rename error", func(t *testing.T) {

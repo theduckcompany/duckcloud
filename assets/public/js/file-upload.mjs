@@ -13,7 +13,7 @@ client.setMeta({spaceID: spaceID.value})
 client.use(StatusBar, {target: '#status-bar'});
 
 client.on('complete', (result) => {
-  htmx.trigger("#content", "refreshFolder");
+  htmx.trigger("body", "refreshFolder");
 });
 
 document.getElementById('upload-file-btn').

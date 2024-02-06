@@ -444,7 +444,7 @@ func Test_MoveModalHandler(t *testing.T) {
 		res := w.Result()
 		defer res.Body.Close()
 		assert.Equal(t, res.Header.Get("HX-Reswap"), "none")
-		assert.Equal(t, res.Header.Get("HX-Trigger"), "refreshFolder")
+		assert.Equal(t, res.Header.Get("HX-Trigger"), "refreshPage")
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 	})
 

@@ -15,7 +15,7 @@ type ContentTemplate struct {
 	Spaces         map[uuid.UUID]spaces.Space
 }
 
-func (t *ContentTemplate) Template() string { return "settings/security/content.tmpl" }
+func (t *ContentTemplate) Template() string { return "settings/security/page.tmpl" }
 
 type PasswordFormTemplate struct {
 	Error string

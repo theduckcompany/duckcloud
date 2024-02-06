@@ -130,7 +130,7 @@ func (h *renameModalHandler) handleRenameReq(w http.ResponseWriter, r *http.Requ
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to rename the file: %w", err))
 	}
 
-	w.Header().Add("HX-Trigger", "refreshFolder")
+	w.Header().Add("HX-Trigger", "refreshPage")
 	w.Header().Add("HX-Reswap", "none")
 	w.WriteHeader(http.StatusOK)
 }

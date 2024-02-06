@@ -9,7 +9,7 @@ type ContentTemplate struct {
 	Error   error
 }
 
-func (t *ContentTemplate) Template() string { return "settings/users/content.tmpl" }
+func (t *ContentTemplate) Template() string { return "settings/users/page.tmpl" }
 
 type RegistrationFormTemplate struct {
 	Error error

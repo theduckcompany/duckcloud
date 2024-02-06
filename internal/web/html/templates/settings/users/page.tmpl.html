@@ -1,4 +1,4 @@
-<section id="content" hx-target-4*="this">
+<section hx-target-4*="this">
   <div class="card shadow-0">
     <div class="card-header py-4 mb-3">
       <h4 class="mb-0">User management</h4>
@@ -35,7 +35,7 @@
             <td>
 
               <form action="/settings/users/{{.ID}}/delete" method="post" target="_top"
-                hx-post="/settings/users/{{.ID}}/delete" hx-target="#content" hx-swap="outerHTML"
+                hx-post="/settings/users/{{.ID}}/delete" hx-target="body" hx-swap="outerHTML"
                 hx-confirm="Are you sure you wish to delete the account '{{.Username}}' ? All its data and files will be definitively removed."
                 hx-delete="/settings/users/{{.ID}}">
                 <button type="submit"
@@ -49,14 +49,7 @@
 
       <button type="button" class="btn btn-rounded btn-outline-primary mb-3" data-mdb-target="#modal-target"
         data-mdb-modal-init data-mdb-toggle="modal" hx-get="/settings/users/new" hx-target="#modal-target"
-        hx-trigger="click" hx-swap="innerHTML"></i>Register
-        a new user</button>
-
+        hx-trigger="click" hx-swap="innerHTML"></i>Register a new user</button>
     </div>
   </div>
 </section>
-
-<script>
-  document.body.classList.remove("modal-open")
-  document.querySelectorAll('.modal-backdrop').forEach(e => e.remove());
-</script>
