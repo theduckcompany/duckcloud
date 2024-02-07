@@ -20,7 +20,3 @@ func (t *HTTPHandler) Register(r chi.Router, _ *router.Middlewares) {
 	r.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	r.HandleFunc("/debug/pprof/trace", pprof.Trace)
 }
-
-func (h *HTTPHandler) String() string {
-	return "debug"
-}

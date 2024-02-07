@@ -61,10 +61,6 @@ func (h *Handler) Register(r chi.Router, mids *router.Middlewares) {
 	r.HandleFunc("/consent", h.handleConsentPage)
 }
 
-func (h *Handler) String() string {
-	return "web.auth"
-}
-
 func (h *Handler) printLoginPage(w http.ResponseWriter, r *http.Request) {
 	currentSession, _ := h.webSession.GetFromReq(r)
 

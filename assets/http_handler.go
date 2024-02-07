@@ -45,10 +45,6 @@ func (h *HTTPHandler) Register(r chi.Router, _ *router.Middlewares) {
 	r.Get("/assets/*", h.handleAsset)
 }
 
-func (h *HTTPHandler) String() string {
-	return "assets"
-}
-
 func (h *HTTPHandler) handleAsset(w http.ResponseWriter, r *http.Request) {
 	assetPath := strings.TrimPrefix(r.URL.Path, "/assets")
 	_, fileName := path.Split(assetPath)

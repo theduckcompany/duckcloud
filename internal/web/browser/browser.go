@@ -78,10 +78,6 @@ func (h *Handler) Register(r chi.Router, mids *router.Middlewares) {
 	newMoveModalHandler(h.auth, h.spaces, h.html, h.uuid, h.fs).Register(r, mids)
 }
 
-func (h *Handler) String() string {
-	return "web.browser"
-}
-
 func (h *Handler) redirectDefaultBrowser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

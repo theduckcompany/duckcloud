@@ -88,10 +88,6 @@ func (h *HTTPHandler) Register(r chi.Router, mids *router.Middlewares) {
 	r.HandleFunc("/auth/token", h.handleTokenEndpoint)
 }
 
-func (h *HTTPHandler) String() string {
-	return "auth"
-}
-
 func (h *HTTPHandler) userAuthorizationHandler(w http.ResponseWriter, r *http.Request) (string, error) {
 	_ = r.ParseForm()
 
