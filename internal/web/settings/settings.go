@@ -66,10 +66,6 @@ func (h *Handler) Register(r chi.Router, mids *router.Middlewares) {
 	newUsersPage(h.tools, h.html, h.users, h.auth).Register(r, mids)
 }
 
-func (h *Handler) String() string {
-	return "web.settings"
-}
-
 type passwordFormCmd struct {
 	Error error
 }

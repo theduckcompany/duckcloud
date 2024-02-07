@@ -59,7 +59,3 @@ func (h *HTTPHandler) Register(r chi.Router, mids *router.Middlewares) {
 	h.settings.Register(r, mids)
 	h.home.Register(r, mids)
 }
-
-func (h *HTTPHandler) String() string {
-	return "web"
-}

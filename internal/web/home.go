@@ -30,10 +30,6 @@ func (h *homeHandler) Register(r chi.Router, mids *router.Middlewares) {
 	r.Get("/logout", h.logout)
 }
 
-func (h *homeHandler) String() string {
-	return "web.home"
-}
-
 func (h *homeHandler) logout(w http.ResponseWriter, r *http.Request) {
 	h.auth.Logout(w, r)
 }

@@ -29,7 +29,6 @@ type Config struct {
 
 type Registerer interface {
 	Register(r chi.Router, mids *Middlewares)
-	String() string
 }
 
 //nolint:gochecknoinits // This is the only way to ensure that we register the methods only once into the global router

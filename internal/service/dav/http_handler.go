@@ -48,10 +48,6 @@ func (h *HTTPHandler) Register(r chi.Router, mids *router.Middlewares) {
 	r.Handle("/webdav/*", h.webdavHandler)
 }
 
-func (h *HTTPHandler) String() string {
-	return "dav"
-}
-
 func (h *HTTPHandler) handleWebdavCollections(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "OPTIONS":
