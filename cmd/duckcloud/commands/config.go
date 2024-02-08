@@ -71,11 +71,11 @@ func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
 	}
 
 	if cfg.HotReload && !cfg.Dev {
-		return server.Config{}, fmt.Errorf("--hot-reload: %q", ErrDevFlagRequire)
+		return server.Config{}, fmt.Errorf("--hot-reload: %w", ErrDevFlagRequire)
 	}
 
 	if cfg.MemoryFS && !cfg.Dev {
-		return server.Config{}, fmt.Errorf("--memory-fs: %q", ErrDevFlagRequire)
+		return server.Config{}, fmt.Errorf("--memory-fs: %w", ErrDevFlagRequire)
 	}
 
 	var logLevel slog.Level
@@ -200,7 +200,7 @@ func generateSelfSignedCertificate(hostnames []string, folderPath string, fs afe
 
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &privateKey.PublicKey, privateKey)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to create certificate: %v", err)
+		return "", "", fmt.Errorf("failed to create certificate: %w", err)
 	}
 
 	pemCert := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
@@ -214,7 +214,7 @@ func generateSelfSignedCertificate(hostnames []string, folderPath string, fs afe
 
 	privBytes, err := x509.MarshalPKCS8PrivateKey(privateKey)
 	if err != nil {
-		return "", "", fmt.Errorf("unable to marshal private key: %v", err)
+		return "", "", fmt.Errorf("unable to marshal private key: %w", err)
 	}
 
 	pemKey := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: privBytes})

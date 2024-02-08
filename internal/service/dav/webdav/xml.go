@@ -10,6 +10,7 @@ package webdav
 import (
 	"bytes"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -111,7 +112,7 @@ type propfind struct {
 func readPropfind(r io.Reader) (pf propfind, status int, err error) {
 	c := countingReader{r: r}
 	if err = ixml.NewDecoder(&c).Decode(&pf); err != nil {
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			if c.n == 0 {
 				// An empty body means to propfind allprop.
 				// http://www.webdav.org/specs/rfc4918.html#METHOD_PROPFIND

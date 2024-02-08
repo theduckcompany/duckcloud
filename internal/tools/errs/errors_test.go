@@ -1,6 +1,7 @@
 package errs
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -82,7 +83,8 @@ func TestErrorMsgFormat(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			innerErr, ok := test.Err.(*Error)
+			var innerErr *Error
+			ok := errors.As(test.Err, &innerErr)
 			require.True(t, ok, "invalid error struct")
 
 			raw, err := innerErr.MarshalJSON()

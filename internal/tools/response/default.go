@@ -39,6 +39,7 @@ func (t *Default) WriteJSONError(w http.ResponseWriter, r *http.Request, err err
 	logger.LogEntrySetError(r, err)
 
 	if !errors.As(err, &ierr) {
+		//nolint:errorlint // Is casted just above
 		ierr = errs.Unhandled(err).(*errs.Error)
 	}
 

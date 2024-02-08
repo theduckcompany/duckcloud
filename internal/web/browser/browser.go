@@ -137,7 +137,7 @@ func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		p, err := reader.NextPart()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 
