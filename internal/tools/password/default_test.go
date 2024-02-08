@@ -17,7 +17,7 @@ func TestBcryptPassword(t *testing.T) {
 
 		hashed, err := password.Encrypt(ctx, secret.NewText("some-password"))
 		require.NoError(t, err)
-		require.NotEqual(t, hashed, "some-password")
+		require.NotEqual(t, "some-password", hashed)
 
 		ok, err := password.Compare(ctx, hashed, secret.NewText("some-password"))
 		assert.True(t, ok)

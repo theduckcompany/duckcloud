@@ -700,7 +700,7 @@ func Test_DFS_Service(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.NotEqual(t, &ExampleAliceRenamedFile, res)
-		assert.Equal(t, res.Name(), "foobar.jpg")
+		assert.Equal(t, "foobar.jpg", res.Name())
 		assert.Equal(t, res.LastModifiedAt(), now)
 	})
 
@@ -752,7 +752,7 @@ func Test_DFS_Service(t *testing.T) {
 		res, err := spaceFS.Rename(ctx, &ExampleAliceFile, "foobar.pdf")
 		assert.NoError(t, err)
 		assert.NotEqual(t, &ExampleAliceRenamedFile, res)
-		assert.Equal(t, res.Name(), "foobar (1).pdf")
+		assert.Equal(t, "foobar (1).pdf", res.Name())
 		assert.Equal(t, res.LastModifiedAt(), now)
 	})
 

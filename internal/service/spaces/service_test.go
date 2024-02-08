@@ -261,7 +261,7 @@ func Test_SpaceService(t *testing.T) {
 
 		res, err := svc.GetAllSpaces(ctx, &users.ExampleAlice, &storage.PaginateCmd{})
 		assert.NoError(t, err)
-		assert.Equal(t, res, []Space{ExampleAlicePersonalSpace, ExampleBobPersonalSpace})
+		assert.Equal(t, []Space{ExampleAlicePersonalSpace, ExampleBobPersonalSpace}, res)
 	})
 
 	t.Run("GetAllSpaces with a user not admin", func(t *testing.T) {

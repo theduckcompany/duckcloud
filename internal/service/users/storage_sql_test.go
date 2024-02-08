@@ -20,7 +20,7 @@ func TestUserSqlStorage(t *testing.T) {
 		res, err := store.GetAll(ctx, &storage.PaginateCmd{Limit: 10})
 
 		assert.NoError(t, err)
-		assert.Len(t, res, 0)
+		assert.Empty(t, res)
 	})
 
 	t.Run("Create success", func(t *testing.T) {
@@ -95,6 +95,6 @@ func TestUserSqlStorage(t *testing.T) {
 		// Check that the node is no more available even as a soft deleted one
 		res, err := store.GetAll(ctx, nil)
 		assert.NoError(t, err)
-		assert.Len(t, res, 0)
+		assert.Empty(t, res)
 	})
 }

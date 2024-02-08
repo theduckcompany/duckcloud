@@ -76,7 +76,7 @@ func TestINodeSqlstore(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Len(t, res, 5)
-		assert.Equal(t, res[0], INode{
+		assert.Equal(t, INode{
 			id:             uuid.UUID("some-child-id-5"),
 			parent:         ptr.To(ExampleBobRoot.ID()),
 			name:           "child-5",
@@ -84,7 +84,7 @@ func TestINodeSqlstore(t *testing.T) {
 			size:           10,
 			createdAt:      nowData,
 			fileID:         nil,
-		}, res)
+		}, res[0], res)
 	})
 
 	t.Run("GetSumChildsSize success", func(t *testing.T) {
@@ -187,7 +187,7 @@ func TestINodeSqlstore(t *testing.T) {
 		// Check that the node is no more available even as a soft deleted one
 		res, err := store.GetAllDeleted(ctx, 10)
 		assert.NoError(t, err)
-		assert.Len(t, res, 0)
+		assert.Empty(t, res)
 	})
 
 	t.Run("GetAllInodesWithFileID success", func(t *testing.T) {

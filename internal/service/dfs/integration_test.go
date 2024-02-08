@@ -46,7 +46,7 @@ func Test_DFS_Integration(t *testing.T) {
 	t.Run("ListDir with an empty directory", func(t *testing.T) {
 		dirContent, err := serv.DFSSvc.ListDir(ctx, dfs.NewPathCmd(&space, "/"), nil)
 		require.NoError(t, err)
-		require.Len(t, dirContent, 0)
+		require.Empty(t, dirContent)
 	})
 
 	t.Run("ListDir with an unexisting path", func(t *testing.T) {
