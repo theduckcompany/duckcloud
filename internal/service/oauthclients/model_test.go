@@ -3,7 +3,7 @@ package oauthclients
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -18,5 +18,5 @@ func Test_CreateCmd_Validate_success(t *testing.T) {
 		SkipValidation: true,
 	}.Validate()
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }

@@ -19,7 +19,7 @@ func TestConsentSqlStorage(t *testing.T) {
 	t.Run("Create success", func(t *testing.T) {
 		err := storage.Save(ctx, &ExampleAliceConsent)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("GetByID success", func(t *testing.T) {
@@ -28,7 +28,7 @@ func TestConsentSqlStorage(t *testing.T) {
 		require.NotNil(t, res)
 		res.createdAt = res.createdAt.UTC()
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, &ExampleAliceConsent, res)
 	})
 
@@ -36,27 +36,27 @@ func TestConsentSqlStorage(t *testing.T) {
 		res, err := storage.GetByID(ctx, "some-invalid-token")
 
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errNotFound)
+		require.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("GetAllForUser success", func(t *testing.T) {
 		res, err := storage.GetAllForUser(ctx, ExampleAliceConsent.UserID(), nil)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, []Consent{ExampleAliceConsent}, res)
 	})
 
 	t.Run("Delete success", func(t *testing.T) {
 		err := storage.Delete(ctx, ExampleAliceConsent.ID())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		res, err := storage.GetByID(ctx, ExampleAliceConsent.ID())
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errNotFound)
+		require.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("Delete with an invalid id", func(t *testing.T) {
 		err := storage.Delete(ctx, uuid.UUID("some-invalid-id"))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 }

@@ -25,7 +25,7 @@ func TestINodeSqlstore(t *testing.T) {
 	t.Run("Create success", func(t *testing.T) {
 		err := store.Save(ctx, &ExampleBobRoot)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("GetByID success", func(t *testing.T) {
@@ -38,13 +38,13 @@ func TestINodeSqlstore(t *testing.T) {
 
 	t.Run("GetSpaceRoot success", func(t *testing.T) {
 		res, err := store.GetSpaceRoot(ctx, ExampleBobRoot.spaceID)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, &ExampleBobRoot, res)
 	})
 
 	t.Run("GetSpaceRoot with an unknown space", func(t *testing.T) {
 		res, err := store.GetSpaceRoot(ctx, uuid.UUID("some-invalid-space"))
-		assert.ErrorIs(t, err, errNotFound)
+		require.ErrorIs(t, err, errNotFound)
 		assert.Nil(t, res)
 	})
 
@@ -74,9 +74,9 @@ func TestINodeSqlstore(t *testing.T) {
 			res[i].createdAt = r.createdAt.UTC()
 		}
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Len(t, res, 5)
-		assert.Equal(t, res[0], INode{
+		assert.Equal(t, INode{
 			id:             uuid.UUID("some-child-id-5"),
 			parent:         ptr.To(ExampleBobRoot.ID()),
 			name:           "child-5",
@@ -84,12 +84,12 @@ func TestINodeSqlstore(t *testing.T) {
 			size:           10,
 			createdAt:      nowData,
 			fileID:         nil,
-		}, res)
+		}, res[0], res)
 	})
 
 	t.Run("GetSumChildsSize success", func(t *testing.T) {
 		totalSize, err := store.GetSumChildsSize(ctx, ExampleBobRoot.ID())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		// 10 bytes x 10 files ==  100 bytes
 		assert.Equal(t, uint64(100), totalSize)
 	})
@@ -97,19 +97,19 @@ func TestINodeSqlstore(t *testing.T) {
 	t.Run("GetSumChildsSize with an invalid space", func(t *testing.T) {
 		totalSize, err := store.GetSumChildsSize(ctx, uuid.UUID("some-invalid-id"))
 		assert.Equal(t, uint64(0), totalSize)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("GetByID not found", func(t *testing.T) {
 		res, err := store.GetByID(ctx, "some-invalid-id")
 
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errNotFound)
+		require.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("GetByNameAndParent success", func(t *testing.T) {
 		res, err := store.GetByNameAndParent(ctx, "child-5", ExampleBobRoot.ID())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, &INode{
 			id:             uuid.UUID("some-child-id-5"),
 			parent:         ptr.To(ExampleBobRoot.ID()),
@@ -125,7 +125,7 @@ func TestINodeSqlstore(t *testing.T) {
 		res, err := store.GetByNameAndParent(ctx, "invalid-name", ExampleBobRoot.ID())
 
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errNotFound)
+		require.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("Patch success", func(t *testing.T) {
@@ -136,16 +136,16 @@ func TestINodeSqlstore(t *testing.T) {
 		modifiedINode.name = "new-name"
 
 		err = store.Patch(ctx, ExampleAliceFile.id, map[string]any{"name": "new-name"})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		res, err := store.GetByID(ctx, ExampleAliceFile.ID())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, &modifiedINode, res)
 	})
 
 	t.Run("Delete via a Patch", func(t *testing.T) {
 		err := store.Patch(ctx, uuid.UUID("some-child-id-5"), map[string]any{"deleted_at": time.Now().UTC()})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("GetByID a soft deleted inode success", func(t *testing.T) {
@@ -167,7 +167,7 @@ func TestINodeSqlstore(t *testing.T) {
 	t.Run("GetAllDeleted", func(t *testing.T) {
 		res, err := store.GetAllDeleted(ctx, 10)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Len(t, res, 1)
 		assert.Equal(t, INode{
 			id:             uuid.UUID("some-child-id-5"),
@@ -182,20 +182,20 @@ func TestINodeSqlstore(t *testing.T) {
 
 	t.Run("HardDelete success", func(t *testing.T) {
 		err := store.HardDelete(ctx, uuid.UUID("some-child-id-5"))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		// Check that the node is no more available even as a soft deleted one
 		res, err := store.GetAllDeleted(ctx, 10)
-		assert.NoError(t, err)
-		assert.Len(t, res, 0)
+		require.NoError(t, err)
+		assert.Empty(t, res)
 	})
 
 	t.Run("GetAllInodesWithFileID success", func(t *testing.T) {
 		err := store.Save(ctx, &ExampleAliceFile2)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		res, err := store.GetAllInodesWithFileID(ctx, *ExampleAliceFile2.fileID)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, []INode{ExampleAliceFile2}, res)
 	})
 }

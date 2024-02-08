@@ -5,6 +5,7 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -29,7 +30,7 @@ func Test_CreateUserRequest_Validate_success(t *testing.T) {
 		IsAdmin:  true,
 	}.Validate()
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func Test_UpdatePasswordCmd(t *testing.T) {
@@ -38,5 +39,5 @@ func Test_UpdatePasswordCmd(t *testing.T) {
 		NewPassword: secret.NewText("foobar1234"),
 	}.Validate()
 
-	assert.EqualError(t, err, "UserID: must be a valid UUID v4.")
+	require.EqualError(t, err, "UserID: must be a valid UUID v4.")
 }

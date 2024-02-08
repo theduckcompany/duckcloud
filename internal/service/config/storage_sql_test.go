@@ -27,12 +27,12 @@ func TestSQLStorage(t *testing.T) {
 
 	t.Run("Save success", func(t *testing.T) {
 		err := store.Save(ctx, masterKey, sealedKey)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Get success", func(t *testing.T) {
 		res, err := store.GetKey(ctx, masterKey)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.True(t, sealedKey.Equals(res))
 	})
 }

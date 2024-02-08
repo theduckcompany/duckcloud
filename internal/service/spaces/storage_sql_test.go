@@ -24,12 +24,12 @@ func TestSpaceSqlstore(t *testing.T) {
 	t.Run("Create success", func(t *testing.T) {
 		err := store.Save(ctx, &ExampleAlicePersonalSpace)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("GetByID success", func(t *testing.T) {
 		res, err := store.GetByID(ctx, ExampleAlicePersonalSpace.ID())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, &ExampleAlicePersonalSpace, res)
 	})
 
@@ -37,24 +37,24 @@ func TestSpaceSqlstore(t *testing.T) {
 		res, err := store.GetByID(ctx, "some-invalid-uuid")
 
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errNotFound)
+		require.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("Create success", func(t *testing.T) {
 		err := store.Save(ctx, &ExampleBobPersonalSpace)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("GetAllSpaces success", func(t *testing.T) {
 		res, err := store.GetAllSpaces(ctx, nil)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, []Space{ExampleAlicePersonalSpace, ExampleBobPersonalSpace}, res)
 	})
 
 	t.Run("GetAllUserSpaces with only personal success", func(t *testing.T) {
 		res, err := store.GetAllUserSpaces(ctx, AliceID, nil)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, []Space{ExampleAlicePersonalSpace}, res)
 	})
 
@@ -67,16 +67,16 @@ func TestSpaceSqlstore(t *testing.T) {
 		expected := ExampleAlicePersonalSpace
 		expected.name = "foo"
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, &expected, res)
 	})
 
 	t.Run("Delete success", func(t *testing.T) {
 		err := store.Delete(ctx, ExampleAlicePersonalSpace.ID())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		res, err := store.GetAllUserSpaces(ctx, AliceID, nil)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, []Space{}, res)
 	})
 }

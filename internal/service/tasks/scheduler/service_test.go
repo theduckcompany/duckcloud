@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/model"
@@ -42,7 +41,7 @@ func TestSchdulerService(t *testing.T) {
 			Name:   "First Space",
 			Owners: []uuid.UUID{uuid.UUID("fac2e836-eb4b-4eba-8184-25c332180326")},
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("RegisterSpaceCreateTask", func(t *testing.T) {
@@ -55,7 +54,7 @@ func TestSchdulerService(t *testing.T) {
 			Name:   "First Space",
 			Owners: []uuid.UUID{uuid.UUID("fac2e836-eb4b-4eba-8184-25c332180326")},
 		})
-		assert.ErrorIs(t, err, errs.ErrValidation)
+		require.ErrorIs(t, err, errs.ErrValidation)
 	})
 
 	t.Run("RegisterFSGCTask", func(t *testing.T) {
@@ -76,7 +75,7 @@ func TestSchdulerService(t *testing.T) {
 		}).Return(nil).Once()
 
 		err := svc.RegisterFSGCTask(ctx)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("RegisterUserDeleteTask", func(t *testing.T) {
@@ -99,7 +98,7 @@ func TestSchdulerService(t *testing.T) {
 		err := svc.RegisterUserDeleteTask(ctx, &UserDeleteArgs{
 			UserID: uuid.UUID("a379fef3-ebc3-4069-b1ef-8c67948b3cff"),
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("RegisterUserCreateTask", func(t *testing.T) {
@@ -122,7 +121,7 @@ func TestSchdulerService(t *testing.T) {
 		err := svc.RegisterUserCreateTask(ctx, &UserCreateArgs{
 			UserID: uuid.UUID("a379fef3-ebc3-4069-b1ef-8c67948b3cff"),
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("RegisterFileUploadTask", func(t *testing.T) {
@@ -148,7 +147,7 @@ func TestSchdulerService(t *testing.T) {
 			INodeID:    uuid.UUID("c87ebbda-435b-43b7-bab6-e93ca8f3831a"),
 			UploadedAt: now,
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("RegisterFSRefreshSizeTask", func(t *testing.T) {
@@ -172,7 +171,7 @@ func TestSchdulerService(t *testing.T) {
 			INode:      uuid.UUID("a379fef3-ebc3-4069-b1ef-8c67948b3cff"),
 			ModifiedAt: now,
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("RegisterFSMoveTask", func(t *testing.T) {
@@ -199,7 +198,7 @@ func TestSchdulerService(t *testing.T) {
 			MovedAt:     now,
 			MovedBy:     uuid.UUID("74926c6a-1802-45cd-bcb2-2dc0729fa986"),
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Run success", func(t *testing.T) {

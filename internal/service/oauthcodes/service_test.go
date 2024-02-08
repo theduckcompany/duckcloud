@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
@@ -48,7 +49,7 @@ func TestOauthCodeService(t *testing.T) {
 			Challenge:       secret.NewText("some-secret"),
 			ChallengeMethod: "S256",
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Create with a storage error", func(t *testing.T) {
@@ -74,8 +75,8 @@ func TestOauthCodeService(t *testing.T) {
 			ChallengeMethod: "S256",
 		})
 
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("RemoveByCode success", func(t *testing.T) {
@@ -86,7 +87,7 @@ func TestOauthCodeService(t *testing.T) {
 		storage.On("RemoveByCode", mock.Anything, secret.NewText("some-code")).Return(nil).Once()
 
 		err := svc.RemoveByCode(ctx, secret.NewText("some-code"))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("RemoveByCode with an error", func(t *testing.T) {
@@ -98,8 +99,8 @@ func TestOauthCodeService(t *testing.T) {
 
 		err := svc.RemoveByCode(ctx, secret.NewText("some-code"))
 
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("GetByCode", func(t *testing.T) {
@@ -122,7 +123,7 @@ func TestOauthCodeService(t *testing.T) {
 
 		res, err := svc.GetByCode(ctx, secret.NewText("some-code"))
 		assert.EqualValues(t, &code, res)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("GetByCode with an error", func(t *testing.T) {
@@ -135,7 +136,7 @@ func TestOauthCodeService(t *testing.T) {
 		code, err := svc.GetByCode(ctx, secret.NewText("some-code"))
 
 		assert.Nil(t, code)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 }

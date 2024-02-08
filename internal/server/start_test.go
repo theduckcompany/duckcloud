@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/spf13/afero"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/assets"
 	"github.com/theduckcompany/duckcloud/internal/service/masterkey"
@@ -37,7 +36,7 @@ func TestServerStart(t *testing.T) {
 	ctx := context.Background()
 
 	app := start(ctx, testConfig, fx.Invoke(func(*router.API) {}))
-	assert.NoError(t, app.Err())
+	require.NoError(t, app.Err())
 }
 
 func TestServerRun(t *testing.T) {

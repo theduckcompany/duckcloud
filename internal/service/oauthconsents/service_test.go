@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthclients"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
@@ -35,7 +36,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 			ClientID:     "alice-oauth-client",
 			Scopes:       []string{"scopeA", "scopeB"},
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, &ExampleAliceConsent, res)
 	})
 
@@ -51,7 +52,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 			Scopes:       []string{"scopeA", "scopeB"},
 		})
 		assert.Nil(t, res)
-		assert.EqualError(t, err, "validation: SessionToken: must be a valid UUID v4.")
+		require.EqualError(t, err, "validation: SessionToken: must be a valid UUID v4.")
 	})
 
 	t.Run("Create with a storage error", func(t *testing.T) {
@@ -70,8 +71,8 @@ func Test_OauthConsents_Service(t *testing.T) {
 			Scopes:       []string{"scopeA", "scopeB"},
 		})
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("Check success", func(t *testing.T) {
@@ -88,7 +89,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("84a871a1-e8f1-4041-83b3-530d013737cb")).Return(&ExampleAliceConsent, nil).Once()
 
 		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.AliceWebSessionExample)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Check with an invalid consent_id", func(t *testing.T) {
@@ -103,7 +104,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 
 		tools.UUIDMock.On("Parse", "invalid format").Return(uuid.UUID(""), errors.New("must be a valid UUID v4")).Once()
 		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.AliceWebSessionExample)
-		assert.EqualError(t, err, "validation: must be a valid UUID v4")
+		require.EqualError(t, err, "validation: must be a valid UUID v4")
 	})
 
 	t.Run("Check with a storage error", func(t *testing.T) {
@@ -120,8 +121,8 @@ func Test_OauthConsents_Service(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("84a871a1-e8f1-4041-83b3-530d013737cb")).Return(nil, errors.New("some-error")).Once()
 
 		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.AliceWebSessionExample)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("Check with the consent not found", func(t *testing.T) {
@@ -138,8 +139,8 @@ func Test_OauthConsents_Service(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("84a871a1-e8f1-4041-83b3-530d013737cb")).Return(nil, errNotFound).Once()
 
 		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.AliceWebSessionExample)
-		assert.ErrorIs(t, err, errs.ErrNotFound)
-		assert.ErrorIs(t, err, ErrConsentNotFound)
+		require.ErrorIs(t, err, errs.ErrNotFound)
+		require.ErrorIs(t, err, ErrConsentNotFound)
 	})
 
 	t.Run("Check with an invalid client_id", func(t *testing.T) {
@@ -165,7 +166,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("84a871a1-e8f1-4041-83b3-530d013737cb")).Return(&consent, nil).Once()
 
 		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.AliceWebSessionExample)
-		assert.EqualError(t, err, "bad request: consent clientID doesn't match with the given client")
+		require.EqualError(t, err, "bad request: consent clientID doesn't match with the given client")
 	})
 
 	t.Run("Check with an invalid websession_id", func(t *testing.T) {
@@ -192,7 +193,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, uuid.UUID("84a871a1-e8f1-4041-83b3-530d013737cb")).Return(&ExampleAliceConsent, nil).Once()
 
 		err := service.Check(req, &oauthclients.ExampleAliceClient, &websessions.AliceWebSessionExample)
-		assert.EqualError(t, err, "bad request: consent session token doesn't match with the given session")
+		require.EqualError(t, err, "bad request: consent session token doesn't match with the given session")
 	})
 
 	t.Run("GetAllForUser success", func(t *testing.T) {
@@ -203,7 +204,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceConsent.UserID(), (*storage.PaginateCmd)(nil)).Return([]Consent{ExampleAliceConsent}, nil).Once()
 
 		res, err := service.GetAll(ctx, ExampleAliceConsent.UserID(), nil)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, []Consent{ExampleAliceConsent}, res)
 	})
 
@@ -226,7 +227,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		storageMock.On("Delete", mock.Anything, ExampleAliceConsent.ID()).Return(nil).Once()
 
 		err := service.DeleteAll(ctx, ExampleAliceConsent.UserID())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("DeleteAll with a GetAll error", func(t *testing.T) {
@@ -237,8 +238,8 @@ func Test_OauthConsents_Service(t *testing.T) {
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceConsent.UserID(), (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
 
 		err := service.DeleteAll(ctx, ExampleAliceConsent.UserID())
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("DeleteAll with a revoke error stop directly", func(t *testing.T) {
@@ -251,7 +252,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		// Do not call GetByID and DeleteByID a second time
 
 		err := service.DeleteAll(ctx, ExampleAliceConsent.UserID())
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 }

@@ -33,13 +33,13 @@ func TestFileService(t *testing.T) {
 		svc := NewFileService(storage, fs, tools, masterkeySvc)
 
 		fileMeta, err := svc.Upload(ctx, bytes.NewReader([]byte("Hello, World!")))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotNil(t, fileMeta)
 
 		reader, err := svc.Download(ctx, fileMeta)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		res, err := io.ReadAll(reader)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, []byte("Hello, World!"), res)
 	})
 
@@ -58,8 +58,8 @@ func TestFileService(t *testing.T) {
 
 		fileID, err := svc.Upload(ctx, bytes.NewReader([]byte("Hello, World!")))
 		assert.Empty(t, fileID)
-		assert.ErrorContains(t, err, "operation not permitted")
-		assert.ErrorContains(t, err, "internal: failed to create")
+		require.ErrorContains(t, err, "operation not permitted")
+		require.ErrorContains(t, err, "internal: failed to create")
 	})
 
 	t.Run("Delete success", func(t *testing.T) {
@@ -79,12 +79,12 @@ func TestFileService(t *testing.T) {
 
 		// Delete it
 		err = svc.Delete(ctx, fileMeta.ID())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		// Check it doesn't exists
 		res, err := svc.Download(ctx, fileMeta)
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, ErrNotExist)
+		require.ErrorIs(t, err, ErrNotExist)
 	})
 
 	t.Run("Upload with a copy error", func(t *testing.T) {
@@ -99,9 +99,9 @@ func TestFileService(t *testing.T) {
 
 		// Create a file
 		fileID, err := svc.Upload(ctx, iotest.ErrReader(fmt.Errorf("some-error")))
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "upload error")
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "upload error")
+		require.ErrorContains(t, err, "some-error")
 		assert.Empty(t, fileID)
 	})
 
@@ -118,7 +118,7 @@ func TestFileService(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, ExampleFile1.ID()).Return(&ExampleFile1, nil).Once()
 
 		res, err := svc.GetMetadata(ctx, ExampleFile1.ID())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, &ExampleFile1, res)
 	})
 
@@ -135,7 +135,7 @@ func TestFileService(t *testing.T) {
 		storageMock.On("GetByChecksum", mock.Anything, "some-checksum").Return(&ExampleFile1, nil).Once()
 
 		res, err := svc.GetMetadataByChecksum(ctx, "some-checksum")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, &ExampleFile1, res)
 	})
 
@@ -154,7 +154,7 @@ func TestFileService(t *testing.T) {
 
 		reader, err := svc.Download(ctx, &ExampleFile2)
 		assert.Nil(t, reader)
-		assert.EqualError(t, err, "failed to open the file key: failed to open the sealed key")
+		require.EqualError(t, err, "failed to open the file key: failed to open the sealed key")
 	})
 }
 
@@ -176,29 +176,29 @@ func Test_DecReadSeeker(t *testing.T) {
 	t.Run("Read", func(t *testing.T) {
 		buf := make([]byte, 2)
 		n, err := dec.Read(buf)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, 2, n)
 		assert.Equal(t, []byte("He"), buf)
 	})
 
 	t.Run("Seek", func(t *testing.T) {
 		n1, err := dec.Seek(4, io.SeekStart)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, int64(4), n1)
 
 		n2, err := dec.Seek(4, io.SeekCurrent)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, int64(8), n2)
 	})
 
 	t.Run("Seek and Read", func(t *testing.T) {
 		n1, err := dec.Seek(-2, io.SeekEnd)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, int64(len(content)-2), n1)
 
 		buf := make([]byte, 2)
 		n2, err := dec.Read(buf)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, 2, n2)
 		assert.Equal(t, []byte("d!"), buf)
 
@@ -212,18 +212,18 @@ func Test_DecReadSeeker(t *testing.T) {
 		t.Run("Seek with an invalid whence", func(t *testing.T) {
 			n, err := dec.Seek(2, 4)
 			assert.Empty(t, n)
-			assert.ErrorContains(t, err, "invalid whence")
+			require.ErrorContains(t, err, "invalid whence")
 		})
 
 		t.Run("Seek a negative value", func(t *testing.T) {
 			n, err := dec.Seek(-1, io.SeekStart)
 			assert.Empty(t, n)
-			assert.ErrorContains(t, err, "negative position")
+			require.ErrorContains(t, err, "negative position")
 		})
 
 		t.Run("Close", func(t *testing.T) {
 			err := dec.Close()
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			assert.True(t, closer.isClose)
 		})

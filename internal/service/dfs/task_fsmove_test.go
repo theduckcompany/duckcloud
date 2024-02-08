@@ -66,7 +66,7 @@ func TestFSMoveTask(t *testing.T) {
 			MovedAt:     now,
 			MovedBy:     users.ExampleAlice.ID(),
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("RunArg with an existing file at destination", func(t *testing.T) {
@@ -111,7 +111,7 @@ func TestFSMoveTask(t *testing.T) {
 			MovedAt:     now,
 			MovedBy:     users.ExampleAlice.ID(),
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("RunArg with an unknown space", func(t *testing.T) {
@@ -132,7 +132,7 @@ func TestFSMoveTask(t *testing.T) {
 			MovedAt:     now,
 			MovedBy:     users.ExampleAlice.ID(),
 		})
-		assert.ErrorIs(t, err, errs.ErrNotFound)
+		require.ErrorIs(t, err, errs.ErrNotFound)
 	})
 
 	t.Run("RunArg with an unknown source inode", func(t *testing.T) {
@@ -157,7 +157,7 @@ func TestFSMoveTask(t *testing.T) {
 			MovedAt:     now,
 			MovedBy:     users.ExampleAlice.ID(),
 		})
-		assert.ErrorIs(t, err, errs.ErrNotFound)
+		require.ErrorIs(t, err, errs.ErrNotFound)
 	})
 
 	t.Run("RunArg with a inodes.Get error", func(t *testing.T) {
@@ -180,8 +180,8 @@ func TestFSMoveTask(t *testing.T) {
 			MovedAt:     now,
 			MovedBy:     users.ExampleAlice.ID(),
 		})
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("RunArg with an CreateDir error", func(t *testing.T) {
@@ -212,7 +212,7 @@ func TestFSMoveTask(t *testing.T) {
 			MovedAt:     now,
 			MovedBy:     users.ExampleAlice.ID(),
 		})
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 }

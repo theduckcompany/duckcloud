@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
@@ -32,13 +33,13 @@ func TestOauthCodeSQLStorage(t *testing.T) {
 	t.Run("save", func(t *testing.T) {
 		err := storage.Save(context.Background(), &codeExample)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("GetByID ok", func(t *testing.T) {
 		code, err := storage.GetByCode(context.Background(), secret.NewText("some-code"))
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, &codeExample, code)
 	})
 
@@ -46,21 +47,21 @@ func TestOauthCodeSQLStorage(t *testing.T) {
 		code, err := storage.GetByCode(ctx, secret.NewText("some-invalid-code"))
 
 		assert.Nil(t, code)
-		assert.ErrorIs(t, err, errNotFound)
+		require.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("RemoveByCode success", func(t *testing.T) {
 		err := storage.RemoveByCode(ctx, secret.NewText("some-code"))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		// Check that the code is no more available
 		code, err := storage.GetByCode(ctx, secret.NewText("some-code"))
 		assert.Nil(t, code)
-		assert.ErrorIs(t, err, errNotFound)
+		require.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("RemoveByCode invalid code", func(t *testing.T) {
 		err := storage.RemoveByCode(ctx, secret.NewText("some-invalid-code"))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 }

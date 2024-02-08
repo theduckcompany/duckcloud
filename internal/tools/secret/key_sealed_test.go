@@ -23,7 +23,7 @@ func TestSealedKey(t *testing.T) {
 		var err error
 
 		sk1, err = SealKey(masterKey, k1)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotEmpty(t, sk1)
 	})
 
@@ -33,20 +33,20 @@ func TestSealedKey(t *testing.T) {
 
 	t.Run("Open key", func(t *testing.T) {
 		res, err := sk1.Open(masterKey)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.True(t, k1.Equals(res))
 	})
 
 	t.Run("MarshalJSON", func(t *testing.T) {
 		res, err := sk1.MarshalJSON()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, `"*****"`, string(res))
 	})
 
 	t.Run("MarshalText", func(t *testing.T) {
 		res, err := sk1.MarshalText()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, `*****`, string(res))
 	})
@@ -57,7 +57,7 @@ func TestSealedKey(t *testing.T) {
 
 	t.Run("Base64", func(t *testing.T) {
 		res, err := base64.RawStdEncoding.Strict().DecodeString(sk1.Base64())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Len(t, res, SealedKeyLength)
 	})
@@ -74,7 +74,7 @@ func TestSealedKey(t *testing.T) {
 		var res SealedKey
 
 		err := res.UnmarshalJSON([]byte(`"KU5eVc37f3377a99sQ/Q/xyBJ6anzn65exn1WYEgljoK1u3CVZwiGvPgNLEJQwMgHPWw+H0KiaK/yLEuEipceOKT9cswzVUm"`))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		expected, err := SealedKeyFromBase64("KU5eVc37f3377a99sQ/Q/xyBJ6anzn65exn1WYEgljoK1u3CVZwiGvPgNLEJQwMgHPWw+H0KiaK/yLEuEipceOKT9cswzVUm")
 		require.NoError(t, err)
@@ -86,21 +86,21 @@ func TestSealedKey(t *testing.T) {
 		var res SealedKey
 
 		err := res.UnmarshalJSON([]byte(`"invalid"`))
-		assert.EqualError(t, err, "decoding error: illegal base64 data at input byte 6")
+		require.EqualError(t, err, "decoding error: illegal base64 data at input byte 6")
 	})
 
 	t.Run("UnmarshalJSON with an invalid type", func(t *testing.T) {
 		var res SealedKey
 
 		err := res.UnmarshalJSON([]byte(`32`))
-		assert.EqualError(t, err, "json: cannot unmarshal number into Go value of type string")
+		require.EqualError(t, err, "json: cannot unmarshal number into Go value of type string")
 	})
 
 	t.Run("UnmarshalText", func(t *testing.T) {
 		var res SealedKey
 
 		err := res.UnmarshalText([]byte(`a7g0dYQdk7DexmG5Nsal1O9gMUPmxo5zfpyr6U4Mdvo/QQkyiJHmpRnYuI7IapGtlcvlbxbkySXYNlw2HZhRqQvLeAgjvbfd`))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.NotEmpty(t, res.v)
 	})
@@ -109,12 +109,12 @@ func TestSealedKey(t *testing.T) {
 		var res SealedKey
 
 		err := res.UnmarshalText([]byte("invalid"))
-		assert.EqualError(t, err, "decoding error: illegal base64 data at input byte 6")
+		require.EqualError(t, err, "decoding error: illegal base64 data at input byte 6")
 	})
 
 	t.Run("Value", func(t *testing.T) {
 		v, err := sk1.Value()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.IsType(t, []byte{}, v)
 		assert.Len(t, v, SealedKeyLength)
@@ -134,7 +134,7 @@ func TestSealedKey(t *testing.T) {
 		require.NoError(t, err)
 
 		err = res.Scan(expected.v[:])
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.True(t, res.Equals(expected))
 	})
@@ -143,7 +143,7 @@ func TestSealedKey(t *testing.T) {
 		var res SealedKey
 
 		err := res.Scan("BKgSe9jPaIGQWn7EZd+44BduGVgvZyZ23rvAWSvEKJ02mwDzerGwlltpsVbDMWI2N+XimZLXKKX84TnIbF2XXKPU7V/tY4pz")
-		assert.EqualError(t, err, "expected a []byte")
+		require.EqualError(t, err, "expected a []byte")
 	})
 
 	t.Run("SeaKeyWithEnclave and OpenKeyWithEnclave", func(t *testing.T) {
@@ -156,7 +156,7 @@ func TestSealedKey(t *testing.T) {
 		require.NoError(t, err)
 
 		res, err := seal.OpenWithEnclave(enclave)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.True(t, res.Equals(k1))
 	})
 }

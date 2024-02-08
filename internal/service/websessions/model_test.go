@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -36,7 +37,7 @@ func Test_CreateCmd_Validate(t *testing.T) {
 			Req:    req,
 		}
 
-		assert.NoError(t, cmd.Validate())
+		require.NoError(t, cmd.Validate())
 	})
 
 	t.Run("with an error", func(t *testing.T) {
@@ -45,6 +46,6 @@ func Test_CreateCmd_Validate(t *testing.T) {
 			Req:    req,
 		}
 
-		assert.EqualError(t, cmd.Validate(), "UserID: must be a valid UUID v4.")
+		require.EqualError(t, cmd.Validate(), "UserID: must be a valid UUID v4.")
 	})
 }

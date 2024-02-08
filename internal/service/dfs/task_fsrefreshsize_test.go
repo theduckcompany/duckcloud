@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -49,7 +50,7 @@ func TestFSRefreshSizeTask(t *testing.T) {
 			INode:      ExampleAliceDir.ID(),
 			ModifiedAt: now,
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("RunArg with an inode not found", func(t *testing.T) {
@@ -72,7 +73,7 @@ func TestFSRefreshSizeTask(t *testing.T) {
 			INode:      ExampleAliceDir.ID(),
 			ModifiedAt: now,
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("RunArg with a GetSumChildsSize error", func(t *testing.T) {
@@ -87,7 +88,7 @@ func TestFSRefreshSizeTask(t *testing.T) {
 			INode:      ExampleAliceDir.ID(),
 			ModifiedAt: now,
 		})
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("RunArg with a RegisterModification error", func(t *testing.T) {
@@ -106,7 +107,7 @@ func TestFSRefreshSizeTask(t *testing.T) {
 			INode:      ExampleAliceDir.ID(),
 			ModifiedAt: now,
 		})
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 }

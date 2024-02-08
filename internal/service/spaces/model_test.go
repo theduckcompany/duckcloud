@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -29,7 +30,7 @@ func Test_Owners_Getters(t *testing.T) {
 		res := Owners{}
 		err := res.Scan(raw)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, owners, res)
 	})
 
@@ -37,19 +38,19 @@ func Test_Owners_Getters(t *testing.T) {
 		res := Owners{}
 		err := res.Scan(nil)
 
-		assert.EqualError(t, err, "not a string")
+		require.EqualError(t, err, "not a string")
 		assert.Empty(t, res)
 	})
 
 	t.Run("Value", func(t *testing.T) {
 		val, err := owners.Value()
 		assert.Equal(t, owners.String(), val)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 }
 
 func Test_CreateCmd_Validate(t *testing.T) {
-	assert.EqualError(t, CreateCmd{
+	require.EqualError(t, CreateCmd{
 		User:   &users.ExampleAlice,
 		Name:   "My space",
 		Owners: []uuid.UUID{"some-invalid-uuid"},
@@ -57,7 +58,7 @@ func Test_CreateCmd_Validate(t *testing.T) {
 }
 
 func Test_AddOwnerCmd_Validate(t *testing.T) {
-	assert.EqualError(t, AddOwnerCmd{
+	require.EqualError(t, AddOwnerCmd{
 		User:    &users.ExampleAlice,
 		Owner:   &users.ExampleAlice,
 		SpaceID: "",
@@ -65,7 +66,7 @@ func Test_AddOwnerCmd_Validate(t *testing.T) {
 }
 
 func Test_RemoveOwnerCmd_Validate(t *testing.T) {
-	assert.EqualError(t, RemoveOwnerCmd{
+	require.EqualError(t, RemoveOwnerCmd{
 		User:    &users.ExampleAlice,
 		Owner:   &users.ExampleAlice,
 		SpaceID: "",

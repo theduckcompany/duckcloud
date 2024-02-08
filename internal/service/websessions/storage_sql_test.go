@@ -28,7 +28,7 @@ func TestSessionSqlStorage(t *testing.T) {
 	t.Run("Create success", func(t *testing.T) {
 		err := storage.Save(context.Background(), &sessionData)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("GetByToken success", func(t *testing.T) {
@@ -37,7 +37,7 @@ func TestSessionSqlStorage(t *testing.T) {
 		require.NotNil(t, res)
 		res.createdAt = res.createdAt.UTC()
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, &sessionData, res)
 	})
 
@@ -49,7 +49,7 @@ func TestSessionSqlStorage(t *testing.T) {
 			res[i].createdAt = r.createdAt.UTC()
 		}
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, []Session{sessionData}, res)
 	})
 
@@ -57,15 +57,15 @@ func TestSessionSqlStorage(t *testing.T) {
 		res, err := storage.GetByToken(context.Background(), secret.NewText("some-invalid-token"))
 
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errNotFound)
+		require.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("RemoveByToken ", func(t *testing.T) {
 		err := storage.RemoveByToken(context.Background(), secret.NewText("some-token"))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		res, err := storage.GetByToken(context.Background(), secret.NewText("some-token"))
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errNotFound)
+		require.ErrorIs(t, err, errNotFound)
 	})
 }

@@ -36,7 +36,7 @@ func Test_SpaceService(t *testing.T) {
 			Name:   ExampleAlicePersonalSpace.name,
 			Owners: []uuid.UUID{AliceID},
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, &ExampleAlicePersonalSpace, res)
 	})
 
@@ -52,8 +52,8 @@ func Test_SpaceService(t *testing.T) {
 			Owners: []uuid.UUID{AliceID},
 		})
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrValidation)
-		assert.ErrorContains(t, err, "Name: cannot be blank.")
+		require.ErrorIs(t, err, errs.ErrValidation)
+		require.ErrorContains(t, err, "Name: cannot be blank.")
 	})
 
 	t.Run("Create with a non admin user", func(t *testing.T) {
@@ -68,7 +68,7 @@ func Test_SpaceService(t *testing.T) {
 			Owners: []uuid.UUID{AliceID},
 		})
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrUnauthorized)
+		require.ErrorIs(t, err, errs.ErrUnauthorized)
 	})
 
 	t.Run("Create with a Save error", func(t *testing.T) {
@@ -87,8 +87,8 @@ func Test_SpaceService(t *testing.T) {
 			Owners: []uuid.UUID{AliceID},
 		})
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("GetAlluserSpaces success", func(t *testing.T) {
@@ -100,7 +100,7 @@ func Test_SpaceService(t *testing.T) {
 		storageMock.On("GetAllUserSpaces", mock.Anything, AliceID, (*storage.PaginateCmd)(nil)).Return([]Space{ExampleAlicePersonalSpace}, nil).Once()
 
 		res, err := svc.GetAllUserSpaces(ctx, AliceID, nil)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, []Space{ExampleAlicePersonalSpace}, res)
 	})
 
@@ -114,8 +114,8 @@ func Test_SpaceService(t *testing.T) {
 
 		res, err := svc.GetAllUserSpaces(ctx, AliceID, nil)
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("GetByID success", func(t *testing.T) {
@@ -127,7 +127,7 @@ func Test_SpaceService(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(&ExampleAlicePersonalSpace, nil).Once()
 
 		res, err := svc.GetByID(ctx, ExampleAlicePersonalSpace.ID())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, &ExampleAlicePersonalSpace, res)
 	})
 
@@ -141,7 +141,7 @@ func Test_SpaceService(t *testing.T) {
 
 		res, err := svc.GetByID(ctx, ExampleAlicePersonalSpace.ID())
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrNotFound)
+		require.ErrorIs(t, err, errs.ErrNotFound)
 	})
 
 	t.Run("GetByID with an error", func(t *testing.T) {
@@ -154,8 +154,8 @@ func Test_SpaceService(t *testing.T) {
 
 		res, err := svc.GetByID(ctx, ExampleAlicePersonalSpace.ID())
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("Delete success", func(t *testing.T) {
@@ -167,7 +167,7 @@ func Test_SpaceService(t *testing.T) {
 		storageMock.On("Delete", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil).Once()
 
 		err := svc.Delete(ctx, &users.ExampleAlice, ExampleAlicePersonalSpace.ID())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Delete with an non admin user", func(t *testing.T) {
@@ -178,7 +178,7 @@ func Test_SpaceService(t *testing.T) {
 		svc := NewService(tools, storageMock, schedulerMock)
 
 		err := svc.Delete(ctx, &users.ExampleBob, ExampleAlicePersonalSpace.ID())
-		assert.ErrorIs(t, err, errs.ErrUnauthorized)
+		require.ErrorIs(t, err, errs.ErrUnauthorized)
 	})
 
 	t.Run("Delete with an error", func(t *testing.T) {
@@ -190,8 +190,8 @@ func Test_SpaceService(t *testing.T) {
 		storageMock.On("Delete", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(fmt.Errorf("some-error"))
 
 		err := svc.Delete(ctx, &users.ExampleAlice, ExampleAlicePersonalSpace.ID())
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("GetUserSpace success", func(t *testing.T) {
@@ -203,7 +203,7 @@ func Test_SpaceService(t *testing.T) {
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(&ExampleAlicePersonalSpace, nil).Once()
 
 		res, err := svc.GetUserSpace(ctx, ExampleAlicePersonalSpace.Owners()[0], ExampleAlicePersonalSpace.ID())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, &ExampleAlicePersonalSpace, res)
 	})
 
@@ -217,7 +217,7 @@ func Test_SpaceService(t *testing.T) {
 
 		res, err := svc.GetUserSpace(ctx, ExampleAlicePersonalSpace.Owners()[0], ExampleAlicePersonalSpace.ID())
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrNotFound)
+		require.ErrorIs(t, err, errs.ErrNotFound)
 	})
 
 	t.Run("GetUserSpace with an error", func(t *testing.T) {
@@ -230,8 +230,8 @@ func Test_SpaceService(t *testing.T) {
 
 		res, err := svc.GetUserSpace(ctx, ExampleAlicePersonalSpace.Owners()[0], ExampleAlicePersonalSpace.ID())
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("GetUserSpace with an existing space but an invalid user id", func(t *testing.T) {
@@ -244,8 +244,8 @@ func Test_SpaceService(t *testing.T) {
 
 		res, err := svc.GetUserSpace(ctx, uuid.UUID("some-invalid-user-id"), ExampleAlicePersonalSpace.ID())
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrUnauthorized)
-		assert.ErrorIs(t, err, ErrInvalidSpaceAccess)
+		require.ErrorIs(t, err, errs.ErrUnauthorized)
+		require.ErrorIs(t, err, ErrInvalidSpaceAccess)
 	})
 
 	t.Run("GetAllSpaces success", func(t *testing.T) {
@@ -260,8 +260,8 @@ func Test_SpaceService(t *testing.T) {
 			Return([]Space{ExampleAlicePersonalSpace, ExampleBobPersonalSpace}, nil).Once()
 
 		res, err := svc.GetAllSpaces(ctx, &users.ExampleAlice, &storage.PaginateCmd{})
-		assert.NoError(t, err)
-		assert.Equal(t, res, []Space{ExampleAlicePersonalSpace, ExampleBobPersonalSpace})
+		require.NoError(t, err)
+		assert.Equal(t, []Space{ExampleAlicePersonalSpace, ExampleBobPersonalSpace}, res)
 	})
 
 	t.Run("GetAllSpaces with a user not admin", func(t *testing.T) {
@@ -274,7 +274,7 @@ func Test_SpaceService(t *testing.T) {
 
 		res, err := svc.GetAllSpaces(ctx, &users.ExampleBob, &storage.PaginateCmd{StartAfter: map[string]string{}, Limit: 4})
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrUnauthorized)
+		require.ErrorIs(t, err, errs.ErrUnauthorized)
 	})
 
 	t.Run("RemoveOwner success", func(t *testing.T) {
@@ -300,7 +300,7 @@ func Test_SpaceService(t *testing.T) {
 			Owner:   &users.ExampleAlice,
 			SpaceID: ExampleAlicePersonalSpace.ID(),
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		expected := ExampleAlicePersonalSpace
 		expected.owners = Owners{}
@@ -321,7 +321,7 @@ func Test_SpaceService(t *testing.T) {
 			SpaceID: ExampleBobPersonalSpace.ID(),
 		})
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrUnauthorized)
+		require.ErrorIs(t, err, errs.ErrUnauthorized)
 	})
 
 	t.Run("RemoveOwner with a non admin user removing itself", func(t *testing.T) {
@@ -347,7 +347,7 @@ func Test_SpaceService(t *testing.T) {
 			Owner:   &users.ExampleBob,
 			SpaceID: ExampleBobPersonalSpace.ID(),
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		expected := ExampleBobPersonalSpace
 		expected.owners = Owners{}
@@ -371,7 +371,7 @@ func Test_SpaceService(t *testing.T) {
 			SpaceID: ExampleAlicePersonalSpace.ID(),
 		})
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorIs(t, err, errs.ErrInternal)
 	})
 
 	t.Run("RemoveOwner with a user not present in perms", func(t *testing.T) {
@@ -393,7 +393,7 @@ func Test_SpaceService(t *testing.T) {
 			Owner:   &users.ExampleBob, // Bob is not set as owner inside ExampleAlicePersonalSpace
 			SpaceID: ExampleAlicePersonalSpace.ID(),
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, &ExampleAlicePersonalSpace, res) // nothing change
 	})
 
@@ -421,7 +421,7 @@ func Test_SpaceService(t *testing.T) {
 			SpaceID: ExampleAlicePersonalSpace.ID(),
 		})
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorIs(t, err, errs.ErrInternal)
 	})
 
 	t.Run("AddOwner success", func(t *testing.T) {
@@ -447,7 +447,7 @@ func Test_SpaceService(t *testing.T) {
 			Owner:   &users.ExampleBob,
 			SpaceID: ExampleAlicePersonalSpace.ID(),
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		expected := ExampleAlicePersonalSpace
 		expected.owners = Owners{users.ExampleAlice.ID(), users.ExampleBob.ID()}
@@ -468,7 +468,7 @@ func Test_SpaceService(t *testing.T) {
 			SpaceID: ExampleAlicePersonalSpace.ID(),
 		})
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrUnauthorized)
+		require.ErrorIs(t, err, errs.ErrUnauthorized)
 	})
 
 	t.Run("AddOwner with a GetByID error", func(t *testing.T) {
@@ -488,7 +488,7 @@ func Test_SpaceService(t *testing.T) {
 			SpaceID: ExampleAlicePersonalSpace.ID(),
 		})
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorIs(t, err, errs.ErrInternal)
 	})
 
 	t.Run("AddOwner with a user already present in perms", func(t *testing.T) {
@@ -510,7 +510,7 @@ func Test_SpaceService(t *testing.T) {
 			Owner:   &users.ExampleAlice, // Alice is already present in perms
 			SpaceID: ExampleAlicePersonalSpace.ID(),
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, &ExampleAlicePersonalSpace, res) // nothing change
 	})
 
@@ -538,7 +538,7 @@ func Test_SpaceService(t *testing.T) {
 			SpaceID: ExampleAlicePersonalSpace.ID(),
 		})
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorIs(t, err, errs.ErrInternal)
 	})
 
 	t.Run("Bootstrap success", func(t *testing.T) {
@@ -557,7 +557,7 @@ func Test_SpaceService(t *testing.T) {
 		}).Return(nil).Once()
 
 		err := svc.Bootstrap(ctx, &users.ExampleAlice)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Bootstrap with a GetAllSpaces error", func(t *testing.T) {
@@ -570,7 +570,7 @@ func Test_SpaceService(t *testing.T) {
 			Return(nil, errs.ErrInternal).Once()
 
 		err := svc.Bootstrap(ctx, &users.ExampleAlice)
-		assert.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorIs(t, err, errs.ErrInternal)
 	})
 
 	t.Run("Bootstrap with an already bootstraped service", func(t *testing.T) {
@@ -583,7 +583,7 @@ func Test_SpaceService(t *testing.T) {
 			Return([]Space{ExampleAlicePersonalSpace}, nil).Once()
 
 		err := svc.Bootstrap(ctx, &users.ExampleAlice)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Bootstrap with a Scheduler error", func(t *testing.T) {
@@ -602,6 +602,6 @@ func Test_SpaceService(t *testing.T) {
 		}).Return(errs.ErrInternal).Once()
 
 		err := svc.Bootstrap(ctx, &users.ExampleAlice)
-		assert.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorIs(t, err, errs.ErrInternal)
 	})
 }

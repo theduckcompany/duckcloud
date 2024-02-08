@@ -10,6 +10,7 @@ import (
 	v "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/unrolled/render"
 )
@@ -58,7 +59,7 @@ func TestWriteJSONError(t *testing.T) {
 			defer res.Body.Close()
 			body, _ := io.ReadAll(res.Body)
 
-			assert.EqualError(t, test.Input, test.ExpectedError)
+			require.EqualError(t, test.Input, test.ExpectedError)
 			assert.Equal(t, test.ExpectedCode, res.StatusCode)
 			assert.JSONEq(t, test.ExpectedJSON, string(body))
 		})
@@ -91,7 +92,7 @@ func TestWriteJSONError_validation(t *testing.T) {
 	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
 
-	assert.EqualError(t, err, "validation: Email: must be a valid email address.")
+	require.EqualError(t, err, "validation: Email: must be a valid email address.")
 	assert.Equal(t, http.StatusUnprocessableEntity, res.StatusCode)
 	assert.JSONEq(t, `{"message": "Email: must be a valid email address."}`, string(body))
 }

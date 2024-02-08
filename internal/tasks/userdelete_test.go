@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
@@ -55,7 +56,7 @@ func TestUserDeleteTask(t *testing.T) {
 		usersMock.On("HardDelete", mock.Anything, uuid.UUID("b13c77ab-02fa-48a0-aad4-2079b6894d7b")).Return(nil).Once()
 
 		err := job.Run(ctx, json.RawMessage(`{"user-id": "b13c77ab-02fa-48a0-aad4-2079b6894d7b"}`))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Run with some invalid json", func(t *testing.T) {
@@ -69,7 +70,7 @@ func TestUserDeleteTask(t *testing.T) {
 		job := NewUserDeleteTaskRunner(usersMock, webSessionsMock, davSessionsMock, oauthSessionsMock, oauthConsentMock, spacesMock, fsMock)
 
 		err := job.Run(ctx, json.RawMessage(`some-invalid-json`))
-		assert.ErrorContains(t, err, "failed to unmarshal the args")
+		require.ErrorContains(t, err, "failed to unmarshal the args")
 	})
 
 	t.Run("RunArgs success", func(t *testing.T) {
@@ -98,7 +99,7 @@ func TestUserDeleteTask(t *testing.T) {
 		usersMock.On("HardDelete", mock.Anything, users.ExampleDeletingAlice.ID()).Return(nil).Once()
 
 		err := job.RunArgs(ctx, &scheduler.UserDeleteArgs{UserID: users.ExampleDeletingAlice.ID()})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("RunArgs with a GetByID error", func(t *testing.T) {
@@ -133,7 +134,7 @@ func TestUserDeleteTask(t *testing.T) {
 		webSessionsMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(fmt.Errorf("some-error")).Once()
 
 		err := job.RunArgs(ctx, &scheduler.UserDeleteArgs{UserID: users.ExampleDeletingAlice.ID()})
-		assert.EqualError(t, err, "failed to delete all web sessions: some-error")
+		require.EqualError(t, err, "failed to delete all web sessions: some-error")
 	})
 
 	t.Run("with a dav session deletion error", func(t *testing.T) {
@@ -153,7 +154,7 @@ func TestUserDeleteTask(t *testing.T) {
 		davSessionsMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(fmt.Errorf("some-error")).Once()
 
 		err := job.RunArgs(ctx, &scheduler.UserDeleteArgs{UserID: users.ExampleDeletingAlice.ID()})
-		assert.EqualError(t, err, "failed to delete all dav sessions: some-error")
+		require.EqualError(t, err, "failed to delete all dav sessions: some-error")
 	})
 
 	t.Run("with a oauth session deletion error", func(t *testing.T) {
@@ -174,7 +175,7 @@ func TestUserDeleteTask(t *testing.T) {
 		oauthSessionsMock.On("DeleteAllForUser", mock.Anything, users.ExampleDeletingAlice.ID()).Return(fmt.Errorf("some-error")).Once()
 
 		err := job.RunArgs(ctx, &scheduler.UserDeleteArgs{UserID: users.ExampleDeletingAlice.ID()})
-		assert.EqualError(t, err, "failed to delete all oauth sessions: some-error")
+		require.EqualError(t, err, "failed to delete all oauth sessions: some-error")
 	})
 
 	t.Run("RunArgs with a GetAllUserSpaces error", func(t *testing.T) {
@@ -250,7 +251,7 @@ func TestUserDeleteTask(t *testing.T) {
 		oauthConsentMock.On("DeleteAll", mock.Anything, users.ExampleDeletingAlice.ID()).Return(fmt.Errorf("some-error")).Once()
 
 		err := job.RunArgs(ctx, &scheduler.UserDeleteArgs{UserID: users.ExampleDeletingAlice.ID()})
-		assert.EqualError(t, err, "failed to delete all oauth consents: some-error")
+		require.EqualError(t, err, "failed to delete all oauth consents: some-error")
 	})
 
 	t.Run("with a user hard delete error", func(t *testing.T) {
@@ -280,6 +281,6 @@ func TestUserDeleteTask(t *testing.T) {
 		usersMock.On("HardDelete", mock.Anything, users.ExampleDeletingAlice.ID()).Return(fmt.Errorf("some-error")).Once()
 
 		err := job.RunArgs(ctx, &scheduler.UserDeleteArgs{UserID: users.ExampleDeletingAlice.ID()})
-		assert.EqualError(t, err, "failed to hard delete the user: some-error")
+		require.EqualError(t, err, "failed to hard delete the user: some-error")
 	})
 }
