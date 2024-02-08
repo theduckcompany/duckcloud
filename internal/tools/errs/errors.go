@@ -2,9 +2,9 @@ package errs
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 var (
@@ -22,20 +22,19 @@ type errResponse struct {
 
 // Error error
 type Error struct {
-	code error
-	err  error
-	msg  string
+	err error
+	msg string
 }
 
 func (t *Error) Code() int {
-	switch t.code {
-	case ErrBadRequest:
+	switch {
+	case errors.Is(t.err, ErrBadRequest):
 		return http.StatusBadRequest
-	case ErrUnauthorized:
+	case errors.Is(t.err, ErrUnauthorized):
 		return http.StatusUnauthorized
-	case ErrNotFound:
+	case errors.Is(t.err, ErrNotFound):
 		return http.StatusNotFound
-	case ErrValidation:
+	case errors.Is(t.err, ErrValidation):
 		return http.StatusUnprocessableEntity
 	default:
 		return http.StatusInternalServerError
@@ -43,7 +42,7 @@ func (t *Error) Code() int {
 }
 
 func (t *Error) Error() string {
-	return strings.Join([]string{t.code.Error(), t.err.Error()}, ": ")
+	return t.err.Error()
 }
 
 func (t *Error) MarshalJSON() ([]byte, error) {
@@ -55,36 +54,36 @@ func (t *Error) Unwrap() error {
 }
 
 func (t *Error) Is(err error) bool {
-	return err == t.code || err == t.err
+	return err == t.err
 }
 
 func BadRequest(err error, msgAndArgs ...any) error {
-	return &Error{code: ErrBadRequest, err: err, msg: messageFromMsgAndArgs("bad request", msgAndArgs...)}
+	return &Error{err: fmt.Errorf("%w: %w", ErrBadRequest, err), msg: messageFromMsgAndArgs(ErrBadRequest, msgAndArgs...)}
 }
 
 func Validation(err error) error {
-	return &Error{code: ErrValidation, err: err, msg: err.Error()}
+	return &Error{err: fmt.Errorf("%w: %w", ErrValidation, err), msg: err.Error()}
 }
 
 func NotFound(err error, msgAndArgs ...any) error {
-	return &Error{code: ErrNotFound, err: err, msg: messageFromMsgAndArgs("not found", msgAndArgs...)}
+	return &Error{err: fmt.Errorf("%w: %w", ErrNotFound, err), msg: messageFromMsgAndArgs(ErrNotFound, msgAndArgs...)}
 }
 
 func Unauthorized(err error, msgAndArgs ...any) error {
-	return &Error{code: ErrUnauthorized, err: err, msg: messageFromMsgAndArgs("unauthorized", msgAndArgs...)}
+	return &Error{err: fmt.Errorf("%w: %w", ErrUnauthorized, err), msg: messageFromMsgAndArgs(ErrUnauthorized, msgAndArgs...)}
 }
 
 func Internal(err error) error {
-	return &Error{code: ErrInternal, err: err, msg: "internal error"}
+	return &Error{err: fmt.Errorf("%w: %w", ErrInternal, err), msg: "internal error"}
 }
 
 func Unhandled(err error) error {
-	return &Error{code: ErrUnhandled, err: err, msg: "internal error"}
+	return &Error{err: fmt.Errorf("%w: %w", ErrUnhandled, err), msg: "internal error"}
 }
 
-func messageFromMsgAndArgs(defaultMsg string, msgAndArgs ...any) string {
+func messageFromMsgAndArgs(baseError error, msgAndArgs ...any) string {
 	if len(msgAndArgs) == 0 || msgAndArgs == nil {
-		return defaultMsg
+		return baseError.Error()
 	}
 	if len(msgAndArgs) == 1 {
 		msg := msgAndArgs[0]
