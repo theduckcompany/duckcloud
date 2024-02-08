@@ -1,7 +1,6 @@
 package errs
 
 import (
-	"errors"
 	"fmt"
 	"testing"
 
@@ -14,8 +13,8 @@ import (
 func Test_ValidationError_match_ErrValidation(t *testing.T) {
 	err := BadRequest(fmt.Errorf("some-error"), "super message")
 
-	assert.ErrorIs(t, err, ErrBadRequest)
-	assert.EqualError(t, err, "bad request: some-error")
+	require.ErrorIs(t, err, ErrBadRequest)
+	require.EqualError(t, err, "bad request: some-error")
 }
 
 func TestErrorMsgFormat(t *testing.T) {
@@ -90,7 +89,7 @@ func TestErrorMsgFormat(t *testing.T) {
 			require.NoError(t, err)
 
 			assert.JSONEq(t, test.UserJSON, string(raw))
-			assert.EqualError(t, innerErr, test.InternalError)
+			require.EqualError(t, innerErr, test.InternalError)
 		})
 	}
 }

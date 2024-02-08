@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
@@ -30,7 +31,7 @@ func TestSpaceCreateTask(t *testing.T) {
 		job := NewSpaceCreateTaskRunner(usersMock, spacesMock, fsMock)
 
 		err := job.Run(ctx, json.RawMessage(`{some invalid json}`))
-		assert.EqualError(t, err, "failed to unmarshal the args: invalid character 's' looking for beginning of object key string")
+		require.EqualError(t, err, "failed to unmarshal the args: invalid character 's' looking for beginning of object key string")
 	})
 
 	t.Run("RunArgs success", func(t *testing.T) {
@@ -50,7 +51,7 @@ func TestSpaceCreateTask(t *testing.T) {
 			Return(&dfs.ExampleAliceRoot, nil).Once()
 
 		err := job.Run(ctx, json.RawMessage(`{"user-id": "059d78af-e675-498e-8b77-d4b2b4b9d4e7","name":"Personal","owners":["059d78af-e675-498e-8b77-d4b2b4b9d4e7"]}`))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("RunArgs with a GetByID error", func(t *testing.T) {
@@ -67,7 +68,7 @@ func TestSpaceCreateTask(t *testing.T) {
 			Name:   "Personal",
 			Owners: []uuid.UUID{users.ExampleAlice.ID()},
 		})
-		assert.ErrorIs(t, err, errs.ErrNotFound)
+		require.ErrorIs(t, err, errs.ErrNotFound)
 	})
 
 	t.Run("RunArgs with a spaces Create error", func(t *testing.T) {
@@ -89,7 +90,7 @@ func TestSpaceCreateTask(t *testing.T) {
 			Name:   "Personal",
 			Owners: []uuid.UUID{users.ExampleAlice.ID()},
 		})
-		assert.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorIs(t, err, errs.ErrInternal)
 	})
 
 	t.Run("RunArgs with a CreateFS error", func(t *testing.T) {
@@ -113,6 +114,6 @@ func TestSpaceCreateTask(t *testing.T) {
 			Name:   "Personal",
 			Owners: []uuid.UUID{users.ExampleAlice.ID()},
 		})
-		assert.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorIs(t, err, errs.ErrInternal)
 	})
 }

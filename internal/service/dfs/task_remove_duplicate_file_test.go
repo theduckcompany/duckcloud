@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -48,7 +49,7 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 			DuplicateFileID: *ExampleAliceFile.FileID(),
 			ExistingFileID:  files.ExampleFile1.ID(),
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("RunArgs with a GetAllstorageWithFileID error", func(t *testing.T) {
@@ -64,8 +65,8 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 			DuplicateFileID: *ExampleAliceFile.FileID(),
 			ExistingFileID:  files.ExampleFile1.ID(),
 		})
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("RunArgs with a GetMetadata error", func(t *testing.T) {
@@ -84,8 +85,8 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 			DuplicateFileID: *ExampleAliceFile.FileID(),
 			ExistingFileID:  files.ExampleFile1.ID(),
 		})
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("RunArgs with a PatchFileID error", func(t *testing.T) {
@@ -108,8 +109,8 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 			ExistingFileID:  files.ExampleFile1.ID(),
 			DuplicateFileID: *ExampleAliceFile.FileID(),
 		})
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("Run success", func(t *testing.T) {
@@ -138,7 +139,7 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 			"existing-file-id": "66278d2b-7a4f-4764-ac8a-fc08f224eb66",
 			"duplicate-file-id": "abf05a02-8af9-4184-a46d-847f7d951c6b"
 		}`))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Run with an invalid json", func(t *testing.T) {
@@ -148,7 +149,7 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 		runner := NewFSRemoveDuplicateFileRunner(storageMock, filesMock, schedulerMock)
 
 		err := runner.Run(ctx, json.RawMessage(`some-invalid-json`))
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "failed to unmarshal the args")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "failed to unmarshal the args")
 	})
 }

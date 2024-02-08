@@ -61,8 +61,8 @@ func TestDavSessionsService(t *testing.T) {
 
 		assert.Nil(t, res)
 		assert.Empty(t, secret)
-		assert.ErrorIs(t, err, errs.ErrValidation)
-		assert.ErrorContains(t, err, "UserID: must be a valid UUID v4.")
+		require.ErrorIs(t, err, errs.ErrValidation)
+		require.ErrorContains(t, err, "UserID: must be a valid UUID v4.")
 	})
 
 	t.Run("Create with a space not found", func(t *testing.T) {
@@ -84,8 +84,8 @@ func TestDavSessionsService(t *testing.T) {
 		assert.Nil(t, res)
 		assert.Empty(t, secret)
 
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorIs(t, err, errNotFound)
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("Create with a space not owned by the given user", func(t *testing.T) {
@@ -106,7 +106,7 @@ func TestDavSessionsService(t *testing.T) {
 
 		assert.Nil(t, res)
 		assert.Empty(t, secret)
-		assert.EqualError(t, err, "bad request: invalid spaceID")
+		require.EqualError(t, err, "bad request: invalid spaceID")
 	})
 
 	t.Run("GetAllForUser success", func(t *testing.T) {
@@ -118,7 +118,7 @@ func TestDavSessionsService(t *testing.T) {
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.id, &storage.PaginateCmd{Limit: 10}).Return([]DavSession{ExampleAliceSession}, nil).Once()
 
 		res, err := service.GetAllForUser(ctx, ExampleAliceSession.id, &storage.PaginateCmd{Limit: 10})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, []DavSession{ExampleAliceSession}, res)
 	})
 
@@ -133,7 +133,7 @@ func TestDavSessionsService(t *testing.T) {
 		storageMock.On("GetByUsernameAndPassHash", mock.Anything, "some-username", hashedPasswd).Return(&ExampleAliceSession, nil).Once()
 
 		res, err := service.Authenticate(ctx, "some-username", secret.NewText("some-password"))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, &ExampleAliceSession, res)
 	})
 
@@ -150,7 +150,7 @@ func TestDavSessionsService(t *testing.T) {
 			UserID:    ExampleAliceSession.UserID(),
 			SessionID: ExampleAliceSession.ID(),
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Delete with a validation error", func(t *testing.T) {
@@ -163,8 +163,8 @@ func TestDavSessionsService(t *testing.T) {
 			UserID:    ExampleAliceSession.UserID(),
 			SessionID: "some invalid id",
 		})
-		assert.ErrorIs(t, err, errs.ErrValidation)
-		assert.ErrorContains(t, err, "SessionID: must be a valid UUID v4.")
+		require.ErrorIs(t, err, errs.ErrValidation)
+		require.ErrorContains(t, err, "SessionID: must be a valid UUID v4.")
 	})
 
 	t.Run("Delete with a session not found", func(t *testing.T) {
@@ -179,7 +179,7 @@ func TestDavSessionsService(t *testing.T) {
 			UserID:    ExampleAliceSession.UserID(),
 			SessionID: ExampleAliceSession.ID(),
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Delete with a session owner by someone else", func(t *testing.T) {
@@ -194,8 +194,8 @@ func TestDavSessionsService(t *testing.T) {
 			UserID:    uuid.UUID("de946548-095f-4fa9-8f03-81d3459f8000"), // some random id
 			SessionID: ExampleAliceSession.ID(),
 		})
-		assert.EqualError(t, err, "not found: user ids are not matching")
-		assert.ErrorIs(t, err, errs.ErrNotFound)
+		require.EqualError(t, err, "not found: user ids are not matching")
+		require.ErrorIs(t, err, errs.ErrNotFound)
 	})
 
 	t.Run("DeleteAll success", func(t *testing.T) {
@@ -209,7 +209,7 @@ func TestDavSessionsService(t *testing.T) {
 		storageMock.On("RemoveByID", mock.Anything, ExampleAliceSession.ID()).Return(nil).Once()
 
 		err := service.DeleteAll(ctx, ExampleAliceSession.UserID())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("DeleteAll with a GetAll error", func(t *testing.T) {
@@ -221,8 +221,8 @@ func TestDavSessionsService(t *testing.T) {
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.UserID(), (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
 
 		err := service.DeleteAll(ctx, ExampleAliceSession.UserID())
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("DeleteAll with a revoke error stop directly", func(t *testing.T) {
@@ -237,7 +237,7 @@ func TestDavSessionsService(t *testing.T) {
 		// Do not call GetByID and RemoveByID a second time
 
 		err := service.DeleteAll(ctx, ExampleAliceSession.UserID())
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 }

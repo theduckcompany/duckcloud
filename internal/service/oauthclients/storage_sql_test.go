@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
@@ -32,19 +33,19 @@ func TestOauthClientsSQLStorage(t *testing.T) {
 		res, err := storage.GetByID(ctx, "some-invalid-id")
 
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errNotFound)
+		require.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("Create", func(t *testing.T) {
 		err := storage.Save(context.Background(), &clientExample)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("GetByID success", func(t *testing.T) {
 		res, err := storage.GetByID(ctx, "some-client-id")
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, &clientExample, res)
 	})
 }

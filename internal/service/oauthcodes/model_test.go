@@ -6,6 +6,7 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 )
 
@@ -21,5 +22,5 @@ func Test_CreateCodeRequest_Validate_success(t *testing.T) {
 		Scope:     "some-scope",
 	}.Validate()
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }

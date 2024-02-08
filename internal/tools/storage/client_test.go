@@ -22,7 +22,7 @@ func TestNewSQliteClient(t *testing.T) {
 
 		client, err := NewSQliteClient(&cfg)
 		assert.Nil(t, client)
-		assert.EqualError(t, err, "unable to open database file: no such file or directory")
+		require.EqualError(t, err, "unable to open database file: no such file or directory")
 	})
 
 	t.Run("with not specified path", func(t *testing.T) {
@@ -30,6 +30,6 @@ func TestNewSQliteClient(t *testing.T) {
 
 		client, err := NewSQliteClient(&cfg)
 		assert.NotNil(t, client)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 }

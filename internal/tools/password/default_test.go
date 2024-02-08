@@ -21,7 +21,7 @@ func TestBcryptPassword(t *testing.T) {
 
 		ok, err := password.Compare(ctx, hashed, secret.NewText("some-password"))
 		assert.True(t, ok)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Decrypte with a no base64 string", func(t *testing.T) {
@@ -29,6 +29,6 @@ func TestBcryptPassword(t *testing.T) {
 
 		ok, err := password.Compare(ctx, secret.NewText("not a hex string#"), secret.NewText("some-password"))
 		assert.False(t, ok)
-		assert.EqualError(t, err, "failed to decode the hash: the encoded hash is not in the correct format")
+		require.EqualError(t, err, "failed to decode the hash: the encoded hash is not in the correct format")
 	})
 }

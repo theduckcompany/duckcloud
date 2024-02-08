@@ -14,7 +14,7 @@ func TestUUID(t *testing.T) {
 
 		id := uuidSvc.New()
 		assert.NotEmpty(t, id)
-		assert.NoError(t, is.UUIDv4.Validate(id))
+		require.NoError(t, is.UUIDv4.Validate(id))
 	})
 
 	t.Run("parse success", func(t *testing.T) {

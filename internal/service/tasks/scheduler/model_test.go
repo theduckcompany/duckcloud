@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -17,7 +17,7 @@ func TestSchedulerModels(t *testing.T) {
 			UploadedAt: time.Now(),
 		}.Validate()
 
-		assert.EqualError(t, err, "space-id: must be a valid UUID v4.")
+		require.EqualError(t, err, "space-id: must be a valid UUID v4.")
 	})
 
 	t.Run("FSMoveArgs", func(t *testing.T) {
@@ -29,7 +29,7 @@ func TestSchedulerModels(t *testing.T) {
 			MovedBy:     uuid.UUID("74926c6a-1802-45cd-bcb2-2dc0729fa986"),
 		}.Validate()
 
-		assert.EqualError(t, err, "source-inode: must be a valid UUID v4.")
+		require.EqualError(t, err, "source-inode: must be a valid UUID v4.")
 	})
 
 	t.Run("UserCreateArgs", func(t *testing.T) {
@@ -37,13 +37,13 @@ func TestSchedulerModels(t *testing.T) {
 			UserID: uuid.UUID("some-invalid-id"),
 		}.Validate()
 
-		assert.EqualError(t, err, "user-id: must be a valid UUID v4.")
+		require.EqualError(t, err, "user-id: must be a valid UUID v4.")
 	})
 
 	t.Run("FSGCArgs", func(t *testing.T) {
 		err := FSGCArgs{}.Validate()
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("FSRemoveDuplicateFileArgs", func(t *testing.T) {
@@ -52,7 +52,7 @@ func TestSchedulerModels(t *testing.T) {
 			DuplicateFileID: uuid.UUID("a379fef3-ebc3-4069-b1ef-8c67948b3cff"),
 		}.Validate()
 
-		assert.EqualError(t, err, "existing-file-id: must be a valid UUID v4.")
+		require.EqualError(t, err, "existing-file-id: must be a valid UUID v4.")
 	})
 
 	t.Run("FSRefreshSizeArg", func(t *testing.T) {
@@ -61,6 +61,6 @@ func TestSchedulerModels(t *testing.T) {
 			ModifiedAt: time.Now().UTC(),
 		}.Validate()
 
-		assert.EqualError(t, err, "inode: must be a valid UUID v4.")
+		require.EqualError(t, err, "inode: must be a valid UUID v4.")
 	})
 }

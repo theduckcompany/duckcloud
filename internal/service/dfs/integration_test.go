@@ -436,7 +436,7 @@ func Test_DFS_Integration(t *testing.T) {
 		})
 
 		res, err := serv.DFSSvc.Get(ctx, dfs.NewPathCmd(&space, "/move-same-place/foo.txt"))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, expected, res)
 	})
 }

@@ -37,7 +37,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "bar", ExampleAliceDir.ID()).Return(&ExampleAliceFile, nil).Once()
 
 		res, err := spaceFS.Get(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar"))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, &ExampleAliceFile, res)
 	})
 
@@ -54,7 +54,7 @@ func Test_DFS_Service(t *testing.T) {
 
 		res, err := spaceFS.Get(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo"))
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrNotFound)
+		require.ErrorIs(t, err, errs.ErrNotFound)
 	})
 
 	t.Run("Get with storage error", func(t *testing.T) {
@@ -70,8 +70,8 @@ func Test_DFS_Service(t *testing.T) {
 
 		res, err := spaceFS.Get(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar"))
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("CreateDir success", func(t *testing.T) {
@@ -95,7 +95,7 @@ func Test_DFS_Service(t *testing.T) {
 			Path:      NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/new-dir"),
 			CreatedBy: &users.ExampleAlice,
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, &ExampleAliceEmptyDir, res)
 	})
 
@@ -112,8 +112,8 @@ func Test_DFS_Service(t *testing.T) {
 			CreatedBy: nil,
 		})
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrValidation)
-		assert.ErrorContains(t, err, "CreatedBy: cannot be blank")
+		require.ErrorIs(t, err, errs.ErrValidation)
+		require.ErrorContains(t, err, "CreatedBy: cannot be blank")
 	})
 
 	t.Run("CreateDir with an already existing file/directory", func(t *testing.T) {
@@ -132,8 +132,8 @@ func Test_DFS_Service(t *testing.T) {
 			CreatedBy: &users.ExampleAlice,
 		})
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrBadRequest)
-		assert.ErrorIs(t, err, ErrIsNotDir)
+		require.ErrorIs(t, err, errs.ErrBadRequest)
+		require.ErrorIs(t, err, ErrIsNotDir)
 	})
 
 	t.Run("CreateDir with a GetByNameAndParent error", func(t *testing.T) {
@@ -153,8 +153,8 @@ func Test_DFS_Service(t *testing.T) {
 			CreatedBy: &users.ExampleAlice,
 		})
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("CreateDir with / as path", func(t *testing.T) {
@@ -171,7 +171,7 @@ func Test_DFS_Service(t *testing.T) {
 			Path:      NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/"),
 			CreatedBy: &users.ExampleAlice,
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, &ExampleAliceRoot, res)
 	})
 
@@ -196,7 +196,7 @@ func Test_DFS_Service(t *testing.T) {
 		}).Return(nil).Once()
 
 		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Remove the root is forbidden", func(t *testing.T) {
@@ -208,8 +208,8 @@ func Test_DFS_Service(t *testing.T) {
 		spaceFS := NewService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/"))
-		assert.ErrorIs(t, err, errs.ErrUnauthorized)
-		assert.ErrorContains(t, err, "can't remove /")
+		require.ErrorIs(t, err, errs.ErrUnauthorized)
+		require.ErrorContains(t, err, "can't remove /")
 	})
 
 	t.Run("Remove with an empty path is forbidden 2", func(t *testing.T) {
@@ -221,8 +221,8 @@ func Test_DFS_Service(t *testing.T) {
 		spaceFS := NewService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, ""))
-		assert.ErrorIs(t, err, errs.ErrUnauthorized)
-		assert.ErrorContains(t, err, "can't remove /")
+		require.ErrorIs(t, err, errs.ErrUnauthorized)
+		require.ErrorContains(t, err, "can't remove /")
 	})
 
 	t.Run("Remove with an inode not found", func(t *testing.T) {
@@ -237,7 +237,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errs.ErrNotFound).Once()
 
 		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Remove with a Get error", func(t *testing.T) {
@@ -252,8 +252,8 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
 
 		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"))
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("Remove with a Patch error", func(t *testing.T) {
@@ -273,8 +273,8 @@ func Test_DFS_Service(t *testing.T) {
 		}).Return(fmt.Errorf("some-error")).Once()
 
 		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"))
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("Remove with a RegisterFSRefreshSizeTask error", func(t *testing.T) {
@@ -298,8 +298,8 @@ func Test_DFS_Service(t *testing.T) {
 		}).Return(errs.Internal(fmt.Errorf("some-error"))).Once()
 
 		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"))
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("ListDir success", func(t *testing.T) {
@@ -318,7 +318,7 @@ func Test_DFS_Service(t *testing.T) {
 			Return([]INode{ExampleAliceFile}, nil).Once()
 
 		res, err := spaceFS.ListDir(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"), &storage.PaginateCmd{Limit: 2})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, []INode{ExampleAliceFile}, res)
 	})
 
@@ -336,7 +336,7 @@ func Test_DFS_Service(t *testing.T) {
 
 		res, err := spaceFS.ListDir(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"), &storage.PaginateCmd{Limit: 2})
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrNotFound)
+		require.ErrorIs(t, err, errs.ErrNotFound)
 	})
 
 	t.Run("ListDir with a Get error", func(t *testing.T) {
@@ -353,8 +353,8 @@ func Test_DFS_Service(t *testing.T) {
 
 		res, err := spaceFS.ListDir(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"), &storage.PaginateCmd{Limit: 2})
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("ListDir with a GetAllChildrens errors", func(t *testing.T) {
@@ -374,8 +374,8 @@ func Test_DFS_Service(t *testing.T) {
 
 		res, err := spaceFS.ListDir(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"), &storage.PaginateCmd{Limit: 2})
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("Download success", func(t *testing.T) {
@@ -399,7 +399,7 @@ func Test_DFS_Service(t *testing.T) {
 		filesMock.On("Download", mock.Anything, &files.ExampleFile1).Return(file, nil).Once()
 
 		res, err := spaceFS.Download(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar.txt"))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, file, res)
 	})
 
@@ -434,7 +434,7 @@ func Test_DFS_Service(t *testing.T) {
 			Content:    bytes.NewBufferString(content),
 			UploadedBy: &users.ExampleAlice,
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Upload with a validation error", func(t *testing.T) {
@@ -451,8 +451,8 @@ func Test_DFS_Service(t *testing.T) {
 			Content:    nil,
 			UploadedBy: &users.ExampleAlice,
 		})
-		assert.ErrorIs(t, err, errs.ErrValidation)
-		assert.EqualError(t, err, "validation: Content: cannot be blank.")
+		require.ErrorIs(t, err, errs.ErrValidation)
+		require.EqualError(t, err, "validation: Content: cannot be blank.")
 	})
 
 	t.Run("Upload with a non existing directory", func(t *testing.T) {
@@ -475,7 +475,7 @@ func Test_DFS_Service(t *testing.T) {
 			Content:    bytes.NewBufferString(content),
 			UploadedBy: &users.ExampleAlice,
 		})
-		assert.ErrorIs(t, err, errs.ErrNotFound)
+		require.ErrorIs(t, err, errs.ErrNotFound)
 	})
 
 	t.Run("Upload with a file upload error", func(t *testing.T) {
@@ -500,8 +500,8 @@ func Test_DFS_Service(t *testing.T) {
 			Content:    bytes.NewBufferString(content),
 			UploadedBy: &users.ExampleAlice,
 		})
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("Upload with a Save error", func(t *testing.T) {
@@ -530,8 +530,8 @@ func Test_DFS_Service(t *testing.T) {
 			Content:    bytes.NewBufferString(content),
 			UploadedBy: &users.ExampleAlice,
 		})
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("Upload with a RegisterFSRefreshSizeTask", func(t *testing.T) {
@@ -565,8 +565,8 @@ func Test_DFS_Service(t *testing.T) {
 			Content:    bytes.NewBufferString(content),
 			UploadedBy: &users.ExampleAlice,
 		})
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("Move success", func(t *testing.T) {
@@ -595,7 +595,7 @@ func Test_DFS_Service(t *testing.T) {
 			Dst:     NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar.txt"),
 			MovedBy: &users.ExampleAlice,
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Move with a validation error", func(t *testing.T) {
@@ -611,8 +611,8 @@ func Test_DFS_Service(t *testing.T) {
 			Dst:     NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar.txt"),
 			MovedBy: &users.ExampleAlice,
 		})
-		assert.ErrorIs(t, err, errs.ErrValidation)
-		assert.EqualError(t, err, "validation: Src: cannot be blank.")
+		require.ErrorIs(t, err, errs.ErrValidation)
+		require.EqualError(t, err, "validation: Src: cannot be blank.")
 	})
 
 	t.Run("Move to the same place", func(t *testing.T) {
@@ -628,7 +628,7 @@ func Test_DFS_Service(t *testing.T) {
 			Dst:     NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar.txt"),
 			MovedBy: &users.ExampleAlice,
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Move with a source not found", func(t *testing.T) {
@@ -648,7 +648,7 @@ func Test_DFS_Service(t *testing.T) {
 			Dst:     NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar.txt"),
 			MovedBy: &users.ExampleAlice,
 		})
-		assert.ErrorIs(t, err, errs.ErrNotFound)
+		require.ErrorIs(t, err, errs.ErrNotFound)
 	})
 
 	t.Run("Move with a move error", func(t *testing.T) {
@@ -677,8 +677,8 @@ func Test_DFS_Service(t *testing.T) {
 			Dst:     NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar.txt"),
 			MovedBy: &users.ExampleAlice,
 		})
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("Rename success", func(t *testing.T) {
@@ -698,7 +698,7 @@ func Test_DFS_Service(t *testing.T) {
 
 		res, err := spaceFS.Rename(ctx, &ExampleAliceFile, "foobar.jpg")
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotEqual(t, &ExampleAliceRenamedFile, res)
 		assert.Equal(t, "foobar.jpg", res.Name())
 		assert.Equal(t, res.LastModifiedAt(), now)
@@ -715,8 +715,8 @@ func Test_DFS_Service(t *testing.T) {
 		res, err := spaceFS.Rename(ctx, &ExampleAliceFile, "")
 
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrValidation)
-		assert.ErrorContains(t, err, "can't be empty")
+		require.ErrorIs(t, err, errs.ErrValidation)
+		require.ErrorContains(t, err, "can't be empty")
 	})
 
 	t.Run("Rename with a root inode", func(t *testing.T) {
@@ -729,8 +729,8 @@ func Test_DFS_Service(t *testing.T) {
 
 		res, err := spaceFS.Rename(ctx, &ExampleAliceRoot, "foo")
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrValidation)
-		assert.ErrorContains(t, err, "can't rename the root")
+		require.ErrorIs(t, err, errs.ErrValidation)
+		require.ErrorContains(t, err, "can't rename the root")
 	})
 
 	t.Run("Rename with a file with the same name", func(t *testing.T) {
@@ -750,7 +750,7 @@ func Test_DFS_Service(t *testing.T) {
 		}).Return(nil).Once()
 
 		res, err := spaceFS.Rename(ctx, &ExampleAliceFile, "foobar.pdf")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotEqual(t, &ExampleAliceRenamedFile, res)
 		assert.Equal(t, "foobar (1).pdf", res.Name())
 		assert.Equal(t, res.LastModifiedAt(), now)
@@ -774,7 +774,7 @@ func Test_DFS_Service(t *testing.T) {
 		}).Return(nil).Once()
 
 		err := spaceFS.Destroy(ctx, &users.ExampleAlice, &spaces.ExampleAlicePersonalSpace)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Destroy with an non admin user", func(t *testing.T) {
@@ -786,7 +786,7 @@ func Test_DFS_Service(t *testing.T) {
 		spaceFS := NewService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		err := spaceFS.Destroy(ctx, &users.ExampleBob, &spaces.ExampleAlicePersonalSpace)
-		assert.ErrorIs(t, err, errs.ErrUnauthorized)
+		require.ErrorIs(t, err, errs.ErrUnauthorized)
 	})
 
 	t.Run("Destroy with a root already removed", func(t *testing.T) {
@@ -802,7 +802,7 @@ func Test_DFS_Service(t *testing.T) {
 			Return(nil, errs.ErrNotFound).Once()
 
 		err := spaceFS.Destroy(ctx, &users.ExampleAlice, &spaces.ExampleAlicePersonalSpace)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Destroy with a GetSpaceRoot error", func(t *testing.T) {
@@ -818,8 +818,8 @@ func Test_DFS_Service(t *testing.T) {
 			Return(nil, fmt.Errorf("some-error")).Once()
 
 		err := spaceFS.Destroy(ctx, &users.ExampleAlice, &spaces.ExampleAlicePersonalSpace)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("Destroy with a Patch error", func(t *testing.T) {
@@ -840,8 +840,8 @@ func Test_DFS_Service(t *testing.T) {
 		}).Return(fmt.Errorf("some-error")).Once()
 
 		err := spaceFS.Destroy(ctx, &users.ExampleAlice, &spaces.ExampleAlicePersonalSpace)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("CreateFS success", func(t *testing.T) {
@@ -868,7 +868,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("Save", mock.Anything, &rootFS).Return(nil)
 
 		res, err := spaceFS.CreateFS(ctx, &users.ExampleAlice, &spaces.ExampleAlicePersonalSpace)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, &rootFS, res)
 	})
 
@@ -895,7 +895,7 @@ func Test_DFS_Service(t *testing.T) {
 
 		res, err := spaceFS.CreateFS(ctx, &users.ExampleAlice, &spaces.ExampleAlicePersonalSpace)
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 }

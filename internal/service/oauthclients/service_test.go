@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -38,7 +39,7 @@ func TestOauthClientsService(t *testing.T) {
 			SkipValidation: ExampleAliceClient.skipValidation,
 		})
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, &ExampleAliceClient, res)
 	})
 
@@ -57,8 +58,8 @@ func TestOauthClientsService(t *testing.T) {
 			SkipValidation: ExampleAliceClient.skipValidation,
 		})
 
-		assert.ErrorIs(t, err, errs.ErrValidation)
-		assert.ErrorContains(t, err, "RedirectURI: must be a valid URL.")
+		require.ErrorIs(t, err, errs.ErrValidation)
+		require.ErrorContains(t, err, "RedirectURI: must be a valid URL.")
 		assert.Nil(t, res)
 	})
 
@@ -79,7 +80,7 @@ func TestOauthClientsService(t *testing.T) {
 			SkipValidation: ExampleAliceClient.skipValidation,
 		})
 
-		assert.ErrorIs(t, err, ErrClientIDTaken)
+		require.ErrorIs(t, err, ErrClientIDTaken)
 		assert.Nil(t, res)
 	})
 
@@ -106,8 +107,8 @@ func TestOauthClientsService(t *testing.T) {
 			SkipValidation: ExampleAliceClient.skipValidation,
 		})
 
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 		assert.Nil(t, res)
 	})
 
@@ -119,7 +120,7 @@ func TestOauthClientsService(t *testing.T) {
 		storage.On("GetByID", mock.Anything, ExampleAliceClient.id).Return(&ExampleAliceClient, nil).Once()
 
 		res, err := svc.GetByID(ctx, ExampleAliceClient.id)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, &ExampleAliceClient, res)
 	})
 
@@ -131,7 +132,7 @@ func TestOauthClientsService(t *testing.T) {
 		storage.On("GetByID", mock.Anything, ExampleAliceClient.id).Return(nil, nil).Once()
 
 		res, err := svc.GetByID(ctx, ExampleAliceClient.id)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Nil(t, nil, res)
 	})
 
@@ -144,7 +145,7 @@ func TestOauthClientsService(t *testing.T) {
 
 		res, err := svc.GetByID(ctx, ExampleAliceClient.id)
 		assert.Nil(t, nil, res)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 }

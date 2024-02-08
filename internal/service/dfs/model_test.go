@@ -37,7 +37,7 @@ func Test_Inodes_Commands(t *testing.T) {
 		}
 
 		err := cmd.Validate()
-		assert.EqualError(t, err, "CreatedBy: cannot be blank.")
+		require.EqualError(t, err, "CreatedBy: cannot be blank.")
 	})
 }
 

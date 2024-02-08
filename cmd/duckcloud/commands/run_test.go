@@ -57,7 +57,7 @@ func Test_NewRunCmd(t *testing.T) {
 
 		cancel()
 		wg.Wait()
-		assert.NoError(t, cmdErr)
+		require.NoError(t, cmdErr)
 	})
 
 	t.Run("with some env variable setup", func(t *testing.T) {
@@ -101,7 +101,7 @@ func Test_NewRunCmd(t *testing.T) {
 
 		cancel()
 		wg.Wait()
-		assert.NoError(t, cmdErr)
+		require.NoError(t, cmdErr)
 	})
 
 	t.Run("with a self-signed-certificate", func(t *testing.T) {
@@ -145,7 +145,7 @@ func Test_NewRunCmd(t *testing.T) {
 
 		cancel()
 		wg.Wait()
-		assert.NoError(t, cmdErr)
+		require.NoError(t, cmdErr)
 	})
 
 	t.Run("with --self-signed-args and --tls-key should failed", func(t *testing.T) {
@@ -157,6 +157,6 @@ func Test_NewRunCmd(t *testing.T) {
 		cmd.SetArgs([]string{"--self-signed-cert", "--tls-key=/foo/bar", "--memory-fs", "--dev", "--folder=/foobar"})
 		err := cmd.Execute()
 
-		assert.EqualError(t, err, ErrConflictTLSConfig.Error())
+		require.EqualError(t, err, ErrConflictTLSConfig.Error())
 	})
 }

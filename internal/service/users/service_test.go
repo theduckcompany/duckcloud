@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -40,7 +41,7 @@ func Test_Users_Service(t *testing.T) {
 			Password: secret.NewText("some-password"),
 			IsAdmin:  false,
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, &ExampleInitializingBob, res)
 	})
@@ -59,8 +60,8 @@ func Test_Users_Service(t *testing.T) {
 			Password: ExampleBob.password,
 			IsAdmin:  false,
 		})
-		assert.ErrorIs(t, err, ErrUsernameTaken)
-		assert.ErrorIs(t, err, errs.ErrBadRequest)
+		require.ErrorIs(t, err, ErrUsernameTaken)
+		require.ErrorIs(t, err, errs.ErrBadRequest)
 		assert.Nil(t, res)
 	})
 
@@ -78,8 +79,8 @@ func Test_Users_Service(t *testing.T) {
 			Password: ExampleBob.password,
 			IsAdmin:  false,
 		})
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 		assert.Nil(t, res)
 	})
 
@@ -94,7 +95,7 @@ func Test_Users_Service(t *testing.T) {
 		tools.PasswordMock.On("Compare", ctx, ExampleBob.password, secret.NewText("some-password")).Return(true, nil).Once()
 
 		res, err := service.Authenticate(ctx, ExampleBob.Username(), secret.NewText("some-password"))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, &ExampleBob, res)
 	})
 
@@ -107,8 +108,8 @@ func Test_Users_Service(t *testing.T) {
 		store.On("GetByUsername", ctx, ExampleBob.Username()).Return(nil, errNotFound).Once()
 
 		res, err := service.Authenticate(ctx, ExampleBob.Username(), ExampleBob.password)
-		assert.ErrorIs(t, err, errs.ErrBadRequest)
-		assert.ErrorIs(t, err, ErrInvalidUsername)
+		require.ErrorIs(t, err, errs.ErrBadRequest)
+		require.ErrorIs(t, err, ErrInvalidUsername)
 		assert.Nil(t, res)
 	})
 
@@ -123,7 +124,7 @@ func Test_Users_Service(t *testing.T) {
 
 		// Invalid password here
 		res, err := service.Authenticate(ctx, ExampleBob.Username(), secret.NewText("some-invalid-password"))
-		assert.ErrorIs(t, err, ErrInvalidPassword)
+		require.ErrorIs(t, err, ErrInvalidPassword)
 		assert.Nil(t, res)
 	})
 
@@ -137,8 +138,8 @@ func Test_Users_Service(t *testing.T) {
 		tools.PasswordMock.On("Compare", ctx, ExampleBob.password, secret.NewText("some-password")).Return(false, fmt.Errorf("some-error")).Once()
 
 		res, err := service.Authenticate(ctx, ExampleBob.Username(), secret.NewText("some-password"))
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 		assert.Nil(t, res)
 	})
 
@@ -151,7 +152,7 @@ func Test_Users_Service(t *testing.T) {
 		store.On("GetByID", ctx, ExampleBob.ID()).Return(&ExampleBob, nil).Once()
 
 		res, err := service.GetByID(ctx, ExampleBob.ID())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, &ExampleBob, res)
 	})
 
@@ -164,7 +165,7 @@ func Test_Users_Service(t *testing.T) {
 		store.On("GetAll", ctx, &storage.PaginateCmd{Limit: 10}).Return([]User{ExampleBob}, nil).Once()
 
 		res, err := service.GetAll(ctx, &storage.PaginateCmd{Limit: 10})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, []User{ExampleBob}, res)
 	})
 
@@ -177,7 +178,7 @@ func Test_Users_Service(t *testing.T) {
 		store.On("GetAll", ctx, &storage.PaginateCmd{Limit: 10}).Return([]User{ExampleBob}, nil).Once()
 
 		res, err := service.GetAllWithStatus(ctx, Active, &storage.PaginateCmd{Limit: 10})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, []User{ExampleBob}, res)
 	})
 
@@ -197,7 +198,7 @@ func Test_Users_Service(t *testing.T) {
 		store.On("Patch", mock.Anything, ExampleAlice.ID(), map[string]any{"status": Deleting}).Return(nil).Once()
 
 		err := service.AddToDeletion(ctx, ExampleAlice.ID())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("AddToDeletion with a user not found", func(t *testing.T) {
@@ -209,8 +210,8 @@ func Test_Users_Service(t *testing.T) {
 		store.On("GetByID", ctx, ExampleAlice.ID()).Return(nil, errNotFound).Once()
 
 		err := service.AddToDeletion(ctx, ExampleAlice.ID())
-		assert.ErrorIs(t, err, errs.ErrNotFound)
-		assert.ErrorIs(t, err, errNotFound)
+		require.ErrorIs(t, err, errs.ErrNotFound)
+		require.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("AddToDeletion the last admin failed", func(t *testing.T) {
@@ -223,7 +224,7 @@ func Test_Users_Service(t *testing.T) {
 		store.On("GetAll", ctx, (*storage.PaginateCmd)(nil)).Return([]User{ExampleAlice}, nil).Once() // This is the last admin
 
 		err := service.AddToDeletion(ctx, ExampleAlice.ID())
-		assert.EqualError(t, err, "unauthorized: can't remove the last admin")
+		require.EqualError(t, err, "unauthorized: can't remove the last admin")
 	})
 
 	t.Run("HardDelete success", func(t *testing.T) {
@@ -236,7 +237,7 @@ func Test_Users_Service(t *testing.T) {
 		store.On("HardDelete", mock.Anything, ExampleBob.ID()).Return(nil).Once()
 
 		err := service.HardDelete(ctx, ExampleBob.ID())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("HardDelete an non existing user", func(t *testing.T) {
@@ -249,7 +250,7 @@ func Test_Users_Service(t *testing.T) {
 		store.On("GetByID", mock.Anything, ExampleBob.ID()).Return(nil, errNotFound).Once()
 
 		err := service.HardDelete(ctx, ExampleBob.ID())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("HardDelete an invalid status", func(t *testing.T) {
@@ -262,7 +263,7 @@ func Test_Users_Service(t *testing.T) {
 		store.On("GetByID", mock.Anything, ExampleBob.ID()).Return(&ExampleBob, nil).Once()
 
 		err := service.HardDelete(ctx, ExampleBob.ID())
-		assert.ErrorIs(t, err, ErrInvalidStatus)
+		require.ErrorIs(t, err, ErrInvalidStatus)
 	})
 
 	t.Run("MarkInitAsFinished success", func(t *testing.T) {
@@ -277,7 +278,7 @@ func Test_Users_Service(t *testing.T) {
 		store.On("Patch", mock.Anything, ExampleBob.ID(), map[string]any{"status": Active}).Return(nil).Once()
 
 		res, err := service.MarkInitAsFinished(ctx, ExampleBob.ID())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, &ExampleBob, res)
 	})
 
@@ -292,7 +293,7 @@ func Test_Users_Service(t *testing.T) {
 
 		res, err := service.MarkInitAsFinished(ctx, ExampleBob.ID())
 		assert.Nil(t, res)
-		assert.ErrorIs(t, err, ErrInvalidStatus)
+		require.ErrorIs(t, err, ErrInvalidStatus)
 	})
 
 	t.Run("UpdatePassword success", func(t *testing.T) {
@@ -314,7 +315,7 @@ func Test_Users_Service(t *testing.T) {
 			UserID:      ExampleBob.ID(),
 			NewPassword: secret.NewText("some-password"),
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("UpdatePassword with a user not found", func(t *testing.T) {
@@ -330,7 +331,7 @@ func Test_Users_Service(t *testing.T) {
 			UserID:      ExampleBob.ID(),
 			NewPassword: secret.NewText("some-password"),
 		})
-		assert.ErrorIs(t, err, errs.ErrNotFound)
+		require.ErrorIs(t, err, errs.ErrNotFound)
 	})
 
 	t.Run("UpdatePassword with a patch error", func(t *testing.T) {
@@ -352,7 +353,7 @@ func Test_Users_Service(t *testing.T) {
 			UserID:      ExampleBob.ID(),
 			NewPassword: secret.NewText("some-password"),
 		})
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "some-error")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "some-error")
 	})
 }

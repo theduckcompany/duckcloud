@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -24,7 +24,7 @@ func Test_bootstrap(t *testing.T) {
 		spacesMock.On("Bootstrap", mock.Anything, &users.ExampleAlice).Return(nil).Once()
 
 		err := bootstrap(ctx, userMock, spacesMock)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("with a admin user already created", func(t *testing.T) {
@@ -36,7 +36,7 @@ func Test_bootstrap(t *testing.T) {
 		spacesMock.On("Bootstrap", mock.Anything, &users.ExampleAlice).Return(nil).Once()
 
 		err := bootstrap(ctx, userMock, spacesMock)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("with a user already created but not admin", func(t *testing.T) {
@@ -47,8 +47,8 @@ func Test_bootstrap(t *testing.T) {
 		userMock.On("GetAll", mock.Anything, &storage.PaginateCmd{Limit: 4}).Return([]users.User{users.ExampleBob}, nil).Once()
 
 		err := bootstrap(ctx, userMock, spacesMock)
-		assert.ErrorIs(t, err, errs.ErrInternal)
-		assert.ErrorContains(t, err, "No admin found")
+		require.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorContains(t, err, "No admin found")
 	})
 
 	t.Run("with a GetAll error", func(t *testing.T) {
@@ -59,7 +59,7 @@ func Test_bootstrap(t *testing.T) {
 		userMock.On("GetAll", mock.Anything, &storage.PaginateCmd{Limit: 4}).Return(nil, errs.ErrInternal).Once()
 
 		err := bootstrap(ctx, userMock, spacesMock)
-		assert.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorIs(t, err, errs.ErrInternal)
 	})
 	t.Run("with a users Bootstrap error", func(t *testing.T) {
 		userMock := users.NewMockService(t)
@@ -69,7 +69,7 @@ func Test_bootstrap(t *testing.T) {
 		userMock.On("Bootstrap", mock.Anything).Return(nil, errs.ErrInternal).Once()
 
 		err := bootstrap(ctx, userMock, spacesMock)
-		assert.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorIs(t, err, errs.ErrInternal)
 	})
 
 	t.Run("with a space bootstrap error", func(t *testing.T) {
@@ -81,6 +81,6 @@ func Test_bootstrap(t *testing.T) {
 		spacesMock.On("Bootstrap", mock.Anything, &users.ExampleAlice).Return(errs.ErrInternal).Once()
 
 		err := bootstrap(ctx, userMock, spacesMock)
-		assert.ErrorIs(t, err, errs.ErrInternal)
+		require.ErrorIs(t, err, errs.ErrInternal)
 	})
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
@@ -32,7 +33,7 @@ func TestUserCreateTask(t *testing.T) {
 		usersMock.On("MarkInitAsFinished", mock.Anything, uuid.UUID("059d78af-e675-498e-8b77-d4b2b4b9d4e7")).Return(&users.ExampleBob, nil).Once()
 
 		err := job.Run(ctx, json.RawMessage(`{"user-id": "059d78af-e675-498e-8b77-d4b2b4b9d4e7"}`))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("RunArgs with some invalid json args", func(t *testing.T) {
@@ -42,7 +43,7 @@ func TestUserCreateTask(t *testing.T) {
 		job := NewUserCreateTaskRunner(usersMock, spacesMock, fsMock)
 
 		err := job.Run(ctx, json.RawMessage(`some-invalid-json`))
-		assert.ErrorContains(t, err, "failed to unmarshal the args")
+		require.ErrorContains(t, err, "failed to unmarshal the args")
 	})
 
 	t.Run("with an already active user", func(t *testing.T) {
@@ -56,6 +57,6 @@ func TestUserCreateTask(t *testing.T) {
 		// Do nothing
 
 		err := job.RunArgs(ctx, &scheduler.UserCreateArgs{UserID: users.ExampleBob.ID()})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 }

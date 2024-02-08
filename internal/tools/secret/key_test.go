@@ -15,14 +15,14 @@ func TestKey(t *testing.T) {
 
 	t.Run("MarshalJSON", func(t *testing.T) {
 		res, err := k1.MarshalJSON()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, `"*****"`, string(res))
 	})
 
 	t.Run("MarshalText", func(t *testing.T) {
 		res, err := k1.MarshalText()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, `*****`, string(res))
 	})
@@ -33,7 +33,7 @@ func TestKey(t *testing.T) {
 
 	t.Run("Base64", func(t *testing.T) {
 		res, err := base64.RawStdEncoding.Strict().DecodeString(k1.Base64())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Len(t, res, KeyLength)
 	})
@@ -50,7 +50,7 @@ func TestKey(t *testing.T) {
 		var res Key
 
 		err := res.UnmarshalJSON([]byte(`"lVLJtxsIkQkaiNR0QXYGH7zK9sFM4/Mfw9GwQnYGIO8"`))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		expected, err := KeyFromBase64("lVLJtxsIkQkaiNR0QXYGH7zK9sFM4/Mfw9GwQnYGIO8")
 		require.NoError(t, err)
@@ -62,21 +62,21 @@ func TestKey(t *testing.T) {
 		var res Key
 
 		err := res.UnmarshalJSON([]byte(`"invalid"`))
-		assert.EqualError(t, err, "decoding error: illegal base64 data at input byte 6")
+		require.EqualError(t, err, "decoding error: illegal base64 data at input byte 6")
 	})
 
 	t.Run("UnmarshalJSON with an invalid type", func(t *testing.T) {
 		var res Key
 
 		err := res.UnmarshalJSON([]byte(`32`))
-		assert.EqualError(t, err, "json: cannot unmarshal number into Go value of type string")
+		require.EqualError(t, err, "json: cannot unmarshal number into Go value of type string")
 	})
 
 	t.Run("UnmarshalText", func(t *testing.T) {
 		var res Key
 
 		err := res.UnmarshalText([]byte(`nSHd8MGyRi6FLwjT82u4Tg7w2LGaVg3mwmYnEWmrzqM`))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.NotEmpty(t, res.v)
 	})
@@ -85,12 +85,12 @@ func TestKey(t *testing.T) {
 		var res Key
 
 		err := res.UnmarshalText([]byte("invalid"))
-		assert.EqualError(t, err, "decoding error: illegal base64 data at input byte 6")
+		require.EqualError(t, err, "decoding error: illegal base64 data at input byte 6")
 	})
 
 	t.Run("Value", func(t *testing.T) {
 		v, err := k1.Value()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.IsType(t, []byte{}, v)
 		assert.Len(t, v, KeyLength)
@@ -110,7 +110,7 @@ func TestKey(t *testing.T) {
 		require.NoError(t, err)
 
 		err = res.Scan(expected.v[:])
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.True(t, res.Equals(expected))
 	})
@@ -119,12 +119,12 @@ func TestKey(t *testing.T) {
 		var res Key
 
 		err := res.Scan("lVLJtxsIkQkaiNR0QXYGH7zK9sFM4/Mfw9GwQnYGIO8")
-		assert.EqualError(t, err, "expected a []byte")
+		require.EqualError(t, err, "expected a []byte")
 	})
 
 	t.Run("FromRaw success", func(t *testing.T) {
 		k2, err := KeyFromRaw(k1.Raw())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.True(t, k2.Equals(k1))
 	})
 
@@ -132,6 +132,6 @@ func TestKey(t *testing.T) {
 		k2, err := KeyFromRaw([]byte("invalid key"))
 
 		assert.Nil(t, k2)
-		assert.ErrorContains(t, err, "invalid key size")
+		require.ErrorContains(t, err, "invalid key size")
 	})
 }
