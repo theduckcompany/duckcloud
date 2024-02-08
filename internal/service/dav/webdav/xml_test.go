@@ -7,6 +7,7 @@ package webdav
 import (
 	"bytes"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -459,21 +460,18 @@ loop:
 		}
 		for _, r := range tc.responses {
 			if err := w.write(&r); err != nil {
-				if err != tc.wantErr {
-					t.Errorf("%s: got write error %v, want %v",
-						tc.desc, err, tc.wantErr)
+				if !errors.Is(err, tc.wantErr) {
+					t.Errorf("%s: got write error %v, want %v", tc.desc, err, tc.wantErr)
 				}
 				continue loop
 			}
 		}
-		if err := w.close(); err != tc.wantErr {
-			t.Errorf("%s: got close error %v, want %v",
-				tc.desc, err, tc.wantErr)
+		if err := w.close(); !errors.Is(err, tc.wantErr) {
+			t.Errorf("%s: got close error %v, want %v", tc.desc, err, tc.wantErr)
 			continue
 		}
 		if rec.Code != tc.wantCode {
-			t.Errorf("%s: got HTTP status code %d, want %d\n",
-				tc.desc, rec.Code, tc.wantCode)
+			t.Errorf("%s: got HTTP status code %d, want %d\n", tc.desc, rec.Code, tc.wantCode)
 			continue
 		}
 		gotXML := rec.Body.String()
@@ -725,7 +723,7 @@ func (n *xmlNormalizer) normalize(w io.Writer, r io.Reader) error {
 	for {
 		t, err := d.Token()
 		if err != nil {
-			if t == nil && err == io.EOF {
+			if t == nil && errors.Is(err, io.EOF) {
 				break
 			}
 			return err

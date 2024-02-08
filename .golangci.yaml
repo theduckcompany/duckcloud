@@ -50,6 +50,7 @@ linters:
     - contextcheck
     - exportloopref 
     - errname
+    - errorlint
     - exhaustive
     - forbidigo
     - gochecknoinits

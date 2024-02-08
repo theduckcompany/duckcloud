@@ -580,7 +580,7 @@ func walkFS(ctx context.Context, fs dfs.Service, depth int, cmd *dfs.PathCmd, in
 	// This implementation is based on Walk's code in the standard path/filepath package.
 	err := walkFn(cmd, info, nil)
 	if err != nil {
-		if info.IsDir() && err == filepath.SkipDir {
+		if info.IsDir() && errors.Is(err, filepath.SkipDir) {
 			return nil
 		}
 		return err
@@ -602,7 +602,7 @@ func walkFS(ctx context.Context, fs dfs.Service, depth int, cmd *dfs.PathCmd, in
 		newPath := dfs.NewPathCmd(cmd.Space(), path.Join(cmd.Path(), fileInfo.Name()))
 		err = walkFS(ctx, fs, depth, newPath, &fileInfo, walkFn)
 		if err != nil {
-			if !fileInfo.IsDir() || err != filepath.SkipDir {
+			if !fileInfo.IsDir() || errors.Is(err, filepath.SkipDir) {
 				return err
 			}
 		}
