@@ -178,7 +178,7 @@ func Test_SpaceService(t *testing.T) {
 		svc := NewService(tools, storageMock, schedulerMock)
 
 		err := svc.Delete(ctx, &users.ExampleBob, ExampleAlicePersonalSpace.ID())
-		assert.ErrorIs(t, err, errs.ErrUnauthorized)
+		require.ErrorIs(t, err, errs.ErrUnauthorized)
 	})
 
 	t.Run("Delete with an error", func(t *testing.T) {
@@ -347,7 +347,7 @@ func Test_SpaceService(t *testing.T) {
 			Owner:   &users.ExampleBob,
 			SpaceID: ExampleBobPersonalSpace.ID(),
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		expected := ExampleBobPersonalSpace
 		expected.owners = Owners{}

@@ -62,17 +62,23 @@ linters:
     - nolintlint
     - rowserrcheck
     - tenv
+    - testifylint
     - unconvert
     - unused 
     - whitespace
   # Run only fast linters from enabled linters set (first run won't be fast)
   # Default: false
   fast: false
+
 linters-settings:
   gocritic:
     disabled-checks:
       - appendAssign
       - argOrder
+
+  testifylint:
+    enable-all: true
+
   nolintlint:
     # Disable to ensure that all nolint directives actually have an effect.
     allow-unused: false
