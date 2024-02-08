@@ -488,7 +488,8 @@ func handlePropfindError(err error, info *dfs.INode) error {
 		return skipResp
 	}
 
-	if _, ok := err.(*os.PathError); ok {
+	var pathError *os.PathError
+	if errors.As(err, &pathError) {
 		// If the file is just bad, it couldn't be a proper WebDAV resource. Skip it.
 		return skipResp
 	}
