@@ -1,0 +1,110 @@
+<div id="addUserField" class="form-outline mb-4" data-mdb-input-init>
+  <input type="text" id="addUserInput" class="form-control" />
+  <label class="form-label" for="form1">Add a user</label>
+  <div class="autocomplete-custom-content"></div>
+</div>
+
+<h6 class="mb-3">Users with access</h6>
+<div id="userList" class="flex-column">
+</div>
+
+{{range .UnselectedUsers}}
+<div class="unselectedUserData" id="{{.ID}}" data-username="{{.Username}}" />
+{{end}}
+{{range .SelectedUsers}}
+<div class="selectedUserData" id="{{.ID}}" data-username="{{.Username}}" />
+{{end}}
+
+<script type="module">
+  import {Autocomplete} from "/assets/js/libs/mdb.es.min.js";
+
+  // Load all the boostrap data
+  let unselectedUsers = []
+  let selectedUsers = []
+
+  function sortUsernames(a, b) {
+    const nameA = a.username.toUpperCase();
+    const nameB = b.username.toUpperCase();
+    if (nameA < nameB) {return -1;}
+    if (nameA > nameB) {return 1;}
+    return 0;
+  }
+
+  // Create and populate the autocomplete field
+  function dataFilter(value) {
+    const res = []
+    nextUser: for (const user of unselectedUsers) {
+      for (const selectedUser of selectedUsers) {
+        // Remove the already seletect users
+        if (user.id == selectedUser.id) {
+          continue nextUser
+        }
+      }
+
+      if (user.username.toLowerCase().startsWith(value.toLowerCase())) {
+        res.push(user)
+      }
+    }
+
+    return res
+  };
+
+  function removeUser(user) {
+    const elem = document.getElementById(`userSelect${user.id}`)
+    elem.remove()
+
+    unselectedUsers.push(user)
+    unselectedUsers.sort(sortUsernames)
+    selectedUsers = selectedUsers.filter((elem) => elem != user)
+  }
+
+  function addUser(user) {
+    document.getElementById("userList").
+      insertAdjacentHTML("beforeend", `<div id="userSelect${user.id}" class="d-flex flex-row align-items-center justify-content-between mb-3">
+      <b class="my-auto me-1">${user.username}</b>
+      <button id="unselect${user.id}" type="button" class="btn btn-rounded btn-sm btn-outline-danger me-2"><i class="bi bi-x-lg"></i></button>
+      <input type='hidden' name='selectedUsers' value="${user.id}">
+    </div>`)
+
+    document.getElementById(`unselect${user.id}`).onclick = function () {removeUser(user)}
+
+    selectedUsers.push(user)
+    selectedUsers.sort(sortUsernames)
+    unselectedUsers = unselectedUsers.filter((elem) => elem.id != user.id)
+  }
+
+  document.querySelectorAll('.unselectedUserData').forEach((user) => {unselectedUsers.push({username: user.dataset.username, id: user.id})})
+  // Add all the preselected users.
+  document.querySelectorAll('.selectedUserData').forEach((user) => {addUser({username: user.dataset.username, id: user.id})})
+
+  document.getElementById('addUserInput').addEventListener("focus", () => {
+    const autocomplete = Autocomplete.getOrCreateInstance(document.getElementById('addUserField'), {
+      filter: dataFilter,
+      displayValue: (value) => {
+        if (value) {
+          return value.username
+        }
+      },
+    });
+
+    autocomplete.search('')
+  })
+
+  window.addEventListener("itemSelect.mdb.autocomplete", function (evt) {
+    if (evt.value) {
+      addUser(evt.value)
+    }
+  });
+
+
+  window.addEventListener("itemSelect.mdb.autocomplete", function (evt) {
+    const autocomplete = Autocomplete.getInstance(document.getElementById('addUserField'))
+    setTimeout(() => {
+      autocomplete.dispose()
+      const input = document.getElementById("addUserInput")
+      input.value = ''
+      input.blur()
+    }, 10)
+  });
+
+</script>

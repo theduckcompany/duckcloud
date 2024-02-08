@@ -166,8 +166,19 @@ func Test_SpaceService(t *testing.T) {
 
 		storageMock.On("Delete", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil).Once()
 
-		err := svc.Delete(ctx, ExampleAlicePersonalSpace.ID())
+		err := svc.Delete(ctx, &users.ExampleAlice, ExampleAlicePersonalSpace.ID())
 		assert.NoError(t, err)
+	})
+
+	t.Run("Delete with an non admin user", func(t *testing.T) {
+		// Bob is not an admin so he is not authorized.
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
+
+		err := svc.Delete(ctx, &users.ExampleBob, ExampleAlicePersonalSpace.ID())
+		assert.ErrorIs(t, err, errs.ErrUnauthorized)
 	})
 
 	t.Run("Delete with an error", func(t *testing.T) {
@@ -178,7 +189,7 @@ func Test_SpaceService(t *testing.T) {
 
 		storageMock.On("Delete", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(fmt.Errorf("some-error"))
 
-		err := svc.Delete(ctx, ExampleAlicePersonalSpace.ID())
+		err := svc.Delete(ctx, &users.ExampleAlice, ExampleAlicePersonalSpace.ID())
 		assert.ErrorIs(t, err, errs.ErrInternal)
 		assert.ErrorContains(t, err, "some-error")
 	})
@@ -306,11 +317,41 @@ func Test_SpaceService(t *testing.T) {
 
 		res, err := svc.RemoveOwner(ctx, &RemoveOwnerCmd{
 			User:    &users.ExampleBob,
-			Owner:   &users.ExampleBob,
+			Owner:   &users.ExampleAlice,
 			SpaceID: ExampleBobPersonalSpace.ID(),
 		})
 		assert.Nil(t, res)
 		assert.ErrorIs(t, err, errs.ErrUnauthorized)
+	})
+
+	t.Run("RemoveOwner with a non admin user removing itself", func(t *testing.T) {
+		tools := tools.NewMock(t)
+		storageMock := NewMockStorage(t)
+		schedulerMock := scheduler.NewMockService(t)
+		svc := NewService(tools, storageMock, schedulerMock)
+
+		require.False(t, users.ExampleBob.IsAdmin())
+
+		// copy the struct to avoid any changes and impact on other tests
+		copyBobSpace := ExampleBobPersonalSpace
+
+		storageMock.On("GetByID", mock.Anything, ExampleBobPersonalSpace.ID()).
+			Return(&copyBobSpace, nil).Once()
+
+		storageMock.On("Patch", mock.Anything, ExampleBobPersonalSpace.ID(), map[string]interface{}{
+			"owners": Owners{},
+		}).Return(nil).Once()
+
+		res, err := svc.RemoveOwner(ctx, &RemoveOwnerCmd{
+			User:    &users.ExampleBob,
+			Owner:   &users.ExampleBob,
+			SpaceID: ExampleBobPersonalSpace.ID(),
+		})
+		assert.NoError(t, err)
+
+		expected := ExampleBobPersonalSpace
+		expected.owners = Owners{}
+		assert.Equal(t, &expected, res)
 	})
 
 	t.Run("RemoveOwner with a GetByID error", func(t *testing.T) {

@@ -39,7 +39,15 @@
             hx-target="body" 
             hx-swap="outerHTML">
             <i class="bi bi-people-fill me-3 {{if (eq .Template "settings/users/page")}}text-primary bg-light{{end}}"></i>
-            <span>User Management</span></a>
+            <span>User</span></a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link {{if (eq .Template "settings/spaces/page")}}text-primary bg-light{{end}}" 
+            href="/settings/spaces" 
+            hx-target="body" 
+            hx-swap="outerHTML">
+            <i class="bi bi-people-fill me-3 {{if (eq .Template "settings/spaces/page")}}text-primary bg-light{{end}}"></i>
+            <span>Space</span></a>
         </li>
         {{end}}
       </ul>

@@ -1,4 +1,4 @@
-package general
+package spaces
 
 import (
 	"io"
@@ -23,9 +23,9 @@ func Test_Templates(t *testing.T) {
 		Layout   bool
 	}{
 		{
-			Name:   "LayoutTemplate",
+			Name:   "ContentTemplate",
 			Layout: true,
-			Template: &LayoutTemplate{
+			Template: &ContentTemplate{
 				IsAdmin: true,
 			},
 		},

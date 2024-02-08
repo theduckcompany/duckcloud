@@ -19,9 +19,9 @@ type Service interface {
 	GetAllSpaces(ctx context.Context, user *users.User, cmd *storage.PaginateCmd) ([]Space, error)
 	GetUserSpace(ctx context.Context, userID, spaceID uuid.UUID) (*Space, error)
 	GetByID(ctx context.Context, spaceID uuid.UUID) (*Space, error)
-	Delete(ctx context.Context, spaceID uuid.UUID) error
 	AddOwner(ctx context.Context, cmd *AddOwnerCmd) (*Space, error)
 	RemoveOwner(ctx context.Context, cmd *RemoveOwnerCmd) (*Space, error)
+	Delete(ctx context.Context, user *users.User, spaceID uuid.UUID) error
 }
 
 func Init(tools tools.Tools, db *sql.DB, scheduler scheduler.Service) Service {

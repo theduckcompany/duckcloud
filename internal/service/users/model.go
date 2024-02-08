@@ -47,12 +47,12 @@ func (u *User) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (u *User) ID() uuid.UUID        { return u.id }
-func (u *User) Username() string     { return u.username }
-func (u *User) IsAdmin() bool        { return u.isAdmin }
-func (u *User) Status() Status       { return u.status }
-func (u *User) CreatedAt() time.Time { return u.createdAt }
-func (u *User) CreatedBy() uuid.UUID { return u.createdBy }
+func (u User) ID() uuid.UUID        { return u.id }
+func (u User) Username() string     { return u.username }
+func (u User) IsAdmin() bool        { return u.isAdmin }
+func (u User) Status() Status       { return u.status }
+func (u User) CreatedAt() time.Time { return u.createdAt }
+func (u User) CreatedBy() uuid.UUID { return u.createdBy }
 
 // CreateCmd represents an user creation request.
 type CreateCmd struct {

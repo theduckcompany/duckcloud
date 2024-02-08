@@ -113,12 +113,12 @@ func (h *Handler) getBrowserContent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	lastElem := r.URL.Query().Get("last")
-	if lastElem == "" {
-		h.renderBrowserContent(w, r, user, dfs.NewPathCmd(space, fullPath))
+	if lastElem != "" {
+		h.renderMoreDirContent(w, r, space, fullPath, lastElem)
 		return
 	}
 
-	h.renderMoreDirContent(w, r, space, fullPath, lastElem)
+	h.renderBrowserContent(w, r, user, dfs.NewPathCmd(space, fullPath))
 }
 
 func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
