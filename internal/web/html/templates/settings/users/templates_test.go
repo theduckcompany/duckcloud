@@ -20,8 +20,8 @@ func Test_Templates(t *testing.T) {
 	})
 
 	tests := []struct {
-		Name     string
 		Template html.Templater
+		Name     string
 		Layout   bool
 	}{
 		{

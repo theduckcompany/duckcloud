@@ -3,10 +3,10 @@ package users
 import "github.com/theduckcompany/duckcloud/internal/service/users"
 
 type ContentTemplate struct {
-	IsAdmin bool
+	Error   error
 	Current *users.User
 	Users   []users.User
-	Error   error
+	IsAdmin bool
 }
 
 func (t *ContentTemplate) Template() string { return "settings/users/page" }
