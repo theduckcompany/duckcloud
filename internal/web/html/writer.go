@@ -63,7 +63,7 @@ func NewRenderer(cfg Config) *Renderer {
 		FileSystem:    fs,
 		Layout:        "",
 		IsDevelopment: cfg.HotReload,
-		Extensions:    []string{".tmpl"},
+		Extensions:    []string{".html"},
 		Funcs: []template.FuncMap{
 			{
 				"humanTime": humanize.Time,
