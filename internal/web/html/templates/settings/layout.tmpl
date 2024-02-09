@@ -12,14 +12,6 @@
 
       <ul class="sidenav-menu px-2 pb-5" hx-boost="true">
         <li class="sidenav-item">
-          <a class="sidenav-link {{if (eq .Template "settings/general/page")}}text-primary bg-light{{end}}" 
-            href="/settings/general" 
-            hx-target="body" 
-            hx-swap="outerHTML">
-            <i class="bi bi-person-fill me-3 {{if (eq .Template "settings/general/page")}}text-primary bg-light{{end}}"></i>
-            <span>General</span></a>
-        </li>
-        <li class="sidenav-item">
           <a class="sidenav-link {{if (eq .Template "settings/security/page")}}text-primary bg-light{{end}}" 
             href="/settings/security" 
             hx-target="body" 
