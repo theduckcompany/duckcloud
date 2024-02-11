@@ -19,7 +19,7 @@ var ExampleAliceRoot INode = INode{
 	id:             uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
 	name:           "",
 	parent:         nil,
-	size:           0,
+	size:           42,
 	spaceID:        spaces.ExampleAlicePersonalSpace.ID(),
 	createdAt:      now,
 	createdBy:      users.ExampleAlice.ID(),
@@ -64,7 +64,7 @@ var ExampleAliceFile2 INode = INode{
 }
 
 var ExampleAliceFile INode = INode{
-	id:             uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+	id:             uuid.UUID("921e5cde-a54a-47d2-84ab-ae2770f21798"),
 	name:           "foo.pdf",
 	parent:         ptr.To(uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")),
 	spaceID:        spaces.ExampleAlicePersonalSpace.ID(),
@@ -88,7 +88,7 @@ var ExampleAliceNewFile = INode{
 }
 
 var ExampleAliceRenamedFile = INode{
-	id:             uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f"),
+	id:             uuid.UUID("921e5cde-a54a-47d2-84ab-ae2770f21798"),
 	name:           "bar.pdf",
 	parent:         ptr.To(uuid.UUID("f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f")),
 	spaceID:        spaces.ExampleAlicePersonalSpace.ID(),

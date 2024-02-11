@@ -154,6 +154,26 @@ func (s *sqlStorage) GetSumChildsSize(ctx context.Context, parent uuid.UUID) (ui
 	return *size, nil
 }
 
+func (s *sqlStorage) GetSumRootsSize(ctx context.Context) (uint64, error) {
+	var size *uint64
+
+	err := sq.
+		Select("SUM(size)").
+		From(tableName).
+		Where(sq.Eq{"parent": nil, "deleted_at": nil}).
+		RunWith(s.db).
+		ScanContext(ctx, &size)
+	if err != nil {
+		return 0, fmt.Errorf("sql error: %w", err)
+	}
+
+	if size == nil {
+		return 0, nil
+	}
+
+	return *size, nil
+}
+
 func (s *sqlStorage) GetAllInodesWithFileID(ctx context.Context, fileID uuid.UUID) ([]INode, error) {
 	rows, err := sq.
 		Select(allFiels...).
