@@ -33,19 +33,14 @@ func (r *FSRefreshSizeTaskRunner) Run(ctx context.Context, rawArgs json.RawMessa
 }
 
 func (r *FSRefreshSizeTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSRefreshSizeArg) error {
+	var newSize uint64
 	inodeID := &args.INode
 
-	for {
-		if inodeID == nil {
-			break
-		}
-
+	for inodeID != nil {
 		inode, err := r.storage.GetByID(ctx, *inodeID)
 		if errors.Is(err, errs.ErrNotFound) {
 			return nil
 		}
-
-		var newSize uint64
 
 		switch inode.IsDir() {
 		case true:
