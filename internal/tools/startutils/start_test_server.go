@@ -56,7 +56,7 @@ func NewServer(t *testing.T) *Server {
 	db := storage.NewTestStorage(t)
 	afs := afero.NewMemMapFs()
 
-	configSvc := config.Init(ctx, db)
+	configSvc := config.Init(db)
 	schedulerSvc := scheduler.Init(db, tools)
 	spacesSvc := spaces.Init(tools, db, schedulerSvc)
 	webSessionsSvc := websessions.Init(tools, db)

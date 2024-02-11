@@ -13,7 +13,7 @@ type Service interface {
 	GetMasterKey(ctx context.Context) (*secret.SealedKey, error)
 }
 
-func Init(ctx context.Context, db *sql.DB) Service {
+func Init(db *sql.DB) Service {
 	storage := newSqlStorage(db)
 
 	return NewService(storage)
