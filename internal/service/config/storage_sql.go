@@ -40,7 +40,7 @@ func (s *sqlStorage) Save(ctx context.Context, key ConfigKey, value any) error {
 func (s *sqlStorage) GetKey(ctx context.Context, key ConfigKey) (*secret.SealedKey, error) {
 	var res secret.SealedKey
 
-	err := s.get(ctx, key, &res)
+	err := s.Get(ctx, key, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (s *sqlStorage) GetKey(ctx context.Context, key ConfigKey) (*secret.SealedK
 	return &res, nil
 }
 
-func (s *sqlStorage) get(ctx context.Context, key ConfigKey, val any) error {
+func (s *sqlStorage) Get(ctx context.Context, key ConfigKey, val any) error {
 	err := sq.
 		Select("value").
 		From(tableName).
