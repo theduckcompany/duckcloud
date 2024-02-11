@@ -47,6 +47,7 @@ type Storage interface {
 	GetSumChildsSize(ctx context.Context, parent uuid.UUID) (uint64, error)
 	GetAllInodesWithFileID(ctx context.Context, fileID uuid.UUID) ([]INode, error)
 	GetSpaceRoot(ctx context.Context, spaceID uuid.UUID) (*INode, error)
+	GetSumRootsSize(ctx context.Context) (uint64, error)
 }
 
 type DFSService struct {

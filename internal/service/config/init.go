@@ -11,6 +11,8 @@ import (
 type Service interface {
 	SetMasterKey(ctx context.Context, key *secret.SealedKey) error
 	GetMasterKey(ctx context.Context) (*secret.SealedKey, error)
+	SetTotalSize(ctx context.Context, totalSize uint64) error
+	GetTotalSize(ctx context.Context) (uint64, error)
 }
 
 func Init(db *sql.DB) Service {

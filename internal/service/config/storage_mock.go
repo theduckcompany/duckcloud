@@ -14,6 +14,20 @@ type MockStorage struct {
 	mock.Mock
 }
 
+// Get provides a mock function with given fields: ctx, key, val
+func (_m *MockStorage) Get(ctx context.Context, key ConfigKey, val interface{}) error {
+	ret := _m.Called(ctx, key, val)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, ConfigKey, interface{}) error); ok {
+		r0 = rf(ctx, key, val)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetKey provides a mock function with given fields: ctx, key
 func (_m *MockStorage) GetKey(ctx context.Context, key ConfigKey) (*secret.SealedKey, error) {
 	ret := _m.Called(ctx, key)
