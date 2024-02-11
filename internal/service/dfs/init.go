@@ -55,7 +55,7 @@ func Init(db *sql.DB,
 
 	return Result{
 		Service:                      svc,
-		FSGCTask:                     NewFSGGCTaskRunner(storage, files, spaces, tools),
+		FSGCTask:                     NewFSGGCTaskRunner(storage, files, spaces, scheduler, tools),
 		FSMoveTask:                   NewFSMoveTaskRunner(svc, storage, spaces, users, scheduler),
 		FSRefreshSizeTask:            NewFSRefreshSizeTaskRunner(storage, files, config),
 		FSRemoveDuplicateFilesRunner: NewFSRemoveDuplicateFileRunner(storage, files, scheduler),

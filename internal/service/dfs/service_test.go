@@ -190,10 +190,6 @@ func Test_DFS_Service(t *testing.T) {
 			"deleted_at":       now,
 			"last_modified_at": now,
 		}).Return(nil).Once()
-		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
-			INode:      *ExampleAliceDir.Parent(),
-			ModifiedAt: now,
-		}).Return(nil).Once()
 
 		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"))
 		require.NoError(t, err)
@@ -271,31 +267,6 @@ func Test_DFS_Service(t *testing.T) {
 			"deleted_at":       now,
 			"last_modified_at": now,
 		}).Return(fmt.Errorf("some-error")).Once()
-
-		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"))
-		require.ErrorIs(t, err, errs.ErrInternal)
-		require.ErrorContains(t, err, "some-error")
-	})
-
-	t.Run("Remove with a RegisterFSRefreshSizeTask error", func(t *testing.T) {
-		filesMock := files.NewMockService(t)
-		spacesMock := spaces.NewMockService(t)
-		schedulerMock := scheduler.NewMockService(t)
-		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
-		spaceFS := NewService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
-
-		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
-		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&ExampleAliceFile, nil).Once()
-		toolsMock.ClockMock.On("Now").Return(now).Once()
-		storageMock.On("Patch", mock.Anything, ExampleAliceFile.ID(), map[string]any{
-			"deleted_at":       now,
-			"last_modified_at": now,
-		}).Return(nil).Once()
-		schedulerMock.On("RegisterFSRefreshSizeTask", mock.Anything, &scheduler.FSRefreshSizeArg{
-			INode:      *ExampleAliceDir.Parent(),
-			ModifiedAt: now,
-		}).Return(errs.Internal(fmt.Errorf("some-error"))).Once()
 
 		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"))
 		require.ErrorIs(t, err, errs.ErrInternal)
