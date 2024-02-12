@@ -68,10 +68,10 @@ func (t PathCmd) Validate() error {
 }
 
 type UploadCmd struct {
-	Space      *spaces.Space
-	FilePath   string
 	Content    io.Reader
+	Space      *spaces.Space
 	UploadedBy *users.User
+	FilePath   string
 }
 
 func (t UploadCmd) Validate() error {
@@ -122,15 +122,15 @@ func (t CreateRootDirCmd) Validate() error {
 }
 
 type INode struct {
-	id             uuid.UUID
+	createdAt      time.Time
+	lastModifiedAt time.Time
 	parent         *uuid.UUID
+	fileID         *uuid.UUID
+	id             uuid.UUID
 	name           string
 	spaceID        uuid.UUID
-	size           uint64
-	createdAt      time.Time
 	createdBy      uuid.UUID
-	lastModifiedAt time.Time
-	fileID         *uuid.UUID
+	size           uint64
 }
 
 func (n INode) ID() uuid.UUID             { return n.id }

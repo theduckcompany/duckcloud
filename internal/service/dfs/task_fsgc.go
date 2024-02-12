@@ -17,21 +17,31 @@ import (
 const gcBatchSize = 10
 
 type FSGGCTaskRunner struct {
-	storage Storage
-	files   files.Service
-	spaces  spaces.Service
-	cancel  context.CancelFunc
-	clock   clock.Clock
-	quit    chan struct{}
+	storage   Storage
+	files     files.Service
+	spaces    spaces.Service
+	cancel    context.CancelFunc
+	clock     clock.Clock
+	scheduler scheduler.Service
+	quit      chan struct{}
 }
 
 func NewFSGGCTaskRunner(
 	storage Storage,
 	files files.Service,
 	spaces spaces.Service,
+	scheduler scheduler.Service,
 	tools tools.Tools,
 ) *FSGGCTaskRunner {
-	return &FSGGCTaskRunner{storage, files, spaces, nil, tools.Clock(), make(chan struct{})}
+	return &FSGGCTaskRunner{
+		storage:   storage,
+		files:     files,
+		spaces:    spaces,
+		cancel:    nil,
+		clock:     tools.Clock(),
+		scheduler: scheduler,
+		quit:      make(chan struct{}),
+	}
 }
 
 func (r *FSGGCTaskRunner) Name() string { return "fs-gc" }
@@ -48,11 +58,23 @@ func (r *FSGGCTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSGCArgs)
 		}
 
 		for _, inode := range toDelete {
+			now := r.clock.Now()
+
 			deletionDate := inode.LastModifiedAt()
 
 			err = r.deleteINode(ctx, &inode, deletionDate)
 			if err != nil {
 				return fmt.Errorf("failed to delete inode %q: %w", inode.ID(), err)
+			}
+
+			if inode.parent != nil {
+				err = r.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
+					INode:      *inode.Parent(),
+					ModifiedAt: now,
+				})
+				if err != nil {
+					return fmt.Errorf("failed to schedule the fs-refresh-size task: %w", err)
+				}
 			}
 		}
 

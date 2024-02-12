@@ -12,7 +12,7 @@ import (
 //go:generate mockery --name Storage
 type Storage interface {
 	Save(ctx context.Context, key ConfigKey, value any) error
-	GetKey(ctx context.Context, key ConfigKey) (*secret.SealedKey, error)
+	Get(ctx context.Context, key ConfigKey, val any) error
 }
 
 type ConfigService struct {
@@ -33,7 +33,9 @@ func (s *ConfigService) SetMasterKey(ctx context.Context, key *secret.SealedKey)
 }
 
 func (s *ConfigService) GetMasterKey(ctx context.Context) (*secret.SealedKey, error) {
-	key, err := s.storage.GetKey(ctx, masterKey)
+	var res secret.SealedKey
+
+	err := s.storage.Get(ctx, masterKey, &res)
 	if errors.Is(err, errNotfound) {
 		return nil, errs.ErrNotFound
 	}
@@ -42,5 +44,5 @@ func (s *ConfigService) GetMasterKey(ctx context.Context) (*secret.SealedKey, er
 		return nil, fmt.Errorf("failed to Get: %w", err)
 	}
 
-	return key, nil
+	return &res, nil
 }

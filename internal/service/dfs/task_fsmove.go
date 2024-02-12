@@ -77,7 +77,7 @@ func (r *FSMoveTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSMoveAr
 	newNode.lastModifiedAt = args.MovedAt
 
 	err = r.storage.Patch(ctx, oldNode.ID(), map[string]any{
-		"parent":           *&newNode.parent,
+		"parent":           newNode.parent,
 		"name":             newNode.name,
 		"last_modified_at": newNode.lastModifiedAt,
 	})

@@ -1,4 +1,4 @@
-package config
+package stats
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
@@ -16,25 +15,16 @@ func TestSQLStorage(t *testing.T) {
 	db := storage.NewTestStorage(t)
 	store := newSqlStorage(db)
 
-	mk, err := secret.NewKey()
-	require.NoError(t, err)
-
-	key, err := secret.NewKey()
-	require.NoError(t, err)
-
-	sealedKey, err := secret.SealKey(mk, key)
-	require.NoError(t, err)
-
 	t.Run("Save success", func(t *testing.T) {
-		err := store.Save(ctx, masterKey, sealedKey)
+		err := store.Save(ctx, totalSizeKey, uint64(4096))
 		require.NoError(t, err)
 	})
 
 	t.Run("Get success", func(t *testing.T) {
-		var res secret.SealedKey
+		var res uint64
 
-		err := store.Get(ctx, masterKey, &res)
+		err := store.Get(ctx, totalSizeKey, &res)
 		require.NoError(t, err)
-		assert.True(t, sealedKey.Equals(&res))
+		assert.Equal(t, uint64(4096), res)
 	})
 }

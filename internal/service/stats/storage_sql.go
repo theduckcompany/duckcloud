@@ -1,4 +1,4 @@
-package config
+package stats
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 )
 
-const tableName = "config"
+const tableName = "stats"
 
 var errNotfound = errors.New("not found")
 
@@ -21,7 +21,7 @@ func newSqlStorage(db *sql.DB) *sqlStorage {
 	return &sqlStorage{db}
 }
 
-func (s *sqlStorage) Save(ctx context.Context, key ConfigKey, value any) error {
+func (s *sqlStorage) Save(ctx context.Context, key statsKey, value any) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns("key", "value").
@@ -36,7 +36,7 @@ func (s *sqlStorage) Save(ctx context.Context, key ConfigKey, value any) error {
 	return nil
 }
 
-func (s *sqlStorage) Get(ctx context.Context, key ConfigKey, val any) error {
+func (s *sqlStorage) Get(ctx context.Context, key statsKey, val any) error {
 	err := sq.
 		Select("value").
 		From(tableName).

@@ -24,6 +24,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
+	"github.com/theduckcompany/duckcloud/internal/service/stats"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
@@ -109,6 +110,7 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 			fx.Annotate(davsessions.Init, fx.As(new(davsessions.Service))),
 			fx.Annotate(spaces.Init, fx.As(new(spaces.Service))),
 			fx.Annotate(scheduler.Init, fx.As(new(scheduler.Service))),
+			fx.Annotate(stats.Init, fx.As(new(stats.Service))),
 			fx.Annotate(masterkey.Init, fx.As(new(masterkey.Service))),
 
 			// Tasks

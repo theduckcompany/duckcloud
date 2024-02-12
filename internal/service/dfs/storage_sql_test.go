@@ -94,6 +94,16 @@ func TestINodeSqlstore(t *testing.T) {
 		assert.Equal(t, uint64(100), totalSize)
 	})
 
+	t.Run("GetSumRootsSize success", func(t *testing.T) {
+		err := store.Save(ctx, &ExampleAliceRoot)
+		require.NoError(t, err)
+
+		// There is two roots: Alice's root with a 42 bytes size and bob's root with 0 bytes size
+		totalSize, err := store.GetSumRootsSize(ctx)
+		assert.Equal(t, uint64(42), totalSize)
+		require.NoError(t, err)
+	})
+
 	t.Run("GetSumChildsSize with an invalid space", func(t *testing.T) {
 		totalSize, err := store.GetSumChildsSize(ctx, uuid.UUID("some-invalid-id"))
 		assert.Equal(t, uint64(0), totalSize)

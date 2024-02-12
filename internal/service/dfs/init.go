@@ -7,6 +7,7 @@ import (
 
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
+	"github.com/theduckcompany/duckcloud/internal/service/stats"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
@@ -39,15 +40,24 @@ type Result struct {
 	FSRemoveDuplicateFilesRunner runner.TaskRunner `group:"tasks"`
 }
 
-func Init(db *sql.DB, spaces spaces.Service, files files.Service, scheduler scheduler.Service, users users.Service, tools tools.Tools) (Result, error) {
+func Init(db *sql.DB,
+	spaces spaces.Service,
+	files files.Service,
+	scheduler scheduler.Service,
+	users users.Service,
+	tools tools.Tools,
+	stats stats.Service,
+) (Result,
+	error,
+) {
 	storage := newSqlStorage(db, tools)
 	svc := NewService(storage, files, spaces, scheduler, tools)
 
 	return Result{
 		Service:                      svc,
-		FSGCTask:                     NewFSGGCTaskRunner(storage, files, spaces, tools),
+		FSGCTask:                     NewFSGGCTaskRunner(storage, files, spaces, scheduler, tools),
 		FSMoveTask:                   NewFSMoveTaskRunner(svc, storage, spaces, users, scheduler),
-		FSRefreshSizeTask:            NewFSRefreshSizeTaskRunner(storage, files),
+		FSRefreshSizeTask:            NewFSRefreshSizeTaskRunner(storage, files, stats),
 		FSRemoveDuplicateFilesRunner: NewFSRemoveDuplicateFileRunner(storage, files, scheduler),
 	}, nil
 }

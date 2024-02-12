@@ -47,6 +47,7 @@ type Storage interface {
 	GetSumChildsSize(ctx context.Context, parent uuid.UUID) (uint64, error)
 	GetAllInodesWithFileID(ctx context.Context, fileID uuid.UUID) ([]INode, error)
 	GetSpaceRoot(ctx context.Context, spaceID uuid.UUID) (*INode, error)
+	GetSumRootsSize(ctx context.Context) (uint64, error)
 }
 
 type DFSService struct {
@@ -252,16 +253,6 @@ func (s *DFSService) removeINode(ctx context.Context, inode *INode) error {
 	})
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to Patch: %w", err))
-	}
-
-	if inode.parent != nil {
-		err = s.scheduler.RegisterFSRefreshSizeTask(ctx, &scheduler.FSRefreshSizeArg{
-			INode:      *inode.Parent(),
-			ModifiedAt: now,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to schedule the fs-refresh-size task: %w", err)
-		}
 	}
 
 	return nil

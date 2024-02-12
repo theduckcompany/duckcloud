@@ -7,17 +7,23 @@ import (
 	"fmt"
 
 	"github.com/theduckcompany/duckcloud/internal/service/files"
+	"github.com/theduckcompany/duckcloud/internal/service/stats"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 )
 
 type FSRefreshSizeTaskRunner struct {
+	stats   stats.Service
 	storage Storage
 	files   files.Service
 }
 
-func NewFSRefreshSizeTaskRunner(storage Storage, files files.Service) *FSRefreshSizeTaskRunner {
-	return &FSRefreshSizeTaskRunner{storage, files}
+func NewFSRefreshSizeTaskRunner(storage Storage, files files.Service, stats stats.Service) *FSRefreshSizeTaskRunner {
+	return &FSRefreshSizeTaskRunner{
+		storage: storage,
+		files:   files,
+		stats:   stats,
+	}
 }
 
 func (r *FSRefreshSizeTaskRunner) Name() string { return "fs-refresh-size" }
@@ -35,17 +41,13 @@ func (r *FSRefreshSizeTaskRunner) Run(ctx context.Context, rawArgs json.RawMessa
 func (r *FSRefreshSizeTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSRefreshSizeArg) error {
 	inodeID := &args.INode
 
-	for {
-		if inodeID == nil {
-			break
-		}
+	for inodeID != nil {
+		var newSize uint64
 
 		inode, err := r.storage.GetByID(ctx, *inodeID)
 		if errors.Is(err, errs.ErrNotFound) {
 			return nil
 		}
-
-		var newSize uint64
 
 		switch inode.IsDir() {
 		case true:
@@ -71,6 +73,16 @@ func (r *FSRefreshSizeTaskRunner) RunArgs(ctx context.Context, args *scheduler.F
 		}
 
 		inodeID = inode.Parent()
+	}
+
+	totalSize, err := r.storage.GetSumRootsSize(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to calculate the total size consumed: %w", err)
+	}
+
+	err = r.stats.SetTotalSize(ctx, totalSize)
+	if err != nil {
+		return fmt.Errorf("failed to save the total size: %w", err)
 	}
 
 	return nil
