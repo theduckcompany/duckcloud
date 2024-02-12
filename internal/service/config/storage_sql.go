@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 )
 
 const tableName = "config"
@@ -35,17 +34,6 @@ func (s *sqlStorage) Save(ctx context.Context, key ConfigKey, value any) error {
 	}
 
 	return nil
-}
-
-func (s *sqlStorage) GetKey(ctx context.Context, key ConfigKey) (*secret.SealedKey, error) {
-	var res secret.SealedKey
-
-	err := s.Get(ctx, key, &res)
-	if err != nil {
-		return nil, err
-	}
-
-	return &res, nil
 }
 
 func (s *sqlStorage) Get(ctx context.Context, key ConfigKey, val any) error {

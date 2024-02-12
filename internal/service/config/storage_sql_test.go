@@ -31,8 +31,10 @@ func TestSQLStorage(t *testing.T) {
 	})
 
 	t.Run("Get success", func(t *testing.T) {
-		res, err := store.GetKey(ctx, masterKey)
+		var res secret.SealedKey
+
+		err := store.Get(ctx, masterKey, &res)
 		require.NoError(t, err)
-		assert.True(t, sealedKey.Equals(res))
+		assert.True(t, sealedKey.Equals(&res))
 	})
 }
