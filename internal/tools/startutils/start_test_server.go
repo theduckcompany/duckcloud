@@ -15,6 +15,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/oauthconsents"
 	"github.com/theduckcompany/duckcloud/internal/service/oauthsessions"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
+	"github.com/theduckcompany/duckcloud/internal/service/stats"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
@@ -43,6 +44,7 @@ type Server struct {
 	UsersSvc         users.Service
 	RunnerSvc        runner.Service
 	MasterKeySvc     masterkey.Service
+	StatsSvc         stats.Service
 
 	User *users.User
 }
@@ -64,6 +66,7 @@ func NewServer(t *testing.T) *Server {
 	oauthSessionsSvc := oauthsessions.Init(tools, db)
 	oauthConsentsSvc := oauthconsents.Init(tools, db)
 	usersSvc := users.Init(tools, db, schedulerSvc)
+	statsSvc := stats.Init(db)
 
 	masterKeySvc, err := masterkey.Init(ctx, configSvc, afs, masterkey.Config{DevMode: true})
 	require.NoError(t, err)
@@ -71,7 +74,7 @@ func NewServer(t *testing.T) *Server {
 	filesInit, err := files.Init(masterKeySvc, "/", afs, tools, db)
 	require.NoError(t, err)
 
-	dfsInit, err := dfs.Init(db, spacesSvc, filesInit.Service, schedulerSvc, usersSvc, tools, configSvc)
+	dfsInit, err := dfs.Init(db, spacesSvc, filesInit.Service, schedulerSvc, usersSvc, tools, statsSvc)
 	require.NoError(t, err)
 
 	tasks := tasks.Init(dfsInit.Service, spacesSvc, usersSvc, webSessionsSvc, davSessionsSvc, oauthSessionsSvc, oauthConsentsSvc)
@@ -113,6 +116,7 @@ func NewServer(t *testing.T) *Server {
 		OauthSessionsSvc: oauthSessionsSvc,
 		OauthConsentsSvc: oauthConsentsSvc,
 		MasterKeySvc:     masterKeySvc,
+		StatsSvc:         statsSvc,
 
 		Files:     filesInit.Service,
 		DFSSvc:    dfsInit.Service,

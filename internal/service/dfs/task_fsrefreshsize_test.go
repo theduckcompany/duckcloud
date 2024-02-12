@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"github.com/theduckcompany/duckcloud/internal/service/config"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
+	"github.com/theduckcompany/duckcloud/internal/service/stats"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 )
@@ -28,8 +28,8 @@ func TestFSRefreshSizeTask(t *testing.T) {
 	t.Run("RunArg success", func(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		storageMock := NewMockStorage(t)
-		configMock := config.NewMockService(t)
-		runner := NewFSRefreshSizeTaskRunner(storageMock, filesMock, configMock)
+		statsMock := stats.NewMockService(t)
+		runner := NewFSRefreshSizeTaskRunner(storageMock, filesMock, statsMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAliceDir.ID()).Return(&ExampleAliceDir, nil).Once()
 		storageMock.On("GetSumChildsSize", mock.Anything, ExampleAliceDir.ID()).Return(uint64(42), nil).Once()
@@ -49,7 +49,7 @@ func TestFSRefreshSizeTask(t *testing.T) {
 		// ExampleAliceRoot doesnt' have a parent because it's a root node so we stop here.
 
 		storageMock.On("GetSumRootsSize", mock.Anything).Return(uint64(142), nil).Once()
-		configMock.On("SetTotalSize", mock.Anything, uint64(142)).Return(nil).Once()
+		statsMock.On("SetTotalSize", mock.Anything, uint64(142)).Return(nil).Once()
 
 		err := runner.RunArgs(ctx, &scheduler.FSRefreshSizeArg{
 			INode:      ExampleAliceDir.ID(),
@@ -61,8 +61,8 @@ func TestFSRefreshSizeTask(t *testing.T) {
 	t.Run("RunArg with an inode not found", func(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		storageMock := NewMockStorage(t)
-		configMock := config.NewMockService(t)
-		runner := NewFSRefreshSizeTaskRunner(storageMock, filesMock, configMock)
+		statsMock := stats.NewMockService(t)
+		runner := NewFSRefreshSizeTaskRunner(storageMock, filesMock, statsMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAliceDir.ID()).Return(&ExampleAliceDir, nil).Once()
 		storageMock.On("GetSumChildsSize", mock.Anything, ExampleAliceDir.ID()).Return(uint64(42), nil).Once()
@@ -85,8 +85,8 @@ func TestFSRefreshSizeTask(t *testing.T) {
 	t.Run("RunArg with a GetSumChildsSize error", func(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		storageMock := NewMockStorage(t)
-		configMock := config.NewMockService(t)
-		runner := NewFSRefreshSizeTaskRunner(storageMock, filesMock, configMock)
+		statsMock := stats.NewMockService(t)
+		runner := NewFSRefreshSizeTaskRunner(storageMock, filesMock, statsMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAliceDir.ID()).Return(&ExampleAliceDir, nil).Once()
 		storageMock.On("GetSumChildsSize", mock.Anything, ExampleAliceDir.ID()).Return(uint64(0), errors.New("some-error")).Once()
@@ -101,8 +101,8 @@ func TestFSRefreshSizeTask(t *testing.T) {
 	t.Run("RunArg with a RegisterModification error", func(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		storageMock := NewMockStorage(t)
-		configMock := config.NewMockService(t)
-		runner := NewFSRefreshSizeTaskRunner(storageMock, filesMock, configMock)
+		statsMock := stats.NewMockService(t)
+		runner := NewFSRefreshSizeTaskRunner(storageMock, filesMock, statsMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAliceDir.ID()).Return(&ExampleAliceDir, nil).Once()
 		storageMock.On("GetSumChildsSize", mock.Anything, ExampleAliceDir.ID()).Return(uint64(42), nil).Once()
@@ -122,8 +122,8 @@ func TestFSRefreshSizeTask(t *testing.T) {
 	t.Run("RunArg with a GetSumRootsSize error", func(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		storageMock := NewMockStorage(t)
-		configMock := config.NewMockService(t)
-		runner := NewFSRefreshSizeTaskRunner(storageMock, filesMock, configMock)
+		statsMock := stats.NewMockService(t)
+		runner := NewFSRefreshSizeTaskRunner(storageMock, filesMock, statsMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAliceDir.ID()).Return(&ExampleAliceDir, nil).Once()
 		storageMock.On("GetSumChildsSize", mock.Anything, ExampleAliceDir.ID()).Return(uint64(42), nil).Once()
@@ -154,8 +154,8 @@ func TestFSRefreshSizeTask(t *testing.T) {
 	t.Run("RunArg with a SetTotalSize error", func(t *testing.T) {
 		filesMock := files.NewMockService(t)
 		storageMock := NewMockStorage(t)
-		configMock := config.NewMockService(t)
-		runner := NewFSRefreshSizeTaskRunner(storageMock, filesMock, configMock)
+		statsMock := stats.NewMockService(t)
+		runner := NewFSRefreshSizeTaskRunner(storageMock, filesMock, statsMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAliceDir.ID()).Return(&ExampleAliceDir, nil).Once()
 		storageMock.On("GetSumChildsSize", mock.Anything, ExampleAliceDir.ID()).Return(uint64(42), nil).Once()
@@ -175,7 +175,7 @@ func TestFSRefreshSizeTask(t *testing.T) {
 		// ExampleAliceRoot doesnt' have a parent because it's a root node so we stop here.
 
 		storageMock.On("GetSumRootsSize", mock.Anything).Return(uint64(142), nil).Once()
-		configMock.On("SetTotalSize", mock.Anything, uint64(142)).Return(errs.ErrBadRequest).Once()
+		statsMock.On("SetTotalSize", mock.Anything, uint64(142)).Return(errs.ErrBadRequest).Once()
 
 		err := runner.RunArgs(ctx, &scheduler.FSRefreshSizeArg{
 			INode:      ExampleAliceDir.ID(),

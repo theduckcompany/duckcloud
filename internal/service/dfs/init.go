@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"io"
 
-	"github.com/theduckcompany/duckcloud/internal/service/config"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
+	"github.com/theduckcompany/duckcloud/internal/service/stats"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
@@ -46,7 +46,7 @@ func Init(db *sql.DB,
 	scheduler scheduler.Service,
 	users users.Service,
 	tools tools.Tools,
-	config config.Service,
+	stats stats.Service,
 ) (Result,
 	error,
 ) {
@@ -57,7 +57,7 @@ func Init(db *sql.DB,
 		Service:                      svc,
 		FSGCTask:                     NewFSGGCTaskRunner(storage, files, spaces, scheduler, tools),
 		FSMoveTask:                   NewFSMoveTaskRunner(svc, storage, spaces, users, scheduler),
-		FSRefreshSizeTask:            NewFSRefreshSizeTaskRunner(storage, files, config),
+		FSRefreshSizeTask:            NewFSRefreshSizeTaskRunner(storage, files, stats),
 		FSRemoveDuplicateFilesRunner: NewFSRemoveDuplicateFileRunner(storage, files, scheduler),
 	}, nil
 }
