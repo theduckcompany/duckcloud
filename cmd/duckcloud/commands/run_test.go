@@ -29,8 +29,8 @@ func Test_NewRunCmd(t *testing.T) {
 		cmd.SetArgs([]string{"--dev", "--memory-fs", "--folder=/duckcloud-test"})
 		var cmdErr error
 		var wg sync.WaitGroup
+		wg.Add(1)
 		go func() {
-			wg.Add(1)
 			defer wg.Done()
 			cmdErr = cmd.ExecuteContext(ctx)
 		}()
@@ -66,15 +66,15 @@ func Test_NewRunCmd(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		t.Setenv("DUCKCLOUD_HTTP-PORT", "8797")
-		t.Setenv("DUCKCLOUD_LOG-LEVEL", "info")
+		t.Setenv("DUCKCLOUD_HTTP_PORT", "8797")
+		t.Setenv("DUCKCLOUD_LOG_LEVEL", "info")
 		t.Setenv("DUCKCLOUD_FOLDER", "duckloud-test")
 
 		cmd.SetArgs([]string{"--memory-fs", "--dev"})
 		var cmdErr error
 		var wg sync.WaitGroup
+		wg.Add(1)
 		go func() {
-			wg.Add(1)
 			defer wg.Done()
 			cmdErr = cmd.ExecuteContext(ctx)
 		}()
@@ -113,8 +113,8 @@ func Test_NewRunCmd(t *testing.T) {
 		cmd.SetArgs([]string{"--self-signed-cert", "--memory-fs", "--dev", "--folder=/duckcloud-test", "--log-level=info"})
 		var cmdErr error
 		var wg sync.WaitGroup
+		wg.Add(1)
 		go func() {
-			wg.Add(1)
 			defer wg.Done()
 			cmdErr = cmd.ExecuteContext(ctx)
 		}()
