@@ -2,9 +2,9 @@
 
 # DuckCloud
 
-<h3 align='center'> The cloud for your family. </h3>
+<h3 align='center'> A WebDAV server for the families. </h3>
 
-Keep your family data safe at home with a one click fully encrypted backup.<br/>
+Keep your family's devices in-sync with a small but full-featured WebDAV server.<br/>
 
 <p align="center">
     <a href="https://github.com/theduckcompany/duckcloud/commits/master">
@@ -33,16 +33,16 @@ Keep your family data safe at home with a one click fully encrypted backup.<br/>
 
 ## Who's it for?
 
-This project aims to propose an easy solution for the families who want to keep their data safe at home away from the GAFAM. This service aims to be a 
-Nextcloud alternative with more simplicity for both the user and the administrator.
-
+This project aims to propose an easy solution to host a little cloud at home. It try to be as simple as possible
+for both the users and the administrator.
 
 
 ## Features / Roadmap
-- [x] A virtual file systeme with a deduplication system and a data at rest encryption
-- [x] A WebDAV integration to connect all your webdav compliante devices 
+- [x] A virtual file system with a file deduplication system and a data at rest encryption
+- [x] A WebDAV integration to connect all your WebDAV compliant devices 
+- [x] A web interface to interact with you files.
 - [x] A web interface for managing the users, settings and navigate the files
-- [ ] A contact registry with a CarDAV integration and a web interface
+- [ ] A contact registry with a CardDAV integration and a web interface
 - [ ] An event registry with a CalDAV integration and a web interface
 - [ ] A backup service with end-to-end encryption available with a few clicks
 
