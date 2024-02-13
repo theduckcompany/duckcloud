@@ -60,8 +60,9 @@ type Config struct {
 func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
 	var cfg Config
 
-	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	viper.SetEnvPrefix("duckcloud")
+	viper.AutomaticEnv()
 
 	viper.BindPFlags(cmd.Flags())
 
