@@ -1,0 +1,5 @@
+duckcloud (24.01.1-1) UNRELEASED; urgency=medium
+
+  * Initial release. (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Peltoche <peltoche@halium.fr>  Wed, 14 Feb 2024 14:19:57 +0100
