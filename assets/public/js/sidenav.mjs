@@ -33,11 +33,11 @@ window.addEventListener("resize", setMode);
 // Make all the selects pretty even with the dynamic content
 document.body.addEventListener("htmx:afterSwap", function (evt) {
   document.querySelectorAll('.select').forEach((select) => {
-    new Select(select);
+    Select.getOrCreateInstance(select);
   });
 
   document.querySelectorAll('.dropdown').forEach((dropdown) => {
-    new Dropdown(dropdown);
+    Dropdown.getOrCreateInstance(dropdown);
   });
 })
 
