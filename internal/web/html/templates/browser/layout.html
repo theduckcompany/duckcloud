@@ -23,7 +23,7 @@
           <a class="sidenav-link {{if (eq $.CurrentSpace.ID .ID)}}text-primary bg-light{{end}}" href="/browser/{{.ID}}"
             hx-target="body" , hx-swap="outerHTML">
             <i
-              class="bi bi-folder-fill me-3 {{if (eq $.CurrentSpace.ID .ID)}}text-primary{{end}}"></i><span>{{.Name}}</span></a>
+              class="fas fa-folder me-3 {{if (eq $.CurrentSpace.ID .ID)}}text-primary{{end}}"></i><span>{{.Name}}</span></a>
         </li>
         {{end}}
       </ul>
@@ -37,7 +37,7 @@
         <!-- Toggler -->
         <button id="toggler" data-mdb-toggle="sidenav" data-mdb-target="#main-sidenav" class="btn shadow-0 p-0 me-3"
           aria-controls="#main-sidenav" aria-haspopup="true">
-          <i class="bi bi-list"></i>
+          <i class="fas fa-bars mx-2"></i>
         </button>
 
         <!-- Right links -->
@@ -47,7 +47,7 @@
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle hidden-arrow d-flex align-items-center" href="#" data-mdb-dropdown-init
               id="navbarDropdownMenuLink" role="button" data-mdb-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-person-circle bi-lg"></i>
+              <i class="fas fa-circle-user fa-2x"></i>
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink" hx-boost="true"
               hx-target="body" hx-swap="outerHTML">

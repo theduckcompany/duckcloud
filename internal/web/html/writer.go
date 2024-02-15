@@ -91,10 +91,10 @@ func NewRenderer(cfg Config) *Renderer {
 				},
 				"getInodeIconClass": func(_ string, isDir bool) string {
 					if isDir {
-						return "bi-folder-fill text-primary"
+						return "fa-folder text-primary"
 					}
 
-					return "bi-file-earmark-fill text-muted"
+					return "fa-file text-muted"
 				},
 			},
 		},

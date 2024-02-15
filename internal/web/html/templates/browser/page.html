@@ -11,7 +11,7 @@
                 type="button"
                 id="add-button"
                 aria-expanded="false">
-          <i class="bi bi-plus me-1 fs-4"></i>Add</button>
+          <i class="fas fa-plus me-2"></i>Add</button>
         <ul class="dropdown-menu" aria-labelledby="add-button">
           <li><a class="dropdown-item text-dark"
                  hx-get="/browser/create-dir?space={{$.Folder.Space.ID}}&dir={{$.Folder.Path}}"
@@ -21,13 +21,13 @@
                  data-mdb-toggle="modal"
                  hx-swap="innerHTML"
                  data-mdb-target="#modal-target">
-              <i class="bi bi-folder-fill me-2" style="font-size: 1.1rem; color: cornflowerblue;"></i>New folder</a></li>
+              <i class="fas fa-folder-plus fa-lg me-2"></i>New folder</a></li>
           <li>
             <hr class="dropdown-divider" />
           </li>
-          <li><a id="upload-file-btn" class="dropdown-item text-dark"><i class="bi bi-upload me-2"></i>Upload File</a>
+          <li><a id="upload-file-btn" class="dropdown-item text-dark"><i class="fas fa-cloud-arrow-up fa-lg me-2"></i>Upload File</a>
           </li>
-          <li><a id="upload-folder-btn" class="dropdown-item text-dark"><i class="bi bi-upload me-2"></i>Upload
+          <li><a id="upload-folder-btn" class="dropdown-item text-dark"><i class="fas fa-cloud-arrow-up fa-lg me-2"></i>Upload
               Folder</a></li>
         </ul>
       </div>

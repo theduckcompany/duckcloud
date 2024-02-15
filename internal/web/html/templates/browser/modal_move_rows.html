@@ -15,12 +15,12 @@
       href="/browser/move?srcPath={{$.SrcPath.Path}}&dstPath={{$filePath}}&spaceID={{$.DstPath.Space.ID}}"
       hx-get="/browser/move?srcPath={{$.SrcPath.Path}}&dstPath={{$filePath}}&spaceID={{$.DstPath.Space.ID}}"
       hx-swap="outerHTML" hx-target="#modal-content">
-      <i class="bi {{getInodeIconClass .Name .IsDir}} me-2" style="font-size: 2rem;"></i>
+      <i class="fas {{getInodeIconClass .Name .IsDir}} me-2" style="font-size: 2rem;"></i>
       {{.Name}}
     </a>
     {{else}}
     <a class="pe-none link-dark user-select-none text-muted">
-      <i class="bi {{getInodeIconClass .Name .IsDir}} me-2" style="font-size: 2rem;"></i>
+      <i class="fas {{getInodeIconClass .Name .IsDir}} me-2" style="font-size: 2rem;"></i>
       {{.Name}}
     </a>
     {{end}}

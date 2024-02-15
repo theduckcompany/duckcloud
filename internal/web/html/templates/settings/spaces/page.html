@@ -38,8 +38,7 @@
                      data-mdb-dropdown-init
                      data-mdb-toggle="dropdown" 
                      aria-expanded="false">
-                    <i class="bi bi-three-dots text-muted"
-                       style="font-size: 1.3rem;"></i></a>
+                    <i class="fas fa-ellipsis-vertical text-muted fa-2x"></i></a>
 
                   <ul class="dropdown-menu" 
                       aria-labelledby="delete-space-{{.ID}}" 
@@ -49,7 +48,7 @@
                          hx-target="body"
                          hx-post="/settings/spaces/{{.ID}}/delete" 
                          hx-swap="outerHTML"><i
-                         class="bi bi-trash-fill me-2"></i>Delete Space</a>
+                         class="fas fa-trash me-2"></i>Delete Space</a>
                     </li>
                   </ul>
                 </div>
@@ -69,7 +68,7 @@
               hx-target="#modal-target"
               hx-trigger="click" 
               hx-swap="innerHTML">
-        <i class="bi bi-plus-lg me-2"></i>Create a new space</button>
+        <i class="fas fa-plus me-2"></i>Create a new space</button>
 
     </div>
   </div>
