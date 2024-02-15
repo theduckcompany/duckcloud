@@ -1,0 +1,27 @@
+# The public-facing domain URL that clients use to access this
+# server.
+#
+DUCKCLOUD_HTTP_DOMAIN=example.com
+
+# The TCP port to bind to.
+#
+# If you want to use a specific port you can uncomment this line
+# and specified the desired port.
+#DUCKCLOUD_HTTP_PORT=5764
+
+# The list of local addresses to listen on. By default it's 
+# "all local interfaces" (0.0.0.0). 
+#
+# If you have setup a reverse proxy on the same server you can
+# uncomment this line.
+#DUCKCLOUD_HTTP_HOST=localhost
+
+# Specify if the server generate some self signed certificates.
+#
+# If you don't use a reverse proxy you must uncomment it.
+#DUCKCLOUD_SELF_SIGNED_CERT=true
+
+# Specify the log level. 
+#
+# Could be "debug", "info", "error".
+DUCKCLOUD_LOG_LEVEL=info

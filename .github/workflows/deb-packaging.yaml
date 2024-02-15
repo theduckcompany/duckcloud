@@ -1,0 +1,51 @@
+name: Deb Packaging
+
+on:
+  release:
+    types: [released]
+
+permissions:
+    contents: write
+    packages: write
+
+env:
+  DPKG_VERSION: "${{github.ref_name}}"
+  DPKG_ARCH: "amd64"
+  DPKG_NAME: "duckcloud_24.01.1_amd64.deb"
+
+jobs:
+  deb-release-matrix:
+    name: Release .deb package
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # build and publish in parallel: linux/amd64, linux/arm64
+        goos: [linux]
+        goarch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date --utc -Iminutes)"
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Build go package
+        run: go build -ldflags "-X github.com/theduckcompany/duckcloud/internal/tools/buildinfos.version=${DPKG_VERSION} -X github.com/theduckcompany/duckcloud/internal/tools/buildinfos.buildTime=${{ steps.date.outputs.date }} -X github.com/theduckcompany/duckcloud/internal/tools/buildinfos.isRelease=true" ./cmd/duckcloud
+
+      - name: Generate the .deb
+        run: ./scripts/generate_deb.sh
+
+      # - name: Lint
+      #   uses: evgeni/action-lintian@devel
+      #   with:
+      #     package: "./builds/${{env.DPKG_NAME}}"
+      #
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{env.DPKG_NAME}}
+          path: "./builds/${{env.DPKG_NAME}}"
