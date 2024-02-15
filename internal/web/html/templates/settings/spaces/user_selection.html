@@ -62,7 +62,7 @@
     document.getElementById("userList").
       insertAdjacentHTML("beforeend", `<div id="userSelect${user.id}" class="d-flex flex-row align-items-center justify-content-between mb-3">
       <b class="my-auto me-1">${user.username}</b>
-      <button id="unselect${user.id}" type="button" class="btn btn-rounded btn-sm btn-outline-danger me-2"><i class="bi bi-x-lg"></i></button>
+      <button id="unselect${user.id}" type="button" class="btn btn-rounded btn-sm btn-outline-danger me-2"><i class="fas fa-xmark fa-lg"></i></button>
       <input type='hidden' name='selectedUsers' value="${user.id}">
     </div>`)
 

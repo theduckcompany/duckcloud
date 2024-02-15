@@ -16,7 +16,7 @@
             href="/settings/security" 
             hx-target="body" 
             hx-swap="outerHTML">
-            <i class="bi bi-lock-fill me-3 {{if (eq .Template "settings/security/page")}}text-primary bg-light{{end}}"></i>
+            <i class="fas fa-shield me-3 {{if (eq .Template "settings/security/page")}}text-primary bg-light{{end}}"></i>
             <span>Security</span></a>
         </li>
 
@@ -30,7 +30,7 @@
             href="/settings/users" 
             hx-target="body" 
             hx-swap="outerHTML">
-            <i class="bi bi-people-fill me-3 {{if (eq .Template "settings/users/page")}}text-primary bg-light{{end}}"></i>
+            <i class="fas fa-circle-user me-3 {{if (eq .Template "settings/users/page")}}text-primary bg-light{{end}}"></i>
             <span>User</span></a>
         </li>
         <li class="sidenav-item">
@@ -38,7 +38,7 @@
             href="/settings/spaces" 
             hx-target="body" 
             hx-swap="outerHTML">
-            <i class="bi bi-people-fill me-3 {{if (eq .Template "settings/spaces/page")}}text-primary bg-light{{end}}"></i>
+            <i class="fas fa-folder-tree me-3 {{if (eq .Template "settings/spaces/page")}}text-primary bg-light{{end}}"></i>
             <span>Space</span></a>
         </li>
         {{end}}
@@ -53,7 +53,7 @@
         <!-- Toggler -->
         <button id="toggler" data-mdb-toggle="sidenav" data-mdb-target="#main-sidenav"
           class="btn shadow-0 p-0 me-3 d-block d-xxl-none" aria-controls="#main-sidenav" aria-haspopup="true">
-          <i class="bi bi-list"></i>
+          <i class="fas fa-bars mx-2"></i>
         </button>
 
         <!-- Right links -->
@@ -63,7 +63,7 @@
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle hidden-arrow d-flex align-items-center" href="#" data-mdb-dropdown-init
               id="navbarDropdownMenuLink" role="button" data-mdb-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-person-circle"></i>
+              <i class="fas fa-circle-user fa-2x"></i>
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink" hx-boost="true"
               hx-target="body" hx-swap="outerHTML">
