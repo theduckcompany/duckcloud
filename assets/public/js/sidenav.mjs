@@ -1,6 +1,6 @@
-import {Sidenav, Navbar, Dropdown, Modal, Select, initMDB} from "/assets/js/libs/mdb.es.min.js";
+import {Sidenav, Datatable, Navbar, Dropdown, Modal, Select, initMDB} from "/assets/js/libs/mdb.es.min.js";
 
-initMDB({Sidenav, Navbar, Dropdown, Modal, Select});
+initMDB({Sidenav, Datatable, Navbar, Dropdown, Modal, Select});
 
 const sidenav = document.getElementById("main-sidenav");
 
