@@ -16,7 +16,7 @@
         </div>
 
 
-        <select name="space" class="select">
+        <select name="space" class="select" data-mdb-select-init>
           {{ range .Spaces}}
           <option value="{{.ID}}">{{.Name}}</option>
           {{end}}

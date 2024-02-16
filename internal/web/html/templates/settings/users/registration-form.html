@@ -19,14 +19,14 @@
           <label class="form-label" for="passwordInput">Password</label>
         </div>
 
-        <select name="role" class="select" id="role">
+        <select name="role" class="select" data-mdb-select-init>
           <option value="user">User</option>
           <option value="admin">Admin</option>
         </select>
         <label class="form-label select-label">Role</label>
 
         {{if .Error}}
-        <div id="validation-alert" class="alert alert-danger role=">{{.Error.Error}}</div>
+        <div id="validation-alert" class="alert alert-danger mt-4">{{.Error.Error}}</div>
         {{end}}
 
       </div>
