@@ -4,70 +4,74 @@
       <h4 class="mb-0">Spaces Settings</h4>
     </div>
     <div class="card-body">
-      <table class="table align-middle mt-4 border">
-        <thead class="bg-light">
-          <tr>
-            <th class="col-3">Name</th>
-            <th class="col-4">Users</th>
-            <th class="col-3">Capacity</th>
-            <th class="col-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="table-group-divider table-divider-color">
-          {{ range .Spaces}}
+
+
+      <div data-mdb-datatable-init class="datatable">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-3">Name</th>
+              <th class="col-4">Users</th>
+              <th class="col-3">Capacity</th>
+              <th class="col-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{ range .Spaces}}
             <tr>
               <td> {{.Name}} </td>
 
               <td>
                 {{range .Owners}}
-                  <span class="badge badge-info rounded-pill">{{ with index $.Users .}}{{.Username}}{{end}}</span>
+                <span class="badge badge-info rounded-pill">{{ with index $.Users .}}{{.Username}}{{end}}</span>
                 {{end}}
               </td>
               <td>
                 <div class="progress" style="height: 20px;">
                   <div class="progress-bar" role="progressbar" style="width: 100%;" aria-valuenow="25" aria-valuemin="0"
-                                                                                                       aria-valuemax="0">Unlimited</div>
+                    aria-valuemax="0">Unlimited</div>
                 </div>
               </td>
 
               <td>
                 <div class="col-1 dropdown">
                   <a class="btn btn-white btn-rounded shadow-0" 
-                     role="button" 
-                     id="dropdownMenuLink{{.ID}}"
-                     data-mdb-dropdown-init
-                     data-mdb-toggle="dropdown" 
-                     aria-expanded="false">
+                    role="button" 
+                    id="dropdownMenuLink{{.ID}}"
+                    data-mdb-dropdown-init
+                    data-mdb-toggle="dropdown" 
+                    aria-expanded="false">
                     <i class="fas fa-ellipsis-vertical text-muted fa-2x"></i></a>
 
                   <ul class="dropdown-menu" 
-                      aria-labelledby="delete-space-{{.ID}}" 
-                      style="font-size: 1rem;">
+                    aria-labelledby="delete-space-{{.ID}}" 
+                    style="font-size: 1rem;">
                     <li>
                       <a class="dropdown-item text-danger" 
-                         hx-target="body"
-                         hx-post="/settings/spaces/{{.ID}}/delete" 
-                         hx-swap="outerHTML"><i
-                         class="fas fa-trash me-2"></i>Delete Space</a>
+                        hx-target="body"
+                        hx-post="/settings/spaces/{{.ID}}/delete" 
+                        hx-swap="outerHTML"><i
+                          class="fas fa-trash me-2"></i>Delete Space</a>
                     </li>
                   </ul>
                 </div>
               </td>
 
             </tr>
-          {{end}}
-        </tbody>
-      </table>
+            {{end}}
+          </tbody>
+        </table>
+      </div>
 
       <button type="button" 
-              class="btn btn-rounded btn-outline-primary mb-3" 
-              data-mdb-target="#modal-target"
-              data-mdb-modal-init 
-              data-mdb-toggle="modal" 
-              hx-get="/settings/spaces/new" 
-              hx-target="#modal-target"
-              hx-trigger="click" 
-              hx-swap="innerHTML">
+        class="btn btn-rounded btn-outline-primary mb-3" 
+        data-mdb-target="#modal-target"
+        data-mdb-modal-init 
+        data-mdb-toggle="modal" 
+        hx-get="/settings/spaces/new" 
+        hx-target="#modal-target"
+        hx-trigger="click" 
+        hx-swap="innerHTML">
         <i class="fas fa-plus me-2"></i>Create a new space</button>
 
     </div>
