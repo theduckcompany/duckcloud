@@ -1,5 +1,5 @@
 
-import {Sidenav, Dropdown, Select} from "/assets/js/libs/mdb.es.min.js";
+import {Sidenav, Datatable, Dropdown, Select} from "/assets/js/libs/mdb.es.min.js";
 
 export function SetupSideNav() {
   const sidenav = document.getElementById("main-sidenav");
@@ -40,6 +40,10 @@ export function SetupBoostrapElems() {
 
     document.querySelectorAll('.dropdown').forEach((dropdown) => {
       Dropdown.getOrCreateInstance(dropdown);
+    });
+
+    document.querySelectorAll('.datatable').forEach((datatable) => {
+      Datatable.getOrCreateInstance(datatable);
     });
   })
 }
