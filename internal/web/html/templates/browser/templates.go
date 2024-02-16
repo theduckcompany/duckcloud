@@ -24,31 +24,34 @@ func (t *ContentTemplate) Breadcrumb() *BreadCrumbTemplate {
 	basePath := path.Join("/browser/", string(t.Folder.Space().ID()))
 
 	elements := []BreadCrumbElement{{
-		Name:    t.Folder.Space().Name(),
-		Href:    basePath,
-		Current: false,
+		Name: t.Folder.Space().Name(),
+		Href: basePath,
 	}}
 
 	fullPath := strings.TrimPrefix(t.Folder.Path(), "/")
 
 	if fullPath == "" {
-		elements[0].Current = true
-		return &BreadCrumbTemplate{Elements: elements, Target: "body"}
+		return &BreadCrumbTemplate{
+			Parents:    []BreadCrumbElement{},
+			CurrentDir: elements[0],
+			Target:     "body",
+		}
 	}
 
 	for _, elem := range strings.Split(fullPath, "/") {
 		basePath = path.Join(basePath, elem)
 
 		elements = append(elements, BreadCrumbElement{
-			Name:    elem,
-			Href:    basePath,
-			Current: false,
+			Name: elem,
+			Href: basePath,
 		})
 	}
 
-	elements[len(elements)-1].Current = true
-
-	return &BreadCrumbTemplate{Elements: elements, Target: "body"}
+	return &BreadCrumbTemplate{
+		Parents:    elements[:len(elements)-1],
+		CurrentDir: elements[len(elements)-1],
+		Target:     "body",
+	}
 }
 
 func (t *ContentTemplate) Rows() *RowsTemplate {
@@ -85,16 +88,16 @@ type RowsTemplate struct {
 func (t *RowsTemplate) Template() string { return "browser/rows" }
 
 type BreadCrumbTemplate struct {
-	Target   string
-	Elements []BreadCrumbElement
+	CurrentDir BreadCrumbElement
+	Target     string
+	Parents    []BreadCrumbElement
 }
 
 func (t *BreadCrumbTemplate) Template() string { return "browser/breadcrumb" }
 
 type BreadCrumbElement struct {
-	Name    string
-	Href    string
-	Current bool
+	Name string
+	Href string
 }
 
 type MoveTemplate struct {
@@ -115,14 +118,16 @@ func (t *MoveTemplate) Breadcrumb() *BreadCrumbTemplate {
 	basePath := url.URL{Path: "/browser/move", RawQuery: vals.Encode()}
 
 	elements := []BreadCrumbElement{{
-		Name:    t.SrcPath.Space().Name(),
-		Href:    basePath.String(),
-		Current: false,
+		Name: t.SrcPath.Space().Name(),
+		Href: basePath.String(),
 	}}
 
 	if t.DstPath.Path() == "/" {
-		elements[0].Current = true
-		return &BreadCrumbTemplate{Elements: elements, Target: "#modal-content"}
+		return &BreadCrumbTemplate{
+			Parents:    []BreadCrumbElement{},
+			CurrentDir: elements[0],
+			Target:     "#modal-content",
+		}
 	}
 
 	dstPath := "/"
@@ -138,15 +143,16 @@ func (t *MoveTemplate) Breadcrumb() *BreadCrumbTemplate {
 		basePath := url.URL{Path: "/browser/move", RawQuery: vals.Encode()}
 
 		elements = append(elements, BreadCrumbElement{
-			Name:    elem,
-			Href:    basePath.String(),
-			Current: false,
+			Name: elem,
+			Href: basePath.String(),
 		})
 	}
 
-	elements[len(elements)-1].Current = true
-
-	return &BreadCrumbTemplate{Elements: elements, Target: "#modal-content"}
+	return &BreadCrumbTemplate{
+		Parents:    elements[:len(elements)-1],
+		CurrentDir: elements[len(elements)-1],
+		Target:     "#modal-content",
+	}
 }
 
 func (t *MoveTemplate) Template() string { return "browser/modal_move" }
