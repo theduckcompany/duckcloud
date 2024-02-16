@@ -12,10 +12,10 @@ import (
 
 type ContentTemplate struct {
 	Folder        *dfs.PathCmd
-	Inodes        []dfs.INode
 	CurrentSpace  *spaces.Space
-	AllSpaces     []spaces.Space
 	ContentTarget string
+	Inodes        []dfs.INode
+	AllSpaces     []spaces.Space
 }
 
 func (t *ContentTemplate) Template() string { return "browser/page" }
@@ -60,9 +60,9 @@ func (t *ContentTemplate) Rows() *RowsTemplate {
 }
 
 type CreateDirTemplate struct {
+	Error   *string
 	DirPath string
 	SpaceID uuid.UUID
-	Error   *string
 }
 
 func (t *CreateDirTemplate) Template() string { return "browser/modal_create_dir" }
@@ -77,16 +77,16 @@ type RenameTemplate struct {
 func (t *RenameTemplate) Template() string { return "browser/modal_rename" }
 
 type RowsTemplate struct {
-	Inodes        []dfs.INode
 	Folder        *dfs.PathCmd
 	ContentTarget string
+	Inodes        []dfs.INode
 }
 
 func (t *RowsTemplate) Template() string { return "browser/rows" }
 
 type BreadCrumbTemplate struct {
-	Elements []BreadCrumbElement
 	Target   string
+	Elements []BreadCrumbElement
 }
 
 func (t *BreadCrumbTemplate) Template() string { return "browser/breadcrumb" }
