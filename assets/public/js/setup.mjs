@@ -15,7 +15,7 @@ export function SetupSideNav() {
 
     innerWidth = window.innerWidth;
 
-    if (window.innerWidth < 1400) {
+    if (window.innerWidth < 960) {
       sidenavInstance.changeMode("over");
       sidenavInstance.hide();
     } else {
