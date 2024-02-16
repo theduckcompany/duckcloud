@@ -18,7 +18,7 @@
   font-size: 1.8rem;
 } */
 
-@media (max-width: 1200px) {
+@media (max-width: 960px) {
   #main {
     padding-left: 0px;
   }
