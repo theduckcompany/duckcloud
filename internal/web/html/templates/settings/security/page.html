@@ -1,94 +1,86 @@
-<section class="mt-5" hx-target-4*="this">
-  <div class="card shadow-0">
-    <div class="card-header py-4 mb-3">
-      <h4 class="mb-0">Security Settings</h4>
-    </div>
-    <div class="card-body">
+<section class="container pt-3" hx-target-4*="this">
+  <h5>Password</h5>
+  <p class="text-muted">Update your password to protect your personal account.</p>
 
-      <h5>Password</h5>
-      <p class="text-muted">Update your password to protect your personal account.</p>
+  <button type="button" class="btn btn-rounded btn-outline-primary mb-3" data-mdb-target="#modal-target"
+    data-mdb-modal-init hx-get="/settings/security/password"
+    href="/settings/security/password" hx-target="#modal-target" hx-trigger="click" hx-swap="innerHTML">Update
+    your password</button>
 
-      <button type="button" class="btn btn-rounded btn-outline-primary mb-3" data-mdb-target="#modal-target"
-        data-mdb-modal-init hx-get="/settings/security/password"
-        href="/settings/security/password" hx-target="#modal-target" hx-trigger="click" hx-swap="innerHTML">Update
-        your password</button>
+  <hr class="mt-5 mb-5">
 
-      <hr class="mt-5 mb-5">
+  <h5>Web browsers</h5>
+  <p class="text-muted">These browsers are currently logged in to your account.</p>
 
-      <h5>Web browsers</h5>
-      <p class="text-muted">These browsers are currently logged in to your account.</p>
-
-      <div data-mdb-datatable-init class="datatable">
-        <table>
-          <thead>
-            <tr>
-              <th class="th-sm">Name</th>
-              <th class="th-sm">Last activity</th>
-              <th class="th-sm">IP</th>
-              <th class="th-sm">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{range .WebSessions}}
-            <tr>
-              <td>
-                {{.Device}}
-                {{ if (eq .Token $.CurrentSession.Token) }}
-                <span class="badge text-bg-secondary">Current Session</span>
-                {{ end }}
-              </td>
-              <td> Seconds ago </td>
-              <td> {{.IP}} </td>
-              <td>
-                <form action="/settings/security/browsers/{{.Token.Raw}}/delete" method="post" target="_top"
-                  hx-post="/settings/security/browsers/{{.Token.Raw}}/delete" hx-target="body" hx-swap="outerHTML">
-                  <button type="submit"
-                    class="btn btn-link btn-sm btn-rounded {{if (eq .Token $.CurrentSession.Token)}}disabled{{end}}">Disconnect</button>
-                </form>
-              </td>
-            </tr>
-            {{end}}
-          </tbody>
-        </table>
-      </div>
-
-      <hr class="mt-5 mb-5">
-
-      <h5>Devices & sessions</h5>
-      <p class="text-muted">Webdav or Oauth2 clients logged in to your account.</p>
-
-      <div data-mdb-datatable-init class="datatable">
-        <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Space</th>
-            <th>Last activity</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{range .Devices}}
-          <tr>
-            <td>{{.Name}}</td>
-            <td>{{with $space := index $.Spaces .SpaceID}}{{ $space.Name }}{{end}}</td>
-            <td> Seconds ago </td>
-            <td>
-              <form action="/settings/security/webdav/{{.ID}}/delete" method="post" target="_top"
-                hx-post="/settings/security/webdav/{{.ID}}/delete" hx-target="body" hx-swap="outerHTML">
-                <button type="submit" class="btn btn-link btn-sm btn-rounded">Disconnect</button>
-              </form>
-            </td>
-          </tr>
-          {{end}}
-        </tbody>
-        </table>
-      </div>
-
-      <button type="button" class="btn btn-rounded btn-outline-primary mb-3" data-mdb-target="#modal-target"
-        hx-get="/settings/security/webdav" data-mdb-modal-init
-        hx-target="#modal-target" hx-trigger="click" hx-swap="innerHTML"><i class="fas fa-plus fa-lg me-2"></i>Access
-        files via WebDAV</button>
-    </div>
+  <div data-mdb-datatable-init class="datatable">
+    <table>
+      <thead>
+        <tr>
+          <th class="th-sm">Name</th>
+          <th class="th-sm">Last activity</th>
+          <th class="th-sm">IP</th>
+          <th class="th-sm">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .WebSessions}}
+        <tr>
+          <td>
+            {{.Device}}
+            {{ if (eq .Token $.CurrentSession.Token) }}
+            <span class="badge text-bg-secondary">Current Session</span>
+            {{ end }}
+          </td>
+          <td> Seconds ago </td>
+          <td> {{.IP}} </td>
+          <td>
+            <form action="/settings/security/browsers/{{.Token.Raw}}/delete" method="post" target="_top"
+              hx-post="/settings/security/browsers/{{.Token.Raw}}/delete" hx-target="body" hx-swap="outerHTML">
+              <button type="submit"
+                class="btn btn-link btn-sm btn-rounded {{if (eq .Token $.CurrentSession.Token)}}disabled{{end}}">Disconnect</button>
+            </form>
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
   </div>
+
+  <hr class="mt-5 mb-5">
+
+  <h5>Devices & sessions</h5>
+  <p class="text-muted">Webdav or Oauth2 clients logged in to your account.</p>
+
+  <div data-mdb-datatable-init class="datatable">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Space</th>
+          <th>Last activity</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Devices}}
+        <tr>
+          <td>{{.Name}}</td>
+          <td>{{with $space := index $.Spaces .SpaceID}}{{ $space.Name }}{{end}}</td>
+          <td> Seconds ago </td>
+          <td>
+            <form action="/settings/security/webdav/{{.ID}}/delete" method="post" target="_top"
+              hx-post="/settings/security/webdav/{{.ID}}/delete" hx-target="body" hx-swap="outerHTML">
+              <button type="submit" class="btn btn-link btn-sm btn-rounded">Disconnect</button>
+            </form>
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+
+  <button type="button" class="btn btn-rounded btn-outline-primary mb-3" data-mdb-target="#modal-target"
+    hx-get="/settings/security/webdav" data-mdb-modal-init
+    hx-target="#modal-target" hx-trigger="click" hx-swap="innerHTML"><i class="fas fa-plus fa-lg me-2"></i>Access
+    files via WebDAV</button>
 </section>

@@ -1,57 +1,51 @@
-<section class="mt-5" hx-target-4*="this">
-  <div class="card shadow-0">
-    <div class="card-header py-4 mb-3">
-      <h4 class="mb-0">Users Settings</h4>
+<section class="container pt-3" hx-target-4*="this">
+  <div class="card-body">
+    <div data-mdb-datatable-init class="datatable">
+      <table>
+        <thead>
+          <tr>
+            <th>UserName</th>
+            <th>Admin</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range .Users}}
+          {{$badgeStatus := ""}}
+          {{$isActive := false}}
+          {{ if (eq .Status "active") }}
+          {{$badgeStatus = "badge-success"}}
+          {{$isActive = true}}
+          {{else}}
+          {{$badgeStatus = "badge-warning"}}
+          {{end}}
+
+          <tr>
+            <td> {{.Username}}
+              {{ if (eq .ID $.Current.ID) }}
+              <span class="badge text-bg-primary">You</span>
+              {{ end }}
+            </td>
+            <td>{{.IsAdmin}}</td>
+            <td><span class="badge {{$badgeStatus}}">{{.Status}}</span> </td>
+            <td>
+
+              <form action="/settings/users/{{.ID}}/delete" method="post" target="_top"
+                hx-post="/settings/users/{{.ID}}/delete" hx-target="body" hx-swap="outerHTML"
+                hx-confirm="Are you sure you wish to delete the account '{{.Username}}' ? All its data and files will be definitively removed."
+                hx-delete="/settings/users/{{.ID}}">
+                <button type="submit"
+                  class="btn btn-link btn-sm btn-rounded {{if or (eq .ID $.Current.ID) (not $isActive)}}disabled{{end}}">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
     </div>
-    <div class="card-body">
-      <div data-mdb-datatable-init class="datatable">
-        <table>
-          <thead>
-            <tr>
-              <th>UserName</th>
-              <th>Admin</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{range .Users}}
-            {{$badgeStatus := ""}}
-            {{$isActive := false}}
-            {{ if (eq .Status "active") }}
-            {{$badgeStatus = "badge-success"}}
-            {{$isActive = true}}
-            {{else}}
-            {{$badgeStatus = "badge-warning"}}
-            {{end}}
 
-            <tr>
-              <td> {{.Username}}
-                {{ if (eq .ID $.Current.ID) }}
-                <span class="badge text-bg-primary">You</span>
-                {{ end }}
-              </td>
-              <td>{{.IsAdmin}}</td>
-              <td><span class="badge {{$badgeStatus}}">{{.Status}}</span> </td>
-              <td>
-
-                <form action="/settings/users/{{.ID}}/delete" method="post" target="_top"
-                  hx-post="/settings/users/{{.ID}}/delete" hx-target="body" hx-swap="outerHTML"
-                  hx-confirm="Are you sure you wish to delete the account '{{.Username}}' ? All its data and files will be definitively removed."
-                  hx-delete="/settings/users/{{.ID}}">
-                  <button type="submit"
-                    class="btn btn-link btn-sm btn-rounded {{if or (eq .ID $.Current.ID) (not $isActive)}}disabled{{end}}">Delete</button>
-                </form>
-              </td>
-            </tr>
-            {{end}}
-          </tbody>
-        </table>
-      </div>
-
-      <button type="button" class="btn btn-rounded btn-outline-primary mb-3" data-mdb-target="#modal-target"
-        data-mdb-modal-init data-mdb-toggle="modal" hx-get="/settings/users/new" hx-target="#modal-target"
-        hx-trigger="click" hx-swap="innerHTML"></i>Register a new user</button>
-    </div>
-  </div>
+    <button type="button" class="btn btn-rounded btn-outline-primary mb-3" data-mdb-target="#modal-target"
+      data-mdb-modal-init data-mdb-toggle="modal" hx-get="/settings/users/new" hx-target="#modal-target"
+      hx-trigger="click" hx-swap="innerHTML"></i>Register a new user</button>
 </section>
