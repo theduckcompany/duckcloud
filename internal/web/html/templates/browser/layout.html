@@ -93,7 +93,11 @@ SetupSideNav()
 SetupBoostrapElems()
   </script>
 
-  <script type="module" src="/assets/js/file-upload.mjs"></script>
+  <script type="module">
+  import {setupUploadButton} from "/assets/js/file-upload.mjs"
+
+  setupUploadButton()
+  </script>
 
 </body>
 
