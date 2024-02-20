@@ -1,13 +1,138 @@
-<div class="col-md-10 col-8">
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb user-select-none">
-      {{range .Elements}}
-      <li class="breadcrumb-item {{if not .Current}}active{{else}} fw-bold{{end}} fs-4" {{if
-        .Current}}aria_current="page" {{end}}>
-        {{if not .Current}}<a href="{{.Href}}" hx-get="{{.Href}}" hx-target="{{$.Target}}" hx-swap="outerHTML"
-          class="text-truncate">{{.Name}}</a>{{else}}{{.Name}}{{end}}
+<div id="breadcrumbBox" class="col-8">
+  <nav id="breadcrumbContent" aria-label="breadcrumb">
+    <ol id="breadcrumbList" class="breadcrumb user-select-none">
+      {{range .Parents}}
+      <li class="breadcrumb-item active fs-6">
+        <a href="{{.Href}}" hx-get="{{.Href}}" hx-target="{{$.Target}}" hx-swap="outerHTML"
+          class="text-truncate">{{.Name}}</a>
       </li>
       {{end}}
     </ol>
   </nav>
+  <h3>{{.CurrentDir.Name}}</h3>
 </div>
+
+<script type="module">
+import {Dropdown} from "/assets/js/libs/mdb.es.min.js";
+
+function breadcrumbElemsHaveWraped(breadcrumbBox) {
+  const allElems = breadcrumbBox.getElementsByClassName("breadcrumb-item")
+
+  for (const el of allElems) {
+    // if element is more to the left that it's previous element it means it wrapped to a new line
+    if  (el.previousElementSibling && el.offsetLeft < el.previousElementSibling.offsetLeft) {
+      return true
+    }
+  } 
+
+  return false
+}
+
+function insertDropdown(breadcrumbBox) {
+  document.getElementById("breadcrumbList").
+    insertAdjacentHTML("afterbegin", `
+<li id="breadcrumbDropdown" class="breadcrumb-item active fs-6">
+<div class="dropdown">
+<a 
+class="hover-shadow px-1"
+id="breadcrumbDropdownBtn"
+type="button"
+data-mdb-dropdown-init
+aria-expanded="false">
+<i class="fas fa-ellipsis"></i>
+</a>
+<ul class="dropdown-menu" aria-labelledby="breadcrumbDropdownBtn">
+</ul>
+</div>
+</li>`)
+
+  Dropdown.getOrCreateInstance(document.getElementById("breadcrumbDropdown"))
+}
+
+function reduceBreadcrumbElemsSize(breadcrumbBox) {
+  const dropdown = document.getElementById("breadcrumbDropdown")
+
+  if (!dropdown) {
+    insertDropdown(breadcrumbBox)
+  }
+
+  const elements = breadcrumbBox.getElementsByClassName('breadcrumb-item')
+
+  // If there is more than the "..." and the one after
+  if (elements.length > 2) {
+    const elem = elements[1].children[0]
+    breadcrumbBox.getElementsByClassName("dropdown-menu")[0].
+      insertAdjacentHTML("beforeend", `<li><a class="dropdown-item" hx-trigger="click" href="${elem.getAttribute("hx-get")}" hx-get="${elem.getAttribute("hx-get")}" hx-target="body" hx-swap="outerHTML" data-wrap-at="${breadcrumbBox.offsetWidth}">${elem.firstChild.data}</a></li>`) 
+    elements[1].remove()
+    htmx.process(breadcrumbBox)
+  }
+
+}
+
+function increaseBreadcrumbElemsSize(breadcrumbBox) {
+  const currentWidth = breadcrumbBox.offsetWidth
+  let elements = breadcrumbBox.getElementsByClassName('dropdown-item')
+  elements = [...elements]
+
+  let haveChanged = false
+
+  for (const elem of elements.reverse()) {
+    if (currentWidth - 10 > elem.dataset.wrapAt) {
+      haveChanged = true
+      document.getElementById("breadcrumbDropdown").
+        insertAdjacentHTML("afterend", `<li class="breadcrumb-item fs-6"> <a href="${elem.getAttribute("hx-get")}" hx-get="${elem.getAttribute("hx-get")}" hx-target="${elem.getAttribute("hx-target")}" hx-swap="outerHTML" class="text-truncate">${elem.firstChild.data}</a></li>`) 
+
+      elem.parentNode.remove()
+
+      if (elements.length == 1) {
+        // The removed elem was the last one inside the dropdown
+        document.getElementById("breadcrumbDropdown").remove()
+      }
+    }
+  }
+
+  return haveChanged
+}
+
+function fitBreadcrumbSize(breadcrumbBox) {
+  let changeApplied = true
+  let i = 0
+
+  while (changeApplied === true) {
+    changeApplied = false
+    if (breadcrumbElemsHaveWraped(breadcrumbBox)) {
+      reduceBreadcrumbElemsSize(breadcrumbBox)
+      changeApplied = true
+    }
+
+    const haveIncreased = increaseBreadcrumbElemsSize(breadcrumbBox)
+    if (haveIncreased && !changeApplied) {
+      changeApplied = true
+    }
+
+    if (i > 20) {
+      console.error("too many loop")
+      return
+    }
+
+    i++
+  }
+
+
+}
+
+let observer
+
+if (!observer) {
+  observer = new ResizeObserver((entries) => {
+    entries.forEach((entry) => {
+      fitBreadcrumbSize(entry.target);
+    });
+  });
+}
+
+const breadcrumbBox= document.getElementById('breadcrumbBox');
+observer.observe(breadcrumbBox);
+fitBreadcrumbSize(breadcrumbBox);
+</script>
+

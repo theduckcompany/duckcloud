@@ -67,11 +67,9 @@ func Test_Templates(t *testing.T) {
 			Name:   "breadcrumb",
 			Layout: false,
 			Template: &BreadCrumbTemplate{
-				Elements: []BreadCrumbElement{
-					{Name: "My Files", Href: "https://localhost/", Current: false},
-					{Name: "foo", Href: "https://localhost/foo", Current: true},
-				},
-				Target: "body",
+				Parents:    []BreadCrumbElement{{Name: "My Files", Href: "https://localhost/"}},
+				CurrentDir: BreadCrumbElement{Name: "foo", Href: "https://localhost/foo"},
+				Target:     "body",
 			},
 		},
 		{
@@ -137,35 +135,32 @@ func Test_Templates(t *testing.T) {
 
 func TestMoveTemplateBreadcrumb(t *testing.T) {
 	tests := []struct {
-		Name     string
-		Path     *dfs.PathCmd
-		Expected []BreadCrumbElement
+		Path            *dfs.PathCmd
+		ExpectedCurrent BreadCrumbElement
+		Name            string
+		ExpectedParents []BreadCrumbElement
 	}{
 		{
 			Name: "Simple",
 			Path: dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar"),
-			Expected: []BreadCrumbElement{
+			ExpectedParents: []BreadCrumbElement{
 				{
-					Name:    spaces.ExampleAlicePersonalSpace.Name(),
-					Href:    "/browser/move?dstPath=%2F&spaceID=e97b60f7-add2-43e1-a9bd-e2dac9ce69ec&srcPath=%2Ffoo",
-					Current: false,
+					Name: spaces.ExampleAlicePersonalSpace.Name(),
+					Href: "/browser/move?dstPath=%2F&spaceID=e97b60f7-add2-43e1-a9bd-e2dac9ce69ec&srcPath=%2Ffoo",
 				},
-				{
-					Name:    "bar",
-					Href:    "/browser/move?dstPath=%2Fbar&spaceID=e97b60f7-add2-43e1-a9bd-e2dac9ce69ec&srcPath=%2Ffoo",
-					Current: true,
-				},
+			},
+			ExpectedCurrent: BreadCrumbElement{
+				Name: "bar",
+				Href: "/browser/move?dstPath=%2Fbar&spaceID=e97b60f7-add2-43e1-a9bd-e2dac9ce69ec&srcPath=%2Ffoo",
 			},
 		},
 		{
-			Name: "Space root",
-			Path: dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/"),
-			Expected: []BreadCrumbElement{
-				{
-					Name:    spaces.ExampleAlicePersonalSpace.Name(),
-					Href:    "/browser/move?dstPath=%2F&spaceID=e97b60f7-add2-43e1-a9bd-e2dac9ce69ec&srcPath=%2Ffoo",
-					Current: true,
-				},
+			Name:            "Space root",
+			Path:            dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/"),
+			ExpectedParents: []BreadCrumbElement{},
+			ExpectedCurrent: BreadCrumbElement{
+				Name: spaces.ExampleAlicePersonalSpace.Name(),
+				Href: "/browser/move?dstPath=%2F&spaceID=e97b60f7-add2-43e1-a9bd-e2dac9ce69ec&srcPath=%2Ffoo",
 			},
 		},
 	}
@@ -185,7 +180,8 @@ func TestMoveTemplateBreadcrumb(t *testing.T) {
 
 			res := moveTemplate.Breadcrumb()
 
-			assert.Equal(t, test.Expected, res.Elements)
+			assert.Equal(t, test.ExpectedParents, res.Parents)
+			assert.Equal(t, test.ExpectedCurrent, res.CurrentDir)
 		})
 	}
 }
