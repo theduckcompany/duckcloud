@@ -19,9 +19,9 @@ import (
 )
 
 type moveModalCmd struct {
-	ErrorMsg string
 	Src      *dfs.PathCmd
 	Dst      *dfs.PathCmd
+	ErrorMsg string
 }
 
 type moveModalHandler struct {

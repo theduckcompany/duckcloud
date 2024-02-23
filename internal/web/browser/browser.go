@@ -209,12 +209,12 @@ func (h *Handler) deleteAll(w http.ResponseWriter, r *http.Request) {
 }
 
 type lauchUploadCmd struct {
+	fileReader io.Reader
 	user       *users.User
 	name       string
 	spaceID    uuid.UUID
 	rootPath   string
 	relPath    string
-	fileReader io.Reader
 }
 
 func (h *Handler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
@@ -292,7 +292,7 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 
-	dirContent := []dfs.INode{}
+	var dirContent []dfs.INode
 	if inode.IsDir() {
 		dirContent, err = h.fs.ListDir(r.Context(), cmd, &storage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},

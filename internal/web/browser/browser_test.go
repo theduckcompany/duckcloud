@@ -463,6 +463,8 @@ func Test_Browser_Page(t *testing.T) {
 		form.WriteField("spaceID", "d09f29f9-5131-4aa4-b69c-7717124b213e")
 		form.WriteField("relativePath", "/baz/hello.txt")
 		writer, err := form.CreateFormFile("file", "hello.txt")
+		require.NoError(t, err)
+
 		_, err = writer.Write([]byte(content))
 		require.NoError(t, err)
 		require.NoError(t, form.Close())
