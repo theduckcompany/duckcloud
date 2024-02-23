@@ -252,8 +252,7 @@ func (h *Handler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
 	h.uploadLock.Unlock()
 
 	err = h.fs.Upload(ctx, &dfs.UploadCmd{
-		Space:      space,
-		FilePath:   fullPath,
+		Path:       dfs.NewPathCmd(space, fullPath),
 		Content:    cmd.fileReader,
 		UploadedBy: cmd.user,
 	})

@@ -30,8 +30,6 @@ type webdavKeyCtx string
 var SessionKeyCtx webdavKeyCtx = "user"
 
 type Handler struct {
-	// Prefix is the URL path prefix to strip from WebDAV resource paths.
-	Prefix string
 	// FileSystem is the virtual file system.
 	FileSystem dfs.Service
 	// Sessions handle the users sessions used for authentification.
@@ -42,6 +40,8 @@ type Handler struct {
 	// Logger is an optional error logger. If non-nil, it will be called
 	// for all HTTP requests.
 	Logger func(*http.Request, error)
+	// Prefix is the URL path prefix to strip from WebDAV resource paths.
+	Prefix string
 }
 
 func (h *Handler) stripPrefix(p string) (string, int, error) {
@@ -93,8 +93,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, err := http.StatusBadRequest, errUnsupportedMethod
-
 	reqPath, status, err := h.stripPrefix(r.URL.Path)
 	if err != nil {
 		w.WriteHeader(status)
@@ -104,8 +102,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	pathCmd := dfs.NewPathCmd(space, reqPath)
 
-	switch {
-	case h.FileSystem == nil:
+	switch h.FileSystem {
+	case nil:
 		status, err = http.StatusInternalServerError, errNoFileSystem
 	default:
 		switch r.Method {
@@ -212,8 +210,7 @@ func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request, user *users.
 	ctx := r.Context()
 
 	err = h.FileSystem.Upload(ctx, &dfs.UploadCmd{
-		Space:      pathCmd.Space(),
-		FilePath:   pathCmd.Path(),
+		Path:       pathCmd,
 		Content:    r.Body,
 		UploadedBy: user,
 	})
@@ -566,7 +563,6 @@ var (
 	errNoFileSystem            = errors.New("webdav: no file system")
 	errPrefixMismatch          = errors.New("webdav: prefix mismatch")
 	errRecursionTooDeep        = errors.New("webdav: recursion too deep")
-	errUnsupportedMethod       = errors.New("webdav: unsupported method")
 )
 
 type WalkFunc func(cmd *dfs.PathCmd, info *dfs.INode, err error) error

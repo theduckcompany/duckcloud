@@ -382,7 +382,7 @@ func Test_Browser_Page(t *testing.T) {
 				cmd, ok := args[1].(*dfs.UploadCmd)
 				require.True(t, ok)
 
-				require.Equal(t, "foo/bar/hello.txt", cmd.FilePath)
+				require.Equal(t, "/foo/bar/hello.txt", cmd.Path.Path())
 				require.Equal(t, &users.ExampleAlice, cmd.UploadedBy)
 
 				uploaded, err := io.ReadAll(cmd.Content)
@@ -447,7 +447,7 @@ func Test_Browser_Page(t *testing.T) {
 				cmd, ok := args[1].(*dfs.UploadCmd)
 				require.True(t, ok)
 
-				require.Equal(t, "foo/bar/baz/hello.txt", cmd.FilePath)
+				require.Equal(t, "/foo/bar/baz/hello.txt", cmd.Path.Path())
 				require.Equal(t, &users.ExampleAlice, cmd.UploadedBy)
 
 				uploaded, err := io.ReadAll(cmd.Content)

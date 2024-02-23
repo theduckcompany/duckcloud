@@ -69,15 +69,13 @@ func (t PathCmd) Validate() error {
 
 type UploadCmd struct {
 	Content    io.Reader
-	Space      *spaces.Space
+	Path       *PathCmd
 	UploadedBy *users.User
-	FilePath   string
 }
 
 func (t UploadCmd) Validate() error {
 	return v.ValidateStruct(&t,
-		v.Field(&t.Space, v.Required, v.NotNil),
-		v.Field(&t.FilePath, v.Required, v.Length(1, 255)),
+		v.Field(&t.Path, v.Required),
 		v.Field(&t.Content, v.Required),
 		v.Field(&t.UploadedBy, v.Required, v.NotNil),
 	)

@@ -355,13 +355,11 @@ func (s *DFSService) Upload(ctx context.Context, cmd *UploadCmd) error {
 		return errs.Validation(err)
 	}
 
-	filePath := CleanPath(cmd.FilePath)
+	dirPath, fileName := path.Split(cmd.Path.Path())
 
-	dirPath, fileName := path.Split(filePath)
-
-	dir, err := s.Get(ctx, NewPathCmd(cmd.Space, dirPath))
+	dir, err := s.Get(ctx, NewPathCmd(cmd.Path.Space(), dirPath))
 	if err != nil {
-		return fmt.Errorf("failed to get the dir: %w", err)
+		return fmt.Errorf("failed to get the directory: %w", err)
 	}
 
 	fileMeta, err := s.files.Upload(ctx, cmd.Content)
@@ -375,7 +373,7 @@ func (s *DFSService) Upload(ctx context.Context, cmd *UploadCmd) error {
 	inode := INode{
 		id:             s.uuid.New(),
 		parent:         ptr.To(dir.ID()),
-		spaceID:        cmd.Space.ID(),
+		spaceID:        cmd.Path.Space().ID(),
 		size:           0,
 		name:           fileName,
 		createdAt:      now,
