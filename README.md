@@ -2,9 +2,9 @@
 
 # DuckCloud
 
-<h3 align='center'> A WebDAV server for the families. </h3>
+<h3 align='center'> A fully featured WebDAV server. </h3>
 
-Keep your family's devices in-sync with a small but full-featured WebDAV server.<br/>
+Keep all your files accessible with a small but full-featured WebDAV server.<br/>
 
 <p align="center">
     <a href="https://github.com/theduckcompany/duckcloud/commits/master">
@@ -20,9 +20,8 @@ Keep your family's devices in-sync with a small but full-featured WebDAV server.
       
 <p align="center">
   <a href="#features">Features</a> •  
-  <a href="#installation">Installation</a> •
-  <a href="#configuration">Configuration</a> •
-  <a href="#license">License</a>
+  <a href="https://docs.duckcloud.fr">Documentation</a> •
+  <a href="https://docs.duckcloud.fr/credits/">Credits</a>
 </p>
 
 </div>
@@ -33,7 +32,7 @@ Keep your family's devices in-sync with a small but full-featured WebDAV server.
 
 ## Who's it for?
 
-This project aims to propose an easy solution to host a little cloud at home. It try to be as simple as possible
+This project aims to propose an easy solution to host your files at home. It try to be as simple as possible
 for both the users and the administrator.
 
 
@@ -48,52 +47,4 @@ for both the users and the administrator.
 
 ## Installation
 
-| **OS/Distro** | **Command**   |
-|---------------|---------------|
-| Archlinux     | `yay duckcloud` |
-
-<details>
-<summary>Packaging status</summary>
-<a href="https://repology.org/project/duckcloud/versions">
-    <img src="https://repology.org/badge/vertical-allrepos/duckcloud.svg?columns=3" alt="Packaging status">
-</a>
-</details>
-
-#### From sources
-
-Make sure you have Go installed, and that go is in your path.
-
-Clone this repository and cd into the go directory. Then run:
-
-```sh
-go install github.com/theduckcompany/duckcloud@{{version}}
-```
-
-The versions can be found inside the [release page](https://github.com/theduckcompany/duckcloud/releases).
-
-
-#### From binaries
-
-Duckcloud is a single binary without any dependences. It's really easy to install. Download a binary from the realease page and put it on your PATH. We have a bunch 
-of ways to make this even easier for most platforms. 
-
-The [release page](https://github.com/theduckcompany/duckcloud/releases) includes precompiled binaries for Linux, macOS and Windows for every release. You can also get 
-the latest binary of `master` branch from the "Coming soon" pre-release.
-
-> This solution should be reserved for a quick test as no automatic updates are possible
-
-
-## Configuration
-
-#### Bootstrap
-
-
-
-
-
-
-
-
-
-
-
+Please check the [documentation](https://docs.duckcloud.fr/installation-guide/introduction/)
