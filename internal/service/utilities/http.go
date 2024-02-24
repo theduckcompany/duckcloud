@@ -1,6 +1,7 @@
 package utilities
 
 import (
+	"net/http"
 	"net/http/pprof"
 
 	"github.com/go-chi/chi/v5"
@@ -19,4 +20,9 @@ func (t *HTTPHandler) Register(r chi.Router, _ *router.Middlewares) {
 	r.HandleFunc("/debug/pprof/profile", pprof.Profile)
 	r.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	r.HandleFunc("/debug/pprof/trace", pprof.Trace)
+
+	r.HandleFunc("/robots.txt", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Add("Content-Type", "text/plain; charset=UTF-8")
+		w.Write([]byte("User-agent: *\nDisallow: /"))
+	}))
 }
