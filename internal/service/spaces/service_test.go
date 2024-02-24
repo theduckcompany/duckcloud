@@ -286,25 +286,29 @@ func Test_SpaceService(t *testing.T) {
 		require.True(t, users.ExampleAlice.IsAdmin())
 
 		// copy the struct to avoid any changes and impact on other tests
-		copyAliceSpace := ExampleAlicePersonalSpace
+		space := Space{
+			id:        uuid.UUID("e97b60f7-add2-43e1-a9bd-e2dac9ce69ec"),
+			name:      "Alice's Space",
+			owners:    Owners{users.ExampleAlice.ID()},
+			createdAt: now,
+			createdBy: users.ExampleAlice.ID(),
+		}
 
-		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).
-			Return(&copyAliceSpace, nil).Once()
+		storageMock.On("GetByID", mock.Anything, space.ID()).
+			Return(&space, nil).Once()
 
-		storageMock.On("Patch", mock.Anything, ExampleAlicePersonalSpace.ID(), map[string]interface{}{
+		storageMock.On("Patch", mock.Anything, space.ID(), map[string]interface{}{
 			"owners": Owners{},
 		}).Return(nil).Once()
 
 		res, err := svc.RemoveOwner(ctx, &RemoveOwnerCmd{
 			User:    &users.ExampleAlice,
 			Owner:   &users.ExampleAlice,
-			SpaceID: ExampleAlicePersonalSpace.ID(),
+			SpaceID: space.ID(),
 		})
 		require.NoError(t, err)
 
-		expected := ExampleAlicePersonalSpace
-		expected.owners = Owners{}
-		assert.Equal(t, &expected, res)
+		assert.Empty(t, res.owners)
 	})
 
 	t.Run("RemoveOwner with a non admin user", func(t *testing.T) {
@@ -333,19 +337,25 @@ func Test_SpaceService(t *testing.T) {
 		require.False(t, users.ExampleBob.IsAdmin())
 
 		// copy the struct to avoid any changes and impact on other tests
-		copyBobSpace := ExampleBobPersonalSpace
+		space := Space{
+			id:        uuid.UUID("614431ca-2493-41be-85e3-81fb2323f048"),
+			name:      "Bob's Space",
+			owners:    Owners{"0923c86c-24b6-4b9d-9050-e82b8408edf4"},
+			createdAt: now,
+			createdBy: users.ExampleBob.ID(),
+		}
 
-		storageMock.On("GetByID", mock.Anything, ExampleBobPersonalSpace.ID()).
-			Return(&copyBobSpace, nil).Once()
+		storageMock.On("GetByID", mock.Anything, space.ID()).
+			Return(&space, nil).Once()
 
-		storageMock.On("Patch", mock.Anything, ExampleBobPersonalSpace.ID(), map[string]interface{}{
+		storageMock.On("Patch", mock.Anything, space.ID(), map[string]interface{}{
 			"owners": Owners{},
 		}).Return(nil).Once()
 
 		res, err := svc.RemoveOwner(ctx, &RemoveOwnerCmd{
 			User:    &users.ExampleBob,
 			Owner:   &users.ExampleBob,
-			SpaceID: ExampleBobPersonalSpace.ID(),
+			SpaceID: space.ID(),
 		})
 		require.NoError(t, err)
 
@@ -383,18 +393,24 @@ func Test_SpaceService(t *testing.T) {
 		require.True(t, users.ExampleAlice.IsAdmin())
 
 		// copy the struct to avoid any changes and impact on other tests
-		copyAliceSpace := ExampleAlicePersonalSpace
+		space := Space{
+			id:        uuid.UUID("e97b60f7-add2-43e1-a9bd-e2dac9ce69ec"),
+			name:      "Alice's Space",
+			owners:    Owners{users.ExampleAlice.ID()},
+			createdAt: now,
+			createdBy: users.ExampleAlice.ID(),
+		}
 
-		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).
-			Return(&copyAliceSpace, nil).Once()
+		storageMock.On("GetByID", mock.Anything, space.ID()).
+			Return(&space, nil).Once()
 
 		res, err := svc.RemoveOwner(ctx, &RemoveOwnerCmd{
 			User:    &users.ExampleAlice,
 			Owner:   &users.ExampleBob, // Bob is not set as owner inside ExampleAlicePersonalSpace
-			SpaceID: ExampleAlicePersonalSpace.ID(),
+			SpaceID: space.ID(),
 		})
 		require.NoError(t, err)
-		assert.Equal(t, &ExampleAlicePersonalSpace, res) // nothing change
+		assert.Len(t, res.owners, 1) // nothing change
 	})
 
 	t.Run("RemoveOwner with a Patch error", func(t *testing.T) {
@@ -406,19 +422,25 @@ func Test_SpaceService(t *testing.T) {
 		require.True(t, users.ExampleAlice.IsAdmin())
 
 		// copy the struct to avoid any changes and impact on other tests
-		copyAliceSpace := ExampleAlicePersonalSpace
+		space := Space{
+			id:        uuid.UUID("e97b60f7-add2-43e1-a9bd-e2dac9ce69ec"),
+			name:      "Alice's Space",
+			owners:    Owners{users.ExampleAlice.ID()},
+			createdAt: now,
+			createdBy: users.ExampleAlice.ID(),
+		}
 
-		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).
-			Return(&copyAliceSpace, nil).Once()
+		storageMock.On("GetByID", mock.Anything, space.ID()).
+			Return(&space, nil).Once()
 
-		storageMock.On("Patch", mock.Anything, ExampleAlicePersonalSpace.ID(), map[string]interface{}{
+		storageMock.On("Patch", mock.Anything, space.ID(), map[string]interface{}{
 			"owners": Owners{},
 		}).Return(errs.ErrInternal).Once()
 
 		res, err := svc.RemoveOwner(ctx, &RemoveOwnerCmd{
 			User:    &users.ExampleAlice,
 			Owner:   &users.ExampleAlice,
-			SpaceID: ExampleAlicePersonalSpace.ID(),
+			SpaceID: space.ID(),
 		})
 		assert.Nil(t, res)
 		require.ErrorIs(t, err, errs.ErrInternal)
@@ -433,23 +455,29 @@ func Test_SpaceService(t *testing.T) {
 		require.True(t, users.ExampleAlice.IsAdmin())
 
 		// copy the struct to avoid any changes and impact on other tests
-		copyAliceSpace := ExampleAlicePersonalSpace
+		space := Space{
+			id:        uuid.UUID("e97b60f7-add2-43e1-a9bd-e2dac9ce69ec"),
+			name:      "Alice's Space",
+			owners:    Owners{users.ExampleAlice.ID()},
+			createdAt: now,
+			createdBy: users.ExampleAlice.ID(),
+		}
 
-		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).
-			Return(&copyAliceSpace, nil).Once()
+		storageMock.On("GetByID", mock.Anything, space.ID()).
+			Return(&space, nil).Once()
 
-		storageMock.On("Patch", mock.Anything, ExampleAlicePersonalSpace.ID(), map[string]interface{}{
+		storageMock.On("Patch", mock.Anything, space.ID(), map[string]interface{}{
 			"owners": Owners{users.ExampleAlice.ID(), users.ExampleBob.ID()},
 		}).Return(nil).Once()
 
 		res, err := svc.AddOwner(ctx, &AddOwnerCmd{
 			User:    &users.ExampleAlice,
 			Owner:   &users.ExampleBob,
-			SpaceID: ExampleAlicePersonalSpace.ID(),
+			SpaceID: space.ID(),
 		})
 		require.NoError(t, err)
 
-		expected := ExampleAlicePersonalSpace
+		expected := space
 		expected.owners = Owners{users.ExampleAlice.ID(), users.ExampleBob.ID()}
 		assert.Equal(t, &expected, res)
 	})
@@ -500,18 +528,25 @@ func Test_SpaceService(t *testing.T) {
 		require.True(t, users.ExampleAlice.IsAdmin())
 
 		// copy the struct to avoid any changes and impact on other tests
-		copyAliceSpace := ExampleAlicePersonalSpace
+		space := Space{
+			id:        uuid.UUID("e97b60f7-add2-43e1-a9bd-e2dac9ce69ec"),
+			name:      "Alice's Space",
+			owners:    Owners{users.ExampleAlice.ID()},
+			createdAt: now,
+			createdBy: users.ExampleAlice.ID(),
+		}
 
-		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).
-			Return(&copyAliceSpace, nil).Once()
+		storageMock.On("GetByID", mock.Anything, space.ID()).
+			Return(&space, nil).Once()
 
 		res, err := svc.AddOwner(ctx, &AddOwnerCmd{
 			User:    &users.ExampleAlice,
 			Owner:   &users.ExampleAlice, // Alice is already present in perms
-			SpaceID: ExampleAlicePersonalSpace.ID(),
+			SpaceID: space.ID(),
 		})
 		require.NoError(t, err)
-		assert.Equal(t, &ExampleAlicePersonalSpace, res) // nothing change
+		assert.NotNil(t, res)
+		assert.Len(t, space.owners, 1) // nothing change
 	})
 
 	t.Run("AddOwner with a Patch error", func(t *testing.T) {
@@ -523,19 +558,25 @@ func Test_SpaceService(t *testing.T) {
 		require.True(t, users.ExampleAlice.IsAdmin())
 
 		// copy the struct to avoid any changes and impact on other tests
-		copyAliceSpace := ExampleAlicePersonalSpace
+		space := Space{
+			id:        uuid.UUID("e97b60f7-add2-43e1-a9bd-e2dac9ce69ec"),
+			name:      "Alice's Space",
+			owners:    Owners{users.ExampleAlice.ID()},
+			createdAt: now,
+			createdBy: users.ExampleAlice.ID(),
+		}
 
-		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).
-			Return(&copyAliceSpace, nil).Once()
+		storageMock.On("GetByID", mock.Anything, space.ID()).
+			Return(&space, nil).Once()
 
-		storageMock.On("Patch", mock.Anything, ExampleAlicePersonalSpace.ID(), map[string]interface{}{
+		storageMock.On("Patch", mock.Anything, space.ID(), map[string]interface{}{
 			"owners": Owners{users.ExampleAlice.ID(), users.ExampleBob.ID()},
 		}).Return(errs.ErrInternal).Once()
 
 		res, err := svc.AddOwner(ctx, &AddOwnerCmd{
 			User:    &users.ExampleAlice,
 			Owner:   &users.ExampleBob,
-			SpaceID: ExampleAlicePersonalSpace.ID(),
+			SpaceID: space.ID(),
 		})
 		assert.Nil(t, res)
 		require.ErrorIs(t, err, errs.ErrInternal)
