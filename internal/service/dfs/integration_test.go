@@ -162,8 +162,7 @@ func Test_DFS_Integration(t *testing.T) {
 			buf.WriteString(content)
 
 			err := serv.DFSSvc.Upload(ctx, &dfs.UploadCmd{
-				Space:      &space,
-				FilePath:   "/Documents/todo.txt",
+				Path:       dfs.NewPathCmd(&space, "/Documents/todo.txt"),
 				Content:    buf,
 				UploadedBy: serv.User,
 			})
@@ -286,8 +285,7 @@ func Test_DFS_Integration(t *testing.T) {
 			buf.WriteString(content)
 
 			err := serv.DFSSvc.Upload(ctx, &dfs.UploadCmd{
-				Space:      &space,
-				FilePath:   "/Duplicate/todo.txt",
+				Path:       dfs.NewPathCmd(&space, "/Duplicate/todo.txt"),
 				Content:    buf,
 				UploadedBy: serv.User,
 			})
@@ -302,8 +300,7 @@ func Test_DFS_Integration(t *testing.T) {
 			buf.WriteString(content)
 
 			err := serv.DFSSvc.Upload(ctx, &dfs.UploadCmd{
-				Space:      &space,
-				FilePath:   "/Duplicate/todo-duplicate.txt",
+				Path:       dfs.NewPathCmd(&space, "/Duplicate/todo-duplicate.txt"),
 				Content:    buf,
 				UploadedBy: serv.User,
 			})
@@ -357,8 +354,7 @@ func Test_DFS_Integration(t *testing.T) {
 			require.NoError(t, err)
 
 			err = serv.DFSSvc.Upload(ctx, &dfs.UploadCmd{
-				Space:      &space,
-				FilePath:   "/rename-name-taken/foo.txt",
+				Path:       dfs.NewPathCmd(&space, "/rename-name-taken/foo.txt"),
 				Content:    http.NoBody,
 				UploadedBy: serv.User,
 			})
@@ -380,8 +376,7 @@ func Test_DFS_Integration(t *testing.T) {
 
 		t.Run("Rename with name already taken", func(t *testing.T) {
 			err := serv.DFSSvc.Upload(ctx, &dfs.UploadCmd{
-				Space:      &space,
-				FilePath:   "/rename-name-taken/bar.txt",
+				Path:       dfs.NewPathCmd(&space, "/rename-name-taken/bar.txt"),
 				Content:    http.NoBody,
 				UploadedBy: serv.User,
 			})
@@ -416,8 +411,7 @@ func Test_DFS_Integration(t *testing.T) {
 		require.NoError(t, err)
 
 		err = serv.DFSSvc.Upload(ctx, &dfs.UploadCmd{
-			Space:      &space,
-			FilePath:   "/move-same-place/foo.txt",
+			Path:       dfs.NewPathCmd(&space, "/move-same-place/foo.txt"),
 			Content:    http.NoBody,
 			UploadedBy: serv.User,
 		})

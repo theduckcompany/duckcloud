@@ -318,8 +318,7 @@ func TestFilenameEscape(t *testing.T) {
 				}
 			} else {
 				err := fs.Upload(ctx, &dfs.UploadCmd{
-					Space:      tc.Space,
-					FilePath:   tt.name,
+					Path:       dfs.NewPathCmd(tc.Space, tt.name),
 					Content:    http.NoBody,
 					UploadedBy: tc.User,
 				})
@@ -386,18 +385,18 @@ func TestWalkFS(t *testing.T) {
 		desc    string
 		buildfs []string
 		startAt string
-		depth   int
 		walkFn  WalkFunc
 		want    []string
+		depth   int
 	}{{
 		"just root",
 		[]string{},
 		"/",
-		infiniteDepth,
 		nil,
 		[]string{
 			"/",
 		},
+		infiniteDepth,
 	}, {
 		"infinite walk from root",
 		[]string{
@@ -409,7 +408,6 @@ func TestWalkFS(t *testing.T) {
 			"touch /f",
 		},
 		"/",
-		infiniteDepth,
 		nil,
 		[]string{
 			"/",
@@ -420,6 +418,7 @@ func TestWalkFS(t *testing.T) {
 			"/e",
 			"/f",
 		},
+		infiniteDepth,
 	}, {
 		"infinite walk from subdir",
 		[]string{
@@ -431,7 +430,6 @@ func TestWalkFS(t *testing.T) {
 			"touch /f",
 		},
 		"/a",
-		infiniteDepth,
 		nil,
 		[]string{
 			"/a",
@@ -439,6 +437,7 @@ func TestWalkFS(t *testing.T) {
 			"/a/b/c",
 			"/a/d",
 		},
+		infiniteDepth,
 	}, {
 		"depth 1 walk from root",
 		[]string{
@@ -450,7 +449,6 @@ func TestWalkFS(t *testing.T) {
 			"touch /f",
 		},
 		"/",
-		1,
 		nil,
 		[]string{
 			"/",
@@ -458,6 +456,7 @@ func TestWalkFS(t *testing.T) {
 			"/e",
 			"/f",
 		},
+		1,
 	}, {
 		"depth 1 walk from subdir",
 		[]string{
@@ -470,13 +469,13 @@ func TestWalkFS(t *testing.T) {
 			"touch /a/b/g/h/j",
 		},
 		"/a/b",
-		1,
 		nil,
 		[]string{
 			"/a/b",
 			"/a/b/c",
 			"/a/b/g",
 		},
+		1,
 	}, {
 		"depth 0 walk from subdir",
 		[]string{
@@ -489,11 +488,11 @@ func TestWalkFS(t *testing.T) {
 			"touch /a/b/g/h/j",
 		},
 		"/a/b",
-		0,
 		nil,
 		[]string{
 			"/a/b",
 		},
+		0,
 	}, {
 		"infinite walk from file",
 		[]string{
@@ -502,11 +501,11 @@ func TestWalkFS(t *testing.T) {
 			"touch /a/c",
 		},
 		"/a/b",
-		0,
 		nil,
 		[]string{
 			"/a/b",
 		},
+		0,
 	}, {
 		"infinite walk with skipped subdir",
 		[]string{
@@ -520,8 +519,7 @@ func TestWalkFS(t *testing.T) {
 			"touch /a/b/z",
 		},
 		"/",
-		infiniteDepth,
-		func(cmd *dfs.PathCmd, info *dfs.INode, err error) error {
+		func(cmd *dfs.PathCmd, _ *dfs.INode, _ error) error {
 			if cmd.Path() == "/a/b/g" {
 				return filepath.SkipDir
 			}
@@ -534,6 +532,7 @@ func TestWalkFS(t *testing.T) {
 			"/a/b/c",
 			"/a/b/z",
 		},
+		infiniteDepth,
 	}}
 	ctx := context.Background()
 	for _, tc := range testCases {

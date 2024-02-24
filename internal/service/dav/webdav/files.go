@@ -85,8 +85,7 @@ func copyFiles(ctx context.Context, user *users.User, fs dfs.Service, src, dst *
 		defer reader.Close()
 
 		err = fs.Upload(ctx, &dfs.UploadCmd{
-			Space:      dst.Space(),
-			FilePath:   dst.Path(),
+			Path:       dst,
 			Content:    reader,
 			UploadedBy: user,
 		})

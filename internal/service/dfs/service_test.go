@@ -400,8 +400,7 @@ func Test_DFS_Service(t *testing.T) {
 		}).Return(nil).Once()
 
 		err := spaceFS.Upload(ctx, &UploadCmd{
-			Space:      &spaces.ExampleAlicePersonalSpace,
-			FilePath:   "foo/new.pdf",
+			Path:       NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/new.pdf"),
 			Content:    bytes.NewBufferString(content),
 			UploadedBy: &users.ExampleAlice,
 		})
@@ -417,8 +416,7 @@ func Test_DFS_Service(t *testing.T) {
 		spaceFS := NewService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		err := spaceFS.Upload(ctx, &UploadCmd{
-			Space:      &spaces.ExampleAlicePersonalSpace,
-			FilePath:   "foo/bar.txt",
+			Path:       NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/bar.txt"),
 			Content:    nil,
 			UploadedBy: &users.ExampleAlice,
 		})
@@ -441,8 +439,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errs.ErrNotFound).Once()
 
 		err := spaceFS.Upload(ctx, &UploadCmd{
-			Space:      &spaces.ExampleAlicePersonalSpace,
-			FilePath:   "foo/new.pdf",
+			Path:       NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/new.pdf"),
 			Content:    bytes.NewBufferString(content),
 			UploadedBy: &users.ExampleAlice,
 		})
@@ -466,8 +463,7 @@ func Test_DFS_Service(t *testing.T) {
 		filesMock.On("Upload", mock.Anything, bytes.NewBufferString(content)).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
 
 		err := spaceFS.Upload(ctx, &UploadCmd{
-			Space:      &spaces.ExampleAlicePersonalSpace,
-			FilePath:   "foo/new.pdf",
+			Path:       NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/new.pdf"),
 			Content:    bytes.NewBufferString(content),
 			UploadedBy: &users.ExampleAlice,
 		})
@@ -496,8 +492,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("Save", mock.Anything, &ExampleAliceNewFile).Return(fmt.Errorf("some-error")).Once()
 
 		err := spaceFS.Upload(ctx, &UploadCmd{
-			Space:      &spaces.ExampleAlicePersonalSpace,
-			FilePath:   "foo/new.pdf",
+			Path:       NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo/new.pdf"),
 			Content:    bytes.NewBufferString(content),
 			UploadedBy: &users.ExampleAlice,
 		})
@@ -531,8 +526,7 @@ func Test_DFS_Service(t *testing.T) {
 		}).Return(errs.Internal(fmt.Errorf("some-error"))).Once()
 
 		err := spaceFS.Upload(ctx, &UploadCmd{
-			Space:      &spaces.ExampleAlicePersonalSpace,
-			FilePath:   "foo/new.pdf",
+			Path:       NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/new.pdf"),
 			Content:    bytes.NewBufferString(content),
 			UploadedBy: &users.ExampleAlice,
 		})

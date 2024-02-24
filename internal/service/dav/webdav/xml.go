@@ -36,8 +36,8 @@ import (
 )
 
 type countingReader struct {
-	n int
 	r io.Reader
+	n int
 }
 
 func (c *countingReader) Read(p []byte) (int, error) {
@@ -241,14 +241,13 @@ type response struct {
 // elements with a default namespace (no prefixed namespace). A less intrusive fix
 // should be possible after golang.org/cl/11074. See https://golang.org/issue/11177
 type multistatusWriter struct {
+	w   http.ResponseWriter
+	enc *ixml.Encoder
 	// ResponseDescription contains the optional responsedescription
 	// of the multistatus XML element. Only the latest content before
 	// close will be emitted. Empty response descriptions are not
 	// written.
 	responseDescription string
-
-	w   http.ResponseWriter
-	enc *ixml.Encoder
 }
 
 // Write validates and emits a DAV response as part of a multistatus response
