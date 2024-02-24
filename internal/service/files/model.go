@@ -8,12 +8,12 @@ import (
 )
 
 type FileMeta struct {
+	uploadedAt time.Time
+	key        *secret.SealedKey
 	id         uuid.UUID
-	size       uint64
 	mimetype   string
 	checksum   string
-	key        *secret.SealedKey
-	uploadedAt time.Time
+	size       uint64
 }
 
 func (f *FileMeta) ID() uuid.UUID         { return f.id }

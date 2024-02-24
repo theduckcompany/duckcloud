@@ -237,13 +237,13 @@ func TestMultistatusWriter(t *testing.T) {
 	///The "section x.y.z" test cases come from section x.y.z of the spec at
 	// http://www.webdav.org/specs/rfc4918.html
 	testCases := []struct {
-		desc        string
-		responses   []response
-		respdesc    string
-		writeHeader bool
-		wantXML     string
-		wantCode    int
 		wantErr     error
+		desc        string
+		respdesc    string
+		wantXML     string
+		responses   []response
+		wantCode    int
+		writeHeader bool
 	}{{
 		desc: "section 9.2.2 (failed dependency)",
 		responses: []response{{

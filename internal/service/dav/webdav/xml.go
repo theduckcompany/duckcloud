@@ -36,8 +36,8 @@ import (
 )
 
 type countingReader struct {
-	r io.Reader
 	n int
+	r io.Reader
 }
 
 func (c *countingReader) Read(p []byte) (int, error) {

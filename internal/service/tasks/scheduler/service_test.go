@@ -138,7 +138,7 @@ func TestSchdulerService(t *testing.T) {
 			Status:       model.Queuing,
 			Name:         "file-upload",
 			RegisteredAt: now,
-			Args:         json.RawMessage(`{"space-id":"a379fef3-ebc3-4069-b1ef-8c67948b3cff","file-id":"0d76c071-2e8b-4873-92e9-d8be871ef636","inode-id":"c87ebbda-435b-43b7-bab6-e93ca8f3831a","uploaded-at":"2020-02-12T11:10:00Z"}`),
+			Args:         json.RawMessage(`{"uploaded-at":"2020-02-12T11:10:00Z","space-id":"a379fef3-ebc3-4069-b1ef-8c67948b3cff","file-id":"0d76c071-2e8b-4873-92e9-d8be871ef636","inode-id":"c87ebbda-435b-43b7-bab6-e93ca8f3831a"}`),
 		}).Return(nil).Once()
 
 		err := svc.RegisterFileUploadTask(ctx, &FileUploadArgs{
@@ -164,7 +164,7 @@ func TestSchdulerService(t *testing.T) {
 			Status:       model.Queuing,
 			Name:         "fs-refresh-size",
 			RegisteredAt: now,
-			Args:         json.RawMessage(`{"inode":"a379fef3-ebc3-4069-b1ef-8c67948b3cff","modified_at":"2020-02-12T11:10:00Z"}`),
+			Args:         json.RawMessage(`{"modified_at":"2020-02-12T11:10:00Z","inode":"a379fef3-ebc3-4069-b1ef-8c67948b3cff"}`),
 		}).Return(nil).Once()
 
 		err := svc.RegisterFSRefreshSizeTask(ctx, &FSRefreshSizeArg{

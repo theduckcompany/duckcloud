@@ -10,12 +10,12 @@ import (
 )
 
 type Consent struct {
+	createdAt    time.Time
 	id           uuid.UUID
 	userID       uuid.UUID
 	sessionToken string
 	clientID     string
 	scopes       []string
-	createdAt    time.Time
 }
 
 func (c *Consent) ID() uuid.UUID        { return c.id }

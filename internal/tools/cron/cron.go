@@ -16,12 +16,12 @@ type CronRunner interface {
 }
 
 type Cron struct {
-	pauseDuration time.Duration
+	job           CronRunner
 	quit          chan struct{}
 	cancel        context.CancelFunc
 	log           *slog.Logger
-	job           CronRunner
 	lock          *sync.Mutex
+	pauseDuration time.Duration
 }
 
 func New(name string, pauseDuration time.Duration, tools tools.Tools, job CronRunner) *Cron {

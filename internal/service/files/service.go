@@ -230,13 +230,18 @@ func (s *FileService) Delete(ctx context.Context, fileID uuid.UUID) error {
 
 type decReadSeeker struct {
 	r      io.ReaderAt
+	closer io.Closer
 	off    int64
 	size   int64
-	closer io.Closer
 }
 
 func newDecReadSeeker(r io.ReaderAt, size int64, closer io.Closer) *decReadSeeker {
-	return &decReadSeeker{r, 0, size, closer}
+	return &decReadSeeker{
+		r:      r,
+		off:    0,
+		size:   size,
+		closer: closer,
+	}
 }
 
 func (s *decReadSeeker) Read(p []byte) (int, error) {

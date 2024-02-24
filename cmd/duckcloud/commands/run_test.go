@@ -29,8 +29,8 @@ func Test_NewRunCmd(t *testing.T) {
 		cmd.SetArgs([]string{"--dev", "--memory-fs", "--folder=/duckcloud-test"})
 		var cmdErr error
 		var wg sync.WaitGroup
+		wg.Add(1)
 		go func() {
-			wg.Add(1)
 			defer wg.Done()
 			cmdErr = cmd.ExecuteContext(ctx)
 		}()
@@ -73,8 +73,8 @@ func Test_NewRunCmd(t *testing.T) {
 		cmd.SetArgs([]string{"--memory-fs", "--dev"})
 		var cmdErr error
 		var wg sync.WaitGroup
+		wg.Add(1)
 		go func() {
-			wg.Add(1)
 			defer wg.Done()
 			cmdErr = cmd.ExecuteContext(ctx)
 		}()
@@ -113,8 +113,8 @@ func Test_NewRunCmd(t *testing.T) {
 		cmd.SetArgs([]string{"--self-signed-cert", "--memory-fs", "--dev", "--folder=/duckcloud-test", "--log-level=info"})
 		var cmdErr error
 		var wg sync.WaitGroup
+		wg.Add(1)
 		go func() {
-			wg.Add(1)
 			defer wg.Done()
 			cmdErr = cmd.ExecuteContext(ctx)
 		}()

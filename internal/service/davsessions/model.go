@@ -13,13 +13,13 @@ import (
 var DavSessionRegexp = regexp.MustCompile("^[0-9a-zA-Z- ]+$")
 
 type DavSession struct {
+	createdAt time.Time
 	id        uuid.UUID
 	userID    uuid.UUID
 	name      string
 	username  string
 	password  secret.Text
 	spaceID   uuid.UUID
-	createdAt time.Time
 }
 
 func (u *DavSession) ID() uuid.UUID        { return u.id }
