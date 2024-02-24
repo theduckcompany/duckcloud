@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"net/http"
 	"path"
+	stdpath "path"
 	"path/filepath"
 	"sync"
 
@@ -110,18 +111,18 @@ func (h *Handler) getBrowserContent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	space, fullPath, abort := h.getSpaceAndPathFromURL(w, r, user, r.URL.Path)
-	if abort {
+	path := h.getPathFromURL(w, r, user, r.URL.Path)
+	if path == nil {
 		return
 	}
 
 	lastElem := r.URL.Query().Get("last")
 	if lastElem != "" {
-		h.renderMoreDirContent(w, r, space, fullPath, lastElem)
+		h.renderMoreDirContent(w, r, path, lastElem)
 		return
 	}
 
-	h.renderBrowserContent(w, r, user, dfs.NewPathCmd(space, fullPath))
+	h.renderBrowserContent(w, r, user, path)
 }
 
 func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
@@ -197,12 +198,12 @@ func (h *Handler) deleteAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	space, fullPath, abort := h.getSpaceAndPathFromURL(w, r, user, r.URL.Path)
-	if abort {
+	path := h.getPathFromURL(w, r, user, r.URL.Path)
+	if path == nil {
 		return
 	}
 
-	err := h.fs.Remove(r.Context(), dfs.NewPathCmd(space, fullPath))
+	err := h.fs.Remove(r.Context(), path)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Remove: %w", err))
 		return
@@ -263,28 +264,26 @@ func (h *Handler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
 	return nil
 }
 
-func (h Handler) getSpaceAndPathFromURL(w http.ResponseWriter, r *http.Request, user *users.User, pathStr string) (*spaces.Space, string, bool) {
+func (h Handler) getPathFromURL(w http.ResponseWriter, r *http.Request, user *users.User, pathStr string) *dfs.PathCmd {
 	// no need to check elems len as the url format force a len of 3 minimum
 	spaceID, err := h.uuid.Parse(chi.URLParam(r, "spaceID"))
 	if err != nil {
 		http.Redirect(w, r, "/browser", http.StatusFound)
-		return nil, "", true
+		return nil
 	}
 
 	space, err := h.spaces.GetUserSpace(r.Context(), user.ID(), spaceID)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to spaces.GetByID: %w", err))
-		return nil, "", true
+		return nil
 	}
 
 	if space == nil {
 		http.Redirect(w, r, "/browser", http.StatusFound)
-		return nil, "", true
+		return nil
 	}
 
-	fullPath := dfs.CleanPath(chi.URLParam(r, "*"))
-
-	return space, fullPath, false
+	return dfs.NewPathCmd(space, chi.URLParam(r, "*"))
 }
 
 func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, cmd *dfs.PathCmd) {
@@ -339,9 +338,7 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 	})
 }
 
-func (h *Handler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, space *spaces.Space, fullPath, lastElem string) {
-	folderPath := dfs.NewPathCmd(space, fullPath)
-
+func (h *Handler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, folderPath *dfs.PathCmd, lastElem string) {
 	dirContent, err := h.fs.ListDir(r.Context(), folderPath, &storage.PaginateCmd{
 		StartAfter: map[string]string{"name": lastElem},
 		Limit:      PageSize,
@@ -364,30 +361,28 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	space, fullPath, abort := h.getSpaceAndPathFromURL(w, r, user, r.URL.Path)
-	if abort {
+	path := h.getPathFromURL(w, r, user, r.URL.Path)
+	if path == nil {
 		return
 	}
 
-	pathCmd := dfs.NewPathCmd(space, fullPath)
-
-	inode, err := h.fs.Get(r.Context(), pathCmd)
+	inode, err := h.fs.Get(r.Context(), path)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Get: %w", err))
 		return
 	}
 
 	if inode == nil {
-		http.Redirect(w, r, path.Join("/browser/", string(space.ID())), http.StatusFound)
+		http.Redirect(w, r, stdpath.Join("/browser/", string(path.Space().ID())), http.StatusFound)
 		return
 	}
 
 	if inode.IsDir() {
-		h.serveFolderContent(w, r, dfs.NewPathCmd(space, fullPath))
+		h.serveFolderContent(w, r, path)
 	} else {
 		fileMeta, _ := h.files.GetMetadata(r.Context(), *inode.FileID())
 
-		file, err := h.fs.Download(r.Context(), pathCmd)
+		file, err := h.fs.Download(r.Context(), path)
 		if err != nil {
 			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Download: %w", err))
 			return
