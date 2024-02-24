@@ -15,11 +15,11 @@ import (
 const BootstrapSpaceName = "Everyone"
 
 type Space struct {
+	createdAt time.Time
 	id        uuid.UUID
 	name      string
-	owners    Owners
-	createdAt time.Time
 	createdBy uuid.UUID
+	owners    Owners
 }
 
 func (f Space) ID() uuid.UUID        { return f.id }

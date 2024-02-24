@@ -12,7 +12,7 @@ var now time.Time = time.Now().UTC()
 var ExampleAlicePersonalSpace = Space{
 	id:        uuid.UUID("e97b60f7-add2-43e1-a9bd-e2dac9ce69ec"),
 	name:      "Alice's Space",
-	owners:    Owners{"86bffce3-3f53-4631-baf8-8530773884f3"},
+	owners:    Owners{users.ExampleAlice.ID()},
 	createdAt: now,
 	createdBy: users.ExampleAlice.ID(),
 }
