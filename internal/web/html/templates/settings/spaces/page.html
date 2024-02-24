@@ -1,69 +1,50 @@
 <section class="container pt-3" hx-target-4*="this">
-  <div data-mdb-datatable-init class="datatable">
-    <table>
-      <thead>
-        <tr>
-          <th class="col-3">Name</th>
-          <th class="col-4">Users</th>
-          <th class="col-3">Capacity</th>
-          <th class="col-2">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{ range .Spaces}}
-        <tr>
-          <td> {{.Name}} </td>
+  <div class="card-body">
+    <div data-mdb-datatable-init class="datatable">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Users</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{ range .Spaces}}
+          <tr>
+            <td> {{.Name}} </td>
 
-          <td>
-            {{range .Owners}}
-            <span class="badge badge-info rounded-pill">{{ with index $.Users .}}{{.Username}}{{end}}</span>
-            {{end}}
-          </td>
-          <td>
-            <div class="progress" style="height: 20px;">
-              <div class="progress-bar" role="progressbar" style="width: 100%;" aria-valuenow="25" aria-valuemin="0"
-                aria-valuemax="0">Unlimited</div>
-            </div>
-          </td>
+            <td>
+              {{range .Owners}}
+              <span class="badge badge-info rounded-pill">{{ with index $.Users .}}{{.Username}}{{end}}</span>
+              {{end}}
+            </td>
 
-          <td>
-            <div class="col-1 dropdown">
-              <a class="btn btn-white btn-rounded shadow-0" 
-                role="button" 
-                id="dropdownMenuLink{{.ID}}"
-                data-mdb-dropdown-init
-                data-mdb-toggle="dropdown" 
-                aria-expanded="false">
-                <i class="fas fa-ellipsis-vertical text-muted fa-2x"></i></a>
+            <td>
 
-              <ul class="dropdown-menu" 
-                aria-labelledby="delete-space-{{.ID}}" 
-                style="font-size: 1rem;">
-                <li>
-                  <a class="dropdown-item text-danger" 
-                    hx-target="body"
-                    hx-post="/settings/spaces/{{.ID}}/delete" 
-                    hx-swap="outerHTML"><i
-                      class="fas fa-trash me-2"></i>Delete Space</a>
-                </li>
-              </ul>
-            </div>
-          </td>
+              <a role="button" 
+                class="delete-email-button text-muted ms-2"
+                hx-target="body"
+                hx-post="/settings/spaces/{{.ID}}/delete" 
+                hx-swap="outerHTML"><i class="fa fa-trash-alt"></i>
+              </a>
+            </td>
 
-        </tr>
-        {{end}}
-      </tbody>
-    </table>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+
+    <button type="button" 
+      class="btn btn-rounded btn-outline-primary mb-3" 
+      data-mdb-target="#modal-target"
+      data-mdb-modal-init 
+      data-mdb-toggle="modal" 
+      hx-get="/settings/spaces/new" 
+      hx-target="#modal-target"
+      hx-trigger="click" 
+      hx-swap="innerHTML">
+      <i class="fas fa-plus me-2"></i>Create a new space</button>
   </div>
-
-  <button type="button" 
-    class="btn btn-rounded btn-outline-primary mb-3" 
-    data-mdb-target="#modal-target"
-    data-mdb-modal-init 
-    data-mdb-toggle="modal" 
-    hx-get="/settings/spaces/new" 
-    hx-target="#modal-target"
-    hx-trigger="click" 
-    hx-swap="innerHTML">
-    <i class="fas fa-plus me-2"></i>Create a new space</button>
 </section>
