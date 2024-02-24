@@ -73,7 +73,7 @@ func (t *sqlStorage) RemoveByID(ctx context.Context, sessionID uuid.UUID) error 
 	return nil
 }
 
-func (t *sqlStorage) GetByUsernameAndPassHash(ctx context.Context, username string, password secret.Text) (*DavSession, error) {
+func (t *sqlStorage) GetByUsernameAndPassword(ctx context.Context, username string, password secret.Text) (*DavSession, error) {
 	res := DavSession{}
 
 	err := sq.

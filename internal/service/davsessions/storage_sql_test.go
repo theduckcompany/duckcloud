@@ -21,15 +21,15 @@ func TestDavSessionSqlStorage(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("GetByUsernameAndPassHash success", func(t *testing.T) {
-		res, err := store.GetByUsernameAndPassHash(context.Background(), ExampleAliceSession.username, ExampleAliceSession.password)
+	t.Run("GetByUsernameAndPassword success", func(t *testing.T) {
+		res, err := store.GetByUsernameAndPassword(context.Background(), ExampleAliceSession.username, ExampleAliceSession.password)
 
 		require.NoError(t, err)
 		assert.Equal(t, &ExampleAliceSession, res)
 	})
 
-	t.Run("GetByUsernameAndPassHash not found", func(t *testing.T) {
-		res, err := store.GetByUsernameAndPassHash(context.Background(), "some-invalid-username", secret.NewText("some-hashed-password"))
+	t.Run("GetByUsernameAndPassword not found", func(t *testing.T) {
+		res, err := store.GetByUsernameAndPassword(context.Background(), "some-invalid-username", secret.NewText("some-hashed-password"))
 
 		assert.Nil(t, res)
 		require.ErrorIs(t, err, errNotFound)

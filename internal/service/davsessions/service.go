@@ -2,7 +2,6 @@ package davsessions
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -26,7 +25,7 @@ var (
 //go:generate mockery --name Storage
 type Storage interface {
 	Save(ctx context.Context, session *DavSession) error
-	GetByUsernameAndPassHash(ctx context.Context, username string, password secret.Text) (*DavSession, error)
+	GetByUsernameAndPassword(ctx context.Context, username string, password secret.Text) (*DavSession, error)
 	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]DavSession, error)
 	GetByID(ctx context.Context, sessionID uuid.UUID) (*DavSession, error)
 	RemoveByID(ctx context.Context, sessionID uuid.UUID) error
@@ -62,14 +61,13 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 	}
 
 	password := string(s.uuid.New())
-	rawSha := sha256.Sum256([]byte(password))
 
 	session := DavSession{
 		id:        s.uuid.New(),
 		userID:    cmd.UserID,
 		name:      cmd.Name,
 		username:  cmd.Username,
-		password:  secret.NewText(hex.EncodeToString(rawSha[:])),
+		password:  secret.NewText(hex.EncodeToString([]byte(password))),
 		spaceID:   space.ID(),
 		createdAt: s.clock.Now(),
 	}
@@ -83,15 +81,13 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 }
 
 func (s *DavSessionsService) Authenticate(ctx context.Context, username string, password secret.Text) (*DavSession, error) {
-	rawSha := sha256.Sum256([]byte(password.Raw()))
-
-	res, err := s.storage.GetByUsernameAndPassHash(ctx, username, secret.NewText(hex.EncodeToString(rawSha[:])))
+	res, err := s.storage.GetByUsernameAndPassword(ctx, username, secret.NewText(hex.EncodeToString([]byte(password.Raw()))))
 	if errors.Is(err, errNotFound) {
 		return nil, errs.BadRequest(ErrInvalidCredentials, "invalid credentials")
 	}
 
 	if err != nil {
-		return nil, errs.Internal(fmt.Errorf("failed to GetByUsernameandPassHash: %w", err))
+		return nil, errs.Internal(fmt.Errorf("failed to GetByUsernameandPassword: %w", err))
 	}
 
 	return res, nil
