@@ -70,8 +70,8 @@ func (_m *MockStorage) GetByID(ctx context.Context, sessionID uuid.UUID) (*DavSe
 	return r0, r1
 }
 
-// GetByUsernameAndPassHash provides a mock function with given fields: ctx, username, password
-func (_m *MockStorage) GetByUsernameAndPassHash(ctx context.Context, username string, password secret.Text) (*DavSession, error) {
+// GetByUsernameAndPassword provides a mock function with given fields: ctx, username, password
+func (_m *MockStorage) GetByUsernameAndPassword(ctx context.Context, username string, password secret.Text) (*DavSession, error) {
 	ret := _m.Called(ctx, username, password)
 
 	var r0 *DavSession
@@ -129,7 +129,8 @@ func (_m *MockStorage) Save(ctx context.Context, session *DavSession) error {
 func NewMockStorage(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockStorage {
+},
+) *MockStorage {
 	mock := &MockStorage{}
 	mock.Mock.Test(t)
 

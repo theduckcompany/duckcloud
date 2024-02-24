@@ -2,6 +2,7 @@ package davsessions
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"testing"
 
@@ -128,9 +129,8 @@ func TestDavSessionsService(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		service := NewService(storageMock, spacesMock, tools)
 
-		hashedPasswd := secret.NewText("f0ce9d6e7315534d2f3603d11f496dafcda25f2f5bc2b4f8292a8ee34fe7735b") // sha256 of "some-password"
-
-		storageMock.On("GetByUsernameAndPassHash", mock.Anything, "some-username", hashedPasswd).Return(&ExampleAliceSession, nil).Once()
+		storageMock.On("GetByUsernameAndPassword", mock.Anything, "some-username", secret.NewText(hex.EncodeToString([]byte("some-password")))).
+			Return(&ExampleAliceSession, nil).Once()
 
 		res, err := service.Authenticate(ctx, "some-username", secret.NewText("some-password"))
 		require.NoError(t, err)
