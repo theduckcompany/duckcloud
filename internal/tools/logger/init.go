@@ -6,8 +6,8 @@ import (
 )
 
 type Config struct {
-	Level  slog.Level `mapstructure:"level"`
 	Output io.Writer
+	Level  slog.Level `mapstructure:"level"`
 }
 
 func NewSLogger(cfg Config) *slog.Logger {

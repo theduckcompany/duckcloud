@@ -17,11 +17,11 @@ import (
 
 func TestWriteJSONError(t *testing.T) {
 	tests := []struct {
-		Name          string
 		Input         error
-		ExpectedCode  int
+		Name          string
 		ExpectedJSON  string
 		ExpectedError string
+		ExpectedCode  int
 	}{
 		{
 			Name:          "BadRequest",

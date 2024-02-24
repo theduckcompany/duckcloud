@@ -19,25 +19,17 @@ import (
 // Proppatch describes a property update instruction as defined in RFC 4918.
 // See http://www.webdav.org/specs/rfc4918.html#METHOD_PROPPATCH
 type Proppatch struct {
+	// Props contains the properties to be set or removed.
+	Props []Property
+
 	// Remove specifies whether this patch removes properties. If it does not
 	// remove them, it sets them.
 	Remove bool
-	// Props contains the properties to be set or removed.
-	Props []Property
 }
 
 // Propstat describes a XML propstat element as defined in RFC 4918.
 // See http://www.webdav.org/specs/rfc4918.html#ELEMENT_propstat
 type Propstat struct {
-	// Props contains the properties for which Status applies.
-	Props []Property
-
-	// Status defines the HTTP status code of the properties in Prop.
-	// Allowed values include, but are not limited to the WebDAV status
-	// code extensions for HTTP/1.1.
-	// http://www.webdav.org/specs/rfc4918.html#status.code.extensions.to.http11
-	Status int
-
 	// XMLError contains the XML representation of the optional error element.
 	// XML content within this field must not rely on any predefined
 	// namespace declarations or prefixes. If empty, the XML error element
@@ -47,6 +39,15 @@ type Propstat struct {
 	// ResponseDescription contains the contents of the optional
 	// responsedescription field. If empty, the XML element is omitted.
 	ResponseDescription string
+
+	// Props contains the properties for which Status applies.
+	Props []Property
+
+	// Status defines the HTTP status code of the properties in Prop.
+	// Allowed values include, but are not limited to the WebDAV status
+	// code extensions for HTTP/1.1.
+	// http://www.webdav.org/specs/rfc4918.html#status.code.extensions.to.http11
+	Status int
 }
 
 // makePropstats returns a slice containing those of x and y whose Props slice
@@ -196,7 +197,7 @@ func props(ctx context.Context, fi *dfs.INode, fm *files.FileMeta, cmd *dfs.Path
 }
 
 // propnames returns the property names defined for resource name.
-func propnames(ctx context.Context, fi *dfs.INode, cmd *dfs.PathCmd) ([]xml.Name, error) {
+func propnames(_ context.Context, fi *dfs.INode, _ *dfs.PathCmd) ([]xml.Name, error) {
 	isDir := fi.IsDir()
 
 	var deadProps map[xml.Name]Property
@@ -249,7 +250,7 @@ func allprop(ctx context.Context, fi *dfs.INode, fm *files.FileMeta, cmd *dfs.Pa
 
 // patch patches the properties of resource name. The return values are
 // constrained in the same manner as DeadPropsHolder.Patch.
-func patch(ctx context.Context, fs dfs.Service, patchCmd *dfs.PathCmd, patches []Proppatch) ([]Propstat, error) {
+func patch(_ context.Context, _ dfs.Service, _ *dfs.PathCmd, patches []Proppatch) ([]Propstat, error) {
 	conflict := false
 loop:
 	for _, patch := range patches {
@@ -332,14 +333,14 @@ func escapeXML(s string) string {
 	return s
 }
 
-func findResourceType(ctx context.Context, cmd *dfs.PathCmd, fi *dfs.INode, meta *files.FileMeta) (string, error) {
+func findResourceType(_ context.Context, _ *dfs.PathCmd, fi *dfs.INode, _ *files.FileMeta) (string, error) {
 	if fi.IsDir() {
 		return `<D:collection xmlns:D="DAV:"/>`, nil
 	}
 	return "", nil
 }
 
-func findDisplayName(ctx context.Context, cmd *dfs.PathCmd, fi *dfs.INode, meta *files.FileMeta) (string, error) {
+func findDisplayName(_ context.Context, cmd *dfs.PathCmd, fi *dfs.INode, _ *files.FileMeta) (string, error) {
 	if cmd.Path() == "/" {
 		// Hide the real name of a possibly prefixed root directory.
 		return "", nil
@@ -376,7 +377,7 @@ type ContentTyper interface {
 	ContentType(ctx context.Context) (string, error)
 }
 
-func findContentType(ctx context.Context, cmd *dfs.PathCmd, fi *dfs.INode, meta *files.FileMeta) (string, error) {
+func findContentType(_ context.Context, _ *dfs.PathCmd, _ *dfs.INode, meta *files.FileMeta) (string, error) {
 	if meta == nil {
 		return "???", nil
 	}
@@ -402,7 +403,7 @@ type ETager interface {
 	ETag(ctx context.Context) (string, error)
 }
 
-func findETag(ctx context.Context, cmd *dfs.PathCmd, fi *dfs.INode, meta *files.FileMeta) (string, error) {
+func findETag(_ context.Context, _ *dfs.PathCmd, _ *dfs.INode, meta *files.FileMeta) (string, error) {
 	if meta == nil {
 		return "???", nil
 	}

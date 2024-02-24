@@ -13,8 +13,8 @@ import (
 )
 
 type Config struct {
-	Response response.Config `json:"response"`
 	Log      logger.Config   `json:"log"`
+	Response response.Config `json:"response"`
 }
 
 type Toolbox struct {

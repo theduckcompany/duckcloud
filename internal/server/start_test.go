@@ -44,8 +44,8 @@ func TestServerRun(t *testing.T) {
 	defer cancel()
 
 	wg := sync.WaitGroup{}
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
 		defer wg.Done()
 		Run(ctx, testConfig)
 	}()

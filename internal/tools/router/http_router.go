@@ -20,11 +20,11 @@ type API struct{}
 
 type Config struct {
 	Addr      string
-	TLS       bool
-	Secure    bool
 	CertFile  string
 	KeyFile   string
 	HostNames []string
+	TLS       bool
+	Secure    bool
 }
 
 type Registerer interface {

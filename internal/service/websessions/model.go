@@ -11,11 +11,11 @@ import (
 )
 
 type Session struct {
+	createdAt time.Time
 	token     secret.Text
 	userID    uuid.UUID
 	ip        string
 	device    string
-	createdAt time.Time
 }
 
 func (s *Session) Token() secret.Text   { return s.token }
@@ -25,8 +25,8 @@ func (s *Session) Device() string       { return s.device }
 func (s *Session) CreatedAt() time.Time { return s.createdAt }
 
 type CreateCmd struct {
-	UserID string
 	Req    *http.Request
+	UserID string
 }
 
 func (t CreateCmd) Validate() error {

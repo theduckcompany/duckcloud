@@ -76,6 +76,9 @@ func (s *MasterKeyService) generateMasterKey(ctx context.Context) error {
 	}
 
 	sealedKey, err := secret.SealKey(passwordKey, key)
+	if err != nil {
+		return fmt.Errorf("failed to seal the key: %w", err)
+	}
 
 	err = s.config.SetMasterKey(ctx, sealedKey)
 	if err != nil {

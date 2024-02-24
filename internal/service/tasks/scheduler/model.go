@@ -9,10 +9,10 @@ import (
 )
 
 type FileUploadArgs struct {
+	UploadedAt time.Time `json:"uploaded-at"`
 	SpaceID    uuid.UUID `json:"space-id"`
 	FileID     uuid.UUID `json:"file-id"`
 	INodeID    uuid.UUID `json:"inode-id"`
-	UploadedAt time.Time `json:"uploaded-at"`
 }
 
 func (a FileUploadArgs) Validate() error {
@@ -69,8 +69,8 @@ func (a UserDeleteArgs) Validate() error {
 }
 
 type FSRefreshSizeArg struct {
-	INode      uuid.UUID `json:"inode"`
 	ModifiedAt time.Time `json:"modified_at"`
+	INode      uuid.UUID `json:"inode"`
 }
 
 func (a FSRefreshSizeArg) Validate() error {

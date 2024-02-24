@@ -58,6 +58,7 @@ func TestUserSqlStorage(t *testing.T) {
 		require.NoError(t, err)
 
 		res, err := store.GetByID(ctx, ExampleAlice.ID())
+		require.NoError(t, err)
 
 		aliceWithNewUsername := ExampleAlice
 		aliceWithNewUsername.username = "new-username"

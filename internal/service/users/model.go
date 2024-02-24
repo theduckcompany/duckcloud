@@ -28,13 +28,13 @@ const (
 
 // User representation
 type User struct {
+	createdAt time.Time
 	id        uuid.UUID
 	username  string
-	isAdmin   bool
 	password  secret.Text
 	status    Status
-	createdAt time.Time
 	createdBy uuid.UUID
+	isAdmin   bool
 }
 
 func (u *User) MarshalJSON() ([]byte, error) {

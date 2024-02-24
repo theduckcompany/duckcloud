@@ -24,7 +24,7 @@ func Test_RouterLogger(t *testing.T) {
 		handler := NewRouterLogger(logger)
 
 		srv := chi.NewMux()
-		srv.Handle("/*", handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		srv.Handle("/*", handler(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.Write([]byte("Hello, World!"))
 			w.WriteHeader(http.StatusOK)
 		})))

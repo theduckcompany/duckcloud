@@ -16,13 +16,13 @@ const (
 )
 
 type Task struct {
+	RegisteredAt time.Time
 	ID           uuid.UUID
-	Priority     int
 	Name         string
 	Status       Status
-	Retries      int
-	RegisteredAt time.Time
 	Args         json.RawMessage
+	Priority     int
+	Retries      int
 }
 
 func (t *Task) LogValue() slog.Value {

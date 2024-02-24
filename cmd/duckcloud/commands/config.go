@@ -39,22 +39,18 @@ var (
 )
 
 type Config struct {
-	LogLevel string `mapstructure:"log-level"`
-	Debug    bool   `mapstructure:"debug"`
-
-	Dev       bool `mapstructure:"dev"`
-	HotReload bool `mapstructure:"hot-reload"`
-
-	Folder   string `mapstructure:"folder"`
-	MemoryFS bool   `mapstructure:"memory-fs"`
-
-	TLSCert        string `mapstructure:"tls-cert"`
-	TLSKey         string `mapstructure:"tls-key"`
-	SelfSignedCert bool   `mapstructure:"self-signed-cert"`
-
-	HTTPHost      string   `mapstructure:"http-host"`
-	HTTPPort      int      `mapstructure:"http-port"`
-	HTTPHostnames []string `mapstructure:"http-hosts"`
+	LogLevel       string   `mapstructure:"log-level"`
+	Folder         string   `mapstructure:"folder"`
+	TLSCert        string   `mapstructure:"tls-cert"`
+	TLSKey         string   `mapstructure:"tls-key"`
+	HTTPHost       string   `mapstructure:"http-host"`
+	HTTPHostnames  []string `mapstructure:"http-hosts"`
+	HTTPPort       int      `mapstructure:"http-port"`
+	MemoryFS       bool     `mapstructure:"memory-fs"`
+	SelfSignedCert bool     `mapstructure:"self-signed-cert"`
+	Debug          bool     `mapstructure:"debug"`
+	Dev            bool     `mapstructure:"dev"`
+	HotReload      bool     `mapstructure:"hot-reload"`
 }
 
 func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
@@ -120,17 +116,14 @@ func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
 		}
 	}
 
-	isTLSEnabled := false
-	if cfg.TLSCert != "" || cfg.TLSKey != "" {
-		isTLSEnabled = true
-	}
+	isTLSEnabled := cfg.TLSCert != "" || cfg.TLSKey != ""
 
 	return server.Config{
 		FS: fs,
 		Listener: router.Config{
 			Addr:      net.JoinHostPort(cfg.HTTPHost, strconv.Itoa(cfg.HTTPPort)),
 			TLS:       isTLSEnabled,
-			Secure:    cfg.Dev == false,
+			Secure:    !cfg.Dev,
 			CertFile:  cfg.TLSCert,
 			KeyFile:   cfg.TLSKey,
 			HostNames: cfg.HTTPHostnames,

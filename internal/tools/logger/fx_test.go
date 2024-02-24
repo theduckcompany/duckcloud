@@ -21,10 +21,10 @@ func TestFxLogger(t *testing.T) {
 	someError := errors.New("some error")
 
 	tests := []struct {
-		name        string
 		give        fxevent.Event
-		wantMessage string
 		wantFields  map[string]interface{}
+		name        string
+		wantMessage string
 	}{
 		{
 			name: "OnStartExecuting",
