@@ -1,4 +1,4 @@
-package debug
+package utilities
 
 import (
 	"net/http/pprof"
