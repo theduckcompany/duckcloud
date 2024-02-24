@@ -22,12 +22,12 @@
 
             <td>
 
-              <a role="button" 
-                class="delete-email-button text-muted ms-2"
+              <button role="button" 
+                class="btn btn-link btn-sm btn-rounded"
                 hx-target="body"
+                hx-confirm="Are you sure you wish to delete the space '{{.Name}}' ? All its content will be definitively removed."
                 hx-post="/settings/spaces/{{.ID}}/delete" 
-                hx-swap="outerHTML"><i class="fa fa-trash-alt"></i>
-              </a>
+                hx-swap="outerHTML">Delete</button>
             </td>
 
           </tr>
