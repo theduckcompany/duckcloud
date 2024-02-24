@@ -48,7 +48,7 @@ func Test_bootstrap(t *testing.T) {
 
 		err := bootstrap(ctx, userMock, spacesMock)
 		require.ErrorIs(t, err, errs.ErrInternal)
-		require.ErrorContains(t, err, "No admin found")
+		require.ErrorContains(t, err, "no admin found")
 	})
 
 	t.Run("with a GetAll error", func(t *testing.T) {

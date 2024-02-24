@@ -34,7 +34,7 @@ func bootstrap(ctx context.Context, usersSvc users.Service, spacesSvc spaces.Ser
 	}
 
 	if bootstrapUser == nil {
-		return errs.Internal(errors.New("No admin found"))
+		return errs.Internal(errors.New("no admin found"))
 	}
 
 	err = spacesSvc.Bootstrap(ctx, bootstrapUser)

@@ -14,7 +14,6 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/config"
 	"github.com/theduckcompany/duckcloud/internal/service/dav"
 	"github.com/theduckcompany/duckcloud/internal/service/davsessions"
-	"github.com/theduckcompany/duckcloud/internal/service/debug"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/service/files"
 	"github.com/theduckcompany/duckcloud/internal/service/masterkey"
@@ -28,6 +27,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/runner"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
+	"github.com/theduckcompany/duckcloud/internal/service/utilities"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tasks"
 	"github.com/theduckcompany/duckcloud/internal/tools"
@@ -44,14 +44,13 @@ type Folder string
 
 type Config struct {
 	fx.Out
-
-	FS        afero.Fs
-	Listener  router.Config
-	Assets    assets.Config
-	Storage   storage.Config
 	Tools     tools.Config
-	Web       web.Config
+	FS        afero.Fs
+	Storage   storage.Config
 	Folder    Folder
+	Listener  router.Config
+	Web       web.Config
+	Assets    assets.Config
 	MasterKey masterkey.Config
 }
 
@@ -84,7 +83,7 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 				}
 
 				if fs.Name() == afero.NewMemMapFs().Name() {
-					tools.Logger().Info(fmt.Sprintf("Load data from memory"))
+					tools.Logger().Info("Load data from memory")
 				} else {
 					tools.Logger().Info(fmt.Sprintf("Load data from %s", folder))
 				}
@@ -121,7 +120,7 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 			AsRoute(oauth2.NewHTTPHandler),
 			AsRoute(assets.NewHTTPHandler),
 			AsRoute(web.NewHTTPHandler),
-			AsRoute(debug.NewHTTPHandler),
+			AsRoute(utilities.NewHTTPHandler),
 
 			// HTTP Router / HTTP Server
 			router.InitMiddlewares,
