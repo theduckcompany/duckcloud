@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
+	"sync"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
@@ -35,12 +36,13 @@ const (
 var ErrInvalidSpaceID = errors.New("invalid spaceID")
 
 type Handler struct {
-	html   html.Writer
-	spaces spaces.Service
-	files  files.Service
-	uuid   uuid.Service
-	auth   *auth.Authenticator
-	fs     dfs.Service
+	html       html.Writer
+	spaces     spaces.Service
+	files      files.Service
+	uuid       uuid.Service
+	auth       *auth.Authenticator
+	fs         dfs.Service
+	uploadLock *sync.Mutex
 }
 
 func NewHandler(
@@ -52,12 +54,13 @@ func NewHandler(
 	fs dfs.Service,
 ) *Handler {
 	return &Handler{
-		html:   html,
-		spaces: spaces,
-		files:  files,
-		uuid:   tools.UUID(),
-		auth:   auth,
-		fs:     fs,
+		html:       html,
+		spaces:     spaces,
+		files:      files,
+		uuid:       tools.UUID(),
+		auth:       auth,
+		fs:         fs,
+		uploadLock: new(sync.Mutex),
 	}
 }
 
@@ -234,14 +237,19 @@ func (h *Handler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
 		fullPath = fullPath[1:]
 	}
 
+	// TODO: Replace this lock by a webdav lock implementation.
+	h.uploadLock.Lock()
+
 	dirPath := path.Dir(fullPath)
 	_, err = h.fs.CreateDir(ctx, &dfs.CreateDirCmd{
 		Path:      dfs.NewPathCmd(space, dirPath),
 		CreatedBy: cmd.user,
 	})
 	if err != nil && !errors.Is(err, dfs.ErrAlreadyExists) {
+		h.uploadLock.Unlock()
 		return fmt.Errorf("failed to create the directory %q: %w", dirPath, err)
 	}
+	h.uploadLock.Unlock()
 
 	err = h.fs.Upload(ctx, &dfs.UploadCmd{
 		Space:      space,
