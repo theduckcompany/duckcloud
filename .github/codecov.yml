@@ -3,6 +3,7 @@ github_checks:
 ignore:
   - "**/*_mock.go"
   - "**/init.go"
+  - internal/service/dav/webdav/internal
 coverage:
   status:
     project:
