@@ -36,17 +36,14 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
-		req, _ := http.NewRequest(http.MethodGet, "/foo", nil)
-		req.Header.Add("User-Agent", "Mozilla/5.0 (Linux; Android 10; 8092) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36")
-		req.RemoteAddr = "192.168.1.1"
-
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-token")).Once()
 		tools.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Save", mock.Anything, &session).Return(nil).Once()
 
 		res, err := service.Create(ctx, &CreateCmd{
-			UserID: "3a708fc5-dc10-4655-8fc2-33b08a4b33a5",
-			Req:    req,
+			UserID:     "3a708fc5-dc10-4655-8fc2-33b08a4b33a5",
+			UserAgent:  "Mozilla/5.0 (Linux; Android 10; 8092) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
+			RemoteAddr: "192.168.1.1",
 		})
 		require.NoError(t, err)
 		assert.EqualValues(t, &session, res)
@@ -57,13 +54,10 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
-		req, _ := http.NewRequest(http.MethodGet, "/foo", nil)
-		req.Header.Add("User-Agent", "Mozilla/5.0 (Linux; Android 10; 8092) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36")
-		req.RemoteAddr = "192.168.1.1"
-
 		res, err := service.Create(ctx, &CreateCmd{
-			UserID: "not a uuid",
-			Req:    req,
+			UserID:     "not a uuid",
+			UserAgent:  "Mozilla/5.0 (Linux; Android 10; 8092) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
+			RemoteAddr: "192.168.1.1",
 		})
 		assert.Nil(t, res)
 		require.ErrorIs(t, err, errs.ErrValidation)
@@ -75,17 +69,14 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
-		req, _ := http.NewRequest(http.MethodGet, "/foo", nil)
-		req.Header.Add("User-Agent", "Mozilla/5.0 (Linux; Android 10; 8092) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36")
-		req.RemoteAddr = "192.168.1.1"
-
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-token")).Once()
 		tools.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Save", mock.Anything, &session).Return(fmt.Errorf("some-error")).Once()
 
 		res, err := service.Create(ctx, &CreateCmd{
-			UserID: "3a708fc5-dc10-4655-8fc2-33b08a4b33a5",
-			Req:    req,
+			UserID:     "3a708fc5-dc10-4655-8fc2-33b08a4b33a5",
+			UserAgent:  "Mozilla/5.0 (Linux; Android 10; 8092) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
+			RemoteAddr: "192.168.1.1",
 		})
 		assert.Nil(t, res)
 		require.ErrorIs(t, err, errs.ErrInternal)

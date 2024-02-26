@@ -1,7 +1,6 @@
 package websessions
 
 import (
-	"net/http"
 	"time"
 
 	v "github.com/go-ozzo/ozzo-validation"
@@ -25,14 +24,16 @@ func (s *Session) Device() string       { return s.device }
 func (s *Session) CreatedAt() time.Time { return s.createdAt }
 
 type CreateCmd struct {
-	Req    *http.Request
-	UserID string
+	UserID     uuid.UUID
+	UserAgent  string
+	RemoteAddr string
 }
 
 func (t CreateCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.UserID, v.Required, is.UUIDv4),
-		v.Field(&t.Req, v.Required),
+		v.Field(&t.UserAgent, v.Required),
+		v.Field(&t.RemoteAddr, v.Required),
 	)
 }
 

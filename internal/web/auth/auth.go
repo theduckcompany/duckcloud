@@ -106,8 +106,9 @@ func (h *Handler) applyLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session, err := h.webSession.Create(r.Context(), &websessions.CreateCmd{
-		UserID: string(user.ID()),
-		Req:    r,
+		UserID:     user.ID(),
+		UserAgent:  r.Header.Get("User-Agent"),
+		RemoteAddr: r.RemoteAddr,
 	})
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to create the websession: %w", err))
@@ -134,7 +135,7 @@ func (h *Handler) chooseRedirection(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		client, err = h.clients.GetByID(r.Context(), clientID)
 		if err != nil {
-			h.printClientErrorPage(w, r, errors.New("Oauth client not found"))
+			h.printClientErrorPage(w, r, errors.New("oauth client not found"))
 			return
 		}
 	}

@@ -46,12 +46,12 @@ func (s *WebSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*Sessi
 		return nil, errs.Validation(err)
 	}
 
-	uaRes := ua.Parse(cmd.Req.Header.Get("User-Agent"))
+	uaRes := ua.Parse(cmd.UserAgent)
 
 	session := &Session{
 		token:     secret.NewText(string(s.uuid.New())),
-		userID:    uuid.UUID(cmd.UserID),
-		ip:        cmd.Req.RemoteAddr,
+		userID:    cmd.UserID,
+		ip:        cmd.RemoteAddr,
 		device:    fmt.Sprintf("%s - %s", uaRes.OS, uaRes.Name),
 		createdAt: s.clock.Now(),
 	}
