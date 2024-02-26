@@ -1,5 +1,7 @@
 package auth
 
+import "html/template"
+
 type LoginPageTmpl struct {
 	UsernameContent string
 	UsernameError   string
@@ -18,7 +20,7 @@ func (t *ErrorPageTmpl) Template() string { return "auth/page_error" }
 
 type ConsentPageTmpl struct {
 	Username   string
-	Redirect   string
+	Redirect   template.URL
 	ClientName string
 	Scopes     []string
 }
