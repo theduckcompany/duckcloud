@@ -11,17 +11,17 @@
             <form method="POST" class="needs-validation" novalidate="" autocomplete="off">
               <div class="mb-3">
                 <label class="mb-2 text-muted" for="username">Username</label>
-                <input id="username" type="username" class="form-control {{ if .errors.username }}is-invalid{{ end }}"
-                  name="username" value="{{ .inputs.username }}" required autofocus
+                <input id="username" type="username" class="form-control {{ if .UsernameError }}is-invalid{{ end }}"
+                  name="username" value="{{ .UsernameContent }}" required autofocus
                   aria-describedby="validationUsername">
-                <div id="validationUsername" , class="invalid-feedback">{{ .errors.username }}</div>
+                <div id="validationUsername" , class="invalid-feedback">{{ .UsernameError }}</div>
               </div>
 
               <div class="mb-3">
                 <label class="text-muted" for="password">Password</label>
-                <input id="password" type="password" class="form-control {{ if .errors.password }}is-invalid{{ end }}"
+                <input id="password" type="password" class="form-control {{ if .PasswordError }}is-invalid{{ end }}"
                   name="password" required aria-describedby="validationPassword">
-                <div id="validationPassword" , class="invalid-feedback">{{ .errors.password }}</div>
+                <div id="validationPassword" , class="invalid-feedback">{{ .PasswordError }}</div>
               </div>
 
               <div class="d-flex align-items-center">
