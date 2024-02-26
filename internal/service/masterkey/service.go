@@ -112,7 +112,9 @@ func (s *MasterKeyService) loadPasswordFromSystemdCreds(ctx context.Context, fs 
 		return nil, fmt.Errorf("systemd credentials: %w", errs.ErrNotFound)
 	}
 
-	file, err := fs.Open(path.Join(dirPath, "password"))
+	filePath := path.Join(dirPath, "password")
+
+	file, err := fs.Open(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open the credentials file specified by $CREDENTIALS_DIRECTORY: %w", err)
 	}
@@ -121,6 +123,11 @@ func (s *MasterKeyService) loadPasswordFromSystemdCreds(ctx context.Context, fs 
 	password, err := io.ReadAll(file)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read the password file: %w", err)
+	}
+
+	err = fs.Remove(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to remove the credentials file: %w", err)
 	}
 
 	passwordStr := strings.TrimSuffix(string(password), "\n")
