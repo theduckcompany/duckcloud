@@ -30,7 +30,7 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
-        goversion: 1.21.1
+        goversion: 1.22
         project_path: "./cmd/duckcloud"
         binary_name: "duckcloud"
         ldflags: "-X github.com/theduckcompany/duckcloud/internal/tools/buildinfos.version=${{github.ref_name}} \
