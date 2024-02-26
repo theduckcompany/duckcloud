@@ -1,4 +1,4 @@
-<section class="h-100">
+<section>
   <div class="container h-100">
     <div class="row justify-content-sm-center h-100">
       <div class="col-xxl-4 col-xl-5 col-lg-5 col-md-7 col-sm-9">
@@ -8,18 +8,18 @@
         <div class="card shadow-lg">
           <div class="card-body p-5">
             <h1 class="fs-4 card-title fw-bold mb-4">Authorize</h1>
-            <form action="{{ .redirect }}" method="POST">
-              <h4>Hello {{ .username }} !</h4>
-              <p>The client <b>{{ .clientName }}</b> would like to perform following actions on your behalf.</p>
+            <form action="{{ .Redirect }}" method="POST">
+              <h4>Hello {{ .Username }} !</h4>
+              <p>The client <b>{{ .ClientName }}</b> would like to perform following actions on your behalf.</p>
               <p>
-              <ul>
-                {{ range $val := .scope }}
-                <li>{{ $val }}</li>
-                {{ end }}
-              </ul>
-              <button type="submit" class="btn btn-primary btn-lg">
-                Allow
-              </button>
+                <ul>
+                  {{ range $val := .Scopes }}
+                  <li>{{ $val }}</li>
+                  {{ end }}
+                </ul>
+                <button type="submit" class="btn btn-primary btn-lg">
+                  Allow
+                </button>
               </p>
             </form>
           </div>

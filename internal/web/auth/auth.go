@@ -2,7 +2,6 @@ package auth
 
 import (
 	"errors"
-	"fmt"
 	"html/template"
 	"net/http"
 	"strings"
@@ -15,7 +14,6 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
-	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 )
@@ -29,6 +27,7 @@ type Handler struct {
 	clients      oauthclients.Service
 	webSession   websessions.Service
 	oauthConsent oauthconsents.Service
+	loginPage    *loginPage
 }
 
 func NewHandler(
@@ -41,6 +40,7 @@ func NewHandler(
 	webSessions websessions.Service,
 ) *Handler {
 	return &Handler{
+		loginPage:    newLoginPage(htmlWriter, webSessions, users, clients, tools),
 		uuid:         tools.UUID(),
 		auth:         auth,
 		html:         htmlWriter,
@@ -52,102 +52,13 @@ func NewHandler(
 }
 
 func (h *Handler) Register(r chi.Router, mids *router.Middlewares) {
+	h.loginPage.Register(r, mids)
+
 	if mids != nil {
 		r = r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
 	}
 
-	r.Get("/login", h.printLoginPage)
-	r.Post("/login", h.applyLogin)
 	r.HandleFunc("/consent", h.handleConsentPage)
-}
-
-func (h *Handler) printLoginPage(w http.ResponseWriter, r *http.Request) {
-	currentSession, _ := h.webSession.GetFromReq(r)
-
-	if currentSession != nil {
-		h.chooseRedirection(w, r)
-		return
-	}
-
-	w.Header().Set("HX-Refresh", "true")
-	h.html.WriteHTML(w, r, http.StatusOK, "auth/page", nil)
-}
-
-func (h *Handler) applyLogin(w http.ResponseWriter, r *http.Request) {
-	_ = r.ParseForm()
-
-	inputs := map[string]string{}
-	loginErrors := map[string]string{}
-
-	inputs["username"] = r.FormValue("username")
-
-	user, err := h.users.Authenticate(r.Context(), r.FormValue("username"), secret.NewText(r.FormValue("password")))
-	var status int
-	switch {
-	case err == nil:
-		// continue
-	case errors.Is(err, users.ErrInvalidUsername):
-		loginErrors["username"] = "User doesn't exists"
-		status = http.StatusBadRequest
-	case errors.Is(err, users.ErrInvalidPassword):
-		loginErrors["password"] = "Invalid password"
-		status = http.StatusBadRequest
-	default:
-		loginErrors["notif"] = "Unexpected error"
-		status = http.StatusBadRequest
-	}
-
-	if len(loginErrors) > 0 {
-		h.html.WriteHTML(w, r, status, "auth/page", map[string]interface{}{
-			"inputs": inputs,
-			"errors": loginErrors,
-		})
-		return
-	}
-
-	session, err := h.webSession.Create(r.Context(), &websessions.CreateCmd{
-		UserID:     user.ID(),
-		UserAgent:  r.Header.Get("User-Agent"),
-		RemoteAddr: r.RemoteAddr,
-	})
-	if err != nil {
-		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to create the websession: %w", err))
-		return
-	}
-
-	// TODO: Handle the expiration time with the "Remember me" option
-	c := http.Cookie{
-		Name:     "session_token",
-		Value:    session.Token().Raw(),
-		Secure:   true,
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-		Path:     "/",
-	}
-	http.SetCookie(w, &c)
-
-	h.chooseRedirection(w, r)
-}
-
-func (h *Handler) chooseRedirection(w http.ResponseWriter, r *http.Request) {
-	var client *oauthclients.Client
-	clientID, err := h.uuid.Parse(r.FormValue("client_id"))
-	if err == nil {
-		client, err = h.clients.GetByID(r.Context(), clientID)
-		if err != nil {
-			h.printClientErrorPage(w, r, errors.New("oauth client not found"))
-			return
-		}
-	}
-
-	switch {
-	case client == nil:
-		http.Redirect(w, r, "/", http.StatusFound)
-	case client.SkipValidation():
-		http.Redirect(w, r, "/auth/authorize", http.StatusFound)
-	default:
-		http.Redirect(w, r, "/consent?"+r.Form.Encode(), http.StatusFound)
-	}
 }
 
 func (h *Handler) handleConsentPage(w http.ResponseWriter, r *http.Request) {
