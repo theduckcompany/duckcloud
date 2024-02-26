@@ -1,7 +1,6 @@
 package websessions
 
 import (
-	"net/http"
 	"testing"
 	"time"
 
@@ -29,12 +28,11 @@ func TestSessionTypes(t *testing.T) {
 }
 
 func Test_CreateCmd_Validate(t *testing.T) {
-	req, _ := http.NewRequest(http.MethodGet, "/foo", nil)
-
 	t.Run("success", func(t *testing.T) {
 		cmd := CreateCmd{
-			UserID: "3a708fc5-dc10-4655-8fc2-33b08a4b33a5",
-			Req:    req,
+			UserID:     "3a708fc5-dc10-4655-8fc2-33b08a4b33a5",
+			UserAgent:  "firefox 4.4.4",
+			RemoteAddr: "192.168.1.1:3927",
 		}
 
 		require.NoError(t, cmd.Validate())
@@ -42,8 +40,9 @@ func Test_CreateCmd_Validate(t *testing.T) {
 
 	t.Run("with an error", func(t *testing.T) {
 		cmd := CreateCmd{
-			UserID: "some-invalid-id",
-			Req:    req,
+			UserID:     "some-invalid-id",
+			UserAgent:  "firefox 4.4.4",
+			RemoteAddr: "192.168.1.1:3927",
 		}
 
 		require.EqualError(t, cmd.Validate(), "UserID: must be a valid UUID v4.")
