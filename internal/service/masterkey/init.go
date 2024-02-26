@@ -22,12 +22,12 @@ type Service interface {
 func Init(ctx context.Context, config config.Service, fs afero.Fs, cfg Config) (Service, error) {
 	svc := NewService(config, fs, cfg)
 
-	err := svc.generateMasterKey(ctx)
-	if err != nil {
-		return nil, err
-	}
+	// err := svc.generateMasterKey(ctx)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	err = svc.loadMasterKey(ctx)
+	err := svc.loadMasterKey(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("master key error: %w", err)
 	}

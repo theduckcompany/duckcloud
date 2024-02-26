@@ -28,14 +28,34 @@ type MasterKeyService struct {
 	fs      afero.Fs
 	enclave *memguard.Enclave
 	cfg     Config
+
+	masterKeyAvailable bool
+	passwordRequired   bool
 }
 
 func NewService(config config.Service, fs afero.Fs, cfg Config) *MasterKeyService {
-	return &MasterKeyService{config, fs, nil, cfg}
+	return &MasterKeyService{
+		config:  config,
+		fs:      fs,
+		enclave: nil,
+		cfg:     cfg,
+
+		masterKeyAvailable: false,
+		passwordRequired:   true,
+	}
+}
+
+func (s *MasterKeyService) IsMasterKeyAvailable() bool {
+	return s.masterKeyAvailable
 }
 
 func (s *MasterKeyService) loadMasterKey(ctx context.Context) error {
 	masterKey, err := s.config.GetMasterKey(ctx)
+	if errors.Is(err, errs.ErrNotFound) {
+		s.masterKeyAvailable = false
+		return nil
+	}
+
 	if err != nil {
 		return fmt.Errorf("failed to get the master key: %w", err)
 	}
@@ -43,6 +63,11 @@ func (s *MasterKeyService) loadMasterKey(ctx context.Context) error {
 	passwordKey, err := s.loadPassword(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to load password: %w", err)
+	}
+
+	if passwordKey == nil {
+		s.passwordRequired = true
+		return nil
 	}
 
 	rawMasterKey, err := masterKey.Open(passwordKey)
@@ -89,21 +114,14 @@ func (s *MasterKeyService) generateMasterKey(ctx context.Context) error {
 }
 
 func (s *MasterKeyService) loadPassword(ctx context.Context) (*secret.Key, error) {
-	if s.cfg.DevMode {
-		passwordKey, err := secret.KeyFromBase64(defaultPasswordKey)
-		if err != nil {
-			return nil, fmt.Errorf("failed to load the default password key: %w", err)
-		}
-
-		return passwordKey, nil
+	switch {
+	case s.cfg.DevMode:
+		return secret.KeyFromBase64(defaultPasswordKey)
+	case os.Getenv("CREDENTIALS_DIRECTORY") != "":
+		return s.loadPasswordFromSystemdCreds(ctx, s.fs)
+	default:
+		return nil, nil
 	}
-
-	passwordKey, err := s.loadPasswordFromSystemdCreds(ctx, s.fs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load password: %w", err)
-	}
-
-	return passwordKey, nil
 }
 
 func (s *MasterKeyService) loadPasswordFromSystemdCreds(ctx context.Context, fs afero.Fs) (*secret.Key, error) {

@@ -132,6 +132,7 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 			AsRoute(web.NewHomePage),
 			AsRoute(auth.NewLoginPage),
 			AsRoute(auth.NewConsentPage),
+			AsRoute(auth.NewMasterKeyPage),
 			AsRoute(browser.NewBrowserPage),
 			AsRoute(settings.NewRedirections),
 			AsRoute(settings.NewSecurityPage),

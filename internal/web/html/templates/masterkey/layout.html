@@ -1,0 +1,13 @@
+<!doctype html>
+{{template "header"}}
+
+
+<body hx-ext="response-targets" hx-target-5*="this">
+  {{ yield }}
+
+  <footer></footer>
+  <script src="/assets/js/libs/htmx.min.js"></script>
+  <script src="/assets/js/libs/response-targets.js"></script>
+</body>
+
+</html>
