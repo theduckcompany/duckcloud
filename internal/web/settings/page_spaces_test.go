@@ -34,7 +34,7 @@ func Test_SpacesPage(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
+		handler := NewSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -73,7 +73,7 @@ func Test_SpacesPage(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
+		handler := NewSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()
@@ -100,7 +100,7 @@ func Test_SpacesPage(t *testing.T) {
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		schedulerMock := scheduler.NewMockService(t)
-		handler := newSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
+		handler := NewSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
 
 		require.False(t, users.ExampleBob.IsAdmin())
 
@@ -128,7 +128,7 @@ func Test_SpacesPage(t *testing.T) {
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		schedulerMock := scheduler.NewMockService(t)
-		handler := newSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
+		handler := NewSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -153,7 +153,7 @@ func Test_SpacesPage(t *testing.T) {
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		schedulerMock := scheduler.NewMockService(t)
-		handler := newSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
+		handler := NewSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -181,7 +181,7 @@ func Test_SpacesPage(t *testing.T) {
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		schedulerMock := scheduler.NewMockService(t)
-		handler := newSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
+		handler := NewSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -212,7 +212,7 @@ func Test_SpacesPage(t *testing.T) {
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		schedulerMock := scheduler.NewMockService(t)
-		handler := newSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
+		handler := NewSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -239,7 +239,7 @@ func Test_SpacesPage(t *testing.T) {
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		schedulerMock := scheduler.NewMockService(t)
-		handler := newSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
+		handler := NewSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -265,7 +265,7 @@ func Test_SpacesPage(t *testing.T) {
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		schedulerMock := scheduler.NewMockService(t)
-		handler := newSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
+		handler := NewSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -297,7 +297,7 @@ func Test_SpacesPage(t *testing.T) {
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		schedulerMock := scheduler.NewMockService(t)
-		handler := newSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
+		handler := NewSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.BobWebSessionExample, nil).Once()
@@ -322,7 +322,7 @@ func Test_SpacesPage(t *testing.T) {
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		schedulerMock := scheduler.NewMockService(t)
-		handler := newSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
+		handler := NewSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -348,7 +348,7 @@ func Test_SpacesPage(t *testing.T) {
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		schedulerMock := scheduler.NewMockService(t)
-		handler := newSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
+		handler := NewSpacesPage(htmlMock, spacesMock, usersMock, auth, schedulerMock, tools)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()

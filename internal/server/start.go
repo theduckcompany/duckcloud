@@ -37,6 +37,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/web"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
+	"github.com/theduckcompany/duckcloud/internal/web/browser"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 	"github.com/theduckcompany/duckcloud/internal/web/settings"
 	"go.uber.org/fx"
@@ -131,7 +132,8 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 			AsRoute(web.NewHomePage),
 			AsRoute(auth.NewLoginPage),
 			AsRoute(auth.NewConsentPage),
-			AsRoute(settings.NewHandler),
+			AsRoute(browser.NewBrowserPage),
+			AsRoute(settings.NewRedirections),
 			AsRoute(settings.NewSecurityPage),
 			AsRoute(settings.NewSpacesPage),
 			AsRoute(settings.NewUsersPage),

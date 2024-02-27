@@ -7,13 +7,13 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
 )
 
-type Handler struct{}
+type Redirections struct{}
 
-func NewHandler() *Handler {
-	return &Handler{}
+func NewRedirections() *Redirections {
+	return &Redirections{}
 }
 
-func (h *Handler) Register(r chi.Router, mids *router.Middlewares) {
+func (h *Redirections) Register(r chi.Router, mids *router.Middlewares) {
 	r.Get("/settings", http.RedirectHandler("/settings/security", http.StatusMovedPermanently).ServeHTTP)
 }
 

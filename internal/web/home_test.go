@@ -20,7 +20,7 @@ func Test_Home_Page(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newHomeHandler(htmlMock, auth)
+		handler := NewHomePage(htmlMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -44,7 +44,7 @@ func Test_Home_Page(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newHomeHandler(htmlMock, auth)
+		handler := NewHomePage(htmlMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrMissingSessionToken).Once()

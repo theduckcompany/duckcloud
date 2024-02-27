@@ -35,7 +35,7 @@ const (
 
 var ErrInvalidSpaceID = errors.New("invalid spaceID")
 
-type Handler struct {
+type BrowserPage struct {
 	html       html.Writer
 	spaces     spaces.Service
 	files      files.Service
@@ -45,15 +45,15 @@ type Handler struct {
 	uploadLock *sync.Mutex
 }
 
-func NewHandler(
+func NewBrowserPage(
 	tools tools.Tools,
 	html html.Writer,
 	spaces spaces.Service,
 	files files.Service,
 	auth *auth.Authenticator,
 	fs dfs.Service,
-) *Handler {
-	return &Handler{
+) *BrowserPage {
+	return &BrowserPage{
 		html:       html,
 		spaces:     spaces,
 		files:      files,
@@ -64,7 +64,7 @@ func NewHandler(
 	}
 }
 
-func (h *Handler) Register(r chi.Router, mids *router.Middlewares) {
+func (h *BrowserPage) Register(r chi.Router, mids *router.Middlewares) {
 	if mids != nil {
 		r = r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
 	}
@@ -81,7 +81,7 @@ func (h *Handler) Register(r chi.Router, mids *router.Middlewares) {
 	newMoveModalHandler(h.auth, h.spaces, h.html, h.uuid, h.fs).Register(r, mids)
 }
 
-func (h *Handler) redirectDefaultBrowser(w http.ResponseWriter, r *http.Request) {
+func (h *BrowserPage) redirectDefaultBrowser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
@@ -104,7 +104,7 @@ func (h *Handler) redirectDefaultBrowser(w http.ResponseWriter, r *http.Request)
 	http.Redirect(w, r, path.Join("/browser/", string(spaceID)), http.StatusFound)
 }
 
-func (h *Handler) getBrowserContent(w http.ResponseWriter, r *http.Request) {
+func (h *BrowserPage) getBrowserContent(w http.ResponseWriter, r *http.Request) {
 	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
@@ -124,7 +124,7 @@ func (h *Handler) getBrowserContent(w http.ResponseWriter, r *http.Request) {
 	h.renderBrowserContent(w, r, user, path)
 }
 
-func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
+func (h *BrowserPage) upload(w http.ResponseWriter, r *http.Request) {
 	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
@@ -191,7 +191,7 @@ func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) deleteAll(w http.ResponseWriter, r *http.Request) {
+func (h *BrowserPage) deleteAll(w http.ResponseWriter, r *http.Request) {
 	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
@@ -220,7 +220,7 @@ type lauchUploadCmd struct {
 	relPath    string
 }
 
-func (h *Handler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
+func (h *BrowserPage) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
 	space, err := h.spaces.GetUserSpace(ctx, cmd.user.ID(), cmd.spaceID)
 	if err != nil {
 		return fmt.Errorf("failed to GetByID: %w", err)
@@ -263,7 +263,7 @@ func (h *Handler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
 	return nil
 }
 
-func (h Handler) getPathFromURL(w http.ResponseWriter, r *http.Request, user *users.User) *dfs.PathCmd {
+func (h BrowserPage) getPathFromURL(w http.ResponseWriter, r *http.Request, user *users.User) *dfs.PathCmd {
 	// no need to check elems len as the url format force a len of 3 minimum
 	spaceID, err := h.uuid.Parse(chi.URLParam(r, "spaceID"))
 	if err != nil {
@@ -285,7 +285,7 @@ func (h Handler) getPathFromURL(w http.ResponseWriter, r *http.Request, user *us
 	return dfs.NewPathCmd(space, chi.URLParam(r, "*"))
 }
 
-func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, cmd *dfs.PathCmd) {
+func (h *BrowserPage) renderBrowserContent(w http.ResponseWriter, r *http.Request, user *users.User, cmd *dfs.PathCmd) {
 	inode, err := h.fs.Get(r.Context(), cmd)
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Get: %w", err))
@@ -337,7 +337,7 @@ func (h *Handler) renderBrowserContent(w http.ResponseWriter, r *http.Request, u
 	})
 }
 
-func (h *Handler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, folderPath *dfs.PathCmd, lastElem string) {
+func (h *BrowserPage) renderMoreDirContent(w http.ResponseWriter, r *http.Request, folderPath *dfs.PathCmd, lastElem string) {
 	dirContent, err := h.fs.ListDir(r.Context(), folderPath, &storage.PaginateCmd{
 		StartAfter: map[string]string{"name": lastElem},
 		Limit:      PageSize,
@@ -354,7 +354,7 @@ func (h *Handler) renderMoreDirContent(w http.ResponseWriter, r *http.Request, f
 	})
 }
 
-func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
+func (h *BrowserPage) download(w http.ResponseWriter, r *http.Request) {
 	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
@@ -393,7 +393,7 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) serveFolderContent(w http.ResponseWriter, r *http.Request, cmd *dfs.PathCmd) {
+func (h *BrowserPage) serveFolderContent(w http.ResponseWriter, r *http.Request, cmd *dfs.PathCmd) {
 	var err error
 
 	_, dir := path.Split(cmd.Path())
