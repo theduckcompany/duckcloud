@@ -31,7 +31,7 @@ type webdavFormCmd struct {
 	User  *users.User
 }
 
-type securityPage struct {
+type SecurityPage struct {
 	auth        *auth.Authenticator
 	webSessions websessions.Service
 	html        html.Writer
@@ -41,7 +41,7 @@ type securityPage struct {
 	users       users.Service
 }
 
-func newSecurityPage(
+func NewSecurityPage(
 	tools tools.Tools,
 	html html.Writer,
 	webSessions websessions.Service,
@@ -49,8 +49,8 @@ func newSecurityPage(
 	spaces spaces.Service,
 	users users.Service,
 	authent *auth.Authenticator,
-) *securityPage {
-	return &securityPage{
+) *SecurityPage {
+	return &SecurityPage{
 		auth:        authent,
 		webSessions: webSessions,
 		html:        html,
@@ -61,7 +61,7 @@ func newSecurityPage(
 	}
 }
 
-func (h *securityPage) Register(r chi.Router, mids *router.Middlewares) {
+func (h *SecurityPage) Register(r chi.Router, mids *router.Middlewares) {
 	r.Get("/settings/security", h.getSecurityPage)
 	r.Get("/settings/security/webdav", h.getWebDAVForm)
 	r.Post("/settings/security/webdav", h.createDavSession)
@@ -71,7 +71,7 @@ func (h *securityPage) Register(r chi.Router, mids *router.Middlewares) {
 	r.Post("/settings/security/password", h.updatePassword)
 }
 
-func (h *securityPage) getSecurityPage(w http.ResponseWriter, r *http.Request) {
+func (h *SecurityPage) getSecurityPage(w http.ResponseWriter, r *http.Request) {
 	user, session, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
@@ -83,7 +83,7 @@ func (h *securityPage) getSecurityPage(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *securityPage) getWebDAVForm(w http.ResponseWriter, r *http.Request) {
+func (h *SecurityPage) getWebDAVForm(w http.ResponseWriter, r *http.Request) {
 	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
@@ -92,7 +92,7 @@ func (h *securityPage) getWebDAVForm(w http.ResponseWriter, r *http.Request) {
 	h.renderWebDAVForm(w, r, &webdavFormCmd{Error: nil, User: user})
 }
 
-func (h *securityPage) createDavSession(w http.ResponseWriter, r *http.Request) {
+func (h *SecurityPage) createDavSession(w http.ResponseWriter, r *http.Request) {
 	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
@@ -126,7 +126,7 @@ func (h *securityPage) createDavSession(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
-func (h *securityPage) deleteDavSession(w http.ResponseWriter, r *http.Request) {
+func (h *SecurityPage) deleteDavSession(w http.ResponseWriter, r *http.Request) {
 	user, session, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
@@ -150,7 +150,7 @@ func (h *securityPage) deleteDavSession(w http.ResponseWriter, r *http.Request) 
 	h.renderSecurityPage(w, r, &securityCmd{User: user, Session: session})
 }
 
-func (h *securityPage) deleteWebSession(w http.ResponseWriter, r *http.Request) {
+func (h *SecurityPage) deleteWebSession(w http.ResponseWriter, r *http.Request) {
 	user, session, abort := h.auth.GetUserAndSession(w, r, auth.AdminOnly)
 	if abort {
 		return
@@ -174,7 +174,7 @@ func (h *securityPage) deleteWebSession(w http.ResponseWriter, r *http.Request) 
 	h.renderSecurityPage(w, r, &securityCmd{User: user, Session: session})
 }
 
-func (h *securityPage) getPasswordForm(w http.ResponseWriter, r *http.Request) {
+func (h *SecurityPage) getPasswordForm(w http.ResponseWriter, r *http.Request) {
 	_, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
@@ -183,7 +183,7 @@ func (h *securityPage) getPasswordForm(w http.ResponseWriter, r *http.Request) {
 	h.renderPasswordForm(w, r, &passwordFormCmd{Error: nil})
 }
 
-func (h *securityPage) updatePassword(w http.ResponseWriter, r *http.Request) {
+func (h *SecurityPage) updatePassword(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	user, session, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
@@ -229,7 +229,7 @@ func (h *securityPage) updatePassword(w http.ResponseWriter, r *http.Request) {
 	h.renderSecurityPage(w, r, &securityCmd{User: user, Session: session})
 }
 
-func (h *securityPage) renderPasswordForm(w http.ResponseWriter, r *http.Request, cmd *passwordFormCmd) {
+func (h *SecurityPage) renderPasswordForm(w http.ResponseWriter, r *http.Request, cmd *passwordFormCmd) {
 	status := http.StatusOK
 
 	var errStr string
@@ -243,7 +243,7 @@ func (h *securityPage) renderPasswordForm(w http.ResponseWriter, r *http.Request
 	})
 }
 
-func (h *securityPage) renderSecurityPage(w http.ResponseWriter, r *http.Request, cmd *securityCmd) {
+func (h *SecurityPage) renderSecurityPage(w http.ResponseWriter, r *http.Request, cmd *securityCmd) {
 	ctx := r.Context()
 
 	webSessions, err := h.webSessions.GetAllForUser(ctx, cmd.User.ID(), nil)
@@ -278,7 +278,7 @@ func (h *securityPage) renderSecurityPage(w http.ResponseWriter, r *http.Request
 	})
 }
 
-func (h *securityPage) renderWebDAVForm(w http.ResponseWriter, r *http.Request, cmd *webdavFormCmd) {
+func (h *SecurityPage) renderWebDAVForm(w http.ResponseWriter, r *http.Request, cmd *webdavFormCmd) {
 	spaces, err := h.spaces.GetAllUserSpaces(r.Context(), cmd.User.ID(), nil)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetAllUserSpaces: %w", err))

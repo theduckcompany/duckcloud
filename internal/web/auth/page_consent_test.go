@@ -30,7 +30,7 @@ func Test_ConsentPage(t *testing.T) {
 		htmlMock := html.NewMockWriter(t)
 		oauthConsentMock := oauthconsents.NewMockService(t)
 		authenticator := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newConsentPage(htmlMock, authenticator, oauthclientsMock, oauthConsentMock, tools)
+		handler := NewConsentPage(htmlMock, authenticator, oauthclientsMock, oauthConsentMock, tools)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -73,7 +73,7 @@ func Test_ConsentPage(t *testing.T) {
 		htmlMock := html.NewMockWriter(t)
 		oauthConsentMock := oauthconsents.NewMockService(t)
 		authenticator := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newConsentPage(htmlMock, authenticator, oauthclientsMock, oauthConsentMock, tools)
+		handler := NewConsentPage(htmlMock, authenticator, oauthclientsMock, oauthConsentMock, tools)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(nil, websessions.ErrSessionNotFound).Once()
@@ -104,7 +104,7 @@ func Test_ConsentPage(t *testing.T) {
 		htmlMock := html.NewMockWriter(t)
 		oauthConsentMock := oauthconsents.NewMockService(t)
 		authenticator := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newConsentPage(htmlMock, authenticator, oauthclientsMock, oauthConsentMock, tools)
+		handler := NewConsentPage(htmlMock, authenticator, oauthclientsMock, oauthConsentMock, tools)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -141,7 +141,7 @@ func Test_ConsentPage(t *testing.T) {
 		htmlMock := html.NewMockWriter(t)
 		oauthConsentMock := oauthconsents.NewMockService(t)
 		authenticator := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newConsentPage(htmlMock, authenticator, oauthclientsMock, oauthConsentMock, tools)
+		handler := NewConsentPage(htmlMock, authenticator, oauthclientsMock, oauthConsentMock, tools)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -182,7 +182,7 @@ func Test_ConsentPage(t *testing.T) {
 		htmlMock := html.NewMockWriter(t)
 		oauthConsentMock := oauthconsents.NewMockService(t)
 		authenticator := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newConsentPage(htmlMock, authenticator, oauthclientsMock, oauthConsentMock, tools)
+		handler := NewConsentPage(htmlMock, authenticator, oauthclientsMock, oauthConsentMock, tools)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -220,7 +220,7 @@ func Test_ConsentPage(t *testing.T) {
 		htmlMock := html.NewMockWriter(t)
 		oauthConsentMock := oauthconsents.NewMockService(t)
 		authenticator := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newConsentPage(htmlMock, authenticator, oauthclientsMock, oauthConsentMock, tools)
+		handler := NewConsentPage(htmlMock, authenticator, oauthclientsMock, oauthConsentMock, tools)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -264,7 +264,7 @@ func Test_ConsentPage(t *testing.T) {
 		htmlMock := html.NewMockWriter(t)
 		oauthConsentMock := oauthconsents.NewMockService(t)
 		authenticator := NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newConsentPage(htmlMock, authenticator, oauthclientsMock, oauthConsentMock, tools)
+		handler := NewConsentPage(htmlMock, authenticator, oauthclientsMock, oauthConsentMock, tools)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()

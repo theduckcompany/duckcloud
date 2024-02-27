@@ -36,6 +36,10 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/web"
+	"github.com/theduckcompany/duckcloud/internal/web/auth"
+	"github.com/theduckcompany/duckcloud/internal/web/browser"
+	"github.com/theduckcompany/duckcloud/internal/web/html"
+	"github.com/theduckcompany/duckcloud/internal/web/settings"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 )
@@ -49,7 +53,7 @@ type Config struct {
 	Storage   storage.Config
 	Folder    Folder
 	Listener  router.Config
-	Web       web.Config
+	HTML      html.Config
 	Assets    assets.Config
 	MasterKey masterkey.Config
 }
@@ -93,7 +97,9 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 
 			// Tools
 			fx.Annotate(tools.NewToolbox, fx.As(new(tools.Tools))),
+			fx.Annotate(html.NewRenderer, fx.As(new(html.Writer))),
 			storage.Init,
+			auth.NewAuthenticator,
 
 			// Services
 			users.Init,
@@ -119,8 +125,18 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 			AsRoute(dav.NewHTTPHandler),
 			AsRoute(oauth2.NewHTTPHandler),
 			AsRoute(assets.NewHTTPHandler),
-			AsRoute(web.NewHTTPHandler),
 			AsRoute(utilities.NewHTTPHandler),
+
+			// Web Pages
+			// AsRoute(web.NewHTTPHandler),
+			AsRoute(web.NewHomePage),
+			AsRoute(auth.NewLoginPage),
+			AsRoute(auth.NewConsentPage),
+			AsRoute(browser.NewBrowserPage),
+			AsRoute(settings.NewRedirections),
+			AsRoute(settings.NewSecurityPage),
+			AsRoute(settings.NewSpacesPage),
+			AsRoute(settings.NewUsersPage),
 
 			// HTTP Router / HTTP Server
 			router.InitMiddlewares,

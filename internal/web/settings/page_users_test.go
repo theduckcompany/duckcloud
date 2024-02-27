@@ -28,7 +28,7 @@ func Test_UsersPage(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newUsersPage(tools, htmlMock, usersMock, auth)
+		handler := NewUsersPage(tools, htmlMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -63,7 +63,7 @@ func Test_UsersPage(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newUsersPage(tools, htmlMock, usersMock, auth)
+		handler := NewUsersPage(tools, htmlMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
@@ -102,7 +102,7 @@ func Test_UsersPage(t *testing.T) {
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
-		handler := newUsersPage(tools, htmlMock, usersMock, auth)
+		handler := NewUsersPage(tools, htmlMock, usersMock, auth)
 
 		// Authentication
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()

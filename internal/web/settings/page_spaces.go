@@ -17,7 +17,7 @@ import (
 	spacestmpl "github.com/theduckcompany/duckcloud/internal/web/html/templates/settings/spaces"
 )
 
-type spacesPage struct {
+type SpacesPage struct {
 	html      html.Writer
 	spaces    spaces.Service
 	users     users.Service
@@ -26,15 +26,15 @@ type spacesPage struct {
 	uuid      uuid.Service
 }
 
-func newSpacesPage(
+func NewSpacesPage(
 	html html.Writer,
 	spaces spaces.Service,
 	users users.Service,
 	authent *auth.Authenticator,
 	scheduler scheduler.Service,
 	tools tools.Tools,
-) *spacesPage {
-	return &spacesPage{
+) *SpacesPage {
+	return &SpacesPage{
 		html:      html,
 		spaces:    spaces,
 		users:     users,
@@ -44,14 +44,14 @@ func newSpacesPage(
 	}
 }
 
-func (h *spacesPage) Register(r chi.Router, mids *router.Middlewares) {
+func (h *SpacesPage) Register(r chi.Router, mids *router.Middlewares) {
 	r.Get("/settings/spaces", h.getContent)
 	r.Get("/settings/spaces/new", h.getCreateSpaceModal)
 	r.Post("/settings/spaces/create", h.createSpace)
 	r.Post("/settings/spaces/{spaceID}/delete", h.deleteSpace)
 }
 
-func (h *spacesPage) getContent(w http.ResponseWriter, r *http.Request) {
+func (h *SpacesPage) getContent(w http.ResponseWriter, r *http.Request) {
 	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return
@@ -66,7 +66,7 @@ func (h *spacesPage) getContent(w http.ResponseWriter, r *http.Request) {
 	h.renderContent(w, r, user)
 }
 
-func (h *spacesPage) renderContent(w http.ResponseWriter, r *http.Request, user *users.User) {
+func (h *SpacesPage) renderContent(w http.ResponseWriter, r *http.Request, user *users.User) {
 	usersArray, err := h.users.GetAll(r.Context(), nil)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to GetAllUsers: %w", err))
@@ -91,7 +91,7 @@ func (h *spacesPage) renderContent(w http.ResponseWriter, r *http.Request, user 
 	})
 }
 
-func (h *spacesPage) deleteSpace(w http.ResponseWriter, r *http.Request) {
+func (h *SpacesPage) deleteSpace(w http.ResponseWriter, r *http.Request) {
 	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AdminOnly)
 	if abort {
 		return
@@ -113,7 +113,7 @@ func (h *spacesPage) deleteSpace(w http.ResponseWriter, r *http.Request) {
 	h.renderContent(w, r, user)
 }
 
-func (h *spacesPage) getCreateSpaceModal(w http.ResponseWriter, r *http.Request) {
+func (h *SpacesPage) getCreateSpaceModal(w http.ResponseWriter, r *http.Request) {
 	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AdminOnly)
 	if abort {
 		return
@@ -122,7 +122,7 @@ func (h *spacesPage) getCreateSpaceModal(w http.ResponseWriter, r *http.Request)
 	h.renderCreateSpaceModal(w, r, user)
 }
 
-func (h *spacesPage) createSpace(w http.ResponseWriter, r *http.Request) {
+func (h *SpacesPage) createSpace(w http.ResponseWriter, r *http.Request) {
 	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AdminOnly)
 	if abort {
 		return
@@ -154,7 +154,7 @@ func (h *spacesPage) createSpace(w http.ResponseWriter, r *http.Request) {
 	h.renderContent(w, r, user)
 }
 
-func (h *spacesPage) renderCreateSpaceModal(w http.ResponseWriter, r *http.Request, user *users.User) {
+func (h *SpacesPage) renderCreateSpaceModal(w http.ResponseWriter, r *http.Request, user *users.User) {
 	allUsers, err := h.users.GetAll(r.Context(), nil)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Get all the users: %w", err))

@@ -9,19 +9,19 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 )
 
-type homeHandler struct {
+type HomePage struct {
 	html html.Writer
 	auth *auth.Authenticator
 }
 
-func newHomeHandler(
+func NewHomePage(
 	html html.Writer,
 	auth *auth.Authenticator,
-) *homeHandler {
-	return &homeHandler{html, auth}
+) *HomePage {
+	return &HomePage{html, auth}
 }
 
-func (h *homeHandler) Register(r chi.Router, mids *router.Middlewares) {
+func (h *HomePage) Register(r chi.Router, mids *router.Middlewares) {
 	if mids != nil {
 		r = r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
 	}
@@ -30,11 +30,11 @@ func (h *homeHandler) Register(r chi.Router, mids *router.Middlewares) {
 	r.Get("/logout", h.logout)
 }
 
-func (h *homeHandler) logout(w http.ResponseWriter, r *http.Request) {
+func (h *HomePage) logout(w http.ResponseWriter, r *http.Request) {
 	h.auth.Logout(w, r)
 }
 
-func (h *homeHandler) getHome(w http.ResponseWriter, r *http.Request) {
+func (h *HomePage) getHome(w http.ResponseWriter, r *http.Request) {
 	_, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
 	if abort {
 		return

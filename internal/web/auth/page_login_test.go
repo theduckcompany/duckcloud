@@ -29,7 +29,7 @@ func Test_LoginPage(t *testing.T) {
 		oauthclientsMock := oauthclients.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		handler := newLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
+		handler := NewLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
 
 		webSessionsMock.On("GetFromReq", mock.Anything).Return(nil, nil).Once()
 
@@ -52,7 +52,7 @@ func Test_LoginPage(t *testing.T) {
 		oauthclientsMock := oauthclients.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		handler := newLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
+		handler := NewLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
 
 		webSessionsMock.On("GetFromReq", mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		tools.UUIDMock.On("Parse", "").Return(uuid.UUID(""), errors.New("invalid")).Once()
@@ -75,7 +75,7 @@ func Test_LoginPage(t *testing.T) {
 		oauthclientsMock := oauthclients.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		handler := newLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
+		handler := NewLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
 
 		webSessionsMock.On("GetFromReq", mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		tools.UUIDMock.On("Parse", "some-client-id").Return(uuid.UUID("some-client-id"), nil).Once()
@@ -106,7 +106,7 @@ func Test_LoginPage(t *testing.T) {
 		oauthclientsMock := oauthclients.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		handler := newLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
+		handler := NewLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
 
 		webSessionsMock.On("GetFromReq", mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		tools.UUIDMock.On("Parse", "some-client-id").Return(uuid.UUID("some-client-id"), nil).Once()
@@ -137,7 +137,7 @@ func Test_LoginPage(t *testing.T) {
 		oauthclientsMock := oauthclients.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		handler := newLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
+		handler := NewLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
 
 		usersMock.On("Authenticate", mock.Anything, users.ExampleAlice.Username(), secret.NewText("some-password")).
 			Return(&users.ExampleAlice, nil).Once()
@@ -177,7 +177,7 @@ func Test_LoginPage(t *testing.T) {
 		oauthclientsMock := oauthclients.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		handler := newLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
+		handler := NewLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
 
 		usersMock.On("Authenticate", mock.Anything, "invalid-username", secret.NewText("some-password")).
 			Return(nil, users.ErrInvalidUsername).Once()
@@ -212,7 +212,7 @@ func Test_LoginPage(t *testing.T) {
 		oauthclientsMock := oauthclients.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		handler := newLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
+		handler := NewLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
 
 		usersMock.On("Authenticate", mock.Anything, users.ExampleAlice.Username(), secret.NewText("some-invalid-password")).
 			Return(nil, users.ErrInvalidPassword).Once()
@@ -247,7 +247,7 @@ func Test_LoginPage(t *testing.T) {
 		oauthclientsMock := oauthclients.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		handler := newLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
+		handler := NewLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
 
 		usersMock.On("Authenticate", mock.Anything, users.ExampleAlice.Username(), secret.NewText("some-invalid-password")).
 			Return(nil, errs.ErrInternal).Once()
@@ -278,7 +278,7 @@ func Test_LoginPage(t *testing.T) {
 		oauthclientsMock := oauthclients.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		handler := newLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
+		handler := NewLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
 
 		usersMock.On("Authenticate", mock.Anything, users.ExampleAlice.Username(), secret.NewText("some-password")).
 			Return(&users.ExampleAlice, nil).Once()
@@ -325,7 +325,7 @@ func Test_LoginPage(t *testing.T) {
 		oauthclientsMock := oauthclients.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		htmlMock := html.NewMockWriter(t)
-		handler := newLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
+		handler := NewLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
 
 		usersMock.On("Authenticate", mock.Anything, users.ExampleAlice.Username(), secret.NewText("some-password")).
 			Return(&users.ExampleAlice, nil).Once()

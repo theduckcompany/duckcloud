@@ -25,20 +25,20 @@ type renderUsersCmd struct {
 	Error   error
 }
 
-type usersPage struct {
+type UsersPage struct {
 	html  html.Writer
 	users users.Service
 	auth  *auth.Authenticator
 	uuid  uuid.Service
 }
 
-func newUsersPage(
+func NewUsersPage(
 	tools tools.Tools,
 	html html.Writer,
 	users users.Service,
 	authent *auth.Authenticator,
-) *usersPage {
-	return &usersPage{
+) *UsersPage {
+	return &UsersPage{
 		html:  html,
 		users: users,
 		auth:  authent,
@@ -46,14 +46,14 @@ func newUsersPage(
 	}
 }
 
-func (h *usersPage) Register(r chi.Router, mids *router.Middlewares) {
+func (h *UsersPage) Register(r chi.Router, mids *router.Middlewares) {
 	r.Get("/settings/users", h.getUsers)
 	r.Post("/settings/users", h.createUser)
 	r.Get("/settings/users/new", h.getUsersRegistrationForm)
 	r.Post("/settings/users/{userID}/delete", h.deleteUser)
 }
 
-func (h *usersPage) getUsers(w http.ResponseWriter, r *http.Request) {
+func (h *UsersPage) getUsers(w http.ResponseWriter, r *http.Request) {
 	user, session, abort := h.auth.GetUserAndSession(w, r, auth.AdminOnly)
 	if abort {
 		return
@@ -62,7 +62,7 @@ func (h *usersPage) getUsers(w http.ResponseWriter, r *http.Request) {
 	h.renderUsers(w, r, renderUsersCmd{User: user, Session: session, Error: nil})
 }
 
-func (h *usersPage) createUser(w http.ResponseWriter, r *http.Request) {
+func (h *UsersPage) createUser(w http.ResponseWriter, r *http.Request) {
 	user, session, abort := h.auth.GetUserAndSession(w, r, auth.AdminOnly)
 	if abort {
 		return
@@ -90,11 +90,11 @@ func (h *usersPage) createUser(w http.ResponseWriter, r *http.Request) {
 	h.renderUsers(w, r, renderUsersCmd{User: user, Session: session, Error: nil})
 }
 
-func (h *usersPage) getUsersRegistrationForm(w http.ResponseWriter, r *http.Request) {
+func (h *UsersPage) getUsersRegistrationForm(w http.ResponseWriter, r *http.Request) {
 	h.renderUsersRegistrationForm(w, r, nil)
 }
 
-func (h *usersPage) deleteUser(w http.ResponseWriter, r *http.Request) {
+func (h *UsersPage) deleteUser(w http.ResponseWriter, r *http.Request) {
 	user, session, abort := h.auth.GetUserAndSession(w, r, auth.AdminOnly)
 	if abort {
 		return
@@ -115,7 +115,7 @@ func (h *usersPage) deleteUser(w http.ResponseWriter, r *http.Request) {
 	h.renderUsers(w, r, renderUsersCmd{User: user, Session: session, Error: nil})
 }
 
-func (h *usersPage) renderUsersRegistrationForm(w http.ResponseWriter, r *http.Request, err error) {
+func (h *UsersPage) renderUsersRegistrationForm(w http.ResponseWriter, r *http.Request, err error) {
 	status := http.StatusOK
 	if err != nil {
 		status = http.StatusUnprocessableEntity
@@ -126,7 +126,7 @@ func (h *usersPage) renderUsersRegistrationForm(w http.ResponseWriter, r *http.R
 	})
 }
 
-func (h *usersPage) renderUsers(w http.ResponseWriter, r *http.Request, cmd renderUsersCmd) {
+func (h *UsersPage) renderUsers(w http.ResponseWriter, r *http.Request, cmd renderUsersCmd) {
 	ctx := r.Context()
 
 	allUsers, err := h.users.GetAll(ctx, &storage.PaginateCmd{
