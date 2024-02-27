@@ -18,7 +18,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/web/html/templates/auth"
 )
 
-type consentPage struct {
+type ConsentPage struct {
 	html         html.Writer
 	auth         *Authenticator
 	uuid         uuid.Service
@@ -26,14 +26,14 @@ type consentPage struct {
 	oauthConsent oauthconsents.Service
 }
 
-func newConsentPage(
+func NewConsentPage(
 	html html.Writer,
 	auth *Authenticator,
 	clients oauthclients.Service,
 	oauthConsent oauthconsents.Service,
 	tools tools.Tools,
-) *consentPage {
-	return &consentPage{
+) *ConsentPage {
+	return &ConsentPage{
 		html:         html,
 		auth:         auth,
 		clients:      clients,
@@ -42,7 +42,7 @@ func newConsentPage(
 	}
 }
 
-func (h *consentPage) Register(r chi.Router, mids *router.Middlewares) {
+func (h *ConsentPage) Register(r chi.Router, mids *router.Middlewares) {
 	if mids != nil {
 		r = r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
 	}
@@ -50,7 +50,7 @@ func (h *consentPage) Register(r chi.Router, mids *router.Middlewares) {
 	r.HandleFunc("/consent", h.printPage)
 }
 
-func (h *consentPage) printPage(w http.ResponseWriter, r *http.Request) {
+func (h *ConsentPage) printPage(w http.ResponseWriter, r *http.Request) {
 	user, session, abort := h.auth.GetUserAndSession(w, r, AnyUser)
 	if abort {
 		return

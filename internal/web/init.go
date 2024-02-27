@@ -24,10 +24,8 @@ type Config struct {
 }
 
 type HTTPHandler struct {
-	auth     *auth.Handler
 	browser  *browser.Handler
 	settings *settings.Handler
-	home     *homeHandler
 }
 
 func NewHTTPHandler(
@@ -47,17 +45,13 @@ func NewHTTPHandler(
 	authenticator := auth.NewAuthenticator(webSessions, users, htmlRenderer)
 
 	return &HTTPHandler{
-		auth:     auth.NewHandler(tools, htmlRenderer, authenticator, users, clients, oauthConsent, webSessions),
 		browser:  browser.NewHandler(tools, htmlRenderer, spaces, files, authenticator, fs),
-		settings: settings.NewHandler(tools, htmlRenderer, webSessions, davSessions, spaces, scheduler, users, authenticator),
-		home:     newHomeHandler(htmlRenderer, authenticator),
+		settings: settings.NewHandler(),
 	}
 }
 
 func (h *HTTPHandler) Register(r chi.Router, mids *router.Middlewares) {
-	h.auth.Register(r, mids)
 	h.browser.Register(r, mids)
 
 	h.settings.Register(r, mids)
-	h.home.Register(r, mids)
 }

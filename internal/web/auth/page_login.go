@@ -18,7 +18,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/web/html/templates/auth"
 )
 
-type loginPage struct {
+type LoginPage struct {
 	webSessions websessions.Service
 	uuid        uuid.Service
 	html        html.Writer
@@ -26,14 +26,14 @@ type loginPage struct {
 	clients     oauthclients.Service
 }
 
-func newLoginPage(
+func NewLoginPage(
 	html html.Writer,
 	webSessions websessions.Service,
 	users users.Service,
 	clients oauthclients.Service,
 	tools tools.Tools,
-) *loginPage {
-	return &loginPage{
+) *LoginPage {
+	return &LoginPage{
 		html:        html,
 		webSessions: webSessions,
 		users:       users,
@@ -42,7 +42,7 @@ func newLoginPage(
 	}
 }
 
-func (h *loginPage) Register(r chi.Router, mids *router.Middlewares) {
+func (h *LoginPage) Register(r chi.Router, mids *router.Middlewares) {
 	if mids != nil {
 		r = r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
 	}
@@ -51,7 +51,7 @@ func (h *loginPage) Register(r chi.Router, mids *router.Middlewares) {
 	r.Post("/login", h.applyLogin)
 }
 
-func (h *loginPage) printPage(w http.ResponseWriter, r *http.Request) {
+func (h *LoginPage) printPage(w http.ResponseWriter, r *http.Request) {
 	currentSession, _ := h.webSessions.GetFromReq(r)
 
 	if currentSession != nil {
@@ -62,7 +62,7 @@ func (h *loginPage) printPage(w http.ResponseWriter, r *http.Request) {
 	h.html.WriteHTMLTemplate(w, r, http.StatusOK, &auth.LoginPageTmpl{})
 }
 
-func (h *loginPage) applyLogin(w http.ResponseWriter, r *http.Request) {
+func (h *LoginPage) applyLogin(w http.ResponseWriter, r *http.Request) {
 	tmpl := auth.LoginPageTmpl{}
 
 	tmpl.UsernameContent = r.FormValue("username")
@@ -112,7 +112,7 @@ func (h *loginPage) applyLogin(w http.ResponseWriter, r *http.Request) {
 	h.chooseRedirection(w, r)
 }
 
-func (h *loginPage) chooseRedirection(w http.ResponseWriter, r *http.Request) {
+func (h *LoginPage) chooseRedirection(w http.ResponseWriter, r *http.Request) {
 	var client *oauthclients.Client
 	clientID, err := h.uuid.Parse(r.FormValue("client_id"))
 	if err == nil {

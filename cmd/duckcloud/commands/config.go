@@ -29,7 +29,6 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/response"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
-	"github.com/theduckcompany/duckcloud/internal/web"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 )
 
@@ -144,11 +143,9 @@ func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
 			},
 		},
 		Folder: server.Folder(cfg.Folder),
-		Web: web.Config{
-			HTML: html.Config{
-				PrettyRender: cfg.Dev,
-				HotReload:    cfg.HotReload,
-			},
+		HTML: html.Config{
+			PrettyRender: cfg.Dev,
+			HotReload:    cfg.HotReload,
 		},
 		MasterKey: masterkey.Config{
 			DevMode: cfg.Dev,

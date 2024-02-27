@@ -17,7 +17,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
-	"github.com/theduckcompany/duckcloud/internal/web"
+	"github.com/theduckcompany/duckcloud/internal/web/html"
 	"go.uber.org/fx"
 )
 
@@ -27,7 +27,7 @@ var testConfig = Config{
 	Assets:    assets.Config{},
 	Storage:   storage.Config{Path: ":memory:"},
 	Tools:     tools.Config{Log: logger.Config{Output: io.Discard}},
-	Web:       web.Config{},
+	HTML:      html.Config{},
 	MasterKey: masterkey.Config{DevMode: true},
 	Folder:    "/foo",
 }
