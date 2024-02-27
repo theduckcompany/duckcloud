@@ -15,6 +15,8 @@ type Config struct {
 
 //go:generate mockery --name Service
 type Service interface {
+	LoadMasterKeyFromPassword(ctx context.Context, password *secret.Text) error
+
 	SealKey(key *secret.Key) (*secret.SealedKey, error)
 	Open(key *secret.SealedKey) (*secret.Key, error)
 }
@@ -27,7 +29,7 @@ func Init(ctx context.Context, config config.Service, fs afero.Fs, cfg Config) (
 	// 	return nil, err
 	// }
 
-	err := svc.loadMasterKey(ctx)
+	err := svc.loadMasterKeyFromSystemdCreds(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("master key error: %w", err)
 	}

@@ -2,7 +2,6 @@ package masterkey
 
 import (
 	"context"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -15,9 +14,14 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/config"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
+	"golang.org/x/crypto/argon2"
 )
 
-var ErrAlreadyExists = errors.New("a master key already exists")
+var (
+	ErrAlreadyExists        = errors.New("a master key already exists")
+	ErrKeyAlreadyDeciphered = errors.New("the key have been already deciphered")
+	ErrMasterKeyNotFound    = errors.New("master key not found")
+)
 
 const defaultPasswordKey = "p8ZY8JBIkK5qPvA4GLQkXVwY4fLDLPVkIvxOWy08DEs"
 
@@ -29,8 +33,7 @@ type MasterKeyService struct {
 	enclave *memguard.Enclave
 	cfg     Config
 
-	masterKeyAvailable bool
-	passwordRequired   bool
+	passwordRequired bool
 }
 
 func NewService(config config.Service, fs afero.Fs, cfg Config) *MasterKeyService {
@@ -40,39 +43,36 @@ func NewService(config config.Service, fs afero.Fs, cfg Config) *MasterKeyServic
 		enclave: nil,
 		cfg:     cfg,
 
-		masterKeyAvailable: false,
-		passwordRequired:   true,
+		passwordRequired: true,
 	}
 }
 
 func (s *MasterKeyService) IsMasterKeyAvailable() bool {
-	return s.masterKeyAvailable
+	return s.enclave != nil
 }
 
-func (s *MasterKeyService) loadMasterKey(ctx context.Context) error {
+func (s *MasterKeyService) LoadMasterKeyFromPassword(ctx context.Context, password *secret.Text) error {
+	if s.enclave != nil {
+		return ErrKeyAlreadyDeciphered
+	}
+
 	masterKey, err := s.config.GetMasterKey(ctx)
 	if errors.Is(err, errs.ErrNotFound) {
-		s.masterKeyAvailable = false
-		return nil
+		return errs.NotFound(ErrMasterKeyNotFound)
 	}
 
 	if err != nil {
-		return fmt.Errorf("failed to get the master key: %w", err)
+		return errs.Internal(fmt.Errorf("failed to get the master key: %w", err))
 	}
 
-	passwordKey, err := s.loadPassword(ctx)
+	passKey, err := secret.KeyFromRaw(argon2.Key([]byte([]byte(password.Raw())), masterKey.Raw(), 3, 32*1024, 4, 32))
 	if err != nil {
-		return fmt.Errorf("failed to load password: %w", err)
+		return errs.Internal(fmt.Errorf("failed to generate a passKey from the given password: %w", err))
 	}
 
-	if passwordKey == nil {
-		s.passwordRequired = true
-		return nil
-	}
-
-	rawMasterKey, err := masterKey.Open(passwordKey)
+	rawMasterKey, err := masterKey.Open(passKey)
 	if err != nil {
-		return fmt.Errorf("failed to decode: %w", err)
+		return errs.BadRequest(fmt.Errorf("failed to decode: %w", err))
 	}
 
 	s.enclave = memguard.NewEnclave(rawMasterKey.Raw())
@@ -80,98 +80,91 @@ func (s *MasterKeyService) loadMasterKey(ctx context.Context) error {
 	return nil
 }
 
-func (s *MasterKeyService) generateMasterKey(ctx context.Context) error {
-	existingMasterKey, err := s.config.GetMasterKey(ctx)
-	if err != nil && !errors.Is(err, errs.ErrNotFound) {
-		return fmt.Errorf("failed to get the master key: %w", err)
-	}
-
-	if existingMasterKey != nil {
-		return nil
-	}
-
-	passwordKey, err := s.loadPassword(ctx)
+func (s *MasterKeyService) loadMasterKeyFromSystemdCreds(ctx context.Context) error {
+	password, err := s.loadPasswordFromSystemdCreds(s.fs)
 	if err != nil {
-		return fmt.Errorf("failed to load the password: %w", err)
+		return fmt.Errorf("failed to load the systemd-creds password: %w", err)
 	}
 
-	key, err := secret.NewKey()
-	if err != nil {
-		return fmt.Errorf("failed to generate a new key: %w", err)
-	}
-
-	sealedKey, err := secret.SealKey(passwordKey, key)
-	if err != nil {
-		return fmt.Errorf("failed to seal the key: %w", err)
-	}
-
-	err = s.config.SetMasterKey(ctx, sealedKey)
-	if err != nil {
-		return fmt.Errorf("failed to save into the storage: %w", err)
-	}
-
-	return nil
+	return s.LoadMasterKeyFromPassword(ctx, password)
 }
 
-func (s *MasterKeyService) loadPassword(ctx context.Context) (*secret.Key, error) {
-	switch {
-	case s.cfg.DevMode:
-		return secret.KeyFromBase64(defaultPasswordKey)
-	case os.Getenv("CREDENTIALS_DIRECTORY") != "":
-		return s.loadPasswordFromSystemdCreds(ctx, s.fs)
-	default:
-		return nil, nil
-	}
-}
+// func (s *MasterKeyService) generateMasterKey(ctx context.Context) error {
+// 	existingMasterKey, err := s.config.GetMasterKey(ctx)
+// 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
+// 		return fmt.Errorf("failed to get the master key: %w", err)
+// 	}
+//
+// 	if existingMasterKey != nil {
+// 		return nil
+// 	}
+//
+// 	passwordKey, err := s.loadPassword(ctx)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to load the password: %w", err)
+// 	}
+//
+// 	key, err := secret.NewKey()
+// 	if err != nil {
+// 		return fmt.Errorf("failed to generate a new key: %w", err)
+// 	}
+//
+// 	sealedKey, err := secret.SealKey(passwordKey, key)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to seal the key: %w", err)
+// 	}
+//
+// 	err = s.config.SetMasterKey(ctx, sealedKey)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to save into the storage: %w", err)
+// 	}
+//
+// 	return nil
+// }
 
-func (s *MasterKeyService) loadPasswordFromSystemdCreds(ctx context.Context, fs afero.Fs) (*secret.Key, error) {
+func (s *MasterKeyService) loadPasswordFromSystemdCreds(fs afero.Fs) (*secret.Text, error) {
 	dirPath := os.Getenv("CREDENTIALS_DIRECTORY")
 	if dirPath == "" {
-		return nil, fmt.Errorf("systemd credentials: %w", errs.ErrNotFound)
+		return nil, errs.BadRequest(fmt.Errorf("CREDENTIALS_DIRECTORY not set"))
 	}
 
 	filePath := path.Join(dirPath, "password")
 
 	file, err := fs.Open(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open the credentials file specified by $CREDENTIALS_DIRECTORY: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to open the credentials file specified by $CREDENTIALS_DIRECTORY: %w", err))
 	}
 	defer file.Close()
 
 	password, err := io.ReadAll(file)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read the password file: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to read the password file: %w", err))
 	}
 
 	err = fs.Remove(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to remove the credentials file: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to remove the credentials file: %w", err))
 	}
 
-	passwordStr := strings.TrimSuffix(string(password), "\n")
+	passwordStr := secret.NewText(strings.TrimSpace(string(password)))
 
-	pass, err := hex.DecodeString(passwordStr)
-	if err != nil {
-		return nil, fmt.Errorf("decode 3 error: %w", err)
-	}
-
-	passwordKey, err := secret.KeyFromRaw(pass)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode the user password: %w", err)
-	}
-
-	return passwordKey, nil
+	return &passwordStr, nil
 }
 
 func (s *MasterKeyService) SealKey(key *secret.Key) (*secret.SealedKey, error) {
 	sealedKey, err := secret.SealKeyWithEnclave(s.enclave, key)
 	if err != nil {
-		return nil, fmt.Errorf("failed to seal the key: %w", err)
+		return nil, errs.Internal(fmt.Errorf("failed to seal the key: %w", err))
 	}
 
 	return sealedKey, nil
 }
 
 func (s *MasterKeyService) Open(key *secret.SealedKey) (*secret.Key, error) {
-	return key.OpenWithEnclave(s.enclave)
+	res, err := key.OpenWithEnclave(s.enclave)
+	if err != nil {
+		return nil, errs.Internal(err)
+	}
+
+	return res, nil
 }
