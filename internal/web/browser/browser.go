@@ -9,7 +9,6 @@ import (
 	"io/fs"
 	"net/http"
 	"path"
-	stdpath "path"
 	"path/filepath"
 	"sync"
 
@@ -111,7 +110,7 @@ func (h *Handler) getBrowserContent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path := h.getPathFromURL(w, r, user, r.URL.Path)
+	path := h.getPathFromURL(w, r, user)
 	if path == nil {
 		return
 	}
@@ -198,7 +197,7 @@ func (h *Handler) deleteAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path := h.getPathFromURL(w, r, user, r.URL.Path)
+	path := h.getPathFromURL(w, r, user)
 	if path == nil {
 		return
 	}
@@ -264,7 +263,7 @@ func (h *Handler) lauchUpload(ctx context.Context, cmd *lauchUploadCmd) error {
 	return nil
 }
 
-func (h Handler) getPathFromURL(w http.ResponseWriter, r *http.Request, user *users.User, pathStr string) *dfs.PathCmd {
+func (h Handler) getPathFromURL(w http.ResponseWriter, r *http.Request, user *users.User) *dfs.PathCmd {
 	// no need to check elems len as the url format force a len of 3 minimum
 	spaceID, err := h.uuid.Parse(chi.URLParam(r, "spaceID"))
 	if err != nil {
@@ -361,28 +360,28 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path := h.getPathFromURL(w, r, user, r.URL.Path)
-	if path == nil {
+	pathCmd := h.getPathFromURL(w, r, user)
+	if pathCmd == nil {
 		return
 	}
 
-	inode, err := h.fs.Get(r.Context(), path)
+	inode, err := h.fs.Get(r.Context(), pathCmd)
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to fs.Get: %w", err))
 		return
 	}
 
 	if inode == nil {
-		http.Redirect(w, r, stdpath.Join("/browser/", string(path.Space().ID())), http.StatusFound)
+		http.Redirect(w, r, path.Join("/browser/", string(pathCmd.Space().ID())), http.StatusFound)
 		return
 	}
 
 	if inode.IsDir() {
-		h.serveFolderContent(w, r, path)
+		h.serveFolderContent(w, r, pathCmd)
 	} else {
 		fileMeta, _ := h.files.GetMetadata(r.Context(), *inode.FileID())
 
-		file, err := h.fs.Download(r.Context(), path)
+		file, err := h.fs.Download(r.Context(), pathCmd)
 		if err != nil {
 			h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to Download: %w", err))
 			return
