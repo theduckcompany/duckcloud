@@ -13,7 +13,7 @@ func NewSQliteClient(cfg *Config) (*sql.DB, error) {
 	var db *sql.DB
 	var err error
 
-	dsn := "file:" + cfg.Path + "?_journal=WAL&_synchronous=normal&_busy_timeout=500"
+	dsn := "file:" + cfg.Path + "?_journal=WAL&_synchronous=normal&_busy_timeout=500&foreign_keys=true"
 
 	db, err = sql.Open("sqlite3", dsn)
 	if err != nil {

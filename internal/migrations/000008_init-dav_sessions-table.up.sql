@@ -4,8 +4,10 @@ CREATE TABLE IF NOT EXISTS dav_sessions (
   "name" TEXT NOT NULL,
   "password" TEXT NOT NULL,
   "user_id" TEXT NOT NULL,
-  "space" TEXT NOT NULL,
-  "created_at" DATETIME NOT NULL
+  "space_id" TEXT NOT NULL,
+  "created_at" DATETIME NOT NULL,
+  FOREIGN KEY(user_id) REFERENCES users(id) ON UPDATE RESTRICT ON DELETE RESTRICT
+  FOREIGN KEY(space_id) REFERENCES spaces(id) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_dav_sessions_id ON dav_sessions(id);
