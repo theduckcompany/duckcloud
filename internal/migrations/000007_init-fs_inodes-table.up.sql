@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS fs_inodes (
   "created_at" DATETIME NOT NULL,
   "created_by" TEXT NOT NULL,
   "deleted_at" DATETIME DEFAULT NULL,
-  FOREIGN KEY(space_id) REFERENCES spaces(id)
+  FOREIGN KEY(space_id) REFERENCES spaces(id) ON UPDATE RESTRICT ON DELETE RESTRICT,
+  FOREIGN KEY(file_id) REFERENCES files(id) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_fs_inodes_id ON fs_inodes(id);

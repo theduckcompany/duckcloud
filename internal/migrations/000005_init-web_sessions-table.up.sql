@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS web_sessions (
   "ip" TEXT NOT NULL,
   "device" TEXT NOT NULL,
   "created_at" DATETIME NOT NULL,
-  FOREIGN KEY(user_id) REFERENCES users(id)
+  FOREIGN KEY(user_id) REFERENCES users(id) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_web_sessions_token ON web_sessions(token);

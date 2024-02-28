@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS oauth_clients (
   "scopes" TEXT NOT NULL,
   "is_public" BOOLEAN NOT NULL,
   "skip_validation" BOOLEAN NOT NULL,
-  FOREIGN KEY(user_id) REFERENCES users(id)
+  FOREIGN KEY(user_id) REFERENCES users(id) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_oauth_clients_id ON oauth_clients(id);
