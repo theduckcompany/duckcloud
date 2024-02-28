@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS fs_inodes (
   "last_modified_at" DATETIME NOT NULL,
   "created_at" DATETIME NOT NULL,
   "created_by" TEXT NOT NULL,
-  "deleted_at" DATETIME DEFAULT NULL
+  "deleted_at" DATETIME DEFAULT NULL,
+  FOREIGN KEY(space_id) REFERENCES spaces(id)
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_fs_inodes_id ON fs_inodes(id);

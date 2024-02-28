@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS dav_sessions (
   "space" TEXT NOT NULL,
   "created_at" DATETIME NOT NULL,
   FOREIGN KEY(user_id) REFERENCES users(id)
+  FOREIGN KEY(space) REFERENCES spaces(id)
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_dav_sessions_id ON dav_sessions(id);
