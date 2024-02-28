@@ -20,10 +20,9 @@ import (
 var (
 	ErrAlreadyExists        = errors.New("a master key already exists")
 	ErrKeyAlreadyDeciphered = errors.New("the key have been already deciphered")
+	ErrCredsDirNotSet       = errors.New("CREDENTIALS_DIRECTORY not set")
 	ErrMasterKeyNotFound    = errors.New("master key not found")
 )
-
-const defaultPasswordKey = "p8ZY8JBIkK5qPvA4GLQkXVwY4fLDLPVkIvxOWy08DEs"
 
 type PasswordSource string
 
@@ -47,7 +46,7 @@ func NewService(config config.Service, fs afero.Fs, cfg Config) *MasterKeyServic
 	}
 }
 
-func (s *MasterKeyService) IsMasterKeyAvailable() bool {
+func (s *MasterKeyService) IsMasterKeyLoaded() bool {
 	return s.enclave != nil
 }
 
@@ -65,7 +64,7 @@ func (s *MasterKeyService) LoadMasterKeyFromPassword(ctx context.Context, passwo
 		return errs.Internal(fmt.Errorf("failed to get the master key: %w", err))
 	}
 
-	passKey, err := secret.KeyFromRaw(argon2.Key([]byte([]byte(password.Raw())), masterKey.Raw(), 3, 32*1024, 4, 32))
+	passKey, err := secret.KeyFromRaw(argon2.Key([]byte(password.Raw()), []byte(password.Raw()), 3, 32*1024, 4, 32))
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to generate a passKey from the given password: %w", err))
 	}
@@ -89,43 +88,43 @@ func (s *MasterKeyService) loadMasterKeyFromSystemdCreds(ctx context.Context) er
 	return s.LoadMasterKeyFromPassword(ctx, password)
 }
 
-// func (s *MasterKeyService) generateMasterKey(ctx context.Context) error {
-// 	existingMasterKey, err := s.config.GetMasterKey(ctx)
-// 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
-// 		return fmt.Errorf("failed to get the master key: %w", err)
-// 	}
-//
-// 	if existingMasterKey != nil {
-// 		return nil
-// 	}
-//
-// 	passwordKey, err := s.loadPassword(ctx)
-// 	if err != nil {
-// 		return fmt.Errorf("failed to load the password: %w", err)
-// 	}
-//
-// 	key, err := secret.NewKey()
-// 	if err != nil {
-// 		return fmt.Errorf("failed to generate a new key: %w", err)
-// 	}
-//
-// 	sealedKey, err := secret.SealKey(passwordKey, key)
-// 	if err != nil {
-// 		return fmt.Errorf("failed to seal the key: %w", err)
-// 	}
-//
-// 	err = s.config.SetMasterKey(ctx, sealedKey)
-// 	if err != nil {
-// 		return fmt.Errorf("failed to save into the storage: %w", err)
-// 	}
-//
-// 	return nil
-// }
+func (s *MasterKeyService) generateMasterKey(ctx context.Context, password *secret.Text) error {
+	existingMasterKey, err := s.config.GetMasterKey(ctx)
+	if err != nil && !errors.Is(err, errs.ErrNotFound) {
+		return fmt.Errorf("failed to get the master key: %w", err)
+	}
+
+	if existingMasterKey != nil {
+		return ErrAlreadyExists
+	}
+
+	passKey, err := secret.KeyFromRaw(argon2.Key([]byte([]byte(password.Raw())), []byte(password.Raw()), 3, 32*1024, 4, 32))
+	if err != nil {
+		return errs.Internal(fmt.Errorf("failed to generate a passKey from the given password: %w", err))
+	}
+
+	rawMasterKey, err := secret.NewKey()
+	if err != nil {
+		return fmt.Errorf("failed to generate a the master key: %w", err)
+	}
+
+	sealedKey, err := secret.SealKey(passKey, rawMasterKey)
+	if err != nil {
+		return fmt.Errorf("failed to seal the key: %w", err)
+	}
+
+	err = s.config.SetMasterKey(ctx, sealedKey)
+	if err != nil {
+		return fmt.Errorf("failed to save into the storage: %w", err)
+	}
+
+	return nil
+}
 
 func (s *MasterKeyService) loadPasswordFromSystemdCreds(fs afero.Fs) (*secret.Text, error) {
 	dirPath := os.Getenv("CREDENTIALS_DIRECTORY")
 	if dirPath == "" {
-		return nil, errs.BadRequest(fmt.Errorf("CREDENTIALS_DIRECTORY not set"))
+		return nil, errs.BadRequest(ErrCredsDirNotSet)
 	}
 
 	filePath := path.Join(dirPath, "password")

@@ -28,7 +28,7 @@ func TestFileService(t *testing.T) {
 		db := storage.NewTestStorage(t)
 		storage := newSqlStorage(db)
 		cfgSvc := config.Init(db)
-		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true})
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true}, tools)
 		require.NoError(t, err)
 		svc := NewFileService(storage, fs, tools, masterkeySvc)
 
@@ -49,7 +49,7 @@ func TestFileService(t *testing.T) {
 		db := storage.NewTestStorage(t)
 		storage := newSqlStorage(db)
 		cfgSvc := config.Init(db)
-		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true})
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true}, tools)
 		require.NoError(t, err)
 		svc := NewFileService(storage, fs, tools, masterkeySvc)
 
@@ -68,7 +68,7 @@ func TestFileService(t *testing.T) {
 		db := storage.NewTestStorage(t)
 		storage := newSqlStorage(db)
 		cfgSvc := config.Init(db)
-		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true})
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true}, tools)
 		require.NoError(t, err)
 		svc := NewFileService(storage, fs, tools, masterkeySvc)
 
@@ -93,7 +93,7 @@ func TestFileService(t *testing.T) {
 		db := storage.NewTestStorage(t)
 		storage := newSqlStorage(db)
 		cfgSvc := config.Init(db)
-		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true})
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true}, tools)
 		require.NoError(t, err)
 		svc := NewFileService(storage, fs, tools, masterkeySvc)
 
@@ -111,7 +111,7 @@ func TestFileService(t *testing.T) {
 		db := storage.NewTestStorage(t)
 		storageMock := NewMockStorage(t)
 		cfgSvc := config.Init(db)
-		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true})
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true}, tools)
 		require.NoError(t, err)
 		svc := NewFileService(storageMock, fs, tools, masterkeySvc)
 
@@ -128,7 +128,7 @@ func TestFileService(t *testing.T) {
 		db := storage.NewTestStorage(t)
 		storageMock := NewMockStorage(t)
 		cfgSvc := config.Init(db)
-		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true})
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true}, tools)
 		require.NoError(t, err)
 		svc := NewFileService(storageMock, fs, tools, masterkeySvc)
 
@@ -145,7 +145,7 @@ func TestFileService(t *testing.T) {
 		db := storage.NewTestStorage(t)
 		storage := newSqlStorage(db)
 		cfgSvc := config.Init(db)
-		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true})
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true}, tools)
 		require.NoError(t, err)
 		svc := NewFileService(storage, fs, tools, masterkeySvc)
 

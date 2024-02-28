@@ -31,4 +31,4 @@ type MasterPasswordPageTmpl struct {
 	ErrorMsg string
 }
 
-func (t *MasterPasswordPageTmpl) Template() string { return "auth/page_masterpassword" }
+func (t *MasterPasswordPageTmpl) Template() string { return "auth/page_ask_masterpassword" }

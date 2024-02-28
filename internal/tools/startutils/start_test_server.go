@@ -68,7 +68,7 @@ func NewServer(t *testing.T) *Server {
 	usersSvc := users.Init(tools, db, schedulerSvc)
 	statsSvc := stats.Init(db)
 
-	masterKeySvc, err := masterkey.Init(ctx, configSvc, afs, masterkey.Config{DevMode: true})
+	masterKeySvc, err := masterkey.Init(ctx, configSvc, afs, masterkey.Config{DevMode: true}, tools)
 	require.NoError(t, err)
 
 	filesInit, err := files.Init(masterKeySvc, "/", afs, tools, db)
