@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS oauth_clients (
   "created_at" DATETIME NOT NULL,
   "scopes" TEXT NOT NULL,
   "is_public" BOOLEAN NOT NULL,
-  "skip_validation" BOOLEAN NOT NULL
+  "skip_validation" BOOLEAN NOT NULL,
+  FOREIGN KEY(user_id) REFERENCES users(id)
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_oauth_clients_id ON oauth_clients(id);

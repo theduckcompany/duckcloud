@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS oauth_codes (
   "redirect_uri" TEXT NOT NULL,
   "challenge" TEXT DEFAULT NULL,
   "challenge_method" TEXT DEFAULT NULL,
-  "scope" TEXT NOT NULL
+  "scope" TEXT NOT NULL,
+  FOREIGN KEY(user_id) REFERENCES users(id)
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_oauth_codes_code ON oauth_codes(code);
