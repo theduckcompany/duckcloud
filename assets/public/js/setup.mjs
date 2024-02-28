@@ -1,5 +1,5 @@
 
-import {Sidenav, Datatable, Dropdown, Select} from "/assets/js/libs/mdb.es.min.js";
+import { Sidenav, Datatable, Dropdown, Select } from "/assets/js/libs/mdb.es.min.js";
 
 export function SetupSideNav() {
   const sidenav = document.getElementById("main-sidenav");
@@ -33,7 +33,7 @@ export function SetupSideNav() {
 
 export function SetupBoostrapElems() {
   // Make all the selects pretty even with the dynamic content
-  document.body.addEventListener("htmx:afterSwap", function (evt) {
+  document.body.addEventListener("htmx:afterSwap", function(evt) {
     document.querySelectorAll('.select').forEach((select) => {
       Select.getOrCreateInstance(select);
     });

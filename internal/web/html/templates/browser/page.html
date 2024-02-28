@@ -1,54 +1,72 @@
 <section class="container pt-3">
   <div id="status-bar"></div>
-  <div class="row justify-content-between">
-    {{template "browser/breadcrumb" (.Breadcrumb)}}
 
-    <div class="col-md-2 col-4">
-      <div class="dropdown">
-        <button class="d-flex btn btn-primary button-lg dropdown-toggle align-items-center fs-6" 
-                data-mdb-dropdown-init
-                type="button"
-                id="add-button"
-                aria-expanded="false">
-          <i class="fas fa-plus me-2"></i>Add</button>
-        <ul class="dropdown-menu" aria-labelledby="add-button">
-          <li><a class="dropdown-item text-dark"
-                 hx-get="/browser/create-dir?space={{$.Folder.Space.ID}}&dir={{$.Folder.Path}}"
-                 hx-target="#modal-target"
-                 data-mdb-modal-init 
-                 hx-trigger="click"
-                 data-mdb-toggle="modal"
-                 hx-swap="innerHTML"
-                 data-mdb-target="#modal-target">
+  <div class="sticky-top bg-white">
+
+    <div class="row justify-content-between">
+      {{template "browser/breadcrumb" (.Breadcrumb)}}
+
+      <div class="col-md-2 col-4">
+        <div class="dropdown">
+          <button class="d-flex btn btn-primary button-lg dropdown-toggle align-items-center fs-6 mt-3" 
+            data-mdb-dropdown-init
+            type="button"
+            id="add-button"
+            aria-expanded="false">
+            <i class="fas fa-plus me-2"></i>Add</button>
+          <ul class="dropdown-menu" aria-labelledby="add-button">
+            <li><a class="dropdown-item text-dark"
+              hx-get="/browser/create-dir?space={{$.Folder.Space.ID}}&dir={{$.Folder.Path}}"
+              hx-target="#modal-target"
+              data-mdb-modal-init 
+              hx-trigger="click"
+              data-mdb-toggle="modal"
+              hx-swap="innerHTML"
+              data-mdb-target="#modal-target">
               <i class="fas fa-folder-plus fa-lg me-2"></i>New folder</a></li>
-          <li>
-            <hr class="dropdown-divider" />
-          </li>
-          <li><a id="upload-file-btn" class="dropdown-item text-dark"><i class="fas fa-cloud-arrow-up fa-lg me-2"></i>Upload File</a>
-          </li>
-          <li><a id="upload-folder-btn" class="dropdown-item text-dark"><i class="fas fa-cloud-arrow-up fa-lg me-2"></i>Upload
+            <li>
+              <hr class="dropdown-divider" />
+            </li>
+            <li><a id="upload-file-btn" class="dropdown-item text-dark"><i class="fas fa-cloud-arrow-up fa-lg me-2"></i>Upload File</a>
+            </li>
+            <li><a id="upload-folder-btn" class="dropdown-item text-dark"><i class="fas fa-cloud-arrow-up fa-lg me-2"></i>Upload
               Folder</a></li>
-        </ul>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
 
   <br>
-  <div class="row d-flex justify-content-between user-select-none">
-    <div class="col-md-7">Name</div>
-    <div class="col-md-5 row text-center text-muted d-none d-md-flex d-lg-flex d-xxl-flex d-xl-flex">
-      <div class="col-1"></div>
-      <div class="col-4">Size</div>
-      <div class="col-5">Modified</div>
-    </div>
-  </div>
 
-  <hr class="mb-1">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr class="d-flex">
+          <th scope="col" class="col-10 col-md-9 col-lg-7" style="max-width: 70vw">Name</th>
+          <th scope="col" class="col-2 d-none d-md-flex d-lg-flex d-xxl-flex d-xl-flex">Size</th>
+          <th scope="col" class="col-2 d-none d-lg-flex d-xxl-flex d-xl-flex">Modified</th>
+          <th scope="col" class="col-2 col-md-1">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{template "browser/rows" (.Rows)}}
+      </tbody>
+    </table>
 
-
-  {{template "browser/rows" (.Rows)}}
+  <input type="hidden" id="folder-path-meta" value="{{$.Folder.Path}}">
+  <input type="hidden" id="space-id-meta" value="{{$.Folder.Space.ID}}">
 </section>
 
-<input type="hidden" id="folder-path-meta" value="{{$.Folder.Path}}">
-<input type="hidden" id="space-id-meta" value="{{$.Folder.Space.ID}}">
-</section>
+
+
+<script type="module">
+import {SetupSideNav, SetupBoostrapElems} from "/assets/js/setup.mjs"
+import {setupUploadButton} from "/assets/js/file-upload.mjs"
+import {Modal, Dropdown, initMDB} from "/assets/js/libs/mdb.es.min.js";
+
+initMDB({Modal, Dropdown});
+
+SetupSideNav()
+setupUploadButton()
+
+</script>

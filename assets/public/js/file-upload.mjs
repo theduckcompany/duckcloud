@@ -1,4 +1,4 @@
-import {Uppy, XHRUpload, StatusBar} from "/assets/js/libs/uppy.min.mjs"
+import { Uppy, XHRUpload, StatusBar } from "/assets/js/libs/uppy.min.mjs"
 
 export function setupUploadButton() {
 
@@ -10,9 +10,9 @@ export function setupUploadButton() {
   const folderPath = document.getElementById("folder-path-meta")
   const spaceID = document.getElementById("space-id-meta")
 
-  client.setMeta({rootPath: folderPath.value})
-  client.setMeta({spaceID: spaceID.value})
-  client.use(StatusBar, {target: '#status-bar'});
+  client.setMeta({ rootPath: folderPath.value })
+  client.setMeta({ spaceID: spaceID.value })
+  client.use(StatusBar, { target: '#status-bar' });
 
   client.on('complete', (result) => {
     htmx.trigger("body", "refreshFolder");
@@ -47,7 +47,6 @@ export function setupUploadButton() {
       input.onchange = e => {
         for (const file of e.target.files) {
           client.addFile({
-
             name: file.webkitRelativePath,
             data: file,
             type: file.type,
