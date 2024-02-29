@@ -28,8 +28,7 @@ func NewAskMasterPasswordPage(html html.Writer, masterkey masterkey.Service) *Ma
 
 func (h *MasterAskPasswordPage) Register(r chi.Router, mids *router.Middlewares) {
 	if mids != nil {
-		// Remove the mids.Masterkey middleware to avoid an infinit redirection loop
-		r = r.With(mids.Logger, mids.RealIP, mids.StripSlashed, mids.CORS)
+		r = r.With(mids.Defaults()...)
 	}
 
 	r.Get("/master-password/ask", h.printMasterKeyPasswordPage)
@@ -41,7 +40,7 @@ func (h *MasterAskPasswordPage) printMasterKeyPasswordPage(w http.ResponseWriter
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	}
 
-	h.html.WriteHTMLTemplate(w, r, http.StatusOK, &auth.MasterPasswordPageTmpl{})
+	h.html.WriteHTMLTemplate(w, r, http.StatusOK, &auth.AskMasterPasswordPageTmpl{})
 }
 
 func (h *MasterAskPasswordPage) postForm(w http.ResponseWriter, r *http.Request) {
@@ -49,7 +48,7 @@ func (h *MasterAskPasswordPage) postForm(w http.ResponseWriter, r *http.Request)
 
 	err := h.masterkey.LoadMasterKeyFromPassword(r.Context(), &password)
 	if errors.Is(err, errs.ErrBadRequest) {
-		h.html.WriteHTMLTemplate(w, r, http.StatusOK, &auth.MasterPasswordPageTmpl{
+		h.html.WriteHTMLTemplate(w, r, http.StatusOK, &auth.AskMasterPasswordPageTmpl{
 			ErrorMsg: "invalid password",
 		})
 		return

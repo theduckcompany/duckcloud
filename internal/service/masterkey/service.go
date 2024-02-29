@@ -50,6 +50,18 @@ func (s *MasterKeyService) IsMasterKeyLoaded() bool {
 	return s.enclave != nil
 }
 
+func (s *MasterKeyService) IsMasterKeyRegistered(ctx context.Context) (bool, error) {
+	_, err := s.config.GetMasterKey(ctx)
+	switch {
+	case err == nil:
+		return true, nil
+	case errors.Is(err, errs.ErrNotFound):
+		return false, nil
+	default:
+		return false, fmt.Errorf("faile to get the master key: %w", err)
+	}
+}
+
 func (s *MasterKeyService) LoadMasterKeyFromPassword(ctx context.Context, password *secret.Text) error {
 	if s.enclave != nil {
 		return ErrKeyAlreadyDeciphered
@@ -88,7 +100,7 @@ func (s *MasterKeyService) loadMasterKeyFromSystemdCreds(ctx context.Context) er
 	return s.LoadMasterKeyFromPassword(ctx, password)
 }
 
-func (s *MasterKeyService) generateMasterKey(ctx context.Context, password *secret.Text) error {
+func (s *MasterKeyService) GenerateMasterKey(ctx context.Context, password *secret.Text) error {
 	existingMasterKey, err := s.config.GetMasterKey(ctx)
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		return fmt.Errorf("failed to get the master key: %w", err)
@@ -117,6 +129,8 @@ func (s *MasterKeyService) generateMasterKey(ctx context.Context, password *secr
 	if err != nil {
 		return fmt.Errorf("failed to save into the storage: %w", err)
 	}
+
+	s.enclave = memguard.NewEnclave(rawMasterKey.Raw())
 
 	return nil
 }

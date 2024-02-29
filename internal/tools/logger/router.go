@@ -64,9 +64,7 @@ func (l *structuredLoggerEntry) Write(status, bytes int, header http.Header, ela
 	case status >= 200 && status <= 299:
 		level = slog.LevelDebug
 	case status >= 300 && status <= 399:
-		if status == http.StatusFound || status == http.StatusPermanentRedirect {
-			entries = append(entries, slog.String("location", header.Get("Location")))
-		}
+		entries = append(entries, slog.String("location", header.Get("Location")))
 
 		level = slog.LevelInfo
 	case status >= 400 && status <= 499:
