@@ -28,11 +28,12 @@ func NewAskMasterPasswordPage(html html.Writer, masterkey masterkey.Service) *Ma
 
 func (h *MasterAskPasswordPage) Register(r chi.Router, mids *router.Middlewares) {
 	if mids != nil {
-		r = r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
+		// Remove the mids.Masterkey middleware to avoid an infinit redirection loop
+		r = r.With(mids.Logger, mids.RealIP, mids.StripSlashed, mids.CORS)
 	}
 
-	r.Get("/master-password", h.printMasterKeyPasswordPage)
-	r.Post("/master-password", h.postForm)
+	r.Get("/master-password/ask", h.printMasterKeyPasswordPage)
+	r.Post("/master-password/ask", h.postForm)
 }
 
 func (h *MasterAskPasswordPage) printMasterKeyPasswordPage(w http.ResponseWriter, r *http.Request) {

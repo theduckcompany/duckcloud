@@ -121,6 +121,9 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 			// Tasks
 			tasks.Init,
 
+			// HTTP Middlewares
+			masterkey.NewHTTPMiddleware,
+
 			// HTTP handlers
 			AsRoute(dav.NewHTTPHandler),
 			AsRoute(oauth2.NewHTTPHandler),
