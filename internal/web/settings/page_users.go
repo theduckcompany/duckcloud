@@ -47,6 +47,9 @@ func NewUsersPage(
 }
 
 func (h *UsersPage) Register(r chi.Router, mids *router.Middlewares) {
+	if mids != nil {
+		r = r.With(mids.Defaults()...)
+	}
 	r.Get("/settings/users", h.getUsers)
 	r.Post("/settings/users", h.createUser)
 	r.Get("/settings/users/new", h.getUsersRegistrationForm)

@@ -23,6 +23,10 @@ type Middlewares struct {
 	CORS         Middleware
 }
 
+func (m *Middlewares) Defaults() []func(next http.Handler) http.Handler {
+	return []func(next http.Handler) http.Handler{m.Logger, m.RealIP, m.StripSlashed, m.CORS}
+}
+
 func InitMiddlewares(tools tools.Tools, cfg Config) *Middlewares {
 	return &Middlewares{
 		StripSlashed: middleware.StripSlashes,
