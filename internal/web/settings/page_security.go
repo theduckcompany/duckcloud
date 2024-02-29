@@ -62,6 +62,10 @@ func NewSecurityPage(
 }
 
 func (h *SecurityPage) Register(r chi.Router, mids *router.Middlewares) {
+	if mids != nil {
+		r = r.With(mids.Defaults()...)
+	}
+
 	r.Get("/settings/security", h.getSecurityPage)
 	r.Get("/settings/security/webdav", h.getWebDAVForm)
 	r.Post("/settings/security/webdav", h.createDavSession)

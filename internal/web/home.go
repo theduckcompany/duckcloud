@@ -23,7 +23,7 @@ func NewHomePage(
 
 func (h *HomePage) Register(r chi.Router, mids *router.Middlewares) {
 	if mids != nil {
-		r = r.With(mids.RealIP, mids.StripSlashed, mids.Logger)
+		r = r.With(mids.Defaults()...)
 	}
 
 	r.Get("/", h.getHome)

@@ -14,6 +14,9 @@ func NewRedirections() *Redirections {
 }
 
 func (h *Redirections) Register(r chi.Router, mids *router.Middlewares) {
+	if mids != nil {
+		r = r.With(mids.Defaults()...)
+	}
 	r.Get("/settings", http.RedirectHandler("/settings/security", http.StatusMovedPermanently).ServeHTTP)
 }
 

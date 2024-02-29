@@ -45,6 +45,9 @@ func NewSpacesPage(
 }
 
 func (h *SpacesPage) Register(r chi.Router, mids *router.Middlewares) {
+	if mids != nil {
+		r = r.With(mids.Defaults()...)
+	}
 	r.Get("/settings/spaces", h.getContent)
 	r.Get("/settings/spaces/new", h.getCreateSpaceModal)
 	r.Post("/settings/spaces/create", h.createSpace)
