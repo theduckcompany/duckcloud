@@ -30,17 +30,15 @@ type MasterKeyService struct {
 	config  config.Service
 	fs      afero.Fs
 	enclave *memguard.Enclave
-	cfg     Config
 
 	passwordRequired bool
 }
 
-func NewService(config config.Service, fs afero.Fs, cfg Config) *MasterKeyService {
+func NewService(config config.Service, fs afero.Fs) *MasterKeyService {
 	return &MasterKeyService{
 		config:  config,
 		fs:      fs,
 		enclave: nil,
-		cfg:     cfg,
 
 		passwordRequired: true,
 	}
@@ -110,7 +108,7 @@ func (s *MasterKeyService) GenerateMasterKey(ctx context.Context, password *secr
 		return ErrAlreadyExists
 	}
 
-	passKey, err := secret.KeyFromRaw(argon2.Key([]byte([]byte(password.Raw())), []byte(password.Raw()), 3, 32*1024, 4, 32))
+	passKey, err := secret.KeyFromRaw(argon2.Key([]byte(password.Raw()), []byte(password.Raw()), 3, 32*1024, 4, 32))
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to generate a passKey from the given password: %w", err))
 	}
@@ -165,6 +163,10 @@ func (s *MasterKeyService) loadPasswordFromSystemdCreds(fs afero.Fs) (*secret.Te
 }
 
 func (s *MasterKeyService) SealKey(key *secret.Key) (*secret.SealedKey, error) {
+	if s.enclave == nil {
+		return nil, ErrMasterKeyNotFound
+	}
+
 	sealedKey, err := secret.SealKeyWithEnclave(s.enclave, key)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to seal the key: %w", err))
@@ -174,6 +176,10 @@ func (s *MasterKeyService) SealKey(key *secret.Key) (*secret.SealedKey, error) {
 }
 
 func (s *MasterKeyService) Open(key *secret.SealedKey) (*secret.Key, error) {
+	if s.enclave == nil {
+		return nil, ErrMasterKeyNotFound
+	}
+
 	res, err := key.OpenWithEnclave(s.enclave)
 	if err != nil {
 		return nil, errs.Internal(err)

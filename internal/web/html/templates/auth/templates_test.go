@@ -60,7 +60,8 @@ func Test_Templates(t *testing.T) {
 			Name:   "RegisterMasterPassword",
 			Layout: true,
 			Template: &RegisterMasterPasswordPageTmpl{
-				ErrorMsg: "some message",
+				PasswordError: "some message",
+				ConfirmError:  "",
 			},
 		},
 	}

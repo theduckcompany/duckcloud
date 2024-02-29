@@ -22,7 +22,6 @@ func NewHTTPMiddleware(masterkey Service, html html.Writer) *HTTPMiddleware {
 func (m *HTTPMiddleware) Handle(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if !m.masterkey.IsMasterKeyLoaded() {
-
 			// IsRegistered is call only if ww see that the key is not loaded because
 			// it should append only for the first calls and it's way more costly.
 			isRegistered, err := m.masterkey.IsMasterKeyRegistered(r.Context())

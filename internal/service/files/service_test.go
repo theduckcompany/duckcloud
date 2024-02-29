@@ -16,11 +16,13 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/masterkey"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
 func TestFileService(t *testing.T) {
 	ctx := context.Background()
+	masterPassword := secret.NewText("1superStrongPa$$word!")
 
 	t.Run("Upload and Download success", func(t *testing.T) {
 		tools := tools.NewToolboxForTest(t)
@@ -28,7 +30,9 @@ func TestFileService(t *testing.T) {
 		db := storage.NewTestStorage(t)
 		storage := newSqlStorage(db)
 		cfgSvc := config.Init(db)
-		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true}, tools)
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, tools)
+		require.NoError(t, err)
+		masterkeySvc.GenerateMasterKey(ctx, &masterPassword)
 		require.NoError(t, err)
 		svc := NewFileService(storage, fs, tools, masterkeySvc)
 
@@ -49,7 +53,9 @@ func TestFileService(t *testing.T) {
 		db := storage.NewTestStorage(t)
 		storage := newSqlStorage(db)
 		cfgSvc := config.Init(db)
-		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true}, tools)
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, tools)
+		require.NoError(t, err)
+		masterkeySvc.GenerateMasterKey(ctx, &masterPassword)
 		require.NoError(t, err)
 		svc := NewFileService(storage, fs, tools, masterkeySvc)
 
@@ -68,7 +74,9 @@ func TestFileService(t *testing.T) {
 		db := storage.NewTestStorage(t)
 		storage := newSqlStorage(db)
 		cfgSvc := config.Init(db)
-		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true}, tools)
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, tools)
+		require.NoError(t, err)
+		masterkeySvc.GenerateMasterKey(ctx, &masterPassword)
 		require.NoError(t, err)
 		svc := NewFileService(storage, fs, tools, masterkeySvc)
 
@@ -93,7 +101,9 @@ func TestFileService(t *testing.T) {
 		db := storage.NewTestStorage(t)
 		storage := newSqlStorage(db)
 		cfgSvc := config.Init(db)
-		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true}, tools)
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, tools)
+		require.NoError(t, err)
+		masterkeySvc.GenerateMasterKey(ctx, &masterPassword)
 		require.NoError(t, err)
 		svc := NewFileService(storage, fs, tools, masterkeySvc)
 
@@ -111,7 +121,9 @@ func TestFileService(t *testing.T) {
 		db := storage.NewTestStorage(t)
 		storageMock := NewMockStorage(t)
 		cfgSvc := config.Init(db)
-		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true}, tools)
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, tools)
+		require.NoError(t, err)
+		masterkeySvc.GenerateMasterKey(ctx, &masterPassword)
 		require.NoError(t, err)
 		svc := NewFileService(storageMock, fs, tools, masterkeySvc)
 
@@ -128,7 +140,9 @@ func TestFileService(t *testing.T) {
 		db := storage.NewTestStorage(t)
 		storageMock := NewMockStorage(t)
 		cfgSvc := config.Init(db)
-		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true}, tools)
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, tools)
+		require.NoError(t, err)
+		masterkeySvc.GenerateMasterKey(ctx, &masterPassword)
 		require.NoError(t, err)
 		svc := NewFileService(storageMock, fs, tools, masterkeySvc)
 
@@ -145,7 +159,9 @@ func TestFileService(t *testing.T) {
 		db := storage.NewTestStorage(t)
 		storage := newSqlStorage(db)
 		cfgSvc := config.Init(db)
-		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, masterkey.Config{DevMode: true}, tools)
+		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, tools)
+		require.NoError(t, err)
+		masterkeySvc.GenerateMasterKey(ctx, &masterPassword)
 		require.NoError(t, err)
 		svc := NewFileService(storage, fs, tools, masterkeySvc)
 
@@ -154,7 +170,7 @@ func TestFileService(t *testing.T) {
 
 		reader, err := svc.Download(ctx, &ExampleFile2)
 		assert.Nil(t, reader)
-		require.EqualError(t, err, "failed to open the file key: failed to open the sealed key")
+		require.EqualError(t, err, "failed to open the file key: internal: failed to open the sealed key")
 	})
 }
 

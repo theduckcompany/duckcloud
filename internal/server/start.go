@@ -48,14 +48,13 @@ type Folder string
 
 type Config struct {
 	fx.Out
-	Tools     tools.Config
-	FS        afero.Fs
-	Storage   storage.Config
-	Folder    Folder
-	Listener  router.Config
-	HTML      html.Config
-	Assets    assets.Config
-	MasterKey masterkey.Config
+	Tools    tools.Config
+	FS       afero.Fs
+	Storage  storage.Config
+	Folder   Folder
+	Listener router.Config
+	HTML     html.Config
+	Assets   assets.Config
 }
 
 // AsRoute annotates the given constructor to state that
