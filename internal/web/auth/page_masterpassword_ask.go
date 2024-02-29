@@ -31,13 +31,14 @@ func (h *MasterAskPasswordPage) Register(r chi.Router, mids *router.Middlewares)
 		r = r.With(mids.Defaults()...)
 	}
 
-	r.Get("/master-password/ask", h.printMasterKeyPasswordPage)
+	r.Get("/master-password/ask", h.printPage)
 	r.Post("/master-password/ask", h.postForm)
 }
 
-func (h *MasterAskPasswordPage) printMasterKeyPasswordPage(w http.ResponseWriter, r *http.Request) {
+func (h *MasterAskPasswordPage) printPage(w http.ResponseWriter, r *http.Request) {
 	if h.masterkey.IsMasterKeyLoaded() {
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
 	}
 
 	h.html.WriteHTMLTemplate(w, r, http.StatusOK, &auth.AskMasterPasswordPageTmpl{})

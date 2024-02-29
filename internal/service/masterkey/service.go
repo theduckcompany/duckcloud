@@ -67,7 +67,7 @@ func (s *MasterKeyService) LoadMasterKeyFromPassword(ctx context.Context, passwo
 
 	masterKey, err := s.config.GetMasterKey(ctx)
 	if errors.Is(err, errs.ErrNotFound) {
-		return errs.NotFound(ErrMasterKeyNotFound)
+		return errs.BadRequest(ErrMasterKeyNotFound)
 	}
 
 	if err != nil {
@@ -89,13 +89,21 @@ func (s *MasterKeyService) LoadMasterKeyFromPassword(ctx context.Context, passwo
 	return nil
 }
 
-func (s *MasterKeyService) loadMasterKeyFromSystemdCreds(ctx context.Context) error {
-	password, err := s.loadPasswordFromSystemdCreds(s.fs)
+func (s *MasterKeyService) loadOrRegisterMasterKeyFromSystemdCreds(ctx context.Context) error {
+	password, err := s.loadPasswordFromSystemdCreds()
 	if err != nil {
 		return fmt.Errorf("failed to load the systemd-creds password: %w", err)
 	}
 
-	return s.LoadMasterKeyFromPassword(ctx, password)
+	_, err = s.config.GetMasterKey(ctx)
+	switch {
+	case err == nil:
+		return s.LoadMasterKeyFromPassword(ctx, password)
+	case errors.Is(err, errs.ErrNotFound):
+		return s.GenerateMasterKey(ctx, password)
+	default:
+		return fmt.Errorf("failed to get the master key: %w", err)
+	}
 }
 
 func (s *MasterKeyService) GenerateMasterKey(ctx context.Context, password *secret.Text) error {
@@ -133,7 +141,7 @@ func (s *MasterKeyService) GenerateMasterKey(ctx context.Context, password *secr
 	return nil
 }
 
-func (s *MasterKeyService) loadPasswordFromSystemdCreds(fs afero.Fs) (*secret.Text, error) {
+func (s *MasterKeyService) loadPasswordFromSystemdCreds() (*secret.Text, error) {
 	dirPath := os.Getenv("CREDENTIALS_DIRECTORY")
 	if dirPath == "" {
 		return nil, errs.BadRequest(ErrCredsDirNotSet)
@@ -141,7 +149,7 @@ func (s *MasterKeyService) loadPasswordFromSystemdCreds(fs afero.Fs) (*secret.Te
 
 	filePath := path.Join(dirPath, "password")
 
-	file, err := fs.Open(filePath)
+	file, err := s.fs.Open(filePath)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to open the credentials file specified by $CREDENTIALS_DIRECTORY: %w", err))
 	}
@@ -152,7 +160,7 @@ func (s *MasterKeyService) loadPasswordFromSystemdCreds(fs afero.Fs) (*secret.Te
 		return nil, errs.Internal(fmt.Errorf("failed to read the password file: %w", err))
 	}
 
-	err = fs.Remove(filePath)
+	err = s.fs.Remove(filePath)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to remove the credentials file: %w", err))
 	}
