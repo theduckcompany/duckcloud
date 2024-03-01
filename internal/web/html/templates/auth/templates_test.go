@@ -49,6 +49,21 @@ func Test_Templates(t *testing.T) {
 				Scopes:     []string{"a.b", "c.d"},
 			},
 		},
+		{
+			Name:   "AskMasterPassword",
+			Layout: true,
+			Template: &AskMasterPasswordPageTmpl{
+				ErrorMsg: "some message",
+			},
+		},
+		{
+			Name:   "RegisterMasterPassword",
+			Layout: true,
+			Template: &RegisterMasterPasswordPageTmpl{
+				PasswordError: "some message",
+				ConfirmError:  "",
+			},
+		},
 	}
 
 	for _, test := range tests {

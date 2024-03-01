@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/theduckcompany/duckcloud/internal/service/masterkey"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 )
@@ -21,18 +22,26 @@ type Middlewares struct {
 	OnlyJSON     Middleware
 	RealIP       Middleware
 	CORS         Middleware
+	MasterKey    Middleware
 }
 
 func (m *Middlewares) Defaults() []func(next http.Handler) http.Handler {
-	return []func(next http.Handler) http.Handler{m.Logger, m.RealIP, m.StripSlashed, m.CORS}
+	return []func(next http.Handler) http.Handler{
+		m.Logger,
+		m.RealIP,
+		m.StripSlashed,
+		m.CORS,
+		m.MasterKey,
+	}
 }
 
-func InitMiddlewares(tools tools.Tools, cfg Config) *Middlewares {
+func InitMiddlewares(tools tools.Tools, cfg Config, masterkeyMid *masterkey.HTTPMiddleware) *Middlewares {
 	return &Middlewares{
 		StripSlashed: middleware.StripSlashes,
 		Logger:       logger.NewRouterLogger(tools.Logger()),
 		OnlyJSON:     middleware.AllowContentType("application/json"),
 		RealIP:       middleware.RealIP,
+		MasterKey:    masterkeyMid.Handle,
 		CORS: cors.Handler(cors.Options{
 			AllowOriginFunc: func(_ *http.Request, origin string) bool {
 				url, err := url.ParseRequestURI(origin)

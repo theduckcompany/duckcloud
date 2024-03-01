@@ -48,14 +48,13 @@ type Folder string
 
 type Config struct {
 	fx.Out
-	Tools     tools.Config
-	FS        afero.Fs
-	Storage   storage.Config
-	Folder    Folder
-	Listener  router.Config
-	HTML      html.Config
-	Assets    assets.Config
-	MasterKey masterkey.Config
+	Tools    tools.Config
+	FS       afero.Fs
+	Storage  storage.Config
+	Folder   Folder
+	Listener router.Config
+	HTML     html.Config
+	Assets   assets.Config
 }
 
 // AsRoute annotates the given constructor to state that
@@ -121,6 +120,9 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 			// Tasks
 			tasks.Init,
 
+			// HTTP Middlewares
+			masterkey.NewHTTPMiddleware,
+
 			// HTTP handlers
 			AsRoute(dav.NewHTTPHandler),
 			AsRoute(oauth2.NewHTTPHandler),
@@ -132,6 +134,8 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 			AsRoute(web.NewHomePage),
 			AsRoute(auth.NewLoginPage),
 			AsRoute(auth.NewConsentPage),
+			AsRoute(auth.NewAskMasterPasswordPage),
+			AsRoute(auth.NewRegisterMasterPasswordPage),
 			AsRoute(browser.NewBrowserPage),
 			AsRoute(settings.NewRedirections),
 			AsRoute(settings.NewSecurityPage),

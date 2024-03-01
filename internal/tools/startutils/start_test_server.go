@@ -22,6 +22,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tasks"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
@@ -52,6 +53,8 @@ type Server struct {
 func NewServer(t *testing.T) *Server {
 	t.Helper()
 
+	masterPassword := secret.NewText("1superStrongPa$$word!")
+
 	ctx := context.Background()
 
 	tools := tools.NewToolboxForTest(t)
@@ -68,7 +71,7 @@ func NewServer(t *testing.T) *Server {
 	usersSvc := users.Init(tools, db, schedulerSvc)
 	statsSvc := stats.Init(db)
 
-	masterKeySvc, err := masterkey.Init(ctx, configSvc, afs, masterkey.Config{DevMode: true})
+	masterKeySvc, err := masterkey.Init(ctx, configSvc, afs, tools)
 	require.NoError(t, err)
 
 	filesInit, err := files.Init(masterKeySvc, "/", afs, tools, db)
@@ -89,6 +92,9 @@ func NewServer(t *testing.T) *Server {
 			tasks.UserDeleteTask,
 			tasks.SpaceCreateTask,
 		}, tools, db)
+
+	masterKeySvc.GenerateMasterKey(ctx, &masterPassword)
+	require.NoError(t, err)
 
 	err = runnerSvc.Run(ctx)
 	require.NoError(t, err)

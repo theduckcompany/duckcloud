@@ -26,3 +26,18 @@ type ConsentPageTmpl struct {
 }
 
 func (t *ConsentPageTmpl) Template() string { return "auth/page_consent" }
+
+type AskMasterPasswordPageTmpl struct {
+	ErrorMsg string
+}
+
+func (t *AskMasterPasswordPageTmpl) Template() string { return "auth/page_masterpassword_ask" }
+
+type RegisterMasterPasswordPageTmpl struct {
+	PasswordError string
+	ConfirmError  string
+}
+
+func (t *RegisterMasterPasswordPageTmpl) Template() string {
+	return "auth/page_masterpassword_register"
+}
