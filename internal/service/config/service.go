@@ -11,8 +11,8 @@ import (
 
 //go:generate mockery --name Storage
 type Storage interface {
-	Save(ctx context.Context, key ConfigKey, value any) error
-	Get(ctx context.Context, key ConfigKey, val any) error
+	Save(ctx context.Context, key ConfigKey, value string) error
+	Get(ctx context.Context, key ConfigKey) (string, error)
 }
 
 type ConfigService struct {
@@ -24,7 +24,7 @@ func NewService(storage Storage) *ConfigService {
 }
 
 func (s *ConfigService) SetMasterKey(ctx context.Context, key *secret.SealedKey) error {
-	err := s.storage.Save(ctx, masterKey, key)
+	err := s.storage.Save(ctx, masterKey, key.Base64())
 	if err != nil {
 		return fmt.Errorf("failed to Save: %w", err)
 	}
@@ -33,9 +33,7 @@ func (s *ConfigService) SetMasterKey(ctx context.Context, key *secret.SealedKey)
 }
 
 func (s *ConfigService) GetMasterKey(ctx context.Context) (*secret.SealedKey, error) {
-	var res secret.SealedKey
-
-	err := s.storage.Get(ctx, masterKey, &res)
+	keyStr, err := s.storage.Get(ctx, masterKey)
 	if errors.Is(err, errNotfound) {
 		return nil, errs.ErrNotFound
 	}
@@ -44,5 +42,10 @@ func (s *ConfigService) GetMasterKey(ctx context.Context) (*secret.SealedKey, er
 		return nil, fmt.Errorf("failed to Get: %w", err)
 	}
 
-	return &res, nil
+	res, err := secret.SealedKeyFromBase64(keyStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode the key: %w", err)
+	}
+
+	return res, nil
 }
