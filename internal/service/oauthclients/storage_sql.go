@@ -7,6 +7,8 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
+	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -36,7 +38,7 @@ func (t *sqlStorage) Save(ctx context.Context, client *Client) error {
 			client.scopes,
 			client.public,
 			client.skipValidation,
-			client.createdAt).
+			ptr.To(storage.SQLTime(client.createdAt))).
 		RunWith(t.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -48,6 +50,7 @@ func (t *sqlStorage) Save(ctx context.Context, client *Client) error {
 
 func (t *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*Client, error) {
 	var res Client
+	var sqlCreatedAt storage.SQLTime
 
 	err := sq.
 		Select(allFields...).
@@ -62,7 +65,7 @@ func (t *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*Client, error)
 			&res.scopes,
 			&res.public,
 			&res.skipValidation,
-			&res.createdAt)
+			&sqlCreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errNotFound
 	}
@@ -70,6 +73,8 @@ func (t *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*Client, error)
 	if err != nil {
 		return nil, fmt.Errorf("sql error: %w", err)
 	}
+
+	res.createdAt = sqlCreatedAt.Time()
 
 	return &res, nil
 }

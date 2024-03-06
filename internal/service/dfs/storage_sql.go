@@ -5,10 +5,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
+	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -32,7 +34,15 @@ func (s *sqlStorage) Save(ctx context.Context, i *INode) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(allFiels...).
-		Values(i.id, i.name, i.parent, i.spaceID, i.size, i.lastModifiedAt, i.createdAt, i.createdBy, i.fileID).
+		Values(i.id,
+			i.name,
+			i.parent,
+			i.spaceID,
+			i.size,
+			ptr.To(storage.SQLTime(i.lastModifiedAt)),
+			ptr.To(storage.SQLTime(i.createdAt)),
+			i.createdBy,
+			i.fileID).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -47,6 +57,15 @@ func (s *sqlStorage) GetSpaceRoot(ctx context.Context, spaceID uuid.UUID) (*INod
 }
 
 func (s *sqlStorage) Patch(ctx context.Context, inode uuid.UUID, fields map[string]any) error {
+	for k, v := range fields {
+		switch vt := v.(type) {
+		case time.Time:
+			fields[k] = storage.SQLTime(vt)
+		default:
+			continue
+		}
+	}
+
 	_, err := sq.Update(tableName).
 		SetMap(fields).
 		Where(sq.Eq{"id": inode}).
@@ -118,12 +137,24 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]INode, error) {
 
 	for rows.Next() {
 		var res INode
+		var sqlLastModifiedAt storage.SQLTime
+		var sqlCreatedAt storage.SQLTime
 
-		err := rows.Scan(&res.id, &res.name, &res.parent, &res.spaceID, &res.size, &res.lastModifiedAt, &res.createdAt, &res.createdBy, &res.fileID)
+		err := rows.Scan(&res.id,
+			&res.name,
+			&res.parent,
+			&res.spaceID,
+			&res.size,
+			&sqlLastModifiedAt,
+			&sqlCreatedAt,
+			&res.createdBy,
+			&res.fileID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}
 
+		res.lastModifiedAt = sqlLastModifiedAt.Time()
+		res.createdAt = sqlCreatedAt.Time()
 		inodes = append(inodes, res)
 	}
 
@@ -191,28 +222,10 @@ func (s *sqlStorage) GetAllInodesWithFileID(ctx context.Context, fileID uuid.UUI
 }
 
 func (s *sqlStorage) GetByNameAndParent(ctx context.Context, name string, parent uuid.UUID) (*INode, error) {
-	res := INode{}
-
-	err := sq.
-		Select(allFiels...).
-		From(tableName).
-		Where(sq.Eq{"parent": string(parent), "name": name, "deleted_at": nil}).
-		RunWith(s.db).
-		ScanContext(ctx, &res.id, &res.name, &res.parent, &res.spaceID, &res.size, &res.lastModifiedAt, &res.createdAt, &res.createdBy, &res.fileID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, errNotFound
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("sql error: %w", err)
-	}
-
-	return &res, nil
+	return s.getByKeys(ctx, sq.Eq{"parent": string(parent), "name": name, "deleted_at": nil})
 }
 
 func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*INode, error) {
-	res := INode{}
-
 	query := sq.
 		Select(allFiels...).
 		From(tableName)
@@ -221,9 +234,22 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*INode, erro
 		query = query.Where(where)
 	}
 
+	var res INode
+	var sqlLastModifiedAt storage.SQLTime
+	var sqlCreatedAt storage.SQLTime
+
 	err := query.
 		RunWith(s.db).
-		ScanContext(ctx, &res.id, &res.name, &res.parent, &res.spaceID, &res.size, &res.lastModifiedAt, &res.createdAt, &res.createdBy, &res.fileID)
+		ScanContext(ctx,
+			&res.id,
+			&res.name,
+			&res.parent,
+			&res.spaceID,
+			&res.size,
+			&sqlLastModifiedAt,
+			&sqlCreatedAt,
+			&res.createdBy,
+			&res.fileID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errNotFound
 	}
@@ -231,6 +257,9 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*INode, erro
 	if err != nil {
 		return nil, fmt.Errorf("sql error: %w", err)
 	}
+
+	res.lastModifiedAt = sqlLastModifiedAt.Time()
+	res.createdAt = sqlCreatedAt.Time()
 
 	return &res, nil
 }

@@ -7,6 +7,8 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
+	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -30,7 +32,7 @@ func (s *sqlStorage) Save(ctx context.Context, meta *FileMeta) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(allFields...).
-		Values(meta.id, meta.size, meta.mimetype, meta.checksum, meta.key, meta.uploadedAt).
+		Values(meta.id, meta.size, meta.mimetype, meta.checksum, meta.key, ptr.To(storage.SQLTime(meta.uploadedAt))).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -62,8 +64,6 @@ func (s *sqlStorage) Delete(ctx context.Context, fileID uuid.UUID) error {
 }
 
 func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*FileMeta, error) {
-	res := FileMeta{}
-
 	query := sq.
 		Select(allFields...).
 		From(tableName)
@@ -72,9 +72,12 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*FileMeta, e
 		query = query.Where(where)
 	}
 
+	var res FileMeta
+	var sqlUploadedAt storage.SQLTime
+
 	err := query.
 		RunWith(s.db).
-		ScanContext(ctx, &res.id, &res.size, &res.mimetype, &res.checksum, &res.key, &res.uploadedAt)
+		ScanContext(ctx, &res.id, &res.size, &res.mimetype, &res.checksum, &res.key, &sqlUploadedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errNotFound
 	}
@@ -82,6 +85,8 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*FileMeta, e
 	if err != nil {
 		return nil, fmt.Errorf("sql error: %w", err)
 	}
+
+	res.uploadedAt = sqlUploadedAt.Time()
 
 	return &res, nil
 }

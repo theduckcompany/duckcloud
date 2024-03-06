@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -32,11 +33,11 @@ func (s *sqlStorage) Save(ctx context.Context, session *Session) error {
 		Columns(allFields...).
 		Values(
 			session.accessToken,
-			session.accessCreatedAt,
-			session.accessExpiresAt,
+			ptr.To(storage.SQLTime(session.accessCreatedAt)),
+			ptr.To(storage.SQLTime(session.accessExpiresAt)),
 			session.refreshToken,
-			session.refreshCreatedAt,
-			session.refreshExpiresAt,
+			ptr.To(storage.SQLTime(session.refreshCreatedAt)),
+			ptr.To(storage.SQLTime(session.refreshExpiresAt)),
 			session.clientID,
 			session.userID,
 			session.scope,
@@ -110,15 +111,20 @@ func (s *sqlStorage) getWithKeys(ctx context.Context, conditions ...any) (*Sessi
 		query = query.Where(condition)
 	}
 
+	var sqlAccessCreatedAt storage.SQLTime
+	var sqlAccessExpiresAt storage.SQLTime
+	var sqlRefreshCreatedAt storage.SQLTime
+	var sqlRefresExpiresAt storage.SQLTime
+
 	err := query.
 		RunWith(s.db).
 		ScanContext(ctx,
 			&res.accessToken,
-			&res.accessCreatedAt,
-			&res.accessExpiresAt,
+			&sqlAccessCreatedAt,
+			&sqlAccessExpiresAt,
 			&res.refreshToken,
-			&res.refreshCreatedAt,
-			&res.refreshExpiresAt,
+			&sqlRefreshCreatedAt,
+			&sqlRefresExpiresAt,
 			&res.clientID,
 			&res.userID,
 			&res.scope,
@@ -131,6 +137,11 @@ func (s *sqlStorage) getWithKeys(ctx context.Context, conditions ...any) (*Sessi
 		return nil, fmt.Errorf("sql error: %w", err)
 	}
 
+	res.accessCreatedAt = sqlAccessCreatedAt.Time()
+	res.accessExpiresAt = sqlAccessExpiresAt.Time()
+	res.refreshCreatedAt = sqlRefreshCreatedAt.Time()
+	res.refreshExpiresAt = sqlRefresExpiresAt.Time()
+
 	return &res, nil
 }
 
@@ -140,13 +151,18 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]Session, error) {
 	for rows.Next() {
 		var res Session
 
+		var sqlAccessCreatedAt storage.SQLTime
+		var sqlAccessExpiresAt storage.SQLTime
+		var sqlRefreshCreatedAt storage.SQLTime
+		var sqlRefresExpiresAt storage.SQLTime
+
 		err := rows.Scan(
 			&res.accessToken,
-			&res.accessCreatedAt,
-			&res.accessExpiresAt,
+			&sqlAccessCreatedAt,
+			&sqlAccessExpiresAt,
 			&res.refreshToken,
-			&res.refreshCreatedAt,
-			&res.refreshExpiresAt,
+			&sqlRefreshCreatedAt,
+			&sqlRefresExpiresAt,
 			&res.clientID,
 			&res.userID,
 			&res.scope,
@@ -154,6 +170,11 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]Session, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}
+
+		res.accessCreatedAt = sqlAccessCreatedAt.Time()
+		res.accessExpiresAt = sqlAccessExpiresAt.Time()
+		res.refreshCreatedAt = sqlRefreshCreatedAt.Time()
+		res.refreshExpiresAt = sqlRefresExpiresAt.Time()
 
 		sessions = append(sessions, res)
 	}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -30,7 +31,7 @@ func (s *sqlStorage) Save(ctx context.Context, session *Session) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(allFields...).
-		Values(session.token, session.userID, session.ip, session.device, session.createdAt).
+		Values(session.token, session.userID, session.ip, session.device, ptr.To(storage.SQLTime(session.createdAt))).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -41,14 +42,15 @@ func (s *sqlStorage) Save(ctx context.Context, session *Session) error {
 }
 
 func (s *sqlStorage) GetByToken(ctx context.Context, token secret.Text) (*Session, error) {
-	res := Session{}
+	var res Session
+	var sqlCreatedAt storage.SQLTime
 
 	err := sq.
 		Select(allFields...).
 		From(tableName).
 		Where(sq.Eq{"token": token}).
 		RunWith(s.db).
-		ScanContext(ctx, &res.token, &res.userID, &res.ip, &res.device, &res.createdAt)
+		ScanContext(ctx, &res.token, &res.userID, &res.ip, &res.device, &sqlCreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errNotFound
 	}
@@ -56,6 +58,8 @@ func (s *sqlStorage) GetByToken(ctx context.Context, token secret.Text) (*Sessio
 	if err != nil {
 		return nil, fmt.Errorf("sql error: %w", err)
 	}
+
+	res.createdAt = sqlCreatedAt.Time()
 
 	return &res, nil
 }
@@ -89,11 +93,14 @@ func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *s
 
 	for rows.Next() {
 		var res Session
+		var sqlCreatedAt storage.SQLTime
 
-		err = rows.Scan(&res.token, &res.userID, &res.ip, &res.device, &res.createdAt)
+		err = rows.Scan(&res.token, &res.userID, &res.ip, &res.device, &sqlCreatedAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}
+
+		res.createdAt = sqlCreatedAt.Time()
 
 		sessions = append(sessions, res)
 	}

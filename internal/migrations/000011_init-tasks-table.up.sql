@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   "name" TEXT NOT NULL,
   "status" TEXT NOT NULL,
   "retries" NUMERIC NOT NULL,
-  "registered_at" DATETIME NOT NULL,
+  "registered_at" TEXT NOT NULL,
   "args" BLOB NOT NULL
 );
 

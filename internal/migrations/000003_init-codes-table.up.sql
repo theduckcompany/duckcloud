@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS oauth_codes (
   "code" TEXT NOT NULL,
-  "created_at" DATETIME NOT NULL,
-  "expires_at" DATETIME NOT NULL,
+  "created_at" TEXT NOT NULL,
+  "expires_at" TEXT NOT NULL,
   "user_id" TEXT NOT NULL,
   "client_id" TEXT NOT NULL,
   "redirect_uri" TEXT NOT NULL,

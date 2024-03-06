@@ -7,7 +7,9 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
+	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
 const tableName = "oauth_codes"
@@ -30,8 +32,8 @@ func (t *sqlStorage) Save(ctx context.Context, code *Code) error {
 		Columns(allFields...).
 		Values(
 			code.code,
-			code.createdAt,
-			code.expiresAt,
+			ptr.To(storage.SQLTime(code.createdAt)),
+			ptr.To(storage.SQLTime(code.expiresAt)),
 			code.clientID,
 			code.userID,
 			code.redirectURI,
@@ -62,7 +64,9 @@ func (t *sqlStorage) RemoveByCode(ctx context.Context, code secret.Text) error {
 }
 
 func (t *sqlStorage) GetByCode(ctx context.Context, code secret.Text) (*Code, error) {
-	res := Code{}
+	var res Code
+	var sqlCreatedAt storage.SQLTime
+	var sqlExpiresAt storage.SQLTime
 
 	err := sq.
 		Select(allFields...).
@@ -71,8 +75,8 @@ func (t *sqlStorage) GetByCode(ctx context.Context, code secret.Text) (*Code, er
 		RunWith(t.db).
 		ScanContext(ctx,
 			&res.code,
-			&res.createdAt,
-			&res.expiresAt,
+			&sqlCreatedAt,
+			&sqlExpiresAt,
 			&res.clientID,
 			&res.userID,
 			&res.redirectURI,
@@ -87,6 +91,9 @@ func (t *sqlStorage) GetByCode(ctx context.Context, code secret.Text) (*Code, er
 	if err != nil {
 		return nil, fmt.Errorf("sql error: %w", err)
 	}
+
+	res.expiresAt = sqlExpiresAt.Time()
+	res.createdAt = sqlCreatedAt.Time()
 
 	return &res, nil
 }

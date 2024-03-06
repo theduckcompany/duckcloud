@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -32,7 +33,7 @@ func (s *sqlStorage) Save(ctx context.Context, consent *Consent) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(allFields...).
-		Values(consent.id, consent.userID, consent.clientID, scopes, consent.sessionToken, consent.createdAt).
+		Values(consent.id, consent.userID, consent.clientID, scopes, consent.sessionToken, ptr.To(storage.SQLTime(consent.createdAt))).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -47,12 +48,13 @@ func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*Consent, error
 
 	var rawScopes string
 
+	var sqlCreatedAt storage.SQLTime
 	err := sq.
 		Select(allFields...).
 		From(tableName).
 		Where(sq.Eq{"id": id}).
 		RunWith(s.db).
-		ScanContext(ctx, &res.id, &res.userID, &res.clientID, &rawScopes, &res.sessionToken, &res.createdAt)
+		ScanContext(ctx, &res.id, &res.userID, &res.clientID, &rawScopes, &res.sessionToken, &sqlCreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errNotFound
 	}
@@ -61,6 +63,7 @@ func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*Consent, error
 		return nil, fmt.Errorf("sql error: %w", err)
 	}
 
+	res.createdAt = sqlCreatedAt.Time()
 	res.scopes = strings.Split(rawScopes, ",")
 
 	return &res, nil
@@ -102,14 +105,16 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]Consent, error) {
 		var res Consent
 
 		var rawScopes string
+		var sqlCreatedAt storage.SQLTime
 
-		err := rows.Scan(&res.id, &res.userID, &res.clientID, &rawScopes, &res.sessionToken, &res.createdAt)
+		err := rows.Scan(&res.id, &res.userID, &res.clientID, &rawScopes, &res.sessionToken, &sqlCreatedAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}
 
 		res.scopes = strings.Split(rawScopes, ",")
 
+		res.createdAt = sqlCreatedAt.Time()
 		consents = append(consents, res)
 	}
 

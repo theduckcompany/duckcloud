@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
   "admin" BOOL NOT NULL,
   "password" TEXT NOT NULL,
   "status" TEXT NOT NULL,
-  "created_at" DATETIME NOT NULL,
+  "created_at" TEXT NOT NULL,
   "created_by" STRING NOT NULL
 );
 

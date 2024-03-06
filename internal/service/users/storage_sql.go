@@ -9,6 +9,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
+	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -35,7 +36,7 @@ func (s *sqlStorage) Save(ctx context.Context, u *User) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(allFields...).
-		Values(u.id, u.username, u.isAdmin, u.status, u.password, u.createdAt, u.createdBy).
+		Values(u.id, u.username, u.isAdmin, u.status, u.password, ptr.To(storage.SQLTime(u.createdAt)), u.createdBy).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -103,12 +104,15 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*User, error
 		query = query.Where(where)
 	}
 
+	var sqlTime storage.SQLTime
 	err := query.
 		RunWith(s.db).
-		ScanContext(ctx, &res.id, &res.username, &res.isAdmin, &res.status, &res.password, &res.createdAt, &res.createdBy)
+		ScanContext(ctx, &res.id, &res.username, &res.isAdmin, &res.status, &res.password, &sqlTime, &res.createdBy)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errNotFound
 	}
+
+	res.createdAt = sqlTime.Time()
 
 	if err != nil {
 		return nil, fmt.Errorf("sql error: %w", err)
@@ -122,11 +126,14 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]User, error) {
 
 	for rows.Next() {
 		var res User
+		var sqlTime storage.SQLTime
 
-		err := rows.Scan(&res.id, &res.username, &res.isAdmin, &res.status, &res.password, &res.createdAt, &res.createdBy)
+		err := rows.Scan(&res.id, &res.username, &res.isAdmin, &res.status, &res.password, &sqlTime, &res.createdBy)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}
+
+		res.createdAt = sqlTime.Time()
 
 		users = append(users, res)
 	}
