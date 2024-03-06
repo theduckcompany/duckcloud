@@ -187,8 +187,8 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&ExampleAliceFile, nil).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAliceFile.ID(), map[string]any{
-			"deleted_at":       now,
-			"last_modified_at": now,
+			"deleted_at":       storage.SQLTime(now),
+			"last_modified_at": storage.SQLTime(now),
 		}).Return(nil).Once()
 
 		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"))
@@ -264,8 +264,8 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&ExampleAliceFile, nil).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAliceFile.ID(), map[string]any{
-			"deleted_at":       now,
-			"last_modified_at": now,
+			"deleted_at":       storage.SQLTime(now),
+			"last_modified_at": storage.SQLTime(now),
 		}).Return(fmt.Errorf("some-error")).Once()
 
 		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"))
@@ -657,7 +657,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foobar.jpg", *ExampleAliceFile.Parent()).Return(nil, errNotFound).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAliceFile.ID(), map[string]any{
-			"last_modified_at": now,
+			"last_modified_at": storage.SQLTime(now),
 			"name":             "foobar.jpg",
 		}).Return(nil).Once()
 
@@ -710,7 +710,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foobar (1).pdf", *ExampleAliceFile.Parent()).Return(nil, errNotFound).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAliceFile.ID(), map[string]any{
-			"last_modified_at": now,
+			"last_modified_at": storage.SQLTime(now),
 			"name":             "foobar (1).pdf",
 		}).Return(nil).Once()
 
@@ -734,8 +734,8 @@ func Test_DFS_Service(t *testing.T) {
 			Return(&ExampleAliceRoot, nil).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAliceRoot.ID(), map[string]any{
-			"deleted_at":       now,
-			"last_modified_at": now,
+			"deleted_at":       storage.SQLTime(now),
+			"last_modified_at": storage.SQLTime(now),
 		}).Return(nil).Once()
 
 		err := spaceFS.Destroy(ctx, &users.ExampleAlice, &spaces.ExampleAlicePersonalSpace)
@@ -800,8 +800,8 @@ func Test_DFS_Service(t *testing.T) {
 			Return(&ExampleAliceRoot, nil).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAliceRoot.ID(), map[string]any{
-			"deleted_at":       now,
-			"last_modified_at": now,
+			"deleted_at":       storage.SQLTime(now),
+			"last_modified_at": storage.SQLTime(now),
 		}).Return(fmt.Errorf("some-error")).Once()
 
 		err := spaceFS.Destroy(ctx, &users.ExampleAlice, &spaces.ExampleAlicePersonalSpace)

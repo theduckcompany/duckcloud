@@ -9,6 +9,8 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/model"
+	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
+	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -51,7 +53,7 @@ func (s *sqlStorage) Save(ctx context.Context, task *model.Task) error {
 			task.Name,
 			task.Status,
 			task.Retries,
-			task.RegisteredAt,
+			ptr.To(storage.SQLTime(task.RegisteredAt)),
 			rawArgs,
 		).
 		RunWith(s.db).
@@ -64,9 +66,9 @@ func (s *sqlStorage) Save(ctx context.Context, task *model.Task) error {
 }
 
 func (s *sqlStorage) GetLastRegisteredTask(ctx context.Context, name string) (*model.Task, error) {
-	res := model.Task{}
-
+	var res model.Task
 	var rawArgs json.RawMessage
+	var sqlRegisteredAt storage.SQLTime
 
 	err := sq.
 		Select(allFields...).
@@ -81,7 +83,7 @@ func (s *sqlStorage) GetLastRegisteredTask(ctx context.Context, name string) (*m
 			&res.Name,
 			&res.Status,
 			&res.Retries,
-			&res.RegisteredAt,
+			&sqlRegisteredAt,
 			&rawArgs,
 		)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -92,7 +94,11 @@ func (s *sqlStorage) GetLastRegisteredTask(ctx context.Context, name string) (*m
 		return nil, fmt.Errorf("sql error: %w", err)
 	}
 
-	json.Unmarshal(rawArgs, &res.Args)
+	res.RegisteredAt = sqlRegisteredAt.Time()
+	err = json.Unmarshal(rawArgs, &res.Args)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal the arg: %w", err)
+	}
 
 	return &res, nil
 }
@@ -147,8 +153,9 @@ func (s *sqlStorage) Delete(ctx context.Context, taskID uuid.UUID) error {
 }
 
 func (s *sqlStorage) scanRow(row sq.RowScanner) (*model.Task, error) {
-	res := model.Task{}
+	var res model.Task
 	var rawArgs json.RawMessage
+	var sqlRegisteredAt storage.SQLTime
 
 	err := row.Scan(
 		&res.ID,
@@ -156,7 +163,7 @@ func (s *sqlStorage) scanRow(row sq.RowScanner) (*model.Task, error) {
 		&res.Name,
 		&res.Status,
 		&res.Retries,
-		&res.RegisteredAt,
+		&sqlRegisteredAt,
 		&rawArgs,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -167,7 +174,11 @@ func (s *sqlStorage) scanRow(row sq.RowScanner) (*model.Task, error) {
 		return nil, fmt.Errorf("failed to scan the sql result: %w", err)
 	}
 
-	json.Unmarshal(rawArgs, &res.Args)
+	res.RegisteredAt = sqlRegisteredAt.Time()
+	err = json.Unmarshal(rawArgs, &res.Args)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal the args: %w", err)
+	}
 
 	return &res, nil
 }

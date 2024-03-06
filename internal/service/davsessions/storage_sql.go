@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -30,7 +31,7 @@ func (t *sqlStorage) Save(ctx context.Context, session *DavSession) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(allFields...).
-		Values(session.id, session.username, session.name, session.password, session.userID, session.spaceID, session.createdAt).
+		Values(session.id, session.username, session.name, session.password, session.userID, session.spaceID, ptr.To(storage.SQLTime(session.createdAt))).
 		RunWith(t.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -41,14 +42,15 @@ func (t *sqlStorage) Save(ctx context.Context, session *DavSession) error {
 }
 
 func (t *sqlStorage) GetByID(ctx context.Context, sessionID uuid.UUID) (*DavSession, error) {
-	res := DavSession{}
+	var res DavSession
+	var sqlCreatedAt storage.SQLTime
 
 	err := sq.
 		Select(allFields...).
 		From(tableName).
 		Where(sq.Eq{"id": sessionID}).
 		RunWith(t.db).
-		ScanContext(ctx, &res.id, &res.username, &res.name, &res.password, &res.userID, &res.spaceID, &res.createdAt)
+		ScanContext(ctx, &res.id, &res.username, &res.name, &res.password, &res.userID, &res.spaceID, &sqlCreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errNotFound
 	}
@@ -56,6 +58,8 @@ func (t *sqlStorage) GetByID(ctx context.Context, sessionID uuid.UUID) (*DavSess
 	if err != nil {
 		return nil, fmt.Errorf("sql error: %w", err)
 	}
+
+	res.createdAt = sqlCreatedAt.Time()
 
 	return &res, nil
 }
@@ -74,14 +78,15 @@ func (t *sqlStorage) RemoveByID(ctx context.Context, sessionID uuid.UUID) error 
 }
 
 func (t *sqlStorage) GetByUsernameAndPassword(ctx context.Context, username string, password secret.Text) (*DavSession, error) {
-	res := DavSession{}
+	var res DavSession
+	var sqlCreatedAt storage.SQLTime
 
 	err := sq.
 		Select(allFields...).
 		From(tableName).
 		Where(sq.Eq{"username": username, "password": password.Raw()}).
 		RunWith(t.db).
-		ScanContext(ctx, &res.id, &res.username, &res.name, &res.password, &res.userID, &res.spaceID, &res.createdAt)
+		ScanContext(ctx, &res.id, &res.username, &res.name, &res.password, &res.userID, &res.spaceID, &sqlCreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errNotFound
 	}
@@ -89,6 +94,8 @@ func (t *sqlStorage) GetByUsernameAndPassword(ctx context.Context, username stri
 	if err != nil {
 		return nil, fmt.Errorf("sql error: %w", err)
 	}
+
+	res.createdAt = sqlCreatedAt.Time()
 
 	return &res, nil
 }
@@ -114,12 +121,14 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]DavSession, error) {
 
 	for rows.Next() {
 		var res DavSession
+		var sqlCreatedAt storage.SQLTime
 
-		err := rows.Scan(&res.id, &res.username, &res.name, &res.password, &res.userID, &res.spaceID, &res.createdAt)
+		err := rows.Scan(&res.id, &res.username, &res.name, &res.password, &res.userID, &res.spaceID, &sqlCreatedAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan a row: %w", err)
 		}
 
+		res.createdAt = sqlCreatedAt.Time()
 		inodes = append(inodes, res)
 	}
 

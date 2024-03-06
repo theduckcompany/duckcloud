@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS files (
   "mimetype" TEXT DEFAULT NULL,
   "checksum" TEXT NOT NULL,
   "key" BINARY NOT NULL,
-  "uploaded_at" DATETIME NOT NULL
+  "uploaded_at" TEXT NOT NULL
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_fs_files_id ON files(id);

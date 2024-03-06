@@ -145,7 +145,7 @@ func (s *DFSService) Rename(ctx context.Context, inode *INode, newName string) (
 
 	err = s.storage.Patch(ctx, inode.ID(), map[string]any{
 		"name":             newName,
-		"last_modified_at": now,
+		"last_modified_at": storage.SQLTime(now),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to Patch: %w", err)
@@ -248,8 +248,8 @@ func (s *DFSService) Remove(ctx context.Context, cmd *PathCmd) error {
 func (s *DFSService) removeINode(ctx context.Context, inode *INode) error {
 	now := s.clock.Now()
 	err := s.storage.Patch(ctx, inode.ID(), map[string]any{
-		"deleted_at":       now,
-		"last_modified_at": now,
+		"deleted_at":       storage.SQLTime(now),
+		"last_modified_at": storage.SQLTime(now),
 	})
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to Patch: %w", err))

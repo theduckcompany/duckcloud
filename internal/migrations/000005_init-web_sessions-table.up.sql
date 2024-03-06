@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS web_sessions (
   "user_id" TEXT NOT NULL,
   "ip" TEXT NOT NULL,
   "device" TEXT NOT NULL,
-  "created_at" DATETIME NOT NULL,
+  "created_at" TEXT NOT NULL,
   FOREIGN KEY(user_id) REFERENCES users(id) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
