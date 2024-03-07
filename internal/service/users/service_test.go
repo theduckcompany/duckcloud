@@ -307,8 +307,11 @@ func Test_Users_Service(t *testing.T) {
 		tools.PasswordMock.On("Encrypt", mock.Anything, secret.NewText("some-password")).
 			Return(secret.NewText("some-encrypted-password"), nil).Once()
 
+		tools.ClockMock.On("Now").Return(now).Once()
+
 		store.On("Patch", mock.Anything, ExampleBob.ID(), map[string]any{
-			"password": secret.NewText("some-encrypted-password"),
+			"password":            secret.NewText("some-encrypted-password"),
+			"password_changed_at": storage.SQLTime(now),
 		}).Return(nil).Once()
 
 		err := service.UpdateUserPassword(ctx, &UpdatePasswordCmd{
@@ -345,8 +348,11 @@ func Test_Users_Service(t *testing.T) {
 		tools.PasswordMock.On("Encrypt", mock.Anything, secret.NewText("some-password")).
 			Return(secret.NewText("some-encrypted-password"), nil).Once()
 
+		tools.ClockMock.On("Now").Return(now).Once()
+
 		store.On("Patch", mock.Anything, ExampleBob.ID(), map[string]any{
-			"password": secret.NewText("some-encrypted-password"),
+			"password":            secret.NewText("some-encrypted-password"),
+			"password_changed_at": storage.SQLTime(now),
 		}).Return(fmt.Errorf("some-error")).Once()
 
 		err := service.UpdateUserPassword(ctx, &UpdatePasswordCmd{
