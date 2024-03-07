@@ -28,13 +28,14 @@ const (
 
 // User representation
 type User struct {
-	createdAt time.Time
-	id        uuid.UUID
-	username  string
-	password  secret.Text
-	status    Status
-	createdBy uuid.UUID
-	isAdmin   bool
+	createdAt         time.Time
+	passwordChangedAt time.Time
+	id                uuid.UUID
+	username          string
+	password          secret.Text
+	status            Status
+	createdBy         uuid.UUID
+	isAdmin           bool
 }
 
 func (u *User) MarshalJSON() ([]byte, error) {
@@ -47,12 +48,13 @@ func (u *User) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (u User) ID() uuid.UUID        { return u.id }
-func (u User) Username() string     { return u.username }
-func (u User) IsAdmin() bool        { return u.isAdmin }
-func (u User) Status() Status       { return u.status }
-func (u User) CreatedAt() time.Time { return u.createdAt }
-func (u User) CreatedBy() uuid.UUID { return u.createdBy }
+func (u User) ID() uuid.UUID                { return u.id }
+func (u User) Username() string             { return u.username }
+func (u User) IsAdmin() bool                { return u.isAdmin }
+func (u User) Status() Status               { return u.status }
+func (u User) PasswordChangedAt() time.Time { return u.passwordChangedAt }
+func (u User) CreatedAt() time.Time         { return u.createdAt }
+func (u User) CreatedBy() uuid.UUID         { return u.createdBy }
 
 // CreateCmd represents an user creation request.
 type CreateCmd struct {

@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
   "admin" INTEGER NOT NULL,
   "password" TEXT NOT NULL,
   "status" TEXT NOT NULL,
+  "password_changed_at" TEXT NOT NULL,
   "created_at" TEXT NOT NULL,
   "created_by" TEXT NOT NULL
 ) STRICT;

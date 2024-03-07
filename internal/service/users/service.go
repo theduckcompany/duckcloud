@@ -88,14 +88,17 @@ func (s *UserService) createUser(ctx context.Context, newUserID uuid.UUID, usern
 		return nil, errs.Internal(fmt.Errorf("failed to hash the password: %w", err))
 	}
 
+	now := s.clock.Now()
+
 	user := User{
-		id:        newUserID,
-		username:  username,
-		isAdmin:   isAdmin,
-		password:  hashedPassword,
-		status:    Initializing,
-		createdAt: s.clock.Now(),
-		createdBy: createdBy,
+		id:                newUserID,
+		username:          username,
+		isAdmin:           isAdmin,
+		password:          hashedPassword,
+		status:            Initializing,
+		passwordChangedAt: now,
+		createdAt:         now,
+		createdBy:         createdBy,
 	}
 
 	err = s.storage.Save(ctx, &user)
@@ -132,7 +135,8 @@ func (s *UserService) UpdateUserPassword(ctx context.Context, cmd *UpdatePasswor
 	}
 
 	err = s.storage.Patch(ctx, user.ID(), map[string]any{
-		"password": hashedPassword,
+		"password":            hashedPassword,
+		"password_changed_at": storage.SQLTime(s.clock.Now()),
 	})
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to patch the user: %w", err))
