@@ -2,7 +2,6 @@ package masterkey
 
 import (
 	"context"
-	"io/fs"
 	"path"
 	"testing"
 
@@ -193,10 +192,6 @@ func TestMasterKeyService(t *testing.T) {
 		res, err := svc.loadPasswordFromSystemdCreds()
 		require.NoError(t, err)
 		assert.Equal(t, &password, res)
-
-		// Ensure that the file is removed at the end of the function
-		_, err = afs.Stat(path.Join(credsDir, "password"))
-		require.ErrorIs(t, err, fs.ErrNotExist)
 	})
 
 	t.Run("loadPasswordFromSystemdCreds with an env variable not set", func(t *testing.T) {
@@ -244,10 +239,6 @@ func TestMasterKeyService(t *testing.T) {
 		err = svc.loadOrRegisterMasterKeyFromSystemdCreds(ctx)
 		require.NoError(t, err)
 		assert.True(t, svc.IsMasterKeyLoaded())
-
-		// Ensure that the file is removed at the end of the function
-		_, err = afs.Stat(path.Join(credsDir, "password"))
-		require.ErrorIs(t, err, fs.ErrNotExist)
 	})
 
 	t.Run("loadOrRegisterMasterKeyFromSystemdCreds success with no master key registered", func(t *testing.T) {
@@ -271,10 +262,6 @@ func TestMasterKeyService(t *testing.T) {
 		err = svc.loadOrRegisterMasterKeyFromSystemdCreds(ctx)
 		require.NoError(t, err)
 		assert.True(t, svc.IsMasterKeyLoaded())
-
-		// Ensure that the file is removed at the end of the function
-		_, err = afs.Stat(path.Join(credsDir, "password"))
-		require.ErrorIs(t, err, fs.ErrNotExist)
 	})
 
 	t.Run("LoadMasterKeyFromPassword with a systemd-cred related error", func(t *testing.T) {

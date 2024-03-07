@@ -160,11 +160,6 @@ func (s *MasterKeyService) loadPasswordFromSystemdCreds() (*secret.Text, error) 
 		return nil, errs.Internal(fmt.Errorf("failed to read the password file: %w", err))
 	}
 
-	err = s.fs.Remove(filePath)
-	if err != nil {
-		return nil, errs.Internal(fmt.Errorf("failed to remove the credentials file: %w", err))
-	}
-
 	passwordStr := secret.NewText(strings.TrimSpace(string(password)))
 
 	return &passwordStr, nil
