@@ -4,6 +4,6 @@ CREATE TABLE IF NOT EXISTS spaces (
   "owners" TEXT NOT NULL,
   "created_at" TEXT NOT NULL,
   "created_by" TEXT NOT NULL
-);
+) STRICT;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_spaces_id ON spaces(id);
