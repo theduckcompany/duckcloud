@@ -21,7 +21,7 @@ func newSqlStorage(db *sql.DB) *sqlStorage {
 	return &sqlStorage{db}
 }
 
-func (s *sqlStorage) Save(ctx context.Context, key ConfigKey, value any) error {
+func (s *sqlStorage) Save(ctx context.Context, key ConfigKey, value string) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns("key", "value").
@@ -36,20 +36,22 @@ func (s *sqlStorage) Save(ctx context.Context, key ConfigKey, value any) error {
 	return nil
 }
 
-func (s *sqlStorage) Get(ctx context.Context, key ConfigKey, val any) error {
+func (s *sqlStorage) Get(ctx context.Context, key ConfigKey) (string, error) {
+	var res string
+
 	err := sq.
 		Select("value").
 		From(tableName).
 		Where(sq.Eq{"key": key}).
 		RunWith(s.db).
-		ScanContext(ctx, val)
+		ScanContext(ctx, &res)
 	if errors.Is(err, sql.ErrNoRows) {
-		return errNotfound
+		return res, errNotfound
 	}
 
 	if err != nil {
-		return fmt.Errorf("sql error: %w", err)
+		return res, fmt.Errorf("sql error: %w", err)
 	}
 
-	return nil
+	return res, nil
 }
