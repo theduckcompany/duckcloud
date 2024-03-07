@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS oauth_sessions (
   "scope" TEXT NOT NULL,
   FOREIGN KEY(user_id) REFERENCES users(id) ON UPDATE RESTRICT ON DELETE RESTRICT,
   FOREIGN KEY(client_id) REFERENCES oauth_clients(id) ON UPDATE RESTRICT ON DELETE RESTRICT
-);
+) STRICT;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_oauth_sessions_access_token ON oauth_sessions(access_token);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_oauth_sessions_refresh_token ON oauth_sessions(refresh_token);
