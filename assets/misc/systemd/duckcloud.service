@@ -1,101 +1,60 @@
-# Example systemd configuration file for duckcloud. Copy into
-#    /usr/lib/systemd/system/duckcloud.service, then:
-#
-#    systemctl enable duckcloud
-#    systemctl start duckcloud
-#
-# This unit file assumes that:
-# - A user name `duckcloud` have been created.
-# - The `--folder` flag inside the `ExecStart` line point to a folder listed inside the`
-#   `ReadWritePaths` line.
-# - The content of `--folder` points to a folder owned by the `duckcloud` user.
-#
-# **NOTE:** This is an example service file that may change in the future. If you
-# wish to use this please copy rather than symlink it.
-#
+# Maintainer: Peltoche <contact@duckcloud.fr>
+pkgname=duckcloud
+pkgver=24.03.02
+pkgrel=2
+epoch=1
+pkgdesc="A full featured DAVx server"
+arch=(x86_64 i686 armv6h armv7h aarch64)
+url=https://duckcloud.fr
+license=(AGPL3)
+depends=(glibc)
+makedepends=(go)
+optdepends=()
+backup=(usr/lib/systemd/system/duckcloud.service)
 
-[Unit]
-Description=The Duckcloud backup server
-After=network.target
+source=(https://github.com/theduckcompany/duckcloud/archive/refs/tags/${pkgver}.tar.gz
+	LICENSE
+	${pkgname}.service
+	${pkgname}.sysusers
+	${pkgname}.tmpfiles
+	var_file
+)
 
-[Service]
-Type=notify
-TimeoutSec=120
-NotifyAccess=main
-ExecReload=/bin/kill -HUP $MAINPID
-Restart=always
-User=duckcloud
-Group=duckcloud
-SyslogIdentifier=duckcloud
+sha256sums=('16eb21015a5f7c3a422126cac1090772410e32549723817b3476eeb4a58e875d'
+	'8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef'
+	'8ae47dbd5fe33b71476045693e4a9eb0e03ffc66039c1f8c4221edb8d8b821c2'
+	'ca526231ca260be83df4dfb5cc3d7400e82a35e3f164b9799c63be9d4b1bcead'
+	'8ee8d3bf748a986fdd040e56c208742045df91837de3e250d5148e0b3fd65692'
+	'a138ccf62a99c9735e44e78db833ee04b55d56ddbf6b229b405332c6b20deec2')
 
-# Specify where all the data is located by updating the path in
-# both "ExecStart" and "ReadWritePaths"
-#
-# ExecStart one indicate to the server where it must put the data.
-# ReadWritePaths give write permission to the folder. All the remaining
-# filesystem is read-only.
-ReadWritePaths=/usr/share/duckcloud
-ExecStart=/usr/bin/duckcloud run --folder=/usr/share/duckcloud
+prepare() {
+	cd ${pkgname}-${pkgver}
+	go mod vendor
+}
 
+build() {
+	cd ${pkgname}-${pkgver}
+	export CGO_CPPFLAGS="${CPPFLAGS}"
+	export CGO_CFLAGS="${CFLAGS}"
+	export CGO_CXXFLAGS="${CXXFLAGS}"
+	export CGO_LDFLAGS="${LDFLAGS}"
+	export GOFLAGS="-buildmode=pie -trimpath -mod=readonly -modcacherw"
+	go build -v \
+		-ldflags "-linkmode external \
+    -X github.com/theduckcompany/duckcloud/internal/tools/buildinfos.version=${pkgver} \
+    -X github.com/theduckcompany/duckcloud/internal/tools/buildinfos.buildTime=$(date --utc -Iseconds) \
+    -X github.com/theduckcompany/duckcloud/internal/tools/buildinfos.isRelease=true" \
+		-o ${pkgname} ./cmd/duckcloud
+}
 
+package() {
+	install -Dm644 "${pkgname}.service" -t "${pkgdir}/usr/lib/systemd/system/"
+	install -Dm644 "${pkgname}.sysusers" "${pkgdir}/usr/lib/sysusers.d/${pkgname}.conf"
+	install -Dm644 "${pkgname}.tmpfiles" "${pkgdir}/usr/lib/tmpfiles.d/${pkgname}.conf"
+	install -Dm700 -d "${pkgdir}/etc/duckcloud"
+	install -Dm644 "LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+	install -Dm644 "var_file" "${pkgdir}/etc/duckcloud"
 
-# ######################
-# ## Security Sandbox ##
-# ######################
-
-# Make sure that the service has its own unshared tmpfs at /tmp and that it
-# cannot see or change any real devices
-PrivateTmp=true
-PrivateDevices=true
-
-# We give no capabilities to a service by default
-# CapabilityBoundingSet=
-# AmbientCapabilities=
-
-# # Protect the following from modification:
-# # - The entire filesystem
-# # - sysctl settings and loaded kernel modules
-# # - No modifications allowed to Control Groups
-# # - Hostname
-# # - System Clock
-ProtectSystem=strict
-ProtectKernelTunables=true
-ProtectKernelModules=true
-ProtectControlGroups=true
-ProtectHostname=true
-ProtectClock=true
-
-
-# Prevent access to the following:
-# - /home directory
-# - Kernel logs
-ProtectHome=true
-ProtectKernelLogs=true
-
-# Make sure that the process can only see PIDs and process details of itself,
-# and the second option disables seeing details of things like system load and
-# I/O etc
-ProtectProc=invisible
-ProcSubset=pid
-
-# While not needed, we set these options explicitly
-# - This process has been given access to the host network
-# - It can also communicate with any IP Address
-PrivateNetwork=false
-RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
-IPAddressAllow=any
-
-# Restrict system calls to a sane bunch
-SystemCallArchitectures=native
-
-# Misc restrictions
-RestrictSUIDSGID=true
-RemoveIPC=true
-NoNewPrivileges=true
-RestrictRealtime=true
-RestrictNamespaces=true
-LockPersonality=true
-PrivateUsers=true
-
-[Install]
-WantedBy=multi-user.target
+	cd "${pkgname}-${pkgver}"
+	install -Dm755 "${pkgname}" -t "${pkgdir}/usr/bin/"
+}
