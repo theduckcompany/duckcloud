@@ -55,16 +55,15 @@ func NewRunCmd(_ string) *cobra.Command {
 	flags.Bool("debug", false, "Force the debug level")
 	flags.String("log-level", "info", "Log message verbosity LEVEL (debug, info, warning, error)")
 
-	flags.String("folder", defaultFolder, "Specified you data directory location")
+	flags.String("folder", defaultFolder, "Specify you data directory location")
 	flags.Bool("memory-fs", false, "Replace the OS filesystem by a in-memory stub. *Every data will disapear after each restart*.")
 
-	flags.String("tls-cert", "", "Public HTTPS certificate FILE (.crt)")
-	flags.String("tls-key", "", "Private HTTPS key FILE (.key)")
-	flags.Bool("self-signed-cert", false, "Generate and use a self-signed HTTPS/TLS certificate ")
+	flags.String("tls-cert", "", "Public HTTPS certificate file (.crt)")
+	flags.String("tls-key", "", "Private HTTPS key file (.key)")
+	flags.Bool("self-signed-cert", false, "Generate and use a self-signed HTTPS/TLS certificate.")
 
-	flags.Int("http-port", 5764, "Web server port NUMBER, ignored for Unix domain sockets")
-	flags.IP("http-host", net.IPv4(0, 0, 0, 0), "Web server IP address or Unix domain socket, e.g. unix:/var/run/photoprism.sock")
-	flags.StringSlice("http-hostname", []string{}, "Serve requests for this HOSTNAME only plus")
+	flags.Int("http-port", 5764, "Web server port number.")
+	flags.IP("http-host", net.IPv4(0, 0, 0, 0), "Web server IP address")
 
 	return &cmd
 }
