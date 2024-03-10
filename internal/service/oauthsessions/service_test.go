@@ -111,7 +111,7 @@ func Test_OauthSessions(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := newService(tools, storageMock)
 
-		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.userID, (*storage.PaginateCmd)(nil)).Return([]Session{ExampleAliceSession}, nil).Once()
+		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.userID, (*sqlstorage.PaginateCmd)(nil)).Return([]Session{ExampleAliceSession}, nil).Once()
 		storageMock.On("RemoveByAccessToken", mock.Anything, ExampleAliceSession.accessToken).Return(nil).Once()
 
 		err := service.DeleteAllForUser(ctx, ExampleAliceSession.userID)
@@ -123,7 +123,7 @@ func Test_OauthSessions(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := newService(tools, storageMock)
 
-		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.userID, (*storage.PaginateCmd)(nil)).Return([]Session{ExampleAliceSession, ExampleAliceSession}, nil).Once()
+		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.userID, (*sqlstorage.PaginateCmd)(nil)).Return([]Session{ExampleAliceSession, ExampleAliceSession}, nil).Once()
 		storageMock.On("RemoveByAccessToken", mock.Anything, ExampleAliceSession.accessToken).Return(fmt.Errorf("some-error")).Once()
 		// Do not call "RemoveByAccessToken" a second time for the second error
 

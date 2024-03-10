@@ -12,7 +12,7 @@ import (
 func TestUserSqlStorage(t *testing.T) {
 	ctx := context.Background()
 
-	db := storage.NewTestStorage(t)
+	db := sqlstorage.NewTestStorage(t)
 	store := newSqlStorage(db)
 
 	t.Run("Save success", func(t *testing.T) {

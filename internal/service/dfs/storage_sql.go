@@ -39,8 +39,8 @@ func (s *sqlStorage) Save(ctx context.Context, i *INode) error {
 			i.parent,
 			i.spaceID,
 			i.size,
-			ptr.To(storage.SQLTime(i.lastModifiedAt)),
-			ptr.To(storage.SQLTime(i.createdAt)),
+			ptr.To(sqlstorage.SQLTime(i.lastModifiedAt)),
+			ptr.To(sqlstorage.SQLTime(i.createdAt)),
 			i.createdBy,
 			i.fileID).
 		RunWith(s.db).
@@ -60,7 +60,7 @@ func (s *sqlStorage) Patch(ctx context.Context, inode uuid.UUID, fields map[stri
 	for k, v := range fields {
 		switch vt := v.(type) {
 		case time.Time:
-			fields[k] = storage.SQLTime(vt)
+			fields[k] = sqlstorage.SQLTime(vt)
 		default:
 			continue
 		}
@@ -95,8 +95,8 @@ func (s *sqlStorage) HardDelete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (s *sqlStorage) GetAllChildrens(ctx context.Context, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error) {
-	rows, err := storage.PaginateSelection(sq.
+func (s *sqlStorage) GetAllChildrens(ctx context.Context, parent uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]INode, error) {
+	rows, err := sqlstorage.PaginateSelection(sq.
 		Select(allFiels...).
 		Where(sq.Eq{"parent": string(parent), "deleted_at": nil}).
 		From(tableName), cmd).
@@ -137,8 +137,8 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]INode, error) {
 
 	for rows.Next() {
 		var res INode
-		var sqlLastModifiedAt storage.SQLTime
-		var sqlCreatedAt storage.SQLTime
+		var sqlLastModifiedAt sqlstorage.SQLTime
+		var sqlCreatedAt sqlstorage.SQLTime
 
 		err := rows.Scan(&res.id,
 			&res.name,
@@ -235,8 +235,8 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*INode, erro
 	}
 
 	var res INode
-	var sqlLastModifiedAt storage.SQLTime
-	var sqlCreatedAt storage.SQLTime
+	var sqlLastModifiedAt sqlstorage.SQLTime
+	var sqlCreatedAt sqlstorage.SQLTime
 
 	err := query.
 		RunWith(s.db).

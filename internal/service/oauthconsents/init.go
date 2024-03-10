@@ -17,7 +17,7 @@ type Service interface {
 	Create(ctx context.Context, cmd *CreateCmd) (*Consent, error)
 	Check(r *http.Request, client *oauthclients.Client, session *websessions.Session) error
 	Delete(ctx context.Context, consentID uuid.UUID) error
-	GetAll(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Consent, error)
+	GetAll(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Consent, error)
 	DeleteAll(ctx context.Context, userID uuid.UUID) error
 }
 

@@ -22,7 +22,7 @@ func TestSessionSqlStorage(t *testing.T) {
 		createdAt: nowData,
 	}
 
-	db := storage.NewTestStorage(t)
+	db := sqlstorage.NewTestStorage(t)
 	storage := newSQLStorage(db)
 
 	t.Run("Create success", func(t *testing.T) {

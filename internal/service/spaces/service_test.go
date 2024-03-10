@@ -97,7 +97,7 @@ func Test_SpaceService(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
-		storageMock.On("GetAllUserSpaces", mock.Anything, AliceID, (*storage.PaginateCmd)(nil)).Return([]Space{ExampleAlicePersonalSpace}, nil).Once()
+		storageMock.On("GetAllUserSpaces", mock.Anything, AliceID, (*sqlstorage.PaginateCmd)(nil)).Return([]Space{ExampleAlicePersonalSpace}, nil).Once()
 
 		res, err := svc.GetAllUserSpaces(ctx, AliceID, nil)
 		require.NoError(t, err)
@@ -110,7 +110,7 @@ func Test_SpaceService(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
-		storageMock.On("GetAllUserSpaces", mock.Anything, AliceID, (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
+		storageMock.On("GetAllUserSpaces", mock.Anything, AliceID, (*sqlstorage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
 
 		res, err := svc.GetAllUserSpaces(ctx, AliceID, nil)
 		assert.Nil(t, res)
@@ -256,10 +256,10 @@ func Test_SpaceService(t *testing.T) {
 
 		require.True(t, users.ExampleAlice.IsAdmin())
 
-		storageMock.On("GetAllSpaces", mock.Anything, &storage.PaginateCmd{}).
+		storageMock.On("GetAllSpaces", mock.Anything, &sqlstorage.PaginateCmd{}).
 			Return([]Space{ExampleAlicePersonalSpace, ExampleBobPersonalSpace}, nil).Once()
 
-		res, err := svc.GetAllSpaces(ctx, &users.ExampleAlice, &storage.PaginateCmd{})
+		res, err := svc.GetAllSpaces(ctx, &users.ExampleAlice, &sqlstorage.PaginateCmd{})
 		require.NoError(t, err)
 		assert.Equal(t, []Space{ExampleAlicePersonalSpace, ExampleBobPersonalSpace}, res)
 	})
@@ -272,7 +272,7 @@ func Test_SpaceService(t *testing.T) {
 
 		require.False(t, users.ExampleBob.IsAdmin())
 
-		res, err := svc.GetAllSpaces(ctx, &users.ExampleBob, &storage.PaginateCmd{StartAfter: map[string]string{}, Limit: 4})
+		res, err := svc.GetAllSpaces(ctx, &users.ExampleBob, &sqlstorage.PaginateCmd{StartAfter: map[string]string{}, Limit: 4})
 		assert.Nil(t, res)
 		require.ErrorIs(t, err, errs.ErrUnauthorized)
 	})
@@ -588,7 +588,7 @@ func Test_SpaceService(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
-		storageMock.On("GetAllSpaces", mock.Anything, &storage.PaginateCmd{Limit: 1}).
+		storageMock.On("GetAllSpaces", mock.Anything, &sqlstorage.PaginateCmd{Limit: 1}).
 			Return([]Space{}, nil).Once()
 
 		schedulerMock.On("RegisterSpaceCreateTask", mock.Anything, &scheduler.SpaceCreateArgs{
@@ -607,7 +607,7 @@ func Test_SpaceService(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
-		storageMock.On("GetAllSpaces", mock.Anything, &storage.PaginateCmd{Limit: 1}).
+		storageMock.On("GetAllSpaces", mock.Anything, &sqlstorage.PaginateCmd{Limit: 1}).
 			Return(nil, errs.ErrInternal).Once()
 
 		err := svc.Bootstrap(ctx, &users.ExampleAlice)
@@ -620,7 +620,7 @@ func Test_SpaceService(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
-		storageMock.On("GetAllSpaces", mock.Anything, &storage.PaginateCmd{Limit: 1}).
+		storageMock.On("GetAllSpaces", mock.Anything, &sqlstorage.PaginateCmd{Limit: 1}).
 			Return([]Space{ExampleAlicePersonalSpace}, nil).Once()
 
 		err := svc.Bootstrap(ctx, &users.ExampleAlice)
@@ -633,7 +633,7 @@ func Test_SpaceService(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
-		storageMock.On("GetAllSpaces", mock.Anything, &storage.PaginateCmd{Limit: 1}).
+		storageMock.On("GetAllSpaces", mock.Anything, &sqlstorage.PaginateCmd{Limit: 1}).
 			Return([]Space{}, nil).Once()
 
 		schedulerMock.On("RegisterSpaceCreateTask", mock.Anything, &scheduler.SpaceCreateArgs{

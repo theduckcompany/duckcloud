@@ -50,7 +50,7 @@ type Config struct {
 	fx.Out
 	Tools    tools.Config
 	FS       afero.Fs
-	Storage  storage.Config
+	Storage  sqlstorage.Config
 	Folder   Folder
 	Listener router.Config
 	HTML     html.Config
@@ -97,7 +97,7 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 			// Tools
 			fx.Annotate(tools.NewToolbox, fx.As(new(tools.Tools))),
 			fx.Annotate(html.NewRenderer, fx.As(new(html.Writer))),
-			storage.Init,
+			sqlstorage.Init,
 			auth.NewAuthenticator,
 
 			// Services

@@ -201,7 +201,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceConsent.UserID(), (*storage.PaginateCmd)(nil)).Return([]Consent{ExampleAliceConsent}, nil).Once()
+		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceConsent.UserID(), (*sqlstorage.PaginateCmd)(nil)).Return([]Consent{ExampleAliceConsent}, nil).Once()
 
 		res, err := service.GetAll(ctx, ExampleAliceConsent.UserID(), nil)
 		require.NoError(t, err)
@@ -223,7 +223,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceConsent.UserID(), (*storage.PaginateCmd)(nil)).Return([]Consent{ExampleAliceConsent}, nil).Once()
+		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceConsent.UserID(), (*sqlstorage.PaginateCmd)(nil)).Return([]Consent{ExampleAliceConsent}, nil).Once()
 		storageMock.On("Delete", mock.Anything, ExampleAliceConsent.ID()).Return(nil).Once()
 
 		err := service.DeleteAll(ctx, ExampleAliceConsent.UserID())
@@ -235,7 +235,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceConsent.UserID(), (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
+		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceConsent.UserID(), (*sqlstorage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
 
 		err := service.DeleteAll(ctx, ExampleAliceConsent.UserID())
 		require.ErrorIs(t, err, errs.ErrInternal)
@@ -247,7 +247,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := NewService(storageMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceConsent.UserID(), (*storage.PaginateCmd)(nil)).Return([]Consent{ExampleAliceConsent, ExampleAliceConsent}, nil).Once()
+		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceConsent.UserID(), (*sqlstorage.PaginateCmd)(nil)).Return([]Consent{ExampleAliceConsent, ExampleAliceConsent}, nil).Once()
 		storageMock.On("Delete", mock.Anything, ExampleAliceConsent.ID()).Return(fmt.Errorf("some-error")).Once()
 		// Do not call GetByID and DeleteByID a second time
 

@@ -15,8 +15,8 @@ import (
 type Service interface {
 	Bootstrap(ctx context.Context, user *users.User) error
 	Create(ctx context.Context, cmd *CreateCmd) (*Space, error)
-	GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Space, error)
-	GetAllSpaces(ctx context.Context, user *users.User, cmd *storage.PaginateCmd) ([]Space, error)
+	GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Space, error)
+	GetAllSpaces(ctx context.Context, user *users.User, cmd *sqlstorage.PaginateCmd) ([]Space, error)
 	GetUserSpace(ctx context.Context, userID, spaceID uuid.UUID) (*Space, error)
 	GetByID(ctx context.Context, spaceID uuid.UUID) (*Space, error)
 	AddOwner(ctx context.Context, cmd *AddOwnerCmd) (*Space, error)

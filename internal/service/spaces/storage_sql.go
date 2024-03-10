@@ -33,7 +33,7 @@ func (s *sqlStorage) Save(ctx context.Context, space *Space) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(allFields...).
-		Values(space.id, space.name, space.owners, ptr.To(storage.SQLTime(space.createdAt)), space.createdBy).
+		Values(space.id, space.name, space.owners, ptr.To(sqlstorage.SQLTime(space.createdAt)), space.createdBy).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -43,11 +43,11 @@ func (s *sqlStorage) Save(ctx context.Context, space *Space) error {
 	return nil
 }
 
-func (s *sqlStorage) GetAllSpaces(ctx context.Context, cmd *storage.PaginateCmd) ([]Space, error) {
+func (s *sqlStorage) GetAllSpaces(ctx context.Context, cmd *sqlstorage.PaginateCmd) ([]Space, error) {
 	return s.getAllbyKeys(ctx, cmd)
 }
 
-func (s *sqlStorage) GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Space, error) {
+func (s *sqlStorage) GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Space, error) {
 	return s.getAllbyKeys(ctx, cmd, sq.Like{"owners": fmt.Sprintf("%%%s%%", userID)})
 }
 
@@ -81,7 +81,7 @@ func (s *sqlStorage) Patch(ctx context.Context, spaceID uuid.UUID, fields map[st
 	return nil
 }
 
-func (s *sqlStorage) getAllbyKeys(ctx context.Context, cmd *storage.PaginateCmd, wheres ...any) ([]Space, error) {
+func (s *sqlStorage) getAllbyKeys(ctx context.Context, cmd *sqlstorage.PaginateCmd, wheres ...any) ([]Space, error) {
 	query := sq.
 		Select(allFields...).
 		From(tableName)
@@ -90,7 +90,7 @@ func (s *sqlStorage) getAllbyKeys(ctx context.Context, cmd *storage.PaginateCmd,
 		query = query.Where(where)
 	}
 
-	query = storage.PaginateSelection(query, cmd)
+	query = sqlstorage.PaginateSelection(query, cmd)
 
 	rows, err := query.RunWith(s.db).
 		QueryContext(ctx)
@@ -114,7 +114,7 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*Space, erro
 		query = query.Where(where)
 	}
 
-	var sqlCreatedAt storage.SQLTime
+	var sqlCreatedAt sqlstorage.SQLTime
 
 	err := query.
 		RunWith(s.db).
@@ -137,7 +137,7 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]Space, error) {
 
 	for rows.Next() {
 		var res Space
-		var sqlCreatedAt storage.SQLTime
+		var sqlCreatedAt sqlstorage.SQLTime
 
 		err := rows.Scan(&res.id, &res.name, &res.owners, &sqlCreatedAt, &res.createdBy)
 		if err != nil {

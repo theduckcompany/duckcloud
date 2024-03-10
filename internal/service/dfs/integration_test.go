@@ -13,8 +13,8 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/dfs"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
-	"github.com/theduckcompany/duckcloud/internal/tools/startutils"
 	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
+	"github.com/theduckcompany/duckcloud/internal/tools/startutils"
 )
 
 func Test_DFS_Integration(t *testing.T) {
@@ -120,14 +120,14 @@ func Test_DFS_Integration(t *testing.T) {
 
 	t.Run("ListDir with 2 element and a pagination", func(t *testing.T) {
 		t.Run("Get only the first element", func(t *testing.T) {
-			dirContent, err := serv.DFSSvc.ListDir(ctx, dfs.NewPathCmd(&space, "/"), &storage.PaginateCmd{Limit: 1})
+			dirContent, err := serv.DFSSvc.ListDir(ctx, dfs.NewPathCmd(&space, "/"), &sqlstorage.PaginateCmd{Limit: 1})
 			require.NoError(t, err)
 			require.Len(t, dirContent, 1)
 			require.Equal(t, "Documents", dirContent[0].Name())
 		})
 
 		t.Run("Get only the second element", func(t *testing.T) {
-			dirContent, err := serv.DFSSvc.ListDir(ctx, dfs.NewPathCmd(&space, "/"), &storage.PaginateCmd{
+			dirContent, err := serv.DFSSvc.ListDir(ctx, dfs.NewPathCmd(&space, "/"), &sqlstorage.PaginateCmd{
 				Limit:      1,
 				StartAfter: map[string]string{"name": "Documents"},
 			})
@@ -137,13 +137,13 @@ func Test_DFS_Integration(t *testing.T) {
 		})
 
 		t.Run("Get both", func(t *testing.T) {
-			dirContent, err := serv.DFSSvc.ListDir(ctx, dfs.NewPathCmd(&space, "/"), &storage.PaginateCmd{Limit: 2})
+			dirContent, err := serv.DFSSvc.ListDir(ctx, dfs.NewPathCmd(&space, "/"), &sqlstorage.PaginateCmd{Limit: 2})
 			require.NoError(t, err)
 			require.Len(t, dirContent, 2)
 		})
 
 		t.Run("Get two elements after Documents, it should return only one", func(t *testing.T) {
-			dirContent, err := serv.DFSSvc.ListDir(ctx, dfs.NewPathCmd(&space, "/"), &storage.PaginateCmd{
+			dirContent, err := serv.DFSSvc.ListDir(ctx, dfs.NewPathCmd(&space, "/"), &sqlstorage.PaginateCmd{
 				Limit:      2,
 				StartAfter: map[string]string{"name": "Documents"},
 			})

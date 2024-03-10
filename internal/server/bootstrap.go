@@ -8,10 +8,11 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 )
 
 func bootstrap(ctx context.Context, usersSvc users.Service, spacesSvc spaces.Service) error {
-	res, err := usersSvc.GetAll(ctx, &storage.PaginateCmd{Limit: 4})
+	res, err := usersSvc.GetAll(ctx, &sqlstorage.PaginateCmd{Limit: 4})
 	if err != nil {
 		return fmt.Errorf("failed to GetAll users: %w", err)
 	}

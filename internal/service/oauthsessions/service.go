@@ -22,7 +22,7 @@ type Storage interface {
 	RemoveByRefreshToken(ctx context.Context, refresh secret.Text) error
 	GetByAccessToken(ctx context.Context, access secret.Text) (*Session, error)
 	GetByRefreshToken(ctx context.Context, refresh secret.Text) (*Session, error)
-	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error)
+	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Session, error)
 }
 
 // service handling all the logic.
@@ -108,7 +108,7 @@ func (s *service) GetByRefreshToken(ctx context.Context, refresh secret.Text) (*
 	return res, nil
 }
 
-func (s *service) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
+func (s *service) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Session, error) {
 	res, err := s.storage.GetAllForUser(ctx, userID, cmd)
 	if err != nil {
 		return nil, errs.Internal(err)

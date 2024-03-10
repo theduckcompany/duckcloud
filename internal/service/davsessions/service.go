@@ -26,7 +26,7 @@ var (
 type Storage interface {
 	Save(ctx context.Context, session *DavSession) error
 	GetByUsernameAndPassword(ctx context.Context, username string, password secret.Text) (*DavSession, error)
-	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]DavSession, error)
+	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]DavSession, error)
 	GetByID(ctx context.Context, sessionID uuid.UUID) (*DavSession, error)
 	RemoveByID(ctx context.Context, sessionID uuid.UUID) error
 }
@@ -93,7 +93,7 @@ func (s *service) Authenticate(ctx context.Context, username string, password se
 	return res, nil
 }
 
-func (s *service) GetAllForUser(ctx context.Context, userID uuid.UUID, paginateCmd *storage.PaginateCmd) ([]DavSession, error) {
+func (s *service) GetAllForUser(ctx context.Context, userID uuid.UUID, paginateCmd *sqlstorage.PaginateCmd) ([]DavSession, error) {
 	res, err := s.storage.GetAllForUser(ctx, userID, paginateCmd)
 	if err != nil {
 		return nil, errs.Internal(err)

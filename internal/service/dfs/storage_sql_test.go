@@ -19,7 +19,7 @@ func TestINodeSqlstore(t *testing.T) {
 	ctx := context.Background()
 
 	tools := tools.NewMock(t)
-	db := storage.NewTestStorage(t)
+	db := sqlstorage.NewTestStorage(t)
 	store := newSqlStorage(db, tools)
 
 	t.Run("Create success", func(t *testing.T) {
@@ -64,7 +64,7 @@ func TestINodeSqlstore(t *testing.T) {
 	})
 
 	t.Run("GetAllChildrens success", func(t *testing.T) {
-		res, err := store.GetAllChildrens(ctx, ExampleBobRoot.ID(), &storage.PaginateCmd{
+		res, err := store.GetAllChildrens(ctx, ExampleBobRoot.ID(), &sqlstorage.PaginateCmd{
 			StartAfter: map[string]string{"id": "some-child-id-4"},
 			Limit:      5,
 		})

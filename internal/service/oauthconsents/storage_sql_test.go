@@ -13,7 +13,7 @@ import (
 func TestConsentSqlStorage(t *testing.T) {
 	ctx := context.Background()
 
-	db := storage.NewTestStorage(t)
+	db := sqlstorage.NewTestStorage(t)
 	storage := newSQLStorage(db)
 
 	t.Run("Create success", func(t *testing.T) {

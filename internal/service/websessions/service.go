@@ -23,7 +23,7 @@ type Storage interface {
 	Save(ctx context.Context, session *Session) error
 	GetByToken(ctx context.Context, token secret.Text) (*Session, error)
 	RemoveByToken(ctx context.Context, token secret.Text) error
-	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error)
+	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Session, error)
 }
 
 type service struct {
@@ -148,7 +148,7 @@ func (s *service) Logout(r *http.Request, w http.ResponseWriter) error {
 	return nil
 }
 
-func (s *service) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
+func (s *service) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Session, error) {
 	res, err := s.storage.GetAllForUser(ctx, userID, cmd)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to GetAllForUser: %w", err))

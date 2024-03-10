@@ -39,7 +39,7 @@ type Storage interface {
 	Save(ctx context.Context, dir *INode) error
 	GetByID(ctx context.Context, id uuid.UUID) (*INode, error)
 	GetByNameAndParent(ctx context.Context, name string, parent uuid.UUID) (*INode, error)
-	GetAllChildrens(ctx context.Context, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error)
+	GetAllChildrens(ctx context.Context, parent uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]INode, error)
 	HardDelete(ctx context.Context, id uuid.UUID) error
 	GetAllDeleted(ctx context.Context, limit int) ([]INode, error)
 	GetDeleted(ctx context.Context, id uuid.UUID) (*INode, error)
@@ -106,7 +106,7 @@ func (s *service) CreateFS(ctx context.Context, user *users.User, space *spaces.
 	return &fsRoot, nil
 }
 
-func (s *service) ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
+func (s *service) ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *sqlstorage.PaginateCmd) ([]INode, error) {
 	dir, err := s.Get(ctx, cmd)
 	if errors.Is(err, errs.ErrNotFound) {
 		return nil, errs.NotFound(err)
@@ -145,7 +145,7 @@ func (s *service) Rename(ctx context.Context, inode *INode, newName string) (*IN
 
 	err = s.storage.Patch(ctx, inode.ID(), map[string]any{
 		"name":             newName,
-		"last_modified_at": storage.SQLTime(now),
+		"last_modified_at": sqlstorage.SQLTime(now),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to Patch: %w", err)
@@ -248,8 +248,8 @@ func (s *service) Remove(ctx context.Context, cmd *PathCmd) error {
 func (s *service) removeINode(ctx context.Context, inode *INode) error {
 	now := s.clock.Now()
 	err := s.storage.Patch(ctx, inode.ID(), map[string]any{
-		"deleted_at":       storage.SQLTime(now),
-		"last_modified_at": storage.SQLTime(now),
+		"deleted_at":       sqlstorage.SQLTime(now),
+		"last_modified_at": sqlstorage.SQLTime(now),
 	})
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to Patch: %w", err))

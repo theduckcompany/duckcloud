@@ -1,4 +1,4 @@
-package sqlstorage
+package storage
 
 import (
 	"context"
@@ -41,7 +41,7 @@ var ExampleFileUploadFileAlice2 = model.Task{
 func Test_Tasks_SQLStorage(t *testing.T) {
 	ctx := context.Background()
 
-	db := storage.NewTestStorage(t)
+	db := sqlstorage.NewTestStorage(t)
 	storage := NewSqlStorage(db)
 
 	t.Run("Save success", func(t *testing.T) {

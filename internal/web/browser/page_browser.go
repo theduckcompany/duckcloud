@@ -299,7 +299,7 @@ func (h *BrowserPage) renderBrowserContent(w http.ResponseWriter, r *http.Reques
 
 	var dirContent []dfs.INode
 	if inode.IsDir() {
-		dirContent, err = h.fs.ListDir(r.Context(), cmd, &storage.PaginateCmd{
+		dirContent, err = h.fs.ListDir(r.Context(), cmd, &sqlstorage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
 			Limit:      PageSize,
 		})
@@ -338,7 +338,7 @@ func (h *BrowserPage) renderBrowserContent(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *BrowserPage) renderMoreDirContent(w http.ResponseWriter, r *http.Request, folderPath *dfs.PathCmd, lastElem string) {
-	dirContent, err := h.fs.ListDir(r.Context(), folderPath, &storage.PaginateCmd{
+	dirContent, err := h.fs.ListDir(r.Context(), folderPath, &sqlstorage.PaginateCmd{
 		StartAfter: map[string]string{"name": lastElem},
 		Limit:      PageSize,
 	})

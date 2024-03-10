@@ -187,8 +187,8 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&ExampleAliceFile, nil).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAliceFile.ID(), map[string]any{
-			"deleted_at":       storage.SQLTime(now),
-			"last_modified_at": storage.SQLTime(now),
+			"deleted_at":       sqlstorage.SQLTime(now),
+			"last_modified_at": sqlstorage.SQLTime(now),
 		}).Return(nil).Once()
 
 		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"))
@@ -264,8 +264,8 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&ExampleAliceFile, nil).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAliceFile.ID(), map[string]any{
-			"deleted_at":       storage.SQLTime(now),
-			"last_modified_at": storage.SQLTime(now),
+			"deleted_at":       sqlstorage.SQLTime(now),
+			"last_modified_at": sqlstorage.SQLTime(now),
 		}).Return(fmt.Errorf("some-error")).Once()
 
 		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"))
@@ -285,10 +285,10 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&ExampleAliceDir, nil).Once()
 
-		storageMock.On("GetAllChildrens", mock.Anything, ExampleAliceDir.ID(), &storage.PaginateCmd{Limit: 2}).
+		storageMock.On("GetAllChildrens", mock.Anything, ExampleAliceDir.ID(), &sqlstorage.PaginateCmd{Limit: 2}).
 			Return([]INode{ExampleAliceFile}, nil).Once()
 
-		res, err := spaceFS.ListDir(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"), &storage.PaginateCmd{Limit: 2})
+		res, err := spaceFS.ListDir(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"), &sqlstorage.PaginateCmd{Limit: 2})
 		require.NoError(t, err)
 		assert.Equal(t, []INode{ExampleAliceFile}, res)
 	})
@@ -305,7 +305,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errs.ErrNotFound).Once()
 
-		res, err := spaceFS.ListDir(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"), &storage.PaginateCmd{Limit: 2})
+		res, err := spaceFS.ListDir(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"), &sqlstorage.PaginateCmd{Limit: 2})
 		assert.Nil(t, res)
 		require.ErrorIs(t, err, errs.ErrNotFound)
 	})
@@ -322,7 +322,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(nil, errs.Internal(fmt.Errorf("some-error"))).Once()
 
-		res, err := spaceFS.ListDir(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"), &storage.PaginateCmd{Limit: 2})
+		res, err := spaceFS.ListDir(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"), &sqlstorage.PaginateCmd{Limit: 2})
 		assert.Nil(t, res)
 		require.ErrorIs(t, err, errs.ErrInternal)
 		require.ErrorContains(t, err, "some-error")
@@ -340,10 +340,10 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
 		storageMock.On("GetByNameAndParent", mock.Anything, "foo", ExampleAliceRoot.ID()).Return(&ExampleAliceDir, nil).Once()
 
-		storageMock.On("GetAllChildrens", mock.Anything, ExampleAliceDir.ID(), &storage.PaginateCmd{Limit: 2}).
+		storageMock.On("GetAllChildrens", mock.Anything, ExampleAliceDir.ID(), &sqlstorage.PaginateCmd{Limit: 2}).
 			Return(nil, fmt.Errorf("some-error")).Once()
 
-		res, err := spaceFS.ListDir(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"), &storage.PaginateCmd{Limit: 2})
+		res, err := spaceFS.ListDir(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "foo"), &sqlstorage.PaginateCmd{Limit: 2})
 		assert.Nil(t, res)
 		require.ErrorIs(t, err, errs.ErrInternal)
 		require.ErrorContains(t, err, "some-error")
@@ -657,7 +657,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foobar.jpg", *ExampleAliceFile.Parent()).Return(nil, errNotFound).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAliceFile.ID(), map[string]any{
-			"last_modified_at": storage.SQLTime(now),
+			"last_modified_at": sqlstorage.SQLTime(now),
 			"name":             "foobar.jpg",
 		}).Return(nil).Once()
 
@@ -710,7 +710,7 @@ func Test_DFS_Service(t *testing.T) {
 		storageMock.On("GetByNameAndParent", mock.Anything, "foobar (1).pdf", *ExampleAliceFile.Parent()).Return(nil, errNotFound).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAliceFile.ID(), map[string]any{
-			"last_modified_at": storage.SQLTime(now),
+			"last_modified_at": sqlstorage.SQLTime(now),
 			"name":             "foobar (1).pdf",
 		}).Return(nil).Once()
 
@@ -734,8 +734,8 @@ func Test_DFS_Service(t *testing.T) {
 			Return(&ExampleAliceRoot, nil).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAliceRoot.ID(), map[string]any{
-			"deleted_at":       storage.SQLTime(now),
-			"last_modified_at": storage.SQLTime(now),
+			"deleted_at":       sqlstorage.SQLTime(now),
+			"last_modified_at": sqlstorage.SQLTime(now),
 		}).Return(nil).Once()
 
 		err := spaceFS.Destroy(ctx, &users.ExampleAlice, &spaces.ExampleAlicePersonalSpace)
@@ -800,8 +800,8 @@ func Test_DFS_Service(t *testing.T) {
 			Return(&ExampleAliceRoot, nil).Once()
 		toolsMock.ClockMock.On("Now").Return(now).Once()
 		storageMock.On("Patch", mock.Anything, ExampleAliceRoot.ID(), map[string]any{
-			"deleted_at":       storage.SQLTime(now),
-			"last_modified_at": storage.SQLTime(now),
+			"deleted_at":       sqlstorage.SQLTime(now),
+			"last_modified_at": sqlstorage.SQLTime(now),
 		}).Return(fmt.Errorf("some-error")).Once()
 
 		err := spaceFS.Destroy(ctx, &users.ExampleAlice, &spaces.ExampleAlicePersonalSpace)

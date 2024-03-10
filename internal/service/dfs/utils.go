@@ -37,7 +37,7 @@ func Walk(ctx context.Context, ffs Service, cmd *PathCmd, fn WalkDirFunc) error 
 
 	lastOffset := ""
 	for {
-		dirContent, err := ffs.ListDir(ctx, cmd, &storage.PaginateCmd{
+		dirContent, err := ffs.ListDir(ctx, cmd, &sqlstorage.PaginateCmd{
 			StartAfter: map[string]string{"name": lastOffset},
 			Limit:      WalkBatchSize,
 		})

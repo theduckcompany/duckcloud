@@ -23,7 +23,7 @@ type Service interface {
 	GetByToken(ctx context.Context, token secret.Text) (*Session, error)
 	GetFromReq(r *http.Request) (*Session, error)
 	Logout(r *http.Request, w http.ResponseWriter) error
-	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error)
+	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Session, error)
 	Delete(ctx context.Context, cmd *DeleteCmd) error
 	DeleteAll(ctx context.Context, userID uuid.UUID) error
 }

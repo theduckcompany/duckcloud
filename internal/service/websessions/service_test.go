@@ -88,9 +88,9 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := newService(storageMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, AliceWebSessionExample.userID, &storage.PaginateCmd{Limit: 10}).Return([]Session{AliceWebSessionExample}, nil).Once()
+		storageMock.On("GetAllForUser", mock.Anything, AliceWebSessionExample.userID, &sqlstorage.PaginateCmd{Limit: 10}).Return([]Session{AliceWebSessionExample}, nil).Once()
 
-		res, err := service.GetAllForUser(ctx, AliceWebSessionExample.userID, &storage.PaginateCmd{Limit: 10})
+		res, err := service.GetAllForUser(ctx, AliceWebSessionExample.userID, &sqlstorage.PaginateCmd{Limit: 10})
 		require.NoError(t, err)
 		assert.Equal(t, []Session{AliceWebSessionExample}, res)
 	})
@@ -300,7 +300,7 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := newService(storageMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, AliceWebSessionExample.UserID(), (*storage.PaginateCmd)(nil)).Return([]Session{AliceWebSessionExample}, nil).Once()
+		storageMock.On("GetAllForUser", mock.Anything, AliceWebSessionExample.UserID(), (*sqlstorage.PaginateCmd)(nil)).Return([]Session{AliceWebSessionExample}, nil).Once()
 		storageMock.On("GetByToken", mock.Anything, AliceWebSessionExample.Token()).Return(&AliceWebSessionExample, nil).Once()
 		storageMock.On("RemoveByToken", mock.Anything, AliceWebSessionExample.Token()).Return(nil).Once()
 
@@ -313,7 +313,7 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := newService(storageMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, AliceWebSessionExample.UserID(), (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
+		storageMock.On("GetAllForUser", mock.Anything, AliceWebSessionExample.UserID(), (*sqlstorage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
 
 		err := service.DeleteAll(ctx, AliceWebSessionExample.UserID())
 		require.ErrorIs(t, err, errs.ErrInternal)
@@ -325,7 +325,7 @@ func Test_WebSessions_Service(t *testing.T) {
 		storageMock := NewMockStorage(t)
 		service := newService(storageMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, AliceWebSessionExample.UserID(), (*storage.PaginateCmd)(nil)).Return([]Session{AliceWebSessionExample, AliceWebSessionExample}, nil).Once()
+		storageMock.On("GetAllForUser", mock.Anything, AliceWebSessionExample.UserID(), (*sqlstorage.PaginateCmd)(nil)).Return([]Session{AliceWebSessionExample, AliceWebSessionExample}, nil).Once()
 		storageMock.On("GetByToken", mock.Anything, AliceWebSessionExample.Token()).Return(&AliceWebSessionExample, nil).Once()
 		storageMock.On("RemoveByToken", mock.Anything, AliceWebSessionExample.Token()).Return(fmt.Errorf("some-error")).Once()
 		// Do not call GetByToken and RemoveByToken a second time

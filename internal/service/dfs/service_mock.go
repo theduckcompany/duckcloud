@@ -9,8 +9,7 @@ import (
 	mock "github.com/stretchr/testify/mock"
 
 	spaces "github.com/theduckcompany/duckcloud/internal/service/spaces"
-
-	storage "github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 
 	users "github.com/theduckcompany/duckcloud/internal/service/users"
 )
@@ -139,15 +138,15 @@ func (_m *MockService) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 }
 
 // ListDir provides a mock function with given fields: ctx, cmd, paginateCmd
-func (_m *MockService) ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
+func (_m *MockService) ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *sqlstorage.PaginateCmd) ([]INode, error) {
 	ret := _m.Called(ctx, cmd, paginateCmd)
 
 	var r0 []INode
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd, *storage.PaginateCmd) ([]INode, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd, *sqlstorage.PaginateCmd) ([]INode, error)); ok {
 		return rf(ctx, cmd, paginateCmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd, *storage.PaginateCmd) []INode); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *PathCmd, *sqlstorage.PaginateCmd) []INode); ok {
 		r0 = rf(ctx, cmd, paginateCmd)
 	} else {
 		if ret.Get(0) != nil {
@@ -155,7 +154,7 @@ func (_m *MockService) ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *s
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *PathCmd, *storage.PaginateCmd) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *PathCmd, *sqlstorage.PaginateCmd) error); ok {
 		r1 = rf(ctx, cmd, paginateCmd)
 	} else {
 		r1 = ret.Error(1)

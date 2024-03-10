@@ -41,8 +41,8 @@ func (s *sqlStorage) Save(ctx context.Context, u *User) error {
 			u.isAdmin,
 			u.status,
 			u.password,
-			ptr.To(storage.SQLTime(u.passwordChangedAt)),
-			ptr.To(storage.SQLTime(u.createdAt)),
+			ptr.To(sqlstorage.SQLTime(u.passwordChangedAt)),
+			ptr.To(sqlstorage.SQLTime(u.createdAt)),
 			u.createdBy).
 		RunWith(s.db).
 		ExecContext(ctx)
@@ -53,8 +53,8 @@ func (s *sqlStorage) Save(ctx context.Context, u *User) error {
 	return nil
 }
 
-func (s *sqlStorage) GetAll(ctx context.Context, cmd *storage.PaginateCmd) ([]User, error) {
-	rows, err := storage.PaginateSelection(sq.
+func (s *sqlStorage) GetAll(ctx context.Context, cmd *sqlstorage.PaginateCmd) ([]User, error) {
+	rows, err := sqlstorage.PaginateSelection(sq.
 		Select(allFields...).
 		From(tableName), cmd).
 		RunWith(s.db).
@@ -111,8 +111,8 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*User, error
 		query = query.Where(where)
 	}
 
-	var sqlCreatedAt storage.SQLTime
-	var sqlPasswordChangedAt storage.SQLTime
+	var sqlCreatedAt sqlstorage.SQLTime
+	var sqlPasswordChangedAt sqlstorage.SQLTime
 	err := query.
 		RunWith(s.db).
 		ScanContext(ctx,
@@ -143,8 +143,8 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]User, error) {
 
 	for rows.Next() {
 		var res User
-		var sqlCreatedAt storage.SQLTime
-		var sqlPasswordChangedAt storage.SQLTime
+		var sqlCreatedAt sqlstorage.SQLTime
+		var sqlPasswordChangedAt sqlstorage.SQLTime
 
 		err := rows.Scan(&res.id,
 			&res.username,

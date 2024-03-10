@@ -13,7 +13,7 @@ import (
 
 //go:generate mockery --name Service
 type Service interface {
-	GetAllForUser(ctx context.Context, userID uuid.UUID, paginateCmd *storage.PaginateCmd) ([]DavSession, error)
+	GetAllForUser(ctx context.Context, userID uuid.UUID, paginateCmd *sqlstorage.PaginateCmd) ([]DavSession, error)
 	Create(ctx context.Context, cmd *CreateCmd) (*DavSession, string, error)
 	Authenticate(ctx context.Context, username string, password secret.Text) (*DavSession, error)
 	Delete(ctx context.Context, cmd *DeleteCmd) error

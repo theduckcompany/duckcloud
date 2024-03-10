@@ -24,7 +24,7 @@ var testConfig = Config{
 	FS:       afero.NewMemMapFs(),
 	Listener: router.Config{},
 	Assets:   assets.Config{},
-	Storage:  storage.Config{Path: ":memory:"},
+	Storage:  sqlstorage.Config{Path: ":memory:"},
 	Tools:    tools.Config{Log: logger.Config{Output: io.Discard}},
 	HTML:     html.Config{},
 	Folder:   "/foo",

@@ -256,7 +256,7 @@ func (h *SecurityPage) renderSecurityPage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	davSessions, err := h.davSessions.GetAllForUser(ctx, cmd.User.ID(), &storage.PaginateCmd{Limit: 20})
+	davSessions, err := h.davSessions.GetAllForUser(ctx, cmd.User.ID(), &sqlstorage.PaginateCmd{Limit: 20})
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to davSessions.GetAllForUser: %w", err))
 		return

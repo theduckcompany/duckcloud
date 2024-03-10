@@ -132,7 +132,7 @@ func (h *UsersPage) renderUsersRegistrationForm(w http.ResponseWriter, r *http.R
 func (h *UsersPage) renderUsers(w http.ResponseWriter, r *http.Request, cmd renderUsersCmd) {
 	ctx := r.Context()
 
-	allUsers, err := h.users.GetAll(ctx, &storage.PaginateCmd{
+	allUsers, err := h.users.GetAll(ctx, &sqlstorage.PaginateCmd{
 		StartAfter: map[string]string{"username": ""},
 		Limit:      20,
 	})

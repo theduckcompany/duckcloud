@@ -13,7 +13,7 @@ import (
 func Test_Integration_Config(t *testing.T) {
 	ctx := context.Background()
 
-	db := storage.NewTestStorage(t)
+	db := sqlstorage.NewTestStorage(t)
 	svc := Init(db)
 
 	mk, err := secret.NewKey()

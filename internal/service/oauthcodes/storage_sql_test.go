@@ -27,7 +27,7 @@ func TestOauthCodeSQLStorage(t *testing.T) {
 		challengeMethod: "plain",
 	}
 
-	db := storage.NewTestStorage(t)
+	db := sqlstorage.NewTestStorage(t)
 	storage := newSqlStorage(db)
 
 	t.Run("save", func(t *testing.T) {

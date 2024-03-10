@@ -32,7 +32,7 @@ type Storage interface {
 	Save(ctx context.Context, user *User) error
 	GetByUsername(ctx context.Context, username string) (*User, error)
 	GetByID(ctx context.Context, userID uuid.UUID) (*User, error)
-	GetAll(ctx context.Context, cmd *storage.PaginateCmd) ([]User, error)
+	GetAll(ctx context.Context, cmd *sqlstorage.PaginateCmd) ([]User, error)
 	HardDelete(ctx context.Context, userID uuid.UUID) error
 	Patch(ctx context.Context, userID uuid.UUID, fields map[string]any) error
 }
@@ -136,7 +136,7 @@ func (s *service) UpdateUserPassword(ctx context.Context, cmd *UpdatePasswordCmd
 
 	err = s.storage.Patch(ctx, user.ID(), map[string]any{
 		"password":            hashedPassword,
-		"password_changed_at": storage.SQLTime(s.clock.Now()),
+		"password_changed_at": sqlstorage.SQLTime(s.clock.Now()),
 	})
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to patch the user: %w", err))
@@ -165,7 +165,7 @@ func (s *service) MarkInitAsFinished(ctx context.Context, userID uuid.UUID) (*Us
 	return user, nil
 }
 
-func (s *service) GetAllWithStatus(ctx context.Context, status Status, cmd *storage.PaginateCmd) ([]User, error) {
+func (s *service) GetAllWithStatus(ctx context.Context, status Status, cmd *sqlstorage.PaginateCmd) ([]User, error) {
 	allUsers, err := s.GetAll(ctx, cmd)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to GetAll users: %w", err))
@@ -216,7 +216,7 @@ func (s *service) GetByID(ctx context.Context, userID uuid.UUID) (*User, error) 
 	return res, nil
 }
 
-func (s *service) GetAll(ctx context.Context, paginateCmd *storage.PaginateCmd) ([]User, error) {
+func (s *service) GetAll(ctx context.Context, paginateCmd *sqlstorage.PaginateCmd) ([]User, error) {
 	res, err := s.storage.GetAll(ctx, paginateCmd)
 	if err != nil {
 		return nil, errs.Internal(err)

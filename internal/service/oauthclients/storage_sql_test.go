@@ -25,7 +25,7 @@ func TestOauthClientsSQLStorage(t *testing.T) {
 		skipValidation: true,
 	}
 
-	db := storage.NewTestStorage(t)
+	db := sqlstorage.NewTestStorage(t)
 
 	storage := newSqlStorage(db)
 

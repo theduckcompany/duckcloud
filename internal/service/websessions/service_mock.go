@@ -9,8 +9,7 @@ import (
 	mock "github.com/stretchr/testify/mock"
 
 	secret "github.com/theduckcompany/duckcloud/internal/tools/secret"
-
-	storage "github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -75,15 +74,15 @@ func (_m *MockService) DeleteAll(ctx context.Context, userID uuid.UUID) error {
 }
 
 // GetAllForUser provides a mock function with given fields: ctx, userID, cmd
-func (_m *MockService) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
+func (_m *MockService) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Session, error) {
 	ret := _m.Called(ctx, userID, cmd)
 
 	var r0 []Session
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) ([]Session, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *sqlstorage.PaginateCmd) ([]Session, error)); ok {
 		return rf(ctx, userID, cmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) []Session); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *sqlstorage.PaginateCmd) []Session); ok {
 		r0 = rf(ctx, userID, cmd)
 	} else {
 		if ret.Get(0) != nil {
@@ -91,7 +90,7 @@ func (_m *MockService) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd 
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *storage.PaginateCmd) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *sqlstorage.PaginateCmd) error); ok {
 		r1 = rf(ctx, userID, cmd)
 	} else {
 		r1 = ret.Error(1)

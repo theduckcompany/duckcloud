@@ -162,9 +162,9 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
-		store.On("GetAll", ctx, &storage.PaginateCmd{Limit: 10}).Return([]User{ExampleBob}, nil).Once()
+		store.On("GetAll", ctx, &sqlstorage.PaginateCmd{Limit: 10}).Return([]User{ExampleBob}, nil).Once()
 
-		res, err := service.GetAll(ctx, &storage.PaginateCmd{Limit: 10})
+		res, err := service.GetAll(ctx, &sqlstorage.PaginateCmd{Limit: 10})
 		require.NoError(t, err)
 		assert.Equal(t, []User{ExampleBob}, res)
 	})
@@ -175,9 +175,9 @@ func Test_Users_Service(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
-		store.On("GetAll", ctx, &storage.PaginateCmd{Limit: 10}).Return([]User{ExampleBob}, nil).Once()
+		store.On("GetAll", ctx, &sqlstorage.PaginateCmd{Limit: 10}).Return([]User{ExampleBob}, nil).Once()
 
-		res, err := service.GetAllWithStatus(ctx, Active, &storage.PaginateCmd{Limit: 10})
+		res, err := service.GetAllWithStatus(ctx, Active, &sqlstorage.PaginateCmd{Limit: 10})
 		require.NoError(t, err)
 		assert.Equal(t, []User{ExampleBob}, res)
 	})
@@ -192,7 +192,7 @@ func Test_Users_Service(t *testing.T) {
 		anAnotherAdmin.isAdmin = true
 
 		store.On("GetByID", ctx, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
-		store.On("GetAll", ctx, (*storage.PaginateCmd)(nil)).Return([]User{ExampleAlice, anAnotherAdmin}, nil).Once()
+		store.On("GetAll", ctx, (*sqlstorage.PaginateCmd)(nil)).Return([]User{ExampleAlice, anAnotherAdmin}, nil).Once()
 		schedulerMock.On("RegisterUserDeleteTask", mock.Anything, &scheduler.UserDeleteArgs{UserID: ExampleAlice.ID()}).
 			Return(nil).Once()
 		store.On("Patch", mock.Anything, ExampleAlice.ID(), map[string]any{"status": Deleting}).Return(nil).Once()
@@ -221,7 +221,7 @@ func Test_Users_Service(t *testing.T) {
 		service := newService(tools, store, schedulerMock)
 
 		store.On("GetByID", ctx, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
-		store.On("GetAll", ctx, (*storage.PaginateCmd)(nil)).Return([]User{ExampleAlice}, nil).Once() // This is the last admin
+		store.On("GetAll", ctx, (*sqlstorage.PaginateCmd)(nil)).Return([]User{ExampleAlice}, nil).Once() // This is the last admin
 
 		err := service.AddToDeletion(ctx, ExampleAlice.ID())
 		require.EqualError(t, err, "unauthorized: can't remove the last admin")
@@ -311,7 +311,7 @@ func Test_Users_Service(t *testing.T) {
 
 		store.On("Patch", mock.Anything, ExampleBob.ID(), map[string]any{
 			"password":            secret.NewText("some-encrypted-password"),
-			"password_changed_at": storage.SQLTime(now),
+			"password_changed_at": sqlstorage.SQLTime(now),
 		}).Return(nil).Once()
 
 		err := service.UpdateUserPassword(ctx, &UpdatePasswordCmd{
@@ -352,7 +352,7 @@ func Test_Users_Service(t *testing.T) {
 
 		store.On("Patch", mock.Anything, ExampleBob.ID(), map[string]any{
 			"password":            secret.NewText("some-encrypted-password"),
-			"password_changed_at": storage.SQLTime(now),
+			"password_changed_at": sqlstorage.SQLTime(now),
 		}).Return(fmt.Errorf("some-error")).Once()
 
 		err := service.UpdateUserPassword(ctx, &UpdatePasswordCmd{

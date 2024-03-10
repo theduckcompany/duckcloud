@@ -116,9 +116,9 @@ func TestDavSessionsService(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.id, &storage.PaginateCmd{Limit: 10}).Return([]DavSession{ExampleAliceSession}, nil).Once()
+		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.id, &sqlstorage.PaginateCmd{Limit: 10}).Return([]DavSession{ExampleAliceSession}, nil).Once()
 
-		res, err := service.GetAllForUser(ctx, ExampleAliceSession.id, &storage.PaginateCmd{Limit: 10})
+		res, err := service.GetAllForUser(ctx, ExampleAliceSession.id, &sqlstorage.PaginateCmd{Limit: 10})
 		require.NoError(t, err)
 		assert.Equal(t, []DavSession{ExampleAliceSession}, res)
 	})
@@ -204,7 +204,7 @@ func TestDavSessionsService(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.UserID(), (*storage.PaginateCmd)(nil)).Return([]DavSession{ExampleAliceSession}, nil).Once()
+		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.UserID(), (*sqlstorage.PaginateCmd)(nil)).Return([]DavSession{ExampleAliceSession}, nil).Once()
 		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(&ExampleAliceSession, nil).Once()
 		storageMock.On("RemoveByID", mock.Anything, ExampleAliceSession.ID()).Return(nil).Once()
 
@@ -218,7 +218,7 @@ func TestDavSessionsService(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.UserID(), (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
+		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.UserID(), (*sqlstorage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
 
 		err := service.DeleteAll(ctx, ExampleAliceSession.UserID())
 		require.ErrorIs(t, err, errs.ErrInternal)
@@ -231,7 +231,7 @@ func TestDavSessionsService(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.UserID(), (*storage.PaginateCmd)(nil)).Return([]DavSession{ExampleAliceSession, ExampleAliceSession}, nil).Once()
+		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.UserID(), (*sqlstorage.PaginateCmd)(nil)).Return([]DavSession{ExampleAliceSession, ExampleAliceSession}, nil).Once()
 		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(&ExampleAliceSession, nil).Once()
 		storageMock.On("RemoveByID", mock.Anything, ExampleAliceSession.ID()).Return(fmt.Errorf("some-error")).Once()
 		// Do not call GetByID and RemoveByID a second time

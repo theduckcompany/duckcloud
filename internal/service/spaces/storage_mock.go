@@ -6,8 +6,8 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
-	storage "github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -31,15 +31,15 @@ func (_m *MockStorage) Delete(ctx context.Context, spaceID uuid.UUID) error {
 }
 
 // GetAllSpaces provides a mock function with given fields: ctx, cmd
-func (_m *MockStorage) GetAllSpaces(ctx context.Context, cmd *storage.PaginateCmd) ([]Space, error) {
+func (_m *MockStorage) GetAllSpaces(ctx context.Context, cmd *sqlstorage.PaginateCmd) ([]Space, error) {
 	ret := _m.Called(ctx, cmd)
 
 	var r0 []Space
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *storage.PaginateCmd) ([]Space, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *sqlstorage.PaginateCmd) ([]Space, error)); ok {
 		return rf(ctx, cmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *storage.PaginateCmd) []Space); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *sqlstorage.PaginateCmd) []Space); ok {
 		r0 = rf(ctx, cmd)
 	} else {
 		if ret.Get(0) != nil {
@@ -47,7 +47,7 @@ func (_m *MockStorage) GetAllSpaces(ctx context.Context, cmd *storage.PaginateCm
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *storage.PaginateCmd) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *sqlstorage.PaginateCmd) error); ok {
 		r1 = rf(ctx, cmd)
 	} else {
 		r1 = ret.Error(1)
@@ -57,15 +57,15 @@ func (_m *MockStorage) GetAllSpaces(ctx context.Context, cmd *storage.PaginateCm
 }
 
 // GetAllUserSpaces provides a mock function with given fields: ctx, userID, cmd
-func (_m *MockStorage) GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Space, error) {
+func (_m *MockStorage) GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Space, error) {
 	ret := _m.Called(ctx, userID, cmd)
 
 	var r0 []Space
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) ([]Space, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *sqlstorage.PaginateCmd) ([]Space, error)); ok {
 		return rf(ctx, userID, cmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) []Space); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *sqlstorage.PaginateCmd) []Space); ok {
 		r0 = rf(ctx, userID, cmd)
 	} else {
 		if ret.Get(0) != nil {
@@ -73,7 +73,7 @@ func (_m *MockStorage) GetAllUserSpaces(ctx context.Context, userID uuid.UUID, c
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *storage.PaginateCmd) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *sqlstorage.PaginateCmd) error); ok {
 		r1 = rf(ctx, userID, cmd)
 	} else {
 		r1 = ret.Error(1)

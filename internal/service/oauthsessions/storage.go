@@ -33,11 +33,11 @@ func (s *sqlStorage) Save(ctx context.Context, session *Session) error {
 		Columns(allFields...).
 		Values(
 			session.accessToken,
-			ptr.To(storage.SQLTime(session.accessCreatedAt)),
-			ptr.To(storage.SQLTime(session.accessExpiresAt)),
+			ptr.To(sqlstorage.SQLTime(session.accessCreatedAt)),
+			ptr.To(sqlstorage.SQLTime(session.accessExpiresAt)),
 			session.refreshToken,
-			ptr.To(storage.SQLTime(session.refreshCreatedAt)),
-			ptr.To(storage.SQLTime(session.refreshExpiresAt)),
+			ptr.To(sqlstorage.SQLTime(session.refreshCreatedAt)),
+			ptr.To(sqlstorage.SQLTime(session.refreshExpiresAt)),
 			session.clientID,
 			session.userID,
 			session.scope,
@@ -85,8 +85,8 @@ func (s *sqlStorage) GetByRefreshToken(ctx context.Context, refresh secret.Text)
 	return s.getWithKeys(ctx, sq.Eq{"refresh_token": refresh.Raw()})
 }
 
-func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
-	rows, err := storage.PaginateSelection(sq.
+func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Session, error) {
+	rows, err := sqlstorage.PaginateSelection(sq.
 		Select(allFields...).
 		Where(sq.Eq{"user_id": userID}).
 		From(tableName), cmd).
@@ -111,10 +111,10 @@ func (s *sqlStorage) getWithKeys(ctx context.Context, conditions ...any) (*Sessi
 		query = query.Where(condition)
 	}
 
-	var sqlAccessCreatedAt storage.SQLTime
-	var sqlAccessExpiresAt storage.SQLTime
-	var sqlRefreshCreatedAt storage.SQLTime
-	var sqlRefresExpiresAt storage.SQLTime
+	var sqlAccessCreatedAt sqlstorage.SQLTime
+	var sqlAccessExpiresAt sqlstorage.SQLTime
+	var sqlRefreshCreatedAt sqlstorage.SQLTime
+	var sqlRefresExpiresAt sqlstorage.SQLTime
 
 	err := query.
 		RunWith(s.db).
@@ -151,10 +151,10 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]Session, error) {
 	for rows.Next() {
 		var res Session
 
-		var sqlAccessCreatedAt storage.SQLTime
-		var sqlAccessExpiresAt storage.SQLTime
-		var sqlRefreshCreatedAt storage.SQLTime
-		var sqlRefresExpiresAt storage.SQLTime
+		var sqlAccessCreatedAt sqlstorage.SQLTime
+		var sqlAccessExpiresAt sqlstorage.SQLTime
+		var sqlRefreshCreatedAt sqlstorage.SQLTime
+		var sqlRefresExpiresAt sqlstorage.SQLTime
 
 		err := rows.Scan(
 			&res.accessToken,

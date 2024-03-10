@@ -31,7 +31,7 @@ func (s *sqlStorage) Save(ctx context.Context, session *Session) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(allFields...).
-		Values(session.token, session.userID, session.ip, session.device, ptr.To(storage.SQLTime(session.createdAt))).
+		Values(session.token, session.userID, session.ip, session.device, ptr.To(sqlstorage.SQLTime(session.createdAt))).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -43,7 +43,7 @@ func (s *sqlStorage) Save(ctx context.Context, session *Session) error {
 
 func (s *sqlStorage) GetByToken(ctx context.Context, token secret.Text) (*Session, error) {
 	var res Session
-	var sqlCreatedAt storage.SQLTime
+	var sqlCreatedAt sqlstorage.SQLTime
 
 	err := sq.
 		Select(allFields...).
@@ -77,10 +77,10 @@ func (s *sqlStorage) RemoveByToken(ctx context.Context, token secret.Text) error
 	return nil
 }
 
-func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
+func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Session, error) {
 	sessions := []Session{}
 
-	rows, err := storage.PaginateSelection(sq.
+	rows, err := sqlstorage.PaginateSelection(sq.
 		Select(allFields...).
 		From(tableName).
 		Where(sq.Eq{"user_id": userID}), cmd).
@@ -93,7 +93,7 @@ func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *s
 
 	for rows.Next() {
 		var res Session
-		var sqlCreatedAt storage.SQLTime
+		var sqlCreatedAt sqlstorage.SQLTime
 
 		err = rows.Scan(&res.token, &res.userID, &res.ip, &res.device, &sqlCreatedAt)
 		if err != nil {

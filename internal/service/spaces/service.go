@@ -27,8 +27,8 @@ var (
 type Storage interface {
 	Save(ctx context.Context, space *Space) error
 	GetByID(ctx context.Context, id uuid.UUID) (*Space, error)
-	GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Space, error)
-	GetAllSpaces(ctx context.Context, cmd *storage.PaginateCmd) ([]Space, error)
+	GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Space, error)
+	GetAllSpaces(ctx context.Context, cmd *sqlstorage.PaginateCmd) ([]Space, error)
 	Delete(ctx context.Context, spaceID uuid.UUID) error
 	Patch(ctx context.Context, spaceID uuid.UUID, fields map[string]any) error
 }
@@ -44,7 +44,7 @@ func newService(tools tools.Tools, storage Storage, scheduler scheduler.Service)
 	return &service{storage, tools.Clock(), tools.UUID(), scheduler}
 }
 
-func (s *service) GetAllSpaces(ctx context.Context, user *users.User, cmd *storage.PaginateCmd) ([]Space, error) {
+func (s *service) GetAllSpaces(ctx context.Context, user *users.User, cmd *sqlstorage.PaginateCmd) ([]Space, error) {
 	if !user.IsAdmin() {
 		return nil, errs.ErrUnauthorized
 	}
@@ -115,7 +115,7 @@ func (s *service) GetByID(ctx context.Context, spaceID uuid.UUID) (*Space, error
 	return res, nil
 }
 
-func (s *service) GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Space, error) {
+func (s *service) GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Space, error) {
 	res, err := s.storage.GetAllUserSpaces(ctx, userID, cmd)
 	if err != nil {
 		return nil, errs.Internal(err)
@@ -194,7 +194,7 @@ func (s *service) RemoveOwner(ctx context.Context, cmd *RemoveOwnerCmd) (*Space,
 }
 
 func (s *service) Bootstrap(ctx context.Context, user *users.User) error {
-	res, err := s.storage.GetAllSpaces(ctx, &storage.PaginateCmd{Limit: 1})
+	res, err := s.storage.GetAllSpaces(ctx, &sqlstorage.PaginateCmd{Limit: 1})
 	if err != nil {
 		return fmt.Errorf("faile to get all the spaces: %w", err)
 	}

@@ -10,8 +10,7 @@ import (
 
 	oauthclients "github.com/theduckcompany/duckcloud/internal/service/oauthclients"
 
-	storage "github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
-
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
 
 	websessions "github.com/theduckcompany/duckcloud/internal/service/websessions"
@@ -91,15 +90,15 @@ func (_m *MockService) DeleteAll(ctx context.Context, userID uuid.UUID) error {
 }
 
 // GetAll provides a mock function with given fields: ctx, userID, cmd
-func (_m *MockService) GetAll(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Consent, error) {
+func (_m *MockService) GetAll(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Consent, error) {
 	ret := _m.Called(ctx, userID, cmd)
 
 	var r0 []Consent
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) ([]Consent, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *sqlstorage.PaginateCmd) ([]Consent, error)); ok {
 		return rf(ctx, userID, cmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) []Consent); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *sqlstorage.PaginateCmd) []Consent); ok {
 		r0 = rf(ctx, userID, cmd)
 	} else {
 		if ret.Get(0) != nil {
@@ -107,7 +106,7 @@ func (_m *MockService) GetAll(ctx context.Context, userID uuid.UUID, cmd *storag
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *storage.PaginateCmd) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *sqlstorage.PaginateCmd) error); ok {
 		r1 = rf(ctx, userID, cmd)
 	} else {
 		r1 = ret.Error(1)

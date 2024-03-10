@@ -13,7 +13,7 @@ import (
 func TestConfig(t *testing.T) {
 	ctx := context.Background()
 
-	db := storage.NewTestStorage(t)
+	db := sqlstorage.NewTestStorage(t)
 	store := newSqlStorage(db)
 	svc := newService(store)
 

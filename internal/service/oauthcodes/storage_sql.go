@@ -32,8 +32,8 @@ func (t *sqlStorage) Save(ctx context.Context, code *Code) error {
 		Columns(allFields...).
 		Values(
 			code.code,
-			ptr.To(storage.SQLTime(code.createdAt)),
-			ptr.To(storage.SQLTime(code.expiresAt)),
+			ptr.To(sqlstorage.SQLTime(code.createdAt)),
+			ptr.To(sqlstorage.SQLTime(code.expiresAt)),
 			code.clientID,
 			code.userID,
 			code.redirectURI,
@@ -65,8 +65,8 @@ func (t *sqlStorage) RemoveByCode(ctx context.Context, code secret.Text) error {
 
 func (t *sqlStorage) GetByCode(ctx context.Context, code secret.Text) (*Code, error) {
 	var res Code
-	var sqlCreatedAt storage.SQLTime
-	var sqlExpiresAt storage.SQLTime
+	var sqlCreatedAt sqlstorage.SQLTime
+	var sqlExpiresAt sqlstorage.SQLTime
 
 	err := sq.
 		Select(allFields...).

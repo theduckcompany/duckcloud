@@ -38,7 +38,7 @@ func (t *sqlStorage) Save(ctx context.Context, client *Client) error {
 			client.scopes,
 			client.public,
 			client.skipValidation,
-			ptr.To(storage.SQLTime(client.createdAt))).
+			ptr.To(sqlstorage.SQLTime(client.createdAt))).
 		RunWith(t.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -50,7 +50,7 @@ func (t *sqlStorage) Save(ctx context.Context, client *Client) error {
 
 func (t *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*Client, error) {
 	var res Client
-	var sqlCreatedAt storage.SQLTime
+	var sqlCreatedAt sqlstorage.SQLTime
 
 	err := sq.
 		Select(allFields...).

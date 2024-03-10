@@ -12,7 +12,7 @@ import (
 )
 
 func TestDavSessionSqlStorage(t *testing.T) {
-	db := storage.NewTestStorage(t)
+	db := sqlstorage.NewTestStorage(t)
 	store := newSqlStorage(db)
 
 	t.Run("Create success", func(t *testing.T) {
@@ -50,14 +50,14 @@ func TestDavSessionSqlStorage(t *testing.T) {
 	})
 
 	t.Run("GetAllForUser success", func(t *testing.T) {
-		res, err := store.GetAllForUser(context.Background(), ExampleAliceSession.userID, &storage.PaginateCmd{Limit: 10})
+		res, err := store.GetAllForUser(context.Background(), ExampleAliceSession.userID, &sqlstorage.PaginateCmd{Limit: 10})
 
 		require.NoError(t, err)
 		assert.Equal(t, []DavSession{ExampleAliceSession}, res)
 	})
 
 	t.Run("GetAllForUser not found", func(t *testing.T) {
-		res, err := store.GetAllForUser(context.Background(), uuid.UUID("unknown-id"), &storage.PaginateCmd{Limit: 10})
+		res, err := store.GetAllForUser(context.Background(), uuid.UUID("unknown-id"), &sqlstorage.PaginateCmd{Limit: 10})
 
 		require.NoError(t, err)
 		assert.Equal(t, []DavSession{}, res)

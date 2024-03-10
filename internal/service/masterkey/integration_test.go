@@ -17,7 +17,7 @@ func Test_Integration_masterKey_with_manual_install(t *testing.T) {
 	tools := tools.NewToolboxForTest(t)
 	ctx := context.Background()
 	afs := afero.NewMemMapFs()
-	db := storage.NewTestStorage(t)
+	db := sqlstorage.NewTestStorage(t)
 	configSvc := config.Init(db)
 
 	userSecret := secret.NewText("super secret")
@@ -86,7 +86,7 @@ func Test_Integration_masterKey_with_systemd_creds(t *testing.T) {
 	tools := tools.NewToolboxForTest(t)
 	ctx := context.Background()
 	afs := afero.NewMemMapFs()
-	db := storage.NewTestStorage(t)
+	db := sqlstorage.NewTestStorage(t)
 	configSvc := config.Init(db)
 
 	userSecret := secret.NewText("super secret")

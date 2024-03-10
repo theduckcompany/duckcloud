@@ -21,7 +21,7 @@ type Service interface {
 	Destroy(ctx context.Context, user *users.User, space *spaces.Space) error
 	CreateFS(ctx context.Context, user *users.User, space *spaces.Space) (*INode, error)
 	CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, error)
-	ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error)
+	ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *sqlstorage.PaginateCmd) ([]INode, error)
 	Remove(ctx context.Context, cmd *PathCmd) error
 	Rename(ctx context.Context, inode *INode, newName string) (*INode, error)
 	Move(ctx context.Context, cmd *MoveCmd) error

@@ -27,7 +27,7 @@ func TestFileService(t *testing.T) {
 	t.Run("Upload and Download success", func(t *testing.T) {
 		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
-		db := storage.NewTestStorage(t)
+		db := sqlstorage.NewTestStorage(t)
 		storage := newSqlStorage(db)
 		cfgSvc := config.Init(db)
 		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, tools)
@@ -50,7 +50,7 @@ func TestFileService(t *testing.T) {
 	t.Run("Upload with a fs error", func(t *testing.T) {
 		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
-		db := storage.NewTestStorage(t)
+		db := sqlstorage.NewTestStorage(t)
 		storage := newSqlStorage(db)
 		cfgSvc := config.Init(db)
 		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, tools)
@@ -71,7 +71,7 @@ func TestFileService(t *testing.T) {
 	t.Run("Delete success", func(t *testing.T) {
 		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
-		db := storage.NewTestStorage(t)
+		db := sqlstorage.NewTestStorage(t)
 		storage := newSqlStorage(db)
 		cfgSvc := config.Init(db)
 		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, tools)
@@ -98,7 +98,7 @@ func TestFileService(t *testing.T) {
 	t.Run("Upload with a copy error", func(t *testing.T) {
 		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
-		db := storage.NewTestStorage(t)
+		db := sqlstorage.NewTestStorage(t)
 		storage := newSqlStorage(db)
 		cfgSvc := config.Init(db)
 		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, tools)
@@ -118,7 +118,7 @@ func TestFileService(t *testing.T) {
 	t.Run("GetMetadata success", func(t *testing.T) {
 		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
-		db := storage.NewTestStorage(t)
+		db := sqlstorage.NewTestStorage(t)
 		storageMock := NewMockStorage(t)
 		cfgSvc := config.Init(db)
 		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, tools)
@@ -137,7 +137,7 @@ func TestFileService(t *testing.T) {
 	t.Run("GetMetadataByChecksum success", func(t *testing.T) {
 		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
-		db := storage.NewTestStorage(t)
+		db := sqlstorage.NewTestStorage(t)
 		storageMock := NewMockStorage(t)
 		cfgSvc := config.Init(db)
 		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, tools)
@@ -156,7 +156,7 @@ func TestFileService(t *testing.T) {
 	t.Run("Download an invalid content", func(t *testing.T) {
 		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
-		db := storage.NewTestStorage(t)
+		db := sqlstorage.NewTestStorage(t)
 		storage := newSqlStorage(db)
 		cfgSvc := config.Init(db)
 		masterkeySvc, err := masterkey.Init(ctx, cfgSvc, fs, tools)

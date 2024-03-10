@@ -18,7 +18,7 @@ func TestSpaceSqlstore(t *testing.T) {
 	const AliceID = uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3")
 
 	tools := tools.NewMock(t)
-	db := storage.NewTestStorage(t)
+	db := sqlstorage.NewTestStorage(t)
 	store := newSqlStorage(db, tools)
 
 	t.Run("Create success", func(t *testing.T) {

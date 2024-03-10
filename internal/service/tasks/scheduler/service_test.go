@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/model"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/storage"
+	sqlstorage "github.com/theduckcompany/duckcloud/internal/service/tasks/internal/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -21,7 +21,7 @@ func TestSchdulerService(t *testing.T) {
 
 	t.Run("RegisterSpaceCreateTask", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := storage.NewMockStorage(t)
+		storageMock := sqlstorage.NewMockStorage(t)
 		svc := NewService(storageMock, tools)
 
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-uuid")).Once()
@@ -46,7 +46,7 @@ func TestSchdulerService(t *testing.T) {
 
 	t.Run("RegisterSpaceCreateTask", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := storage.NewMockStorage(t)
+		storageMock := sqlstorage.NewMockStorage(t)
 		svc := NewService(storageMock, tools)
 
 		err := svc.RegisterSpaceCreateTask(ctx, &SpaceCreateArgs{
@@ -59,7 +59,7 @@ func TestSchdulerService(t *testing.T) {
 
 	t.Run("RegisterFSGCTask", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := storage.NewMockStorage(t)
+		storageMock := sqlstorage.NewMockStorage(t)
 		svc := NewService(storageMock, tools)
 
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-uuid")).Once()
@@ -80,7 +80,7 @@ func TestSchdulerService(t *testing.T) {
 
 	t.Run("RegisterUserDeleteTask", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := storage.NewMockStorage(t)
+		storageMock := sqlstorage.NewMockStorage(t)
 		svc := NewService(storageMock, tools)
 
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-uuid")).Once()
@@ -103,7 +103,7 @@ func TestSchdulerService(t *testing.T) {
 
 	t.Run("RegisterUserCreateTask", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := storage.NewMockStorage(t)
+		storageMock := sqlstorage.NewMockStorage(t)
 		svc := NewService(storageMock, tools)
 
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-uuid")).Once()
@@ -126,7 +126,7 @@ func TestSchdulerService(t *testing.T) {
 
 	t.Run("RegisterFileUploadTask", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := storage.NewMockStorage(t)
+		storageMock := sqlstorage.NewMockStorage(t)
 		svc := NewService(storageMock, tools)
 
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-uuid")).Once()
@@ -152,7 +152,7 @@ func TestSchdulerService(t *testing.T) {
 
 	t.Run("RegisterFSRefreshSizeTask", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := storage.NewMockStorage(t)
+		storageMock := sqlstorage.NewMockStorage(t)
 		svc := NewService(storageMock, tools)
 
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-uuid")).Once()
@@ -176,7 +176,7 @@ func TestSchdulerService(t *testing.T) {
 
 	t.Run("RegisterFSMoveTask", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := storage.NewMockStorage(t)
+		storageMock := sqlstorage.NewMockStorage(t)
 		svc := NewService(storageMock, tools)
 
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-uuid")).Once()
@@ -203,7 +203,7 @@ func TestSchdulerService(t *testing.T) {
 
 	t.Run("Run success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := storage.NewMockStorage(t)
+		storageMock := sqlstorage.NewMockStorage(t)
 		svc := NewService(storageMock, tools)
 
 		storageMock.On("GetLastRegisteredTask", mock.Anything, "fs-gc").Return(&model.Task{
@@ -236,7 +236,7 @@ func TestSchdulerService(t *testing.T) {
 
 	t.Run("Run with a task done a fews seconds ago", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := storage.NewMockStorage(t)
+		storageMock := sqlstorage.NewMockStorage(t)
 		svc := NewService(storageMock, tools)
 
 		storageMock.On("GetLastRegisteredTask", mock.Anything, "fs-gc").Return(&model.Task{
@@ -259,10 +259,10 @@ func TestSchdulerService(t *testing.T) {
 
 	t.Run("Run with now tasks", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := storage.NewMockStorage(t)
+		storageMock := sqlstorage.NewMockStorage(t)
 		svc := NewService(storageMock, tools)
 
-		storageMock.On("GetLastRegisteredTask", mock.Anything, "fs-gc").Return(nil, storage.ErrNotFound).Once()
+		storageMock.On("GetLastRegisteredTask", mock.Anything, "fs-gc").Return(nil, sqlstorage.ErrNotFound).Once()
 
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-new-uuid")).Once()
 		tools.ClockMock.On("Now").Return(now.Add(time.Second)).Once()

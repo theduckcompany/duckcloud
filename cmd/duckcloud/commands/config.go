@@ -126,7 +126,7 @@ func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
 			KeyFile:   cfg.TLSKey,
 			HostNames: cfg.HTTPHostnames,
 		},
-		Storage: storage.Config{
+		Storage: sqlstorage.Config{
 			Path: storagePath,
 		},
 		Assets: assets.Config{

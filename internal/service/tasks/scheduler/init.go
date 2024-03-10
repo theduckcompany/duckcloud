@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/storage"
+	sqlstorage "github.com/theduckcompany/duckcloud/internal/service/tasks/internal/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 )
 
@@ -21,7 +21,7 @@ type Service interface {
 }
 
 func Init(db *sql.DB, tools tools.Tools) Service {
-	storage := storage.NewSqlStorage(db)
+	storage := sqlstorage.NewSqlStorage(db)
 
 	return NewService(storage, tools)
 }
