@@ -17,19 +17,19 @@ const (
 
 var ErrClientIDTaken = errors.New("clientID already exists")
 
-//go:generate mockery --name Storage
-type Storage interface {
+//go:generate mockery --name storage
+type storage interface {
 	Save(ctx context.Context, client *Client) error
 	GetByID(ctx context.Context, id uuid.UUID) (*Client, error)
 }
 
 type service struct {
-	storage Storage
+	storage storage
 	clock   clock.Clock
 	uuid    uuid.Service
 }
 
-func newService(tools tools.Tools, storage Storage) *service {
+func newService(tools tools.Tools, storage storage) *service {
 	return &service{storage, tools.Clock(), tools.UUID()}
 }
 

@@ -18,8 +18,8 @@ import (
 
 var ErrUserIDNotMatching = errors.New("user ids are not matching")
 
-//go:generate mockery --name Storage
-type Storage interface {
+//go:generate mockery --name storage
+type storage interface {
 	Save(ctx context.Context, session *Session) error
 	GetByToken(ctx context.Context, token secret.Text) (*Session, error)
 	RemoveByToken(ctx context.Context, token secret.Text) error
@@ -28,11 +28,11 @@ type Storage interface {
 
 type service struct {
 	clock   clock.Clock
-	storage Storage
+	storage storage
 	uuid    uuid.Service
 }
 
-func newService(storage Storage, tools tools.Tools) *service {
+func newService(storage storage, tools tools.Tools) *service {
 	return &service{
 		clock:   tools.Clock(),
 		uuid:    tools.UUID(),

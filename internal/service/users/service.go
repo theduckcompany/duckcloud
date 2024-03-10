@@ -25,10 +25,10 @@ var (
 	ErrUnauthorizedSpace = fmt.Errorf("unauthorized space")
 )
 
-// Storage encapsulates the logic to access user from the data source.
+// storage encapsulates the logic to access user from the data source.
 //
-//go:generate mockery --name Storage
-type Storage interface {
+//go:generate mockery --name storage
+type storage interface {
 	Save(ctx context.Context, user *User) error
 	GetByUsername(ctx context.Context, username string) (*User, error)
 	GetByID(ctx context.Context, userID uuid.UUID) (*User, error)
@@ -39,7 +39,7 @@ type Storage interface {
 
 // service handling all the logic.
 type service struct {
-	storage   Storage
+	storage   storage
 	clock     clock.Clock
 	uuid      uuid.Service
 	password  password.Password
@@ -47,7 +47,7 @@ type service struct {
 }
 
 // newService create a new user service.
-func newService(tools tools.Tools, storage Storage, scheduler scheduler.Service) *service {
+func newService(tools tools.Tools, storage storage, scheduler scheduler.Service) *service {
 	return &service{
 		storage,
 		tools.Clock(),

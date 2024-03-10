@@ -17,7 +17,7 @@ import (
 const gcBatchSize = 10
 
 type FSGGCTaskRunner struct {
-	storage   Storage
+	storage   storage
 	files     files.Service
 	spaces    spaces.Service
 	cancel    context.CancelFunc
@@ -27,7 +27,7 @@ type FSGGCTaskRunner struct {
 }
 
 func NewFSGGCTaskRunner(
-	storage Storage,
+	storage storage,
 	files files.Service,
 	spaces spaces.Service,
 	scheduler scheduler.Service,

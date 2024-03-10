@@ -23,7 +23,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 
 	t.Run("Create success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := NewService(storageMock, tools)
 
 		tools.UUIDMock.On("New").Return(uuid.UUID("01ce56b3-5ab9-4265-b1d2-e0347dcd4158")).Once()
@@ -42,7 +42,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 
 	t.Run("Create with a validation error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := NewService(storageMock, tools)
 
 		res, err := service.Create(ctx, &CreateCmd{
@@ -57,7 +57,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 
 	t.Run("Create with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := NewService(storageMock, tools)
 
 		tools.UUIDMock.On("New").Return(uuid.UUID("01ce56b3-5ab9-4265-b1d2-e0347dcd4158")).Once()
@@ -77,7 +77,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 
 	t.Run("Check success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := NewService(storageMock, tools)
 
 		req, _ := http.NewRequest(http.MethodGet, "/foo", nil)
@@ -94,7 +94,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 
 	t.Run("Check with an invalid consent_id", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := NewService(storageMock, tools)
 
 		req, _ := http.NewRequest(http.MethodGet, "/foo", nil)
@@ -109,7 +109,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 
 	t.Run("Check with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := NewService(storageMock, tools)
 
 		req, _ := http.NewRequest(http.MethodGet, "/foo", nil)
@@ -127,7 +127,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 
 	t.Run("Check with the consent not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := NewService(storageMock, tools)
 
 		req, _ := http.NewRequest(http.MethodGet, "/foo", nil)
@@ -145,7 +145,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 
 	t.Run("Check with an invalid client_id", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := NewService(storageMock, tools)
 
 		req, _ := http.NewRequest(http.MethodGet, "/foo", nil)
@@ -171,7 +171,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 
 	t.Run("Check with an invalid websession_id", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := NewService(storageMock, tools)
 
 		ExampleAliceConsent := Consent{
@@ -198,7 +198,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 
 	t.Run("GetAllForUser success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := NewService(storageMock, tools)
 
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceConsent.UserID(), (*sqlstorage.PaginateCmd)(nil)).Return([]Consent{ExampleAliceConsent}, nil).Once()
@@ -210,7 +210,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 
 	t.Run("Delete success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := NewService(storageMock, tools)
 
 		storageMock.On("Delete", mock.Anything, ExampleAliceConsent.ID()).Return(nil).Once()
@@ -220,7 +220,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 
 	t.Run("DeleteAll success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := NewService(storageMock, tools)
 
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceConsent.UserID(), (*sqlstorage.PaginateCmd)(nil)).Return([]Consent{ExampleAliceConsent}, nil).Once()
@@ -232,7 +232,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 
 	t.Run("DeleteAll with a GetAll error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := NewService(storageMock, tools)
 
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceConsent.UserID(), (*sqlstorage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
@@ -244,7 +244,7 @@ func Test_OauthConsents_Service(t *testing.T) {
 
 	t.Run("DeleteAll with a revoke error stop directly", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := NewService(storageMock, tools)
 
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceConsent.UserID(), (*sqlstorage.PaginateCmd)(nil)).Return([]Consent{ExampleAliceConsent, ExampleAliceConsent}, nil).Once()

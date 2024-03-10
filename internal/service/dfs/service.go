@@ -34,8 +34,8 @@ var (
 	ErrAlreadyExists   = errors.New("already exists")
 )
 
-//go:generate mockery --name Storage
-type Storage interface {
+//go:generate mockery --name storage
+type storage interface {
 	Save(ctx context.Context, dir *INode) error
 	GetByID(ctx context.Context, id uuid.UUID) (*INode, error)
 	GetByNameAndParent(ctx context.Context, name string, parent uuid.UUID) (*INode, error)
@@ -51,7 +51,7 @@ type Storage interface {
 }
 
 type service struct {
-	storage   Storage
+	storage   storage
 	files     files.Service
 	spaces    spaces.Service
 	scheduler scheduler.Service
@@ -60,7 +60,7 @@ type service struct {
 }
 
 func newService(
-	storage Storage,
+	storage storage,
 	files files.Service,
 	spaces spaces.Service,
 	tasks scheduler.Service,

@@ -30,7 +30,7 @@ func TestFSMoveTask(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		fsMock := NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		runner := NewFSMoveTaskRunner(fsMock, storageMock, spacesMock, usersMock, schedulerMock)
 
 		require.True(t, ExampleAliceRoot.LastModifiedAt().Before(now))
@@ -74,7 +74,7 @@ func TestFSMoveTask(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		fsMock := NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		runner := NewFSMoveTaskRunner(fsMock, storageMock, spacesMock, usersMock, schedulerMock)
 
 		require.True(t, ExampleAliceRoot.LastModifiedAt().Before(now))
@@ -119,7 +119,7 @@ func TestFSMoveTask(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		fsMock := NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		runner := NewFSMoveTaskRunner(fsMock, storageMock, spacesMock, usersMock, schedulerMock)
 
 		spacesMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).
@@ -140,7 +140,7 @@ func TestFSMoveTask(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		fsMock := NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		runner := NewFSMoveTaskRunner(fsMock, storageMock, spacesMock, usersMock, schedulerMock)
 
 		spacesMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).
@@ -165,7 +165,7 @@ func TestFSMoveTask(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		fsMock := NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		runner := NewFSMoveTaskRunner(fsMock, storageMock, spacesMock, usersMock, schedulerMock)
 
 		spacesMock.On("GetByID", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).
@@ -189,7 +189,7 @@ func TestFSMoveTask(t *testing.T) {
 		schedulerMock := scheduler.NewMockService(t)
 		usersMock := users.NewMockService(t)
 		fsMock := NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		runner := NewFSMoveTaskRunner(fsMock, storageMock, spacesMock, usersMock, schedulerMock)
 
 		require.True(t, ExampleAliceRoot.LastModifiedAt().Before(now))

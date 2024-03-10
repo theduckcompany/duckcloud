@@ -10,7 +10,8 @@ import (
 
 	oauthclients "github.com/theduckcompany/duckcloud/internal/service/oauthclients"
 
-	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
+	sqlstorage "github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
+
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
 
 	websessions "github.com/theduckcompany/duckcloud/internal/service/websessions"

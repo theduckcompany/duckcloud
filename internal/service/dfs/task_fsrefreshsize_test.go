@@ -27,7 +27,7 @@ func TestFSRefreshSizeTask(t *testing.T) {
 
 	t.Run("RunArg success", func(t *testing.T) {
 		filesMock := files.NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		statsMock := stats.NewMockService(t)
 		runner := NewFSRefreshSizeTaskRunner(storageMock, filesMock, statsMock)
 
@@ -60,7 +60,7 @@ func TestFSRefreshSizeTask(t *testing.T) {
 
 	t.Run("RunArg with an inode not found", func(t *testing.T) {
 		filesMock := files.NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		statsMock := stats.NewMockService(t)
 		runner := NewFSRefreshSizeTaskRunner(storageMock, filesMock, statsMock)
 
@@ -84,7 +84,7 @@ func TestFSRefreshSizeTask(t *testing.T) {
 
 	t.Run("RunArg with a GetSumChildsSize error", func(t *testing.T) {
 		filesMock := files.NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		statsMock := stats.NewMockService(t)
 		runner := NewFSRefreshSizeTaskRunner(storageMock, filesMock, statsMock)
 
@@ -100,7 +100,7 @@ func TestFSRefreshSizeTask(t *testing.T) {
 
 	t.Run("RunArg with a RegisterModification error", func(t *testing.T) {
 		filesMock := files.NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		statsMock := stats.NewMockService(t)
 		runner := NewFSRefreshSizeTaskRunner(storageMock, filesMock, statsMock)
 
@@ -121,7 +121,7 @@ func TestFSRefreshSizeTask(t *testing.T) {
 
 	t.Run("RunArg with a GetSumRootsSize error", func(t *testing.T) {
 		filesMock := files.NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		statsMock := stats.NewMockService(t)
 		runner := NewFSRefreshSizeTaskRunner(storageMock, filesMock, statsMock)
 
@@ -153,7 +153,7 @@ func TestFSRefreshSizeTask(t *testing.T) {
 
 	t.Run("RunArg with a SetTotalSize error", func(t *testing.T) {
 		filesMock := files.NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		statsMock := stats.NewMockService(t)
 		runner := NewFSRefreshSizeTaskRunner(storageMock, filesMock, statsMock)
 

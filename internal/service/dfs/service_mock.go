@@ -9,7 +9,8 @@ import (
 	mock "github.com/stretchr/testify/mock"
 
 	spaces "github.com/theduckcompany/duckcloud/internal/service/spaces"
-	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
+
+	sqlstorage "github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 
 	users "github.com/theduckcompany/duckcloud/internal/service/users"
 )

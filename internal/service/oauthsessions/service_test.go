@@ -19,7 +19,7 @@ func Test_OauthSessions(t *testing.T) {
 
 	t.Run("Create success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := newService(tools, storageMock)
 
 		tools.ClockMock.On("Now").Return(ExampleAliceSession.accessCreatedAt).Once()
@@ -40,7 +40,7 @@ func Test_OauthSessions(t *testing.T) {
 
 	t.Run("Create with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := newService(tools, storageMock)
 
 		tools.ClockMock.On("Now").Return(ExampleAliceSession.accessCreatedAt).Once()
@@ -62,7 +62,7 @@ func Test_OauthSessions(t *testing.T) {
 
 	t.Run("GetByAccessToken success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := newService(tools, storageMock)
 
 		storageMock.On("GetByAccessToken", mock.Anything, ExampleAliceSession.accessToken).Return(&ExampleAliceSession, nil).Once()
@@ -74,7 +74,7 @@ func Test_OauthSessions(t *testing.T) {
 
 	t.Run("GetByRefreshToken success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := newService(tools, storageMock)
 
 		storageMock.On("GetByRefreshToken", mock.Anything, ExampleAliceSession.refreshToken).Return(&ExampleAliceSession, nil).Once()
@@ -86,7 +86,7 @@ func Test_OauthSessions(t *testing.T) {
 
 	t.Run("RemoveByAccessToken success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := newService(tools, storageMock)
 
 		storageMock.On("RemoveByAccessToken", mock.Anything, secret.NewText("some-access-token")).Return(nil).Once()
@@ -97,7 +97,7 @@ func Test_OauthSessions(t *testing.T) {
 
 	t.Run("RemoveByRefreshToken success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := newService(tools, storageMock)
 
 		storageMock.On("RemoveByRefreshToken", mock.Anything, secret.NewText("some-refresh-token")).Return(nil).Once()
@@ -108,7 +108,7 @@ func Test_OauthSessions(t *testing.T) {
 
 	t.Run("DeleteAllForUser success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := newService(tools, storageMock)
 
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.userID, (*sqlstorage.PaginateCmd)(nil)).Return([]Session{ExampleAliceSession}, nil).Once()
@@ -120,7 +120,7 @@ func Test_OauthSessions(t *testing.T) {
 
 	t.Run("DeleteAllForUser stop directly in case of error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		service := newService(tools, storageMock)
 
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.userID, (*sqlstorage.PaginateCmd)(nil)).Return([]Session{ExampleAliceSession, ExampleAliceSession}, nil).Once()

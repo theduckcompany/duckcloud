@@ -13,8 +13,8 @@ import (
 
 var ErrInvalidExpirationDate = fmt.Errorf("invalid expiration date")
 
-//go:generate mockery --name Storage
-type Storage interface {
+//go:generate mockery --name storage
+type storage interface {
 	Save(ctx context.Context, code *Code) error
 	RemoveByCode(ctx context.Context, code secret.Text) error
 	GetByCode(ctx context.Context, code secret.Text) (*Code, error)
@@ -22,12 +22,12 @@ type Storage interface {
 
 // service handling all the logic.
 type service struct {
-	storage Storage
+	storage storage
 	clock   clock.Clock
 }
 
 // newService create a new code service.
-func newService(tools tools.Tools, storage Storage) *service {
+func newService(tools tools.Tools, storage storage) *service {
 	return &service{storage, tools.Clock()}
 }
 

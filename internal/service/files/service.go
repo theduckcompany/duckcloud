@@ -28,8 +28,8 @@ var (
 	ErrNotExist      = errors.New("file not exists")
 )
 
-//go:generate mockery --name Storage
-type Storage interface {
+//go:generate mockery --name storage
+type storage interface {
 	Save(ctx context.Context, meta *FileMeta) error
 	GetByID(ctx context.Context, id uuid.UUID) (*FileMeta, error)
 	Delete(ctx context.Context, fileID uuid.UUID) error
@@ -38,13 +38,13 @@ type Storage interface {
 
 type service struct {
 	masterkey masterkey.Service
-	storage   Storage
+	storage   storage
 	fs        afero.Fs
 	uuid      uuid.Service
 	clock     clock.Clock
 }
 
-func newService(storage Storage, rootFS afero.Fs, tools tools.Tools, masterkey masterkey.Service) *service {
+func newService(storage storage, rootFS afero.Fs, tools tools.Tools, masterkey masterkey.Service) *service {
 	return &service{masterkey, storage, rootFS, tools.UUID(), tools.Clock()}
 }
 

@@ -6,10 +6,10 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
+	sqlstorage "github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 
 	users "github.com/theduckcompany/duckcloud/internal/service/users"
 
-	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 

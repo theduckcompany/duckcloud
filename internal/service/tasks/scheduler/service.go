@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/model"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/storage"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/taskstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
@@ -16,13 +16,13 @@ import (
 )
 
 type TasksService struct {
-	storage storage.Storage
+	storage taskstorage.Storage
 
 	uuid  uuid.Service
 	clock clock.Clock
 }
 
-func NewService(storage storage.Storage, tools tools.Tools) *TasksService {
+func NewService(storage taskstorage.Storage, tools tools.Tools) *TasksService {
 	return &TasksService{storage, tools.UUID(), tools.Clock()}
 }
 
@@ -37,7 +37,7 @@ func (t *TasksService) Run(ctx context.Context) error {
 
 func (t *TasksService) ensureTaskEvery(ctx context.Context, name string, every time.Duration) error {
 	lastTask, err := t.storage.GetLastRegisteredTask(ctx, name)
-	if err != nil && !errors.Is(err, storage.ErrNotFound) {
+	if err != nil && !errors.Is(err, taskstorage.ErrNotFound) {
 		return fmt.Errorf("failed to GetLastRegisteredTask: %w", err)
 	}
 

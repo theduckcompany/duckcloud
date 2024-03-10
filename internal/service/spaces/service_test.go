@@ -23,7 +23,7 @@ func Test_SpaceService(t *testing.T) {
 	const AliceID = uuid.UUID("86bffce3-3f53-4631-baf8-8530773884f3")
 	t.Run("Create success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -42,7 +42,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("Create with a validation error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -58,7 +58,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("Create with a non admin user", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -73,7 +73,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("Create with a Save error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -93,7 +93,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("GetAlluserSpaces success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -106,7 +106,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("GetAlluserSpaces with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -120,7 +120,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("GetByID success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -133,7 +133,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("GetByID not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -146,7 +146,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("GetByID with an error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -160,7 +160,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("Delete success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -173,7 +173,7 @@ func Test_SpaceService(t *testing.T) {
 	t.Run("Delete with an non admin user", func(t *testing.T) {
 		// Bob is not an admin so he is not authorized.
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -183,7 +183,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("Delete with an error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -196,7 +196,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("GetUserSpace success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -209,7 +209,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("GetUserSpace not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -222,7 +222,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("GetUserSpace with an error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -236,7 +236,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("GetUserSpace with an existing space but an invalid user id", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -250,7 +250,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("GetAllSpaces success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -266,7 +266,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("GetAllSpaces with a user not admin", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -279,7 +279,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("RemoveOwner success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -313,7 +313,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("RemoveOwner with a non admin user", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -330,7 +330,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("RemoveOwner with a non admin user removing itself", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -366,7 +366,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("RemoveOwner with a GetByID error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -386,7 +386,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("RemoveOwner with a user not present in perms", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -415,7 +415,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("RemoveOwner with a Patch error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -448,7 +448,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("AddOwner success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -484,7 +484,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("AddOwner with a User not admin", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -501,7 +501,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("AddOwner with a GetByID error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -521,7 +521,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("AddOwner with a user already present in perms", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -551,7 +551,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("AddOwner with a Patch error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -584,7 +584,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("Bootstrap success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -603,7 +603,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("Bootstrap with a GetAllSpaces error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -616,7 +616,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("Bootstrap with an already bootstraped service", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
@@ -629,7 +629,7 @@ func Test_SpaceService(t *testing.T) {
 
 	t.Run("Bootstrap with a Scheduler error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		svc := newService(tools, storageMock, schedulerMock)
 
