@@ -47,6 +47,12 @@ func (t *Owners) Scan(src any) error {
 		return fmt.Errorf("not a string")
 	}
 
+	*t = Owners{}
+
+	if s == "" {
+		return nil
+	}
+
 	rawIDs := strings.Split(s, ",")
 
 	for _, id := range rawIDs {
@@ -67,7 +73,7 @@ func (t CreateCmd) Validate() error {
 	return v.ValidateStruct(&t,
 		v.Field(&t.User, v.Required),
 		v.Field(&t.Name, v.Required, v.Length(1, 30)),
-		v.Field(&t.Owners, v.Required, v.Each(is.UUIDv4)),
+		v.Field(&t.Owners, v.Each(is.UUIDv4)),
 	)
 }
 
