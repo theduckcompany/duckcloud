@@ -8,7 +8,6 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
 )
 
 func bootstrap(ctx context.Context, usersSvc users.Service, spacesSvc spaces.Service) error {

@@ -9,7 +9,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 )
 
 const tableName = "oauth_codes"

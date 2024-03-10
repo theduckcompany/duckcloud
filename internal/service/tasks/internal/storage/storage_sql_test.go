@@ -1,4 +1,4 @@
-package storage
+package sqlstorage
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/model"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 

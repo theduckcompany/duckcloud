@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 

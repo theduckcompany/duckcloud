@@ -8,7 +8,7 @@ import (
 	"path"
 
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 )
 
 const WalkBatchSize = 100

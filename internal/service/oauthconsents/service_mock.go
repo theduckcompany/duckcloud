@@ -10,7 +10,7 @@ import (
 
 	oauthclients "github.com/theduckcompany/duckcloud/internal/service/oauthclients"
 
-	storage "github.com/theduckcompany/duckcloud/internal/tools/storage"
+	storage "github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
 

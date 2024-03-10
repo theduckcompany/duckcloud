@@ -1,4 +1,4 @@
-package storage
+package sqlstorage
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/model"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 

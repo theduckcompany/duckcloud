@@ -8,7 +8,7 @@ import (
 	mock "github.com/stretchr/testify/mock"
 	secret "github.com/theduckcompany/duckcloud/internal/tools/secret"
 
-	storage "github.com/theduckcompany/duckcloud/internal/tools/storage"
+	storage "github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )

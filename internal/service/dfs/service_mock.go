@@ -10,7 +10,7 @@ import (
 
 	spaces "github.com/theduckcompany/duckcloud/internal/service/spaces"
 
-	storage "github.com/theduckcompany/duckcloud/internal/tools/storage"
+	storage "github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 
 	users "github.com/theduckcompany/duckcloud/internal/service/users"
 )
