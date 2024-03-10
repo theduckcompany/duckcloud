@@ -34,7 +34,7 @@ func TestFileService(t *testing.T) {
 		require.NoError(t, err)
 		masterkeySvc.GenerateMasterKey(ctx, &masterPassword)
 		require.NoError(t, err)
-		svc := NewFileService(storage, fs, tools, masterkeySvc)
+		svc := newService(storage, fs, tools, masterkeySvc)
 
 		fileMeta, err := svc.Upload(ctx, bytes.NewReader([]byte("Hello, World!")))
 		require.NoError(t, err)
@@ -57,7 +57,7 @@ func TestFileService(t *testing.T) {
 		require.NoError(t, err)
 		masterkeySvc.GenerateMasterKey(ctx, &masterPassword)
 		require.NoError(t, err)
-		svc := NewFileService(storage, fs, tools, masterkeySvc)
+		svc := newService(storage, fs, tools, masterkeySvc)
 
 		// Create an fs error by removing the write permission
 		svc.fs = afero.NewReadOnlyFs(fs)
@@ -78,7 +78,7 @@ func TestFileService(t *testing.T) {
 		require.NoError(t, err)
 		masterkeySvc.GenerateMasterKey(ctx, &masterPassword)
 		require.NoError(t, err)
-		svc := NewFileService(storage, fs, tools, masterkeySvc)
+		svc := newService(storage, fs, tools, masterkeySvc)
 
 		// Create a file
 		fileMeta, err := svc.Upload(ctx, bytes.NewReader([]byte("Hello, World!")))
@@ -105,7 +105,7 @@ func TestFileService(t *testing.T) {
 		require.NoError(t, err)
 		masterkeySvc.GenerateMasterKey(ctx, &masterPassword)
 		require.NoError(t, err)
-		svc := NewFileService(storage, fs, tools, masterkeySvc)
+		svc := newService(storage, fs, tools, masterkeySvc)
 
 		// Create a file
 		fileID, err := svc.Upload(ctx, iotest.ErrReader(fmt.Errorf("some-error")))
@@ -125,7 +125,7 @@ func TestFileService(t *testing.T) {
 		require.NoError(t, err)
 		masterkeySvc.GenerateMasterKey(ctx, &masterPassword)
 		require.NoError(t, err)
-		svc := NewFileService(storageMock, fs, tools, masterkeySvc)
+		svc := newService(storageMock, fs, tools, masterkeySvc)
 
 		storageMock.On("GetByID", mock.Anything, ExampleFile1.ID()).Return(&ExampleFile1, nil).Once()
 
@@ -144,7 +144,7 @@ func TestFileService(t *testing.T) {
 		require.NoError(t, err)
 		masterkeySvc.GenerateMasterKey(ctx, &masterPassword)
 		require.NoError(t, err)
-		svc := NewFileService(storageMock, fs, tools, masterkeySvc)
+		svc := newService(storageMock, fs, tools, masterkeySvc)
 
 		storageMock.On("GetByChecksum", mock.Anything, "some-checksum").Return(&ExampleFile1, nil).Once()
 
@@ -163,7 +163,7 @@ func TestFileService(t *testing.T) {
 		require.NoError(t, err)
 		masterkeySvc.GenerateMasterKey(ctx, &masterPassword)
 		require.NoError(t, err)
-		svc := NewFileService(storage, fs, tools, masterkeySvc)
+		svc := newService(storage, fs, tools, masterkeySvc)
 
 		err = afero.WriteFile(fs, "66/66278d2b-7a4f-4764-ac8a-fc08f224eb66", []byte("not encrypted"), 0o755)
 		require.NoError(t, err)

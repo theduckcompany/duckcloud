@@ -15,15 +15,15 @@ type Storage interface {
 	Get(ctx context.Context, key ConfigKey) (string, error)
 }
 
-type ConfigService struct {
+type service struct {
 	storage Storage
 }
 
-func NewService(storage Storage) *ConfigService {
-	return &ConfigService{storage}
+func newService(storage Storage) *service {
+	return &service{storage}
 }
 
-func (s *ConfigService) SetMasterKey(ctx context.Context, key *secret.SealedKey) error {
+func (s *service) SetMasterKey(ctx context.Context, key *secret.SealedKey) error {
 	err := s.storage.Save(ctx, masterKey, key.Base64())
 	if err != nil {
 		return fmt.Errorf("failed to Save: %w", err)
@@ -32,7 +32,7 @@ func (s *ConfigService) SetMasterKey(ctx context.Context, key *secret.SealedKey)
 	return nil
 }
 
-func (s *ConfigService) GetMasterKey(ctx context.Context) (*secret.SealedKey, error) {
+func (s *service) GetMasterKey(ctx context.Context) (*secret.SealedKey, error) {
 	keyStr, err := s.storage.Get(ctx, masterKey)
 	if errors.Is(err, errNotfound) {
 		return nil, errs.ErrNotFound

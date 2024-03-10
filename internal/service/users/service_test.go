@@ -22,7 +22,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		store.On("GetByUsername", ctx, ExampleBob.Username()).Return(nil, errNotFound).Once()
 
@@ -50,7 +50,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		store.On("GetByUsername", ctx, ExampleBob.Username()).Return(&User{}, nil).Once()
 
@@ -69,7 +69,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		store.On("GetByUsername", ctx, ExampleBob.Username()).Return(nil, fmt.Errorf("some-error")).Once()
 
@@ -88,7 +88,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		store.On("GetByUsername", ctx, ExampleBob.Username()).Return(&ExampleBob, nil).Once()
 
@@ -103,7 +103,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		store.On("GetByUsername", ctx, ExampleBob.Username()).Return(nil, errNotFound).Once()
 
@@ -117,7 +117,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		store.On("GetByUsername", ctx, ExampleBob.Username()).Return(&ExampleBob, nil).Once()
 		tools.PasswordMock.On("Compare", ctx, ExampleBob.password, secret.NewText("some-invalid-password")).Return(false, nil).Once()
@@ -132,7 +132,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		store.On("GetByUsername", ctx, ExampleBob.Username()).Return(&ExampleBob, nil).Once()
 		tools.PasswordMock.On("Compare", ctx, ExampleBob.password, secret.NewText("some-password")).Return(false, fmt.Errorf("some-error")).Once()
@@ -147,7 +147,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		store.On("GetByID", ctx, ExampleBob.ID()).Return(&ExampleBob, nil).Once()
 
@@ -160,7 +160,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		store.On("GetAll", ctx, &storage.PaginateCmd{Limit: 10}).Return([]User{ExampleBob}, nil).Once()
 
@@ -173,7 +173,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		store.On("GetAll", ctx, &storage.PaginateCmd{Limit: 10}).Return([]User{ExampleBob}, nil).Once()
 
@@ -186,7 +186,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		anAnotherAdmin := ExampleAlice
 		anAnotherAdmin.isAdmin = true
@@ -205,7 +205,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		store.On("GetByID", ctx, ExampleAlice.ID()).Return(nil, errNotFound).Once()
 
@@ -218,7 +218,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		store.On("GetByID", ctx, ExampleAlice.ID()).Return(&ExampleAlice, nil).Once()
 		store.On("GetAll", ctx, (*storage.PaginateCmd)(nil)).Return([]User{ExampleAlice}, nil).Once() // This is the last admin
@@ -231,7 +231,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		store.On("GetByID", mock.Anything, ExampleBob.ID()).Return(&ExampleDeletingAlice, nil).Once()
 		store.On("HardDelete", mock.Anything, ExampleBob.ID()).Return(nil).Once()
@@ -244,7 +244,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		// It doesn't return ExampleDeletingBob so the status is Active
 		store.On("GetByID", mock.Anything, ExampleBob.ID()).Return(nil, errNotFound).Once()
@@ -257,7 +257,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		// It doesn't return ExampleDeletingBob so the status is Active
 		store.On("GetByID", mock.Anything, ExampleBob.ID()).Return(&ExampleBob, nil).Once()
@@ -270,7 +270,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		initializingBob := ExampleInitializingBob
 
@@ -286,7 +286,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		// ExampleBob is already initialized.
 		store.On("GetByID", mock.Anything, ExampleBob.ID()).Return(&ExampleBob, nil).Once()
@@ -300,7 +300,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		store.On("GetByID", mock.Anything, ExampleBob.ID()).Return(&ExampleBob, nil).Once()
 
@@ -325,7 +325,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		store.On("GetByID", mock.Anything, ExampleBob.ID()).
 			Return(nil, errs.ErrNotFound).Once()
@@ -341,7 +341,7 @@ func Test_Users_Service(t *testing.T) {
 		tools := tools.NewMock(t)
 		store := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		service := NewService(tools, store, schedulerMock)
+		service := newService(tools, store, schedulerMock)
 
 		store.On("GetByID", mock.Anything, ExampleBob.ID()).Return(&ExampleBob, nil).Once()
 

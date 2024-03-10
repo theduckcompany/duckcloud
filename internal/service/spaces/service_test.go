@@ -25,7 +25,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		tools.UUIDMock.On("New").Return(ExampleAlicePersonalSpace.ID()).Once()
 		tools.ClockMock.On("Now").Return(now).Once()
@@ -44,7 +44,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		res, err := svc.Create(ctx, &CreateCmd{
 			User:   &users.ExampleAlice,
@@ -60,7 +60,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		res, err := svc.Create(ctx, &CreateCmd{
 			User:   &users.ExampleBob,
@@ -75,7 +75,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		tools.UUIDMock.On("New").Return(ExampleAlicePersonalSpace.ID()).Once()
 		tools.ClockMock.On("Now").Return(now).Once()
@@ -95,7 +95,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetAllUserSpaces", mock.Anything, AliceID, (*storage.PaginateCmd)(nil)).Return([]Space{ExampleAlicePersonalSpace}, nil).Once()
 
@@ -108,7 +108,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetAllUserSpaces", mock.Anything, AliceID, (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
 
@@ -122,7 +122,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(&ExampleAlicePersonalSpace, nil).Once()
 
@@ -135,7 +135,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil, errNotFound).Once()
 
@@ -148,7 +148,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil, fmt.Errorf("some-error")).Once()
 
@@ -162,7 +162,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		storageMock.On("Delete", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil).Once()
 
@@ -175,7 +175,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		err := svc.Delete(ctx, &users.ExampleBob, ExampleAlicePersonalSpace.ID())
 		require.ErrorIs(t, err, errs.ErrUnauthorized)
@@ -185,7 +185,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		storageMock.On("Delete", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(fmt.Errorf("some-error"))
 
@@ -198,7 +198,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(&ExampleAlicePersonalSpace, nil).Once()
 
@@ -211,7 +211,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil, errNotFound).Once()
 
@@ -224,7 +224,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(nil, fmt.Errorf("some-error")).Once()
 
@@ -238,7 +238,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAlicePersonalSpace.ID()).Return(&ExampleAlicePersonalSpace, nil).Once()
 
@@ -252,7 +252,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		require.True(t, users.ExampleAlice.IsAdmin())
 
@@ -268,7 +268,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		require.False(t, users.ExampleBob.IsAdmin())
 
@@ -281,7 +281,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		require.True(t, users.ExampleAlice.IsAdmin())
 
@@ -315,7 +315,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		require.False(t, users.ExampleBob.IsAdmin())
 
@@ -332,7 +332,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		require.False(t, users.ExampleBob.IsAdmin())
 
@@ -368,7 +368,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		require.True(t, users.ExampleAlice.IsAdmin())
 
@@ -388,7 +388,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		require.True(t, users.ExampleAlice.IsAdmin())
 
@@ -417,7 +417,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		require.True(t, users.ExampleAlice.IsAdmin())
 
@@ -450,7 +450,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		require.True(t, users.ExampleAlice.IsAdmin())
 
@@ -486,7 +486,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		require.False(t, users.ExampleBob.IsAdmin())
 
@@ -503,7 +503,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		require.True(t, users.ExampleAlice.IsAdmin())
 
@@ -523,7 +523,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		require.True(t, users.ExampleAlice.IsAdmin())
 
@@ -553,7 +553,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		require.True(t, users.ExampleAlice.IsAdmin())
 
@@ -586,7 +586,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetAllSpaces", mock.Anything, &storage.PaginateCmd{Limit: 1}).
 			Return([]Space{}, nil).Once()
@@ -605,7 +605,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetAllSpaces", mock.Anything, &storage.PaginateCmd{Limit: 1}).
 			Return(nil, errs.ErrInternal).Once()
@@ -618,7 +618,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetAllSpaces", mock.Anything, &storage.PaginateCmd{Limit: 1}).
 			Return([]Space{ExampleAlicePersonalSpace}, nil).Once()
@@ -631,7 +631,7 @@ func Test_SpaceService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
-		svc := NewService(tools, storageMock, schedulerMock)
+		svc := newService(tools, storageMock, schedulerMock)
 
 		storageMock.On("GetAllSpaces", mock.Anything, &storage.PaginateCmd{Limit: 1}).
 			Return([]Space{}, nil).Once()

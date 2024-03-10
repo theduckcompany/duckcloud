@@ -24,7 +24,7 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
-		service := NewService(storageMock, spacesMock, tools)
+		service := newService(storageMock, spacesMock, tools)
 
 		spacesMock.On("GetUserSpace", mock.Anything, ExampleAliceSession.userID, spaces.ExampleAlicePersonalSpace.ID()).
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
@@ -51,7 +51,7 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
-		service := NewService(storageMock, spacesMock, tools)
+		service := newService(storageMock, spacesMock, tools)
 
 		res, secret, err := service.Create(ctx, &CreateCmd{
 			Name:     ExampleAliceSession.Name(),
@@ -70,7 +70,7 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
-		service := NewService(storageMock, spacesMock, tools)
+		service := newService(storageMock, spacesMock, tools)
 
 		spacesMock.On("GetUserSpace", mock.Anything, ExampleAliceSession.userID, spaces.ExampleAlicePersonalSpace.ID()).
 			Return(nil, errNotFound).Once()
@@ -93,7 +93,7 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
-		service := NewService(storageMock, spacesMock, tools)
+		service := newService(storageMock, spacesMock, tools)
 
 		spacesMock.On("GetUserSpace", mock.Anything, ExampleAliceSession.userID, spaces.ExampleBobPersonalSpace.ID()).
 			Return(&spaces.ExampleBobPersonalSpace, nil).Once()
@@ -114,7 +114,7 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
-		service := NewService(storageMock, spacesMock, tools)
+		service := newService(storageMock, spacesMock, tools)
 
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.id, &storage.PaginateCmd{Limit: 10}).Return([]DavSession{ExampleAliceSession}, nil).Once()
 
@@ -127,7 +127,7 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
-		service := NewService(storageMock, spacesMock, tools)
+		service := newService(storageMock, spacesMock, tools)
 
 		storageMock.On("GetByUsernameAndPassword", mock.Anything, "some-username", secret.NewText(hex.EncodeToString([]byte("some-password")))).
 			Return(&ExampleAliceSession, nil).Once()
@@ -141,7 +141,7 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
-		service := NewService(storageMock, spacesMock, tools)
+		service := newService(storageMock, spacesMock, tools)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(&ExampleAliceSession, nil).Once()
 		storageMock.On("RemoveByID", mock.Anything, ExampleAliceSession.ID()).Return(nil).Once()
@@ -157,7 +157,7 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
-		service := NewService(storageMock, spacesMock, tools)
+		service := newService(storageMock, spacesMock, tools)
 
 		err := service.Delete(ctx, &DeleteCmd{
 			UserID:    ExampleAliceSession.UserID(),
@@ -171,7 +171,7 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
-		service := NewService(storageMock, spacesMock, tools)
+		service := newService(storageMock, spacesMock, tools)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(nil, errNotFound).Once()
 
@@ -186,7 +186,7 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
-		service := NewService(storageMock, spacesMock, tools)
+		service := newService(storageMock, spacesMock, tools)
 
 		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(&ExampleAliceSession, nil).Once()
 
@@ -202,7 +202,7 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
-		service := NewService(storageMock, spacesMock, tools)
+		service := newService(storageMock, spacesMock, tools)
 
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.UserID(), (*storage.PaginateCmd)(nil)).Return([]DavSession{ExampleAliceSession}, nil).Once()
 		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(&ExampleAliceSession, nil).Once()
@@ -216,7 +216,7 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
-		service := NewService(storageMock, spacesMock, tools)
+		service := newService(storageMock, spacesMock, tools)
 
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.UserID(), (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
 
@@ -229,7 +229,7 @@ func TestDavSessionsService(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
-		service := NewService(storageMock, spacesMock, tools)
+		service := newService(storageMock, spacesMock, tools)
 
 		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.UserID(), (*storage.PaginateCmd)(nil)).Return([]DavSession{ExampleAliceSession, ExampleAliceSession}, nil).Once()
 		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(&ExampleAliceSession, nil).Once()

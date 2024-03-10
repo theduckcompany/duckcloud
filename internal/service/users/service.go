@@ -38,7 +38,7 @@ type Storage interface {
 }
 
 // service handling all the logic.
-type UserService struct {
+type service struct {
 	storage   Storage
 	clock     clock.Clock
 	uuid      uuid.Service
@@ -46,9 +46,9 @@ type UserService struct {
 	scheduler scheduler.Service
 }
 
-// NewService create a new user service.
-func NewService(tools tools.Tools, storage Storage, scheduler scheduler.Service) *UserService {
-	return &UserService{
+// newService create a new user service.
+func newService(tools tools.Tools, storage Storage, scheduler scheduler.Service) *service {
+	return &service{
 		storage,
 		tools.Clock(),
 		tools.UUID(),
@@ -57,13 +57,13 @@ func NewService(tools tools.Tools, storage Storage, scheduler scheduler.Service)
 	}
 }
 
-func (s *UserService) Bootstrap(ctx context.Context) (*User, error) {
+func (s *service) Bootstrap(ctx context.Context) (*User, error) {
 	newUserID := s.uuid.New()
 	return s.createUser(ctx, newUserID, BoostrapUsername, secret.NewText(BoostrapPassword), true, newUserID)
 }
 
 // Create will create and register a new user.
-func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error) {
+func (s *service) Create(ctx context.Context, cmd *CreateCmd) (*User, error) {
 	err := cmd.Validate()
 	if err != nil {
 		return nil, errs.Validation(err)
@@ -82,7 +82,7 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 	return s.createUser(ctx, newUserID, cmd.Username, cmd.Password, cmd.IsAdmin, cmd.CreatedBy.id)
 }
 
-func (s *UserService) createUser(ctx context.Context, newUserID uuid.UUID, username string, password secret.Text, isAdmin bool, createdBy uuid.UUID) (*User, error) {
+func (s *service) createUser(ctx context.Context, newUserID uuid.UUID, username string, password secret.Text, isAdmin bool, createdBy uuid.UUID) (*User, error) {
 	hashedPassword, err := s.password.Encrypt(ctx, password)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to hash the password: %w", err))
@@ -123,7 +123,7 @@ func (s *UserService) createUser(ctx context.Context, newUserID uuid.UUID, usern
 	return &user, nil
 }
 
-func (s *UserService) UpdateUserPassword(ctx context.Context, cmd *UpdatePasswordCmd) error {
+func (s *service) UpdateUserPassword(ctx context.Context, cmd *UpdatePasswordCmd) error {
 	user, err := s.GetByID(ctx, cmd.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to GetByID: %w", err)
@@ -145,7 +145,7 @@ func (s *UserService) UpdateUserPassword(ctx context.Context, cmd *UpdatePasswor
 	return nil
 }
 
-func (s *UserService) MarkInitAsFinished(ctx context.Context, userID uuid.UUID) (*User, error) {
+func (s *service) MarkInitAsFinished(ctx context.Context, userID uuid.UUID) (*User, error) {
 	user, err := s.GetByID(ctx, userID)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to GetByID: %w", err))
@@ -165,7 +165,7 @@ func (s *UserService) MarkInitAsFinished(ctx context.Context, userID uuid.UUID) 
 	return user, nil
 }
 
-func (s *UserService) GetAllWithStatus(ctx context.Context, status Status, cmd *storage.PaginateCmd) ([]User, error) {
+func (s *service) GetAllWithStatus(ctx context.Context, status Status, cmd *storage.PaginateCmd) ([]User, error) {
 	allUsers, err := s.GetAll(ctx, cmd)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to GetAll users: %w", err))
@@ -182,7 +182,7 @@ func (s *UserService) GetAllWithStatus(ctx context.Context, status Status, cmd *
 }
 
 // Authenticate return the user corresponding to the given username only if the password is correct.
-func (s *UserService) Authenticate(ctx context.Context, username string, userPassword secret.Text) (*User, error) {
+func (s *service) Authenticate(ctx context.Context, username string, userPassword secret.Text) (*User, error) {
 	user, err := s.storage.GetByUsername(ctx, username)
 	if errors.Is(err, errNotFound) {
 		return nil, errs.BadRequest(ErrInvalidUsername)
@@ -203,7 +203,7 @@ func (s *UserService) Authenticate(ctx context.Context, username string, userPas
 	return user, nil
 }
 
-func (s *UserService) GetByID(ctx context.Context, userID uuid.UUID) (*User, error) {
+func (s *service) GetByID(ctx context.Context, userID uuid.UUID) (*User, error) {
 	res, err := s.storage.GetByID(ctx, userID)
 	if errors.Is(err, errNotFound) {
 		return nil, errs.NotFound(err)
@@ -216,7 +216,7 @@ func (s *UserService) GetByID(ctx context.Context, userID uuid.UUID) (*User, err
 	return res, nil
 }
 
-func (s *UserService) GetAll(ctx context.Context, paginateCmd *storage.PaginateCmd) ([]User, error) {
+func (s *service) GetAll(ctx context.Context, paginateCmd *storage.PaginateCmd) ([]User, error) {
 	res, err := s.storage.GetAll(ctx, paginateCmd)
 	if err != nil {
 		return nil, errs.Internal(err)
@@ -225,7 +225,7 @@ func (s *UserService) GetAll(ctx context.Context, paginateCmd *storage.PaginateC
 	return res, nil
 }
 
-func (s *UserService) AddToDeletion(ctx context.Context, userID uuid.UUID) error {
+func (s *service) AddToDeletion(ctx context.Context, userID uuid.UUID) error {
 	user, err := s.GetByID(ctx, userID)
 	if errors.Is(err, errNotFound) {
 		return errs.NotFound(err)
@@ -269,7 +269,7 @@ func (s *UserService) AddToDeletion(ctx context.Context, userID uuid.UUID) error
 	return nil
 }
 
-func (s *UserService) HardDelete(ctx context.Context, userID uuid.UUID) error {
+func (s *service) HardDelete(ctx context.Context, userID uuid.UUID) error {
 	res, err := s.storage.GetByID(ctx, userID)
 	if errors.Is(err, errNotFound) {
 		return nil

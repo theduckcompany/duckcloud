@@ -27,5 +27,5 @@ type Service interface {
 func Init(tools tools.Tools, db *sql.DB, scheduler scheduler.Service) Service {
 	storage := newSqlStorage(db, tools)
 
-	return NewService(tools, storage, scheduler)
+	return newService(tools, storage, scheduler)
 }

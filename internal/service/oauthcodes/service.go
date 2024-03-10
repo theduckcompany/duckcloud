@@ -20,19 +20,19 @@ type Storage interface {
 	GetByCode(ctx context.Context, code secret.Text) (*Code, error)
 }
 
-// OauthCodeService handling all the logic.
-type OauthCodeService struct {
+// service handling all the logic.
+type service struct {
 	storage Storage
 	clock   clock.Clock
 }
 
-// NewService create a new code service.
-func NewService(tools tools.Tools, storage Storage) *OauthCodeService {
-	return &OauthCodeService{storage, tools.Clock()}
+// newService create a new code service.
+func newService(tools tools.Tools, storage Storage) *service {
+	return &service{storage, tools.Clock()}
 }
 
 // create and store the new code information
-func (t *OauthCodeService) Create(ctx context.Context, input *CreateCmd) error {
+func (t *service) Create(ctx context.Context, input *CreateCmd) error {
 	err := input.Validate()
 	if err != nil {
 		return errs.Validation(err)
@@ -63,7 +63,7 @@ func (t *OauthCodeService) Create(ctx context.Context, input *CreateCmd) error {
 }
 
 // delete the authorization code
-func (t *OauthCodeService) RemoveByCode(ctx context.Context, code secret.Text) error {
+func (t *service) RemoveByCode(ctx context.Context, code secret.Text) error {
 	err := t.storage.RemoveByCode(ctx, code)
 	if err != nil {
 		return errs.Internal(err)
@@ -73,7 +73,7 @@ func (t *OauthCodeService) RemoveByCode(ctx context.Context, code secret.Text) e
 }
 
 // use the authorization code for code information data
-func (t *OauthCodeService) GetByCode(ctx context.Context, code secret.Text) (*Code, error) {
+func (t *service) GetByCode(ctx context.Context, code secret.Text) (*Code, error) {
 	res, err := t.storage.GetByCode(ctx, code)
 	if errors.Is(err, errNotFound) {
 		return nil, errs.NotFound(errNotFound)

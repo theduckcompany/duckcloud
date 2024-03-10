@@ -14,7 +14,7 @@ func TestConfig(t *testing.T) {
 
 	db := storage.NewTestStorage(t)
 	store := newSqlStorage(db)
-	svc := NewService(store)
+	svc := newService(store)
 
 	t.Run("SetTotalSize success", func(t *testing.T) {
 		err := svc.SetTotalSize(ctx, 4096)

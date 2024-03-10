@@ -23,7 +23,7 @@ type Service interface {
 }
 
 func Init(ctx context.Context, config config.Service, fs afero.Fs, tools tools.Tools) (Service, error) {
-	svc := NewService(config, fs)
+	svc := newService(config, fs)
 
 	err := svc.loadOrRegisterMasterKeyFromSystemdCreds(ctx)
 	switch {

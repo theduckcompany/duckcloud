@@ -33,7 +33,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("The master key is not loaded by default", func(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, fs)
+		svc := newService(configSvcMock, fs)
 
 		assert.False(t, svc.IsMasterKeyLoaded())
 	})
@@ -41,7 +41,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("IsMasterKeyRegistered with a key registered success", func(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, fs)
+		svc := newService(configSvcMock, fs)
 
 		configSvcMock.On("GetMasterKey", mock.Anything).Return(sealedKey, nil).Once()
 
@@ -53,7 +53,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("IsMasterKeyRegistered with no key registered success", func(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, fs)
+		svc := newService(configSvcMock, fs)
 
 		configSvcMock.On("GetMasterKey", mock.Anything).Return(nil, errs.ErrNotFound).Once()
 
@@ -65,7 +65,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("IsMasterKeyRegistered with a GetMasterKeyError", func(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, fs)
+		svc := newService(configSvcMock, fs)
 
 		configSvcMock.On("GetMasterKey", mock.Anything).Return(nil, errs.ErrInternal).Once()
 
@@ -77,7 +77,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("LoadMasterKeyFromPassword success", func(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, fs)
+		svc := newService(configSvcMock, fs)
 
 		configSvcMock.On("GetMasterKey", mock.Anything).Return(sealedKey, nil).Once()
 
@@ -90,7 +90,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("LoadMasterKeyFromPassword with a master key already loaded", func(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, fs)
+		svc := newService(configSvcMock, fs)
 
 		svc.enclave = memguard.NewEnclaveRandom(32)
 
@@ -103,7 +103,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("LoadMasterKeyFromPassword with no master key found", func(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, fs)
+		svc := newService(configSvcMock, fs)
 
 		configSvcMock.On("GetMasterKey", mock.Anything).Return(nil, errs.ErrNotFound).Once()
 
@@ -116,7 +116,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("LoadMasterKeyFromPassword with a GetMasterKey error", func(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, fs)
+		svc := newService(configSvcMock, fs)
 
 		configSvcMock.On("GetMasterKey", mock.Anything).Return(nil, errs.ErrInternal).Once()
 
@@ -128,7 +128,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("GenerateMasterKey success", func(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, fs)
+		svc := newService(configSvcMock, fs)
 
 		configSvcMock.On("GetMasterKey", mock.Anything).Return(nil, errs.ErrNotFound).Once()
 		configSvcMock.On("SetMasterKey", mock.Anything, mock.Anything).Return(nil).Once()
@@ -141,7 +141,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("GenerateMasterKey with a master key already set", func(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, fs)
+		svc := newService(configSvcMock, fs)
 
 		configSvcMock.On("GetMasterKey", mock.Anything).Return(sealedKey, nil).Once()
 
@@ -152,7 +152,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("GenerateMasterKey with a GetMasterKey error", func(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, fs)
+		svc := newService(configSvcMock, fs)
 
 		configSvcMock.On("GetMasterKey", mock.Anything).Return(nil, errs.ErrInternal).Once()
 
@@ -164,7 +164,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("GenerateMasterKey with a SetMasterKey error", func(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, fs)
+		svc := newService(configSvcMock, fs)
 
 		configSvcMock.On("GetMasterKey", mock.Anything).Return(nil, errs.ErrNotFound).Once()
 		configSvcMock.On("SetMasterKey", mock.Anything, mock.Anything).Return(errs.ErrBadRequest).Once()
@@ -177,7 +177,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("loadPasswordFromSystemdCreds success", func(t *testing.T) {
 		afs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, afs)
+		svc := newService(configSvcMock, afs)
 
 		credsDir := "/tmp/test/creds"
 
@@ -197,7 +197,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("loadPasswordFromSystemdCreds with an env variable not set", func(t *testing.T) {
 		afs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, afs)
+		svc := newService(configSvcMock, afs)
 
 		// Missing: t.Setenv("CREDENTIALS_DIRECTORY", credsDir)
 
@@ -209,7 +209,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("loadPasswordFromSystemdCreds with an non existing directory", func(t *testing.T) {
 		afs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, afs)
+		svc := newService(configSvcMock, afs)
 
 		t.Setenv("CREDENTIALS_DIRECTORY", "/some/unexisting/dir")
 
@@ -222,7 +222,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("loadOrRegisterMasterKeyFromSystemdCreds success with a master key already registered", func(t *testing.T) {
 		afs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, afs)
+		svc := newService(configSvcMock, afs)
 
 		credsDir := "/tmp/test/creds"
 
@@ -244,7 +244,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("loadOrRegisterMasterKeyFromSystemdCreds success with no master key registered", func(t *testing.T) {
 		afs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, afs)
+		svc := newService(configSvcMock, afs)
 
 		credsDir := "/tmp/test/creds"
 
@@ -267,7 +267,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("LoadMasterKeyFromPassword with a systemd-cred related error", func(t *testing.T) {
 		afs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, afs)
+		svc := newService(configSvcMock, afs)
 
 		// systemd-cred related files not set
 
@@ -278,7 +278,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("SealKey / Open  success", func(t *testing.T) {
 		afs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, afs)
+		svc := newService(configSvcMock, afs)
 
 		svc.enclave = memguard.NewEnclave(passKey.Raw())
 
@@ -297,7 +297,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("SealKey with not master key available", func(t *testing.T) {
 		afs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, afs)
+		svc := newService(configSvcMock, afs)
 
 		// svc.enclave not set
 		require.False(t, svc.IsMasterKeyLoaded())
@@ -313,7 +313,7 @@ func TestMasterKeyService(t *testing.T) {
 	t.Run("Open with not master key available", func(t *testing.T) {
 		afs := afero.NewMemMapFs()
 		configSvcMock := config.NewMockService(t)
-		svc := NewService(configSvcMock, afs)
+		svc := newService(configSvcMock, afs)
 
 		// svc.enclave not set
 		require.False(t, svc.IsMasterKeyLoaded())

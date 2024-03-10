@@ -37,5 +37,5 @@ func Init(
 ) Service {
 	store := newSqlStorage(db, tools)
 
-	return NewService(tools, store, scheduler)
+	return newService(tools, store, scheduler)
 }

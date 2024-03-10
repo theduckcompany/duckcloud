@@ -26,7 +26,7 @@ var (
 
 type PasswordSource string
 
-type MasterKeyService struct {
+type service struct {
 	config  config.Service
 	fs      afero.Fs
 	enclave *memguard.Enclave
@@ -34,8 +34,8 @@ type MasterKeyService struct {
 	passwordRequired bool
 }
 
-func NewService(config config.Service, fs afero.Fs) *MasterKeyService {
-	return &MasterKeyService{
+func newService(config config.Service, fs afero.Fs) *service {
+	return &service{
 		config:  config,
 		fs:      fs,
 		enclave: nil,
@@ -44,11 +44,11 @@ func NewService(config config.Service, fs afero.Fs) *MasterKeyService {
 	}
 }
 
-func (s *MasterKeyService) IsMasterKeyLoaded() bool {
+func (s *service) IsMasterKeyLoaded() bool {
 	return s.enclave != nil
 }
 
-func (s *MasterKeyService) IsMasterKeyRegistered(ctx context.Context) (bool, error) {
+func (s *service) IsMasterKeyRegistered(ctx context.Context) (bool, error) {
 	_, err := s.config.GetMasterKey(ctx)
 	switch {
 	case err == nil:
@@ -60,7 +60,7 @@ func (s *MasterKeyService) IsMasterKeyRegistered(ctx context.Context) (bool, err
 	}
 }
 
-func (s *MasterKeyService) LoadMasterKeyFromPassword(ctx context.Context, password *secret.Text) error {
+func (s *service) LoadMasterKeyFromPassword(ctx context.Context, password *secret.Text) error {
 	if s.enclave != nil {
 		return ErrKeyAlreadyDeciphered
 	}
@@ -89,7 +89,7 @@ func (s *MasterKeyService) LoadMasterKeyFromPassword(ctx context.Context, passwo
 	return nil
 }
 
-func (s *MasterKeyService) loadOrRegisterMasterKeyFromSystemdCreds(ctx context.Context) error {
+func (s *service) loadOrRegisterMasterKeyFromSystemdCreds(ctx context.Context) error {
 	password, err := s.loadPasswordFromSystemdCreds()
 	if err != nil {
 		return fmt.Errorf("failed to load the systemd-creds password: %w", err)
@@ -106,7 +106,7 @@ func (s *MasterKeyService) loadOrRegisterMasterKeyFromSystemdCreds(ctx context.C
 	}
 }
 
-func (s *MasterKeyService) GenerateMasterKey(ctx context.Context, password *secret.Text) error {
+func (s *service) GenerateMasterKey(ctx context.Context, password *secret.Text) error {
 	existingMasterKey, err := s.config.GetMasterKey(ctx)
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		return fmt.Errorf("failed to get the master key: %w", err)
@@ -141,7 +141,7 @@ func (s *MasterKeyService) GenerateMasterKey(ctx context.Context, password *secr
 	return nil
 }
 
-func (s *MasterKeyService) loadPasswordFromSystemdCreds() (*secret.Text, error) {
+func (s *service) loadPasswordFromSystemdCreds() (*secret.Text, error) {
 	dirPath := os.Getenv("CREDENTIALS_DIRECTORY")
 	if dirPath == "" {
 		return nil, errs.BadRequest(ErrCredsDirNotSet)
@@ -165,7 +165,7 @@ func (s *MasterKeyService) loadPasswordFromSystemdCreds() (*secret.Text, error) 
 	return &passwordStr, nil
 }
 
-func (s *MasterKeyService) SealKey(key *secret.Key) (*secret.SealedKey, error) {
+func (s *service) SealKey(key *secret.Key) (*secret.SealedKey, error) {
 	if s.enclave == nil {
 		return nil, ErrMasterKeyNotFound
 	}
@@ -178,7 +178,7 @@ func (s *MasterKeyService) SealKey(key *secret.Key) (*secret.SealedKey, error) {
 	return sealedKey, nil
 }
 
-func (s *MasterKeyService) Open(key *secret.SealedKey) (*secret.Key, error) {
+func (s *service) Open(key *secret.SealedKey) (*secret.Key, error) {
 	if s.enclave == nil {
 		return nil, ErrMasterKeyNotFound
 	}

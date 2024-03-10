@@ -34,7 +34,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	t.Run("Create success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		service := NewService(storageMock, tools)
+		service := newService(storageMock, tools)
 
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-token")).Once()
 		tools.ClockMock.On("Now").Return(now).Once()
@@ -52,7 +52,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	t.Run("Create with an invalid cmd", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		service := NewService(storageMock, tools)
+		service := newService(storageMock, tools)
 
 		res, err := service.Create(ctx, &CreateCmd{
 			UserID:     "not a uuid",
@@ -67,7 +67,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	t.Run("Create with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		service := NewService(storageMock, tools)
+		service := newService(storageMock, tools)
 
 		tools.UUIDMock.On("New").Return(uuid.UUID("some-token")).Once()
 		tools.ClockMock.On("Now").Return(now).Once()
@@ -86,7 +86,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	t.Run("GetAllForUser success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		service := NewService(storageMock, tools)
+		service := newService(storageMock, tools)
 
 		storageMock.On("GetAllForUser", mock.Anything, AliceWebSessionExample.userID, &storage.PaginateCmd{Limit: 10}).Return([]Session{AliceWebSessionExample}, nil).Once()
 
@@ -98,7 +98,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	t.Run("GetByToken success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		service := NewService(storageMock, tools)
+		service := newService(storageMock, tools)
 
 		storageMock.On("GetByToken", mock.Anything, secret.NewText("some-token")).Return(&session, nil).Once()
 
@@ -110,7 +110,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	t.Run("GetFromReq success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		service := NewService(storageMock, tools)
+		service := newService(storageMock, tools)
 
 		req, _ := http.NewRequest(http.MethodGet, "/foo", nil)
 		req.AddCookie(&http.Cookie{
@@ -128,7 +128,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	t.Run("GetFromReq with no cookie", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		service := NewService(storageMock, tools)
+		service := newService(storageMock, tools)
 
 		req, _ := http.NewRequest(http.MethodGet, "/foo", nil)
 		// No cookie
@@ -141,7 +141,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	t.Run("GetFromReq with the session not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		service := NewService(storageMock, tools)
+		service := newService(storageMock, tools)
 
 		req, _ := http.NewRequest(http.MethodGet, "/foo", nil)
 		req.AddCookie(&http.Cookie{
@@ -160,7 +160,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	t.Run("GetFromReq with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		service := NewService(storageMock, tools)
+		service := newService(storageMock, tools)
 
 		req, _ := http.NewRequest(http.MethodGet, "/foo", nil)
 		req.AddCookie(&http.Cookie{
@@ -179,7 +179,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	t.Run("Logout success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		service := NewService(storageMock, tools)
+		service := newService(storageMock, tools)
 
 		w := httptest.NewRecorder()
 
@@ -205,7 +205,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	t.Run("Logout with no cookie", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		service := NewService(storageMock, tools)
+		service := newService(storageMock, tools)
 
 		w := httptest.NewRecorder()
 
@@ -221,7 +221,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	t.Run("Logout with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		service := NewService(storageMock, tools)
+		service := newService(storageMock, tools)
 
 		w := httptest.NewRecorder()
 
@@ -241,7 +241,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	t.Run("Delete success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		service := NewService(storageMock, tools)
+		service := newService(storageMock, tools)
 
 		storageMock.On("GetByToken", mock.Anything, AliceWebSessionExample.Token()).Return(&AliceWebSessionExample, nil).Once()
 		storageMock.On("RemoveByToken", mock.Anything, AliceWebSessionExample.Token()).Return(nil).Once()
@@ -256,7 +256,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	t.Run("Delete with a validation error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		service := NewService(storageMock, tools)
+		service := newService(storageMock, tools)
 
 		err := service.Delete(ctx, &DeleteCmd{
 			UserID: "some-invalid-id",
@@ -269,7 +269,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	t.Run("Delete with a token not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		service := NewService(storageMock, tools)
+		service := newService(storageMock, tools)
 
 		storageMock.On("GetByToken", mock.Anything, AliceWebSessionExample.Token()).Return(nil, errNotFound).Once()
 
@@ -283,7 +283,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	t.Run("Delete with a token owned by someone else", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		service := NewService(storageMock, tools)
+		service := newService(storageMock, tools)
 
 		storageMock.On("GetByToken", mock.Anything, AliceWebSessionExample.Token()).Return(&AliceWebSessionExample, nil).Once()
 
@@ -298,7 +298,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	t.Run("DeleteAll success", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		service := NewService(storageMock, tools)
+		service := newService(storageMock, tools)
 
 		storageMock.On("GetAllForUser", mock.Anything, AliceWebSessionExample.UserID(), (*storage.PaginateCmd)(nil)).Return([]Session{AliceWebSessionExample}, nil).Once()
 		storageMock.On("GetByToken", mock.Anything, AliceWebSessionExample.Token()).Return(&AliceWebSessionExample, nil).Once()
@@ -311,7 +311,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	t.Run("DeleteAll with a GetAll error", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		service := NewService(storageMock, tools)
+		service := newService(storageMock, tools)
 
 		storageMock.On("GetAllForUser", mock.Anything, AliceWebSessionExample.UserID(), (*storage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
 
@@ -323,7 +323,7 @@ func Test_WebSessions_Service(t *testing.T) {
 	t.Run("DeleteAll with a revoke error stop directly", func(t *testing.T) {
 		tools := tools.NewMock(t)
 		storageMock := NewMockStorage(t)
-		service := NewService(storageMock, tools)
+		service := newService(storageMock, tools)
 
 		storageMock.On("GetAllForUser", mock.Anything, AliceWebSessionExample.UserID(), (*storage.PaginateCmd)(nil)).Return([]Session{AliceWebSessionExample, AliceWebSessionExample}, nil).Once()
 		storageMock.On("GetByToken", mock.Anything, AliceWebSessionExample.Token()).Return(&AliceWebSessionExample, nil).Once()

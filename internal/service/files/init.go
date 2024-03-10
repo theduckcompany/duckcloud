@@ -50,7 +50,7 @@ func Init(
 		return Result{}, fmt.Errorf("failed to setup the file storage directory: %w", err)
 	}
 
-	service := NewFileService(storage, rootFS, tools, masterkey)
+	service := newService(storage, rootFS, tools, masterkey)
 
 	return Result{
 		Service: service,

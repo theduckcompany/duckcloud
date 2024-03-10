@@ -25,18 +25,18 @@ type Storage interface {
 	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error)
 }
 
-// OauthSessionsService handling all the logic.
-type OauthSessionsService struct {
+// service handling all the logic.
+type service struct {
 	storage Storage
 	clock   clock.Clock
 }
 
-// NewService create a new session service.
-func NewService(tools tools.Tools, storage Storage) *OauthSessionsService {
-	return &OauthSessionsService{storage, tools.Clock()}
+// newService create a new session service.
+func newService(tools tools.Tools, storage Storage) *service {
+	return &service{storage, tools.Clock()}
 }
 
-func (s *OauthSessionsService) Create(ctx context.Context, input *CreateCmd) (*Session, error) {
+func (s *service) Create(ctx context.Context, input *CreateCmd) (*Session, error) {
 	err := input.Validate()
 	if err != nil {
 		return nil, errs.Validation(err)
@@ -64,7 +64,7 @@ func (s *OauthSessionsService) Create(ctx context.Context, input *CreateCmd) (*S
 	return &session, nil
 }
 
-func (s *OauthSessionsService) RemoveByAccessToken(ctx context.Context, access secret.Text) error {
+func (s *service) RemoveByAccessToken(ctx context.Context, access secret.Text) error {
 	err := s.storage.RemoveByAccessToken(ctx, access)
 	if err != nil {
 		return errs.Internal(err)
@@ -73,7 +73,7 @@ func (s *OauthSessionsService) RemoveByAccessToken(ctx context.Context, access s
 	return nil
 }
 
-func (s *OauthSessionsService) RemoveByRefreshToken(ctx context.Context, refresh secret.Text) error {
+func (s *service) RemoveByRefreshToken(ctx context.Context, refresh secret.Text) error {
 	err := s.storage.RemoveByRefreshToken(ctx, refresh)
 	if err != nil {
 		return errs.Internal(err)
@@ -82,7 +82,7 @@ func (s *OauthSessionsService) RemoveByRefreshToken(ctx context.Context, refresh
 	return nil
 }
 
-func (s *OauthSessionsService) GetByAccessToken(ctx context.Context, access secret.Text) (*Session, error) {
+func (s *service) GetByAccessToken(ctx context.Context, access secret.Text) (*Session, error) {
 	res, err := s.storage.GetByAccessToken(ctx, access)
 	if errors.Is(err, errNotFound) {
 		return nil, errs.NotFound(err)
@@ -95,7 +95,7 @@ func (s *OauthSessionsService) GetByAccessToken(ctx context.Context, access secr
 	return res, nil
 }
 
-func (s *OauthSessionsService) GetByRefreshToken(ctx context.Context, refresh secret.Text) (*Session, error) {
+func (s *service) GetByRefreshToken(ctx context.Context, refresh secret.Text) (*Session, error) {
 	res, err := s.storage.GetByRefreshToken(ctx, refresh)
 	if errors.Is(err, errNotFound) {
 		return nil, errs.NotFound(err)
@@ -108,7 +108,7 @@ func (s *OauthSessionsService) GetByRefreshToken(ctx context.Context, refresh se
 	return res, nil
 }
 
-func (s *OauthSessionsService) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
+func (s *service) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
 	res, err := s.storage.GetAllForUser(ctx, userID, cmd)
 	if err != nil {
 		return nil, errs.Internal(err)
@@ -117,7 +117,7 @@ func (s *OauthSessionsService) GetAllForUser(ctx context.Context, userID uuid.UU
 	return res, nil
 }
 
-func (s *OauthSessionsService) DeleteAllForUser(ctx context.Context, userID uuid.UUID) error {
+func (s *service) DeleteAllForUser(ctx context.Context, userID uuid.UUID) error {
 	sessions, err := s.GetAllForUser(ctx, userID, nil)
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to GetAllForUser: %w", err))

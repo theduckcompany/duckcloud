@@ -15,7 +15,7 @@ func TestConfig(t *testing.T) {
 
 	db := storage.NewTestStorage(t)
 	store := newSqlStorage(db)
-	svc := NewService(store)
+	svc := newService(store)
 
 	masterKey, err := secret.NewKey()
 	require.NoError(t, err)

@@ -36,7 +36,7 @@ type Storage interface {
 	GetByChecksum(ctx context.Context, checksum string) (*FileMeta, error)
 }
 
-type FileService struct {
+type service struct {
 	masterkey masterkey.Service
 	storage   Storage
 	fs        afero.Fs
@@ -44,11 +44,11 @@ type FileService struct {
 	clock     clock.Clock
 }
 
-func NewFileService(storage Storage, rootFS afero.Fs, tools tools.Tools, masterkey masterkey.Service) *FileService {
-	return &FileService{masterkey, storage, rootFS, tools.UUID(), tools.Clock()}
+func newService(storage Storage, rootFS afero.Fs, tools tools.Tools, masterkey masterkey.Service) *service {
+	return &service{masterkey, storage, rootFS, tools.UUID(), tools.Clock()}
 }
 
-func (s *FileService) Upload(ctx context.Context, r io.Reader) (*FileMeta, error) {
+func (s *service) Upload(ctx context.Context, r io.Reader) (*FileMeta, error) {
 	fileID := s.uuid.New()
 
 	idStr := string(fileID)
@@ -162,7 +162,7 @@ func (s *FileService) Upload(ctx context.Context, r io.Reader) (*FileMeta, error
 	return &fileMeta, nil
 }
 
-func (s *FileService) GetMetadataByChecksum(ctx context.Context, checksum string) (*FileMeta, error) {
+func (s *service) GetMetadataByChecksum(ctx context.Context, checksum string) (*FileMeta, error) {
 	res, err := s.storage.GetByChecksum(ctx, checksum)
 	if errors.Is(err, errNotFound) {
 		return nil, ErrNotExist
@@ -171,7 +171,7 @@ func (s *FileService) GetMetadataByChecksum(ctx context.Context, checksum string
 	return res, err
 }
 
-func (s *FileService) GetMetadata(ctx context.Context, fileID uuid.UUID) (*FileMeta, error) {
+func (s *service) GetMetadata(ctx context.Context, fileID uuid.UUID) (*FileMeta, error) {
 	res, err := s.storage.GetByID(ctx, fileID)
 	if errors.Is(err, errNotFound) {
 		return nil, ErrNotExist
@@ -180,7 +180,7 @@ func (s *FileService) GetMetadata(ctx context.Context, fileID uuid.UUID) (*FileM
 	return res, err
 }
 
-func (s *FileService) Download(ctx context.Context, fileMeta *FileMeta) (io.ReadSeekCloser, error) {
+func (s *service) Download(ctx context.Context, fileMeta *FileMeta) (io.ReadSeekCloser, error) {
 	idStr := string(fileMeta.id)
 	filePath := path.Join(idStr[:2], idStr)
 
@@ -211,7 +211,7 @@ func (s *FileService) Download(ctx context.Context, fileMeta *FileMeta) (io.Read
 	return newDecReadSeeker(reader, int64(fileMeta.size), file), nil
 }
 
-func (s *FileService) Delete(ctx context.Context, fileID uuid.UUID) error {
+func (s *service) Delete(ctx context.Context, fileID uuid.UUID) error {
 	idStr := string(fileID)
 	filePath := path.Join(idStr[:2], idStr)
 

@@ -31,21 +31,21 @@ type Storage interface {
 	RemoveByID(ctx context.Context, sessionID uuid.UUID) error
 }
 
-type DavSessionsService struct {
+type service struct {
 	storage Storage
 	spaces  spaces.Service
 	uuid    uuid.Service
 	clock   clock.Clock
 }
 
-func NewService(storage Storage,
+func newService(storage Storage,
 	spaces spaces.Service,
 	tools tools.Tools,
-) *DavSessionsService {
-	return &DavSessionsService{storage, spaces, tools.UUID(), tools.Clock()}
+) *service {
+	return &service{storage, spaces, tools.UUID(), tools.Clock()}
 }
 
-func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSession, string, error) {
+func (s *service) Create(ctx context.Context, cmd *CreateCmd) (*DavSession, string, error) {
 	err := cmd.Validate()
 	if err != nil {
 		return nil, "", errs.Validation(err)
@@ -80,7 +80,7 @@ func (s *DavSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*DavSe
 	return &session, password, nil
 }
 
-func (s *DavSessionsService) Authenticate(ctx context.Context, username string, password secret.Text) (*DavSession, error) {
+func (s *service) Authenticate(ctx context.Context, username string, password secret.Text) (*DavSession, error) {
 	res, err := s.storage.GetByUsernameAndPassword(ctx, username, secret.NewText(hex.EncodeToString([]byte(password.Raw()))))
 	if errors.Is(err, errNotFound) {
 		return nil, errs.BadRequest(ErrInvalidCredentials, "invalid credentials")
@@ -93,7 +93,7 @@ func (s *DavSessionsService) Authenticate(ctx context.Context, username string, 
 	return res, nil
 }
 
-func (s *DavSessionsService) GetAllForUser(ctx context.Context, userID uuid.UUID, paginateCmd *storage.PaginateCmd) ([]DavSession, error) {
+func (s *service) GetAllForUser(ctx context.Context, userID uuid.UUID, paginateCmd *storage.PaginateCmd) ([]DavSession, error) {
 	res, err := s.storage.GetAllForUser(ctx, userID, paginateCmd)
 	if err != nil {
 		return nil, errs.Internal(err)
@@ -102,7 +102,7 @@ func (s *DavSessionsService) GetAllForUser(ctx context.Context, userID uuid.UUID
 	return res, nil
 }
 
-func (s *DavSessionsService) Delete(ctx context.Context, cmd *DeleteCmd) error {
+func (s *service) Delete(ctx context.Context, cmd *DeleteCmd) error {
 	err := cmd.Validate()
 	if err != nil {
 		return errs.Validation(err)
@@ -129,7 +129,7 @@ func (s *DavSessionsService) Delete(ctx context.Context, cmd *DeleteCmd) error {
 	return nil
 }
 
-func (s *DavSessionsService) DeleteAll(ctx context.Context, userID uuid.UUID) error {
+func (s *service) DeleteAll(ctx context.Context, userID uuid.UUID) error {
 	davSessions, err := s.GetAllForUser(ctx, userID, nil)
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to GetAllForUser: %w", err))

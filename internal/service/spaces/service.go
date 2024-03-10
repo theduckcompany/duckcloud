@@ -33,18 +33,18 @@ type Storage interface {
 	Patch(ctx context.Context, spaceID uuid.UUID, fields map[string]any) error
 }
 
-type SpaceService struct {
+type service struct {
 	storage   Storage
 	clock     clock.Clock
 	uuid      uuid.Service
 	scheduler scheduler.Service
 }
 
-func NewService(tools tools.Tools, storage Storage, scheduler scheduler.Service) *SpaceService {
-	return &SpaceService{storage, tools.Clock(), tools.UUID(), scheduler}
+func newService(tools tools.Tools, storage Storage, scheduler scheduler.Service) *service {
+	return &service{storage, tools.Clock(), tools.UUID(), scheduler}
 }
 
-func (s *SpaceService) GetAllSpaces(ctx context.Context, user *users.User, cmd *storage.PaginateCmd) ([]Space, error) {
+func (s *service) GetAllSpaces(ctx context.Context, user *users.User, cmd *storage.PaginateCmd) ([]Space, error) {
 	if !user.IsAdmin() {
 		return nil, errs.ErrUnauthorized
 	}
@@ -52,7 +52,7 @@ func (s *SpaceService) GetAllSpaces(ctx context.Context, user *users.User, cmd *
 	return s.storage.GetAllSpaces(ctx, cmd)
 }
 
-func (s *SpaceService) Create(ctx context.Context, cmd *CreateCmd) (*Space, error) {
+func (s *service) Create(ctx context.Context, cmd *CreateCmd) (*Space, error) {
 	err := cmd.Validate()
 	if err != nil {
 		return nil, errs.Validation(err)
@@ -90,7 +90,7 @@ func (s *SpaceService) Create(ctx context.Context, cmd *CreateCmd) (*Space, erro
 	return &space, nil
 }
 
-func (s *SpaceService) Delete(ctx context.Context, user *users.User, spaceID uuid.UUID) error {
+func (s *service) Delete(ctx context.Context, user *users.User, spaceID uuid.UUID) error {
 	if !user.IsAdmin() {
 		return errs.Unauthorized(fmt.Errorf("%q is not an admin", user.Username()))
 	}
@@ -103,7 +103,7 @@ func (s *SpaceService) Delete(ctx context.Context, user *users.User, spaceID uui
 	return nil
 }
 
-func (s *SpaceService) GetByID(ctx context.Context, spaceID uuid.UUID) (*Space, error) {
+func (s *service) GetByID(ctx context.Context, spaceID uuid.UUID) (*Space, error) {
 	res, err := s.storage.GetByID(ctx, spaceID)
 	if errors.Is(err, errNotFound) {
 		return nil, errs.NotFound(err)
@@ -115,7 +115,7 @@ func (s *SpaceService) GetByID(ctx context.Context, spaceID uuid.UUID) (*Space, 
 	return res, nil
 }
 
-func (s *SpaceService) GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Space, error) {
+func (s *service) GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Space, error) {
 	res, err := s.storage.GetAllUserSpaces(ctx, userID, cmd)
 	if err != nil {
 		return nil, errs.Internal(err)
@@ -124,7 +124,7 @@ func (s *SpaceService) GetAllUserSpaces(ctx context.Context, userID uuid.UUID, c
 	return res, nil
 }
 
-func (s *SpaceService) GetUserSpace(ctx context.Context, userID, spaceID uuid.UUID) (*Space, error) {
+func (s *service) GetUserSpace(ctx context.Context, userID, spaceID uuid.UUID) (*Space, error) {
 	space, err := s.storage.GetByID(ctx, spaceID)
 	if errors.Is(err, errNotFound) {
 		return nil, errs.NotFound(err)
@@ -141,7 +141,7 @@ func (s *SpaceService) GetUserSpace(ctx context.Context, userID, spaceID uuid.UU
 	return space, nil
 }
 
-func (s *SpaceService) AddOwner(ctx context.Context, cmd *AddOwnerCmd) (*Space, error) {
+func (s *service) AddOwner(ctx context.Context, cmd *AddOwnerCmd) (*Space, error) {
 	if !cmd.User.IsAdmin() {
 		return nil, errs.ErrUnauthorized
 	}
@@ -166,7 +166,7 @@ func (s *SpaceService) AddOwner(ctx context.Context, cmd *AddOwnerCmd) (*Space, 
 	return space, nil
 }
 
-func (s *SpaceService) RemoveOwner(ctx context.Context, cmd *RemoveOwnerCmd) (*Space, error) {
+func (s *service) RemoveOwner(ctx context.Context, cmd *RemoveOwnerCmd) (*Space, error) {
 	// Anyone can remove itself from a space but only the admin can remove an another user.
 	if !cmd.User.IsAdmin() && cmd.User != cmd.Owner {
 		return nil, errs.ErrUnauthorized
@@ -193,7 +193,7 @@ func (s *SpaceService) RemoveOwner(ctx context.Context, cmd *RemoveOwnerCmd) (*S
 	return space, nil
 }
 
-func (s *SpaceService) Bootstrap(ctx context.Context, user *users.User) error {
+func (s *service) Bootstrap(ctx context.Context, user *users.User) error {
 	res, err := s.storage.GetAllSpaces(ctx, &storage.PaginateCmd{Limit: 1})
 	if err != nil {
 		return fmt.Errorf("faile to get all the spaces: %w", err)
