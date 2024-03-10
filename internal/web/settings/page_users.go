@@ -72,10 +72,10 @@ func (h *UsersPage) createUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err := h.users.Create(r.Context(), &users.CreateCmd{
-		User:     user,
-		Username: r.FormValue("username"),
-		Password: secret.NewText(r.FormValue("password")),
-		IsAdmin:  r.FormValue("role") == "admin",
+		CreatedBy: user,
+		Username:  r.FormValue("username"),
+		Password:  secret.NewText(r.FormValue("password")),
+		IsAdmin:   r.FormValue("role") == "admin",
 	})
 	if errors.Is(err, errs.ErrValidation) {
 		h.renderUsersRegistrationForm(w, r, err)
