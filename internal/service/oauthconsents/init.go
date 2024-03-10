@@ -8,7 +8,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/oauthclients"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -17,7 +17,7 @@ type Service interface {
 	Create(ctx context.Context, cmd *CreateCmd) (*Consent, error)
 	Check(r *http.Request, client *oauthclients.Client, session *websessions.Session) error
 	Delete(ctx context.Context, consentID uuid.UUID) error
-	GetAll(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Consent, error)
+	GetAll(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Consent, error)
 	DeleteAll(ctx context.Context, userID uuid.UUID) error
 }
 

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 )
 
 func TestOauthCodeSQLStorage(t *testing.T) {
@@ -27,7 +27,7 @@ func TestOauthCodeSQLStorage(t *testing.T) {
 		challengeMethod: "plain",
 	}
 
-	db := storage.NewTestStorage(t)
+	db := sqlstorage.NewTestStorage(t)
 	storage := newSqlStorage(db)
 
 	t.Run("save", func(t *testing.T) {

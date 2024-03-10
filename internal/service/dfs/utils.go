@@ -8,7 +8,7 @@ import (
 	"path"
 
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 )
 
 const WalkBatchSize = 100
@@ -37,7 +37,7 @@ func Walk(ctx context.Context, ffs Service, cmd *PathCmd, fn WalkDirFunc) error 
 
 	lastOffset := ""
 	for {
-		dirContent, err := ffs.ListDir(ctx, cmd, &storage.PaginateCmd{
+		dirContent, err := ffs.ListDir(ctx, cmd, &sqlstorage.PaginateCmd{
 			StartAfter: map[string]string{"name": lastOffset},
 			Limit:      WalkBatchSize,
 		})

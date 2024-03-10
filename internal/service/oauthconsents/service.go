@@ -12,7 +12,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -23,7 +23,7 @@ type Storage interface {
 	Save(ctx context.Context, consent *Consent) error
 	GetByID(ctx context.Context, id uuid.UUID) (*Consent, error)
 	Delete(ctx context.Context, consentID uuid.UUID) error
-	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Consent, error)
+	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Consent, error)
 }
 
 type OauthConsentsService struct {
@@ -86,7 +86,7 @@ func (s *OauthConsentsService) Check(r *http.Request, client *oauthclients.Clien
 	return nil
 }
 
-func (s *OauthConsentsService) GetAll(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Consent, error) {
+func (s *OauthConsentsService) GetAll(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Consent, error) {
 	res, err := s.storage.GetAllForUser(ctx, userID, cmd)
 	if err != nil {
 		return nil, errs.Internal(err)

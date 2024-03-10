@@ -14,29 +14,29 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
-type Oauth2Service struct {
+type service struct {
 	m *manage.Manager
 }
 
-func NewService(
+func newService(
 	tools tools.Tools,
 	code oauthcodes.Service,
 	oauthSession oauthsessions.Service,
 	clients oauthclients.Service,
-) *Oauth2Service {
+) *service {
 	manager := manage.NewDefaultManager()
 	manager.SetAuthorizeCodeTokenCfg(manage.DefaultAuthorizeCodeTokenCfg)
 	manager.MapTokenStorage(&tokenStorage{tools.UUID(), code, oauthSession})
 	manager.MapClientStorage(&clientStorage{client: clients})
 
-	return &Oauth2Service{}
+	return &service{}
 }
 
-func (s *Oauth2Service) manager() *manage.Manager {
+func (s *service) manager() *manage.Manager {
 	return s.m
 }
 
-func (s *Oauth2Service) GetFromReq(r *http.Request) (*Token, error) {
+func (s *service) GetFromReq(r *http.Request) (*Token, error) {
 	accessToken, ok := s.bearerAuth(r)
 	if !ok {
 		return nil, oautherrors.ErrInvalidAccessToken
@@ -56,7 +56,7 @@ func (s *Oauth2Service) GetFromReq(r *http.Request) (*Token, error) {
 	}, nil
 }
 
-func (s *Oauth2Service) bearerAuth(r *http.Request) (string, bool) {
+func (s *service) bearerAuth(r *http.Request) (string, bool) {
 	auth := r.Header.Get("Authorization")
 	prefix := "Bearer "
 	token := ""

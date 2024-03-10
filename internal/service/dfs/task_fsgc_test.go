@@ -14,7 +14,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 )
 
 func TestFSGC(t *testing.T) {
@@ -70,7 +70,7 @@ func TestFSGC(t *testing.T) {
 		storageMock.On("GetAllDeleted", mock.Anything, 10).Return([]INode{ExampleAliceRoot}, nil).Once()
 
 		// This is a dir we will delete all its content
-		storageMock.On("GetAllChildrens", mock.Anything, ExampleAliceRoot.ID(), &storage.PaginateCmd{Limit: 10}).Return([]INode{ExampleAliceFile}, nil).Once()
+		storageMock.On("GetAllChildrens", mock.Anything, ExampleAliceRoot.ID(), &sqlstorage.PaginateCmd{Limit: 10}).Return([]INode{ExampleAliceFile}, nil).Once()
 
 		// We remove the file content and inode
 		tools.ClockMock.On("Now").Return(now)
@@ -97,7 +97,7 @@ func TestFSGC(t *testing.T) {
 		storageMock.On("GetAllDeleted", mock.Anything, 10).Return([]INode{ExampleAliceDir}, nil).Once()
 
 		// This is a dir we will delete all its content
-		storageMock.On("GetAllChildrens", mock.Anything, ExampleAliceDir.ID(), &storage.PaginateCmd{Limit: 10}).Return([]INode{ExampleAliceFile}, nil).Once()
+		storageMock.On("GetAllChildrens", mock.Anything, ExampleAliceDir.ID(), &sqlstorage.PaginateCmd{Limit: 10}).Return([]INode{ExampleAliceFile}, nil).Once()
 
 		// We remove the file content and inode
 		tools.ClockMock.On("Now").Return(now)
@@ -174,7 +174,7 @@ func TestFSGC(t *testing.T) {
 		tools.ClockMock.On("Now").Return(now).Once()
 
 		// This is a dir we will delete all its content
-		storageMock.On("GetAllChildrens", mock.Anything, ExampleAliceRoot.ID(), &storage.PaginateCmd{Limit: 10}).Return(nil, fmt.Errorf("some-error")).Once()
+		storageMock.On("GetAllChildrens", mock.Anything, ExampleAliceRoot.ID(), &sqlstorage.PaginateCmd{Limit: 10}).Return(nil, fmt.Errorf("some-error")).Once()
 
 		err := job.RunArgs(ctx, &scheduler.FSGCArgs{})
 		require.EqualError(t, err, "failed to delete inode \"f5c0d3d2-e1b9-492b-b5d4-bd64bde0128f\": failed to Readdir: some-error")

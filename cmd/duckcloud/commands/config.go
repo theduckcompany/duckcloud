@@ -27,7 +27,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/response"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 )
 
@@ -126,7 +126,7 @@ func NewConfigFromCmd(cmd *cobra.Command) (server.Config, error) {
 			KeyFile:   cfg.TLSKey,
 			HostNames: cfg.HTTPHostnames,
 		},
-		Storage: storage.Config{
+		Storage: sqlstorage.Config{
 			Path: storagePath,
 		},
 		Assets: assets.Config{

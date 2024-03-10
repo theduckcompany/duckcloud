@@ -7,8 +7,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 	secret "github.com/theduckcompany/duckcloud/internal/tools/secret"
-
-	storage "github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -111,15 +110,15 @@ func (_m *MockService) Create(ctx context.Context, user *CreateCmd) (*User, erro
 }
 
 // GetAll provides a mock function with given fields: ctx, paginateCmd
-func (_m *MockService) GetAll(ctx context.Context, paginateCmd *storage.PaginateCmd) ([]User, error) {
+func (_m *MockService) GetAll(ctx context.Context, paginateCmd *sqlstorage.PaginateCmd) ([]User, error) {
 	ret := _m.Called(ctx, paginateCmd)
 
 	var r0 []User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *storage.PaginateCmd) ([]User, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *sqlstorage.PaginateCmd) ([]User, error)); ok {
 		return rf(ctx, paginateCmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *storage.PaginateCmd) []User); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *sqlstorage.PaginateCmd) []User); ok {
 		r0 = rf(ctx, paginateCmd)
 	} else {
 		if ret.Get(0) != nil {
@@ -127,7 +126,7 @@ func (_m *MockService) GetAll(ctx context.Context, paginateCmd *storage.Paginate
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *storage.PaginateCmd) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *sqlstorage.PaginateCmd) error); ok {
 		r1 = rf(ctx, paginateCmd)
 	} else {
 		r1 = ret.Error(1)
@@ -137,15 +136,15 @@ func (_m *MockService) GetAll(ctx context.Context, paginateCmd *storage.Paginate
 }
 
 // GetAllWithStatus provides a mock function with given fields: ctx, status, cmd
-func (_m *MockService) GetAllWithStatus(ctx context.Context, status Status, cmd *storage.PaginateCmd) ([]User, error) {
+func (_m *MockService) GetAllWithStatus(ctx context.Context, status Status, cmd *sqlstorage.PaginateCmd) ([]User, error) {
 	ret := _m.Called(ctx, status, cmd)
 
 	var r0 []User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, Status, *storage.PaginateCmd) ([]User, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, Status, *sqlstorage.PaginateCmd) ([]User, error)); ok {
 		return rf(ctx, status, cmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, Status, *storage.PaginateCmd) []User); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, Status, *sqlstorage.PaginateCmd) []User); ok {
 		r0 = rf(ctx, status, cmd)
 	} else {
 		if ret.Get(0) != nil {
@@ -153,7 +152,7 @@ func (_m *MockService) GetAllWithStatus(ctx context.Context, status Status, cmd 
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, Status, *storage.PaginateCmd) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, Status, *sqlstorage.PaginateCmd) error); ok {
 		r1 = rf(ctx, status, cmd)
 	} else {
 		r1 = ret.Error(1)

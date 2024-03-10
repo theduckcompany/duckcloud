@@ -8,7 +8,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -32,7 +32,7 @@ func (s *sqlStorage) Save(ctx context.Context, meta *FileMeta) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(allFields...).
-		Values(meta.id, meta.size, meta.mimetype, meta.checksum, meta.key, ptr.To(storage.SQLTime(meta.uploadedAt))).
+		Values(meta.id, meta.size, meta.mimetype, meta.checksum, meta.key, ptr.To(sqlstorage.SQLTime(meta.uploadedAt))).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -73,7 +73,7 @@ func (s *sqlStorage) getByKeys(ctx context.Context, wheres ...any) (*FileMeta, e
 	}
 
 	var res FileMeta
-	var sqlUploadedAt storage.SQLTime
+	var sqlUploadedAt sqlstorage.SQLTime
 
 	err := query.
 		RunWith(s.db).

@@ -9,7 +9,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -33,7 +33,7 @@ func (s *sqlStorage) Save(ctx context.Context, consent *Consent) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(allFields...).
-		Values(consent.id, consent.userID, consent.clientID, scopes, consent.sessionToken, ptr.To(storage.SQLTime(consent.createdAt))).
+		Values(consent.id, consent.userID, consent.clientID, scopes, consent.sessionToken, ptr.To(sqlstorage.SQLTime(consent.createdAt))).
 		RunWith(s.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -48,7 +48,7 @@ func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*Consent, error
 
 	var rawScopes string
 
-	var sqlCreatedAt storage.SQLTime
+	var sqlCreatedAt sqlstorage.SQLTime
 	err := sq.
 		Select(allFields...).
 		From(tableName).
@@ -69,8 +69,8 @@ func (s *sqlStorage) GetByID(ctx context.Context, id uuid.UUID) (*Consent, error
 	return &res, nil
 }
 
-func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Consent, error) {
-	rows, err := storage.PaginateSelection(sq.
+func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Consent, error) {
+	rows, err := sqlstorage.PaginateSelection(sq.
 		Select(allFields...).
 		Where(sq.Eq{"user_id": string(userID)}).
 		From(tableName), cmd).
@@ -105,7 +105,7 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]Consent, error) {
 		var res Consent
 
 		var rawScopes string
-		var sqlCreatedAt storage.SQLTime
+		var sqlCreatedAt sqlstorage.SQLTime
 
 		err := rows.Scan(&res.id, &res.userID, &res.clientID, &rawScopes, &res.sessionToken, &sqlCreatedAt)
 		if err != nil {

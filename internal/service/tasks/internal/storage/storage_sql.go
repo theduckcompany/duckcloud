@@ -10,7 +10,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/model"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -53,7 +53,7 @@ func (s *sqlStorage) Save(ctx context.Context, task *model.Task) error {
 			task.Name,
 			task.Status,
 			task.Retries,
-			ptr.To(storage.SQLTime(task.RegisteredAt)),
+			ptr.To(sqlstorage.SQLTime(task.RegisteredAt)),
 			rawArgs,
 		).
 		RunWith(s.db).
@@ -68,7 +68,7 @@ func (s *sqlStorage) Save(ctx context.Context, task *model.Task) error {
 func (s *sqlStorage) GetLastRegisteredTask(ctx context.Context, name string) (*model.Task, error) {
 	var res model.Task
 	var rawArgs json.RawMessage
-	var sqlRegisteredAt storage.SQLTime
+	var sqlRegisteredAt sqlstorage.SQLTime
 
 	err := sq.
 		Select(allFields...).
@@ -155,7 +155,7 @@ func (s *sqlStorage) Delete(ctx context.Context, taskID uuid.UUID) error {
 func (s *sqlStorage) scanRow(row sq.RowScanner) (*model.Task, error) {
 	var res model.Task
 	var rawArgs json.RawMessage
-	var sqlRegisteredAt storage.SQLTime
+	var sqlRegisteredAt sqlstorage.SQLTime
 
 	err := row.Scan(
 		&res.ID,

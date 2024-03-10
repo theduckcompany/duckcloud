@@ -34,7 +34,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/cron"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/web"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/browser"
@@ -50,7 +50,7 @@ type Config struct {
 	fx.Out
 	Tools    tools.Config
 	FS       afero.Fs
-	Storage  storage.Config
+	Storage  sqlstorage.Config
 	Folder   Folder
 	Listener router.Config
 	HTML     html.Config
@@ -97,7 +97,7 @@ func start(ctx context.Context, cfg Config, invoke fx.Option) *fx.App {
 			// Tools
 			fx.Annotate(tools.NewToolbox, fx.As(new(tools.Tools))),
 			fx.Annotate(html.NewRenderer, fx.As(new(html.Writer))),
-			storage.Init,
+			sqlstorage.Init,
 			auth.NewAuthenticator,
 
 			// Services

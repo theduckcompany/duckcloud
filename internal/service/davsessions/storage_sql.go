@@ -9,7 +9,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -31,7 +31,7 @@ func (t *sqlStorage) Save(ctx context.Context, session *DavSession) error {
 	_, err := sq.
 		Insert(tableName).
 		Columns(allFields...).
-		Values(session.id, session.username, session.name, session.password, session.userID, session.spaceID, ptr.To(storage.SQLTime(session.createdAt))).
+		Values(session.id, session.username, session.name, session.password, session.userID, session.spaceID, ptr.To(sqlstorage.SQLTime(session.createdAt))).
 		RunWith(t.db).
 		ExecContext(ctx)
 	if err != nil {
@@ -43,7 +43,7 @@ func (t *sqlStorage) Save(ctx context.Context, session *DavSession) error {
 
 func (t *sqlStorage) GetByID(ctx context.Context, sessionID uuid.UUID) (*DavSession, error) {
 	var res DavSession
-	var sqlCreatedAt storage.SQLTime
+	var sqlCreatedAt sqlstorage.SQLTime
 
 	err := sq.
 		Select(allFields...).
@@ -79,7 +79,7 @@ func (t *sqlStorage) RemoveByID(ctx context.Context, sessionID uuid.UUID) error 
 
 func (t *sqlStorage) GetByUsernameAndPassword(ctx context.Context, username string, password secret.Text) (*DavSession, error) {
 	var res DavSession
-	var sqlCreatedAt storage.SQLTime
+	var sqlCreatedAt sqlstorage.SQLTime
 
 	err := sq.
 		Select(allFields...).
@@ -100,8 +100,8 @@ func (t *sqlStorage) GetByUsernameAndPassword(ctx context.Context, username stri
 	return &res, nil
 }
 
-func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]DavSession, error) {
-	rows, err := storage.PaginateSelection(sq.
+func (s *sqlStorage) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]DavSession, error) {
+	rows, err := sqlstorage.PaginateSelection(sq.
 		Select(allFields...).
 		Where(sq.Eq{"user_id": string(userID)}).
 		From(tableName), cmd).
@@ -121,7 +121,7 @@ func (s *sqlStorage) scanRows(rows *sql.Rows) ([]DavSession, error) {
 
 	for rows.Next() {
 		var res DavSession
-		var sqlCreatedAt storage.SQLTime
+		var sqlCreatedAt sqlstorage.SQLTime
 
 		err := rows.Scan(&res.id, &res.username, &res.name, &res.password, &res.userID, &res.spaceID, &sqlCreatedAt)
 		if err != nil {

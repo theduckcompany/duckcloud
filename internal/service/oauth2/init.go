@@ -21,6 +21,6 @@ func Init(
 	code oauthcodes.Service,
 	oauthSession oauthsessions.Service,
 	clients oauthclients.Service,
-) *Oauth2Service {
-	return NewService(tools, code, oauthSession, clients)
+) *service {
+	return newService(tools, code, oauthSession, clients)
 }

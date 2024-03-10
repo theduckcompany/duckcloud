@@ -16,7 +16,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
@@ -44,7 +44,7 @@ func Test_MoveModalHandler(t *testing.T) {
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		fsMock.On("ListDir", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar/"),
-			&storage.PaginateCmd{StartAfter: map[string]string{"name": ""}, Limit: PageSize}).
+			&sqlstorage.PaginateCmd{StartAfter: map[string]string{"name": ""}, Limit: PageSize}).
 			Return([]dfs.INode{dfs.ExampleAliceFile2}, nil).Once()
 
 		fsMock.On("Get", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/file.jpg")).
@@ -91,7 +91,7 @@ func Test_MoveModalHandler(t *testing.T) {
 			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
 
 		fsMock.On("ListDir", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar/"),
-			&storage.PaginateCmd{StartAfter: map[string]string{"name": "some-file-name.jpg"}, Limit: PageSize}).
+			&sqlstorage.PaginateCmd{StartAfter: map[string]string{"name": "some-file-name.jpg"}, Limit: PageSize}).
 			Return([]dfs.INode{dfs.ExampleAliceFile2}, nil).Once()
 
 		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &browser.MoveRowsTemplate{
@@ -290,7 +290,7 @@ func Test_MoveModalHandler(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "/browser/move", nil)
 
 		fsMock.On("ListDir", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar/"),
-			&storage.PaginateCmd{StartAfter: map[string]string{"name": ""}, Limit: PageSize}).
+			&sqlstorage.PaginateCmd{StartAfter: map[string]string{"name": ""}, Limit: PageSize}).
 			Return([]dfs.INode{dfs.ExampleAliceFile2}, nil).Once()
 
 		fsMock.On("Get", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/file.jpg")).
@@ -328,7 +328,7 @@ func Test_MoveModalHandler(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "/browser/move", nil)
 
 		fsMock.On("ListDir", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar/"),
-			&storage.PaginateCmd{StartAfter: map[string]string{"name": ""}, Limit: PageSize}).
+			&sqlstorage.PaginateCmd{StartAfter: map[string]string{"name": ""}, Limit: PageSize}).
 			Return(nil, errs.ErrInternal).Once()
 
 		htmlMock.On("WriteHTMLErrorPage", w, r, fmt.Errorf("failed to list dir for elem /bar: %w", errs.ErrInternal))
@@ -357,7 +357,7 @@ func Test_MoveModalHandler(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "/browser/move", nil)
 
 		fsMock.On("ListDir", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar/"),
-			&storage.PaginateCmd{StartAfter: map[string]string{"name": ""}, Limit: PageSize}).
+			&sqlstorage.PaginateCmd{StartAfter: map[string]string{"name": ""}, Limit: PageSize}).
 			Return([]dfs.INode{dfs.ExampleAliceFile2}, nil).Once()
 
 		fsMock.On("Get", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/file.jpg")).
@@ -389,7 +389,7 @@ func Test_MoveModalHandler(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "/browser/move", nil)
 
 		fsMock.On("ListDir", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar/"),
-			&storage.PaginateCmd{StartAfter: map[string]string{"name": "some-file-name.jpg"}, Limit: PageSize}).
+			&sqlstorage.PaginateCmd{StartAfter: map[string]string{"name": "some-file-name.jpg"}, Limit: PageSize}).
 			Return(nil, errs.ErrInternal).Once()
 
 		htmlMock.On("WriteHTMLErrorPage", w, r, fmt.Errorf("failed to ListDir: %w", errs.ErrInternal))
@@ -514,7 +514,7 @@ func Test_MoveModalHandler(t *testing.T) {
 		}).Return(errs.ErrValidation).Once()
 
 		fsMock.On("ListDir", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/bar/"),
-			&storage.PaginateCmd{StartAfter: map[string]string{"name": ""}, Limit: PageSize}).
+			&sqlstorage.PaginateCmd{StartAfter: map[string]string{"name": ""}, Limit: PageSize}).
 			Return([]dfs.INode{dfs.ExampleAliceFile2}, nil).Once()
 
 		fsMock.On("Get", mock.Anything, dfs.NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/foo/file.jpg")).

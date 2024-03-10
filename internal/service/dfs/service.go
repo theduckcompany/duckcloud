@@ -16,7 +16,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -39,7 +39,7 @@ type Storage interface {
 	Save(ctx context.Context, dir *INode) error
 	GetByID(ctx context.Context, id uuid.UUID) (*INode, error)
 	GetByNameAndParent(ctx context.Context, name string, parent uuid.UUID) (*INode, error)
-	GetAllChildrens(ctx context.Context, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error)
+	GetAllChildrens(ctx context.Context, parent uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]INode, error)
 	HardDelete(ctx context.Context, id uuid.UUID) error
 	GetAllDeleted(ctx context.Context, limit int) ([]INode, error)
 	GetDeleted(ctx context.Context, id uuid.UUID) (*INode, error)
@@ -50,7 +50,7 @@ type Storage interface {
 	GetSumRootsSize(ctx context.Context) (uint64, error)
 }
 
-type DFSService struct {
+type service struct {
 	storage   Storage
 	files     files.Service
 	spaces    spaces.Service
@@ -59,17 +59,17 @@ type DFSService struct {
 	uuid      uuid.Service
 }
 
-func NewService(
+func newService(
 	storage Storage,
 	files files.Service,
 	spaces spaces.Service,
 	tasks scheduler.Service,
 	tools tools.Tools,
-) *DFSService {
-	return &DFSService{storage, files, spaces, tasks, tools.Clock(), tools.UUID()}
+) *service {
+	return &service{storage, files, spaces, tasks, tools.Clock(), tools.UUID()}
 }
 
-func (s *DFSService) Destroy(ctx context.Context, user *users.User, space *spaces.Space) error {
+func (s *service) Destroy(ctx context.Context, user *users.User, space *spaces.Space) error {
 	if !user.IsAdmin() {
 		return errs.Unauthorized(fmt.Errorf("%q is not an admin", user.Username()))
 	}
@@ -85,7 +85,7 @@ func (s *DFSService) Destroy(ctx context.Context, user *users.User, space *space
 	return s.removeINode(ctx, rootFS)
 }
 
-func (s *DFSService) CreateFS(ctx context.Context, user *users.User, space *spaces.Space) (*INode, error) {
+func (s *service) CreateFS(ctx context.Context, user *users.User, space *spaces.Space) (*INode, error) {
 	now := s.clock.Now()
 	fsRoot := INode{
 		id:             s.uuid.New(),
@@ -106,7 +106,7 @@ func (s *DFSService) CreateFS(ctx context.Context, user *users.User, space *spac
 	return &fsRoot, nil
 }
 
-func (s *DFSService) ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *storage.PaginateCmd) ([]INode, error) {
+func (s *service) ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *sqlstorage.PaginateCmd) ([]INode, error) {
 	dir, err := s.Get(ctx, cmd)
 	if errors.Is(err, errs.ErrNotFound) {
 		return nil, errs.NotFound(err)
@@ -127,7 +127,7 @@ func (s *DFSService) ListDir(ctx context.Context, cmd *PathCmd, paginateCmd *sto
 	return res, nil
 }
 
-func (s *DFSService) Rename(ctx context.Context, inode *INode, newName string) (*INode, error) {
+func (s *service) Rename(ctx context.Context, inode *INode, newName string) (*INode, error) {
 	if newName == "" {
 		return nil, errs.Validation(errors.New("can't be empty"))
 	}
@@ -145,7 +145,7 @@ func (s *DFSService) Rename(ctx context.Context, inode *INode, newName string) (
 
 	err = s.storage.Patch(ctx, inode.ID(), map[string]any{
 		"name":             newName,
-		"last_modified_at": storage.SQLTime(now),
+		"last_modified_at": sqlstorage.SQLTime(now),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to Patch: %w", err)
@@ -154,7 +154,7 @@ func (s *DFSService) Rename(ctx context.Context, inode *INode, newName string) (
 	return &newINode, err
 }
 
-func (s *DFSService) findUniqueName(ctx context.Context, inode *INode, newName string) (string, error) {
+func (s *service) findUniqueName(ctx context.Context, inode *INode, newName string) (string, error) {
 	if inode.Parent() == nil {
 		return "", errs.Validation(errors.New("can't rename the root"))
 	}
@@ -181,7 +181,7 @@ func (s *DFSService) findUniqueName(ctx context.Context, inode *INode, newName s
 	}
 }
 
-func (s *DFSService) CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, error) {
+func (s *service) CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, error) {
 	err := cmd.Validate()
 	if err != nil {
 		return nil, errs.Validation(err)
@@ -229,7 +229,7 @@ func (s *DFSService) CreateDir(ctx context.Context, cmd *CreateDirCmd) (*INode, 
 	return inode, nil
 }
 
-func (s *DFSService) Remove(ctx context.Context, cmd *PathCmd) error {
+func (s *service) Remove(ctx context.Context, cmd *PathCmd) error {
 	if cmd.Path() == "/" {
 		return fmt.Errorf("%w: can't remove /", errs.ErrUnauthorized)
 	}
@@ -245,11 +245,11 @@ func (s *DFSService) Remove(ctx context.Context, cmd *PathCmd) error {
 	return s.removeINode(ctx, inode)
 }
 
-func (s *DFSService) removeINode(ctx context.Context, inode *INode) error {
+func (s *service) removeINode(ctx context.Context, inode *INode) error {
 	now := s.clock.Now()
 	err := s.storage.Patch(ctx, inode.ID(), map[string]any{
-		"deleted_at":       storage.SQLTime(now),
-		"last_modified_at": storage.SQLTime(now),
+		"deleted_at":       sqlstorage.SQLTime(now),
+		"last_modified_at": sqlstorage.SQLTime(now),
 	})
 	if err != nil {
 		return errs.Internal(fmt.Errorf("failed to Patch: %w", err))
@@ -258,7 +258,7 @@ func (s *DFSService) removeINode(ctx context.Context, inode *INode) error {
 	return nil
 }
 
-func (s *DFSService) Move(ctx context.Context, cmd *MoveCmd) error {
+func (s *service) Move(ctx context.Context, cmd *MoveCmd) error {
 	err := cmd.Validate()
 	if err != nil {
 		return errs.Validation(err)
@@ -287,7 +287,7 @@ func (s *DFSService) Move(ctx context.Context, cmd *MoveCmd) error {
 	return nil
 }
 
-func (s *DFSService) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
+func (s *service) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	err := cmd.Validate()
 	if err != nil {
 		return nil, errs.Validation(err)
@@ -325,7 +325,7 @@ func (s *DFSService) Get(ctx context.Context, cmd *PathCmd) (*INode, error) {
 	return inode, nil
 }
 
-func (s *DFSService) Download(ctx context.Context, cmd *PathCmd) (io.ReadSeekCloser, error) {
+func (s *service) Download(ctx context.Context, cmd *PathCmd) (io.ReadSeekCloser, error) {
 	inode, err := s.Get(ctx, cmd)
 	if err != nil {
 		return nil, fmt.Errorf("failed to Get: %w", err)
@@ -349,7 +349,7 @@ func (s *DFSService) Download(ctx context.Context, cmd *PathCmd) (io.ReadSeekClo
 	return fileReader, nil
 }
 
-func (s *DFSService) Upload(ctx context.Context, cmd *UploadCmd) error {
+func (s *service) Upload(ctx context.Context, cmd *UploadCmd) error {
 	err := cmd.Validate()
 	if err != nil {
 		return errs.Validation(err)
@@ -400,7 +400,7 @@ func (s *DFSService) Upload(ctx context.Context, cmd *UploadCmd) error {
 	return nil
 }
 
-func (s *DFSService) createDir(ctx context.Context, createdBy *users.User, parent *INode, name string) (*INode, error) {
+func (s *service) createDir(ctx context.Context, createdBy *users.User, parent *INode, name string) (*INode, error) {
 	if !parent.IsDir() {
 		return nil, errs.BadRequest(ErrIsNotDir)
 	}
@@ -447,7 +447,7 @@ func (s *DFSService) createDir(ctx context.Context, createdBy *users.User, paren
 //
 // The frag argument will be empty only if dir is the root node and the walk
 // ends at that root node.
-func (s *DFSService) walk(ctx context.Context, cmd *PathCmd, op string, f func(dir *INode, frag string, final bool) error) error {
+func (s *service) walk(ctx context.Context, cmd *PathCmd, op string, f func(dir *INode, frag string, final bool) error) error {
 	fullname := cmd.Path()
 
 	// Strip any leading "/"s to make fullname a relative path, as the walk

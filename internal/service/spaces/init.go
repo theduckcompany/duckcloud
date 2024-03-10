@@ -7,7 +7,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -15,8 +15,8 @@ import (
 type Service interface {
 	Bootstrap(ctx context.Context, user *users.User) error
 	Create(ctx context.Context, cmd *CreateCmd) (*Space, error)
-	GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Space, error)
-	GetAllSpaces(ctx context.Context, user *users.User, cmd *storage.PaginateCmd) ([]Space, error)
+	GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Space, error)
+	GetAllSpaces(ctx context.Context, user *users.User, cmd *sqlstorage.PaginateCmd) ([]Space, error)
 	GetUserSpace(ctx context.Context, userID, spaceID uuid.UUID) (*Space, error)
 	GetByID(ctx context.Context, spaceID uuid.UUID) (*Space, error)
 	AddOwner(ctx context.Context, cmd *AddOwnerCmd) (*Space, error)
@@ -27,5 +27,5 @@ type Service interface {
 func Init(tools tools.Tools, db *sql.DB, scheduler scheduler.Service) Service {
 	storage := newSqlStorage(db, tools)
 
-	return NewService(tools, storage, scheduler)
+	return newService(tools, storage, scheduler)
 }

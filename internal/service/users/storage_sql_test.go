@@ -7,18 +7,18 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/tools"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 )
 
 func TestUserSqlStorage(t *testing.T) {
 	ctx := context.Background()
 
 	tools := tools.NewMock(t)
-	db := storage.NewTestStorage(t)
+	db := sqlstorage.NewTestStorage(t)
 	store := newSqlStorage(db, tools)
 
 	t.Run("GetAll with nothing", func(t *testing.T) {
-		res, err := store.GetAll(ctx, &storage.PaginateCmd{Limit: 10})
+		res, err := store.GetAll(ctx, &sqlstorage.PaginateCmd{Limit: 10})
 
 		require.NoError(t, err)
 		assert.Empty(t, res)
@@ -84,7 +84,7 @@ func TestUserSqlStorage(t *testing.T) {
 	})
 
 	t.Run("GetAll success", func(t *testing.T) {
-		res, err := store.GetAll(ctx, &storage.PaginateCmd{Limit: 10})
+		res, err := store.GetAll(ctx, &sqlstorage.PaginateCmd{Limit: 10})
 
 		require.NoError(t, err)
 		assert.Equal(t, []User{ExampleAlice}, res)

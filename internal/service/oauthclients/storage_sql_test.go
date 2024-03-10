@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 )
 
 func TestOauthClientsSQLStorage(t *testing.T) {
@@ -25,7 +25,7 @@ func TestOauthClientsSQLStorage(t *testing.T) {
 		skipValidation: true,
 	}
 
-	db := storage.NewTestStorage(t)
+	db := sqlstorage.NewTestStorage(t)
 
 	storage := newSqlStorage(db)
 

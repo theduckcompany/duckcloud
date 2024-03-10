@@ -18,7 +18,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
@@ -40,9 +40,9 @@ func Test_SpacesPage(t *testing.T) {
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
-		usersMock.On("GetAll", mock.Anything, (*storage.PaginateCmd)(nil)).
+		usersMock.On("GetAll", mock.Anything, (*sqlstorage.PaginateCmd)(nil)).
 			Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
-		spacesMock.On("GetAllSpaces", mock.Anything, &users.ExampleAlice, (*storage.PaginateCmd)(nil)).
+		spacesMock.On("GetAllSpaces", mock.Anything, &users.ExampleAlice, (*sqlstorage.PaginateCmd)(nil)).
 			Return([]spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleBobPersonalSpace}, nil).Once()
 
 		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &spacestmpl.ContentTemplate{
@@ -134,7 +134,7 @@ func Test_SpacesPage(t *testing.T) {
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
-		usersMock.On("GetAll", mock.Anything, (*storage.PaginateCmd)(nil)).Return(nil, errs.ErrInternal).Once()
+		usersMock.On("GetAll", mock.Anything, (*sqlstorage.PaginateCmd)(nil)).Return(nil, errs.ErrInternal).Once()
 
 		htmlMock.On("WriteHTMLErrorPage", mock.Anything, mock.Anything, fmt.Errorf("failed to GetAllUsers: %w", errs.ErrInternal))
 
@@ -160,9 +160,9 @@ func Test_SpacesPage(t *testing.T) {
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
 		// Render content
-		usersMock.On("GetAll", mock.Anything, (*storage.PaginateCmd)(nil)).
+		usersMock.On("GetAll", mock.Anything, (*sqlstorage.PaginateCmd)(nil)).
 			Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
-		spacesMock.On("GetAllSpaces", mock.Anything, &users.ExampleAlice, (*storage.PaginateCmd)(nil)).
+		spacesMock.On("GetAllSpaces", mock.Anything, &users.ExampleAlice, (*sqlstorage.PaginateCmd)(nil)).
 			Return(nil, errs.ErrInternal).Once()
 		htmlMock.On("WriteHTMLErrorPage", mock.Anything, mock.Anything, fmt.Errorf("failed to GetAllSpaces: %w", errs.ErrInternal))
 
@@ -191,9 +191,9 @@ func Test_SpacesPage(t *testing.T) {
 		spacesMock.On("Delete", mock.Anything, &users.ExampleAlice, uuid.UUID("some-id")).Return(nil).Once()
 
 		// Render content
-		usersMock.On("GetAll", mock.Anything, (*storage.PaginateCmd)(nil)).
+		usersMock.On("GetAll", mock.Anything, (*sqlstorage.PaginateCmd)(nil)).
 			Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
-		spacesMock.On("GetAllSpaces", mock.Anything, &users.ExampleAlice, (*storage.PaginateCmd)(nil)).
+		spacesMock.On("GetAllSpaces", mock.Anything, &users.ExampleAlice, (*sqlstorage.PaginateCmd)(nil)).
 			Return(nil, errs.ErrInternal).Once()
 		htmlMock.On("WriteHTMLErrorPage", mock.Anything, mock.Anything, fmt.Errorf("failed to GetAllSpaces: %w", errs.ErrInternal))
 
@@ -271,7 +271,7 @@ func Test_SpacesPage(t *testing.T) {
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
-		usersMock.On("GetAll", mock.Anything, (*storage.PaginateCmd)(nil)).
+		usersMock.On("GetAll", mock.Anything, (*sqlstorage.PaginateCmd)(nil)).
 			Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil)
 
 		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &spacestmpl.CreateSpaceModal{
@@ -328,7 +328,7 @@ func Test_SpacesPage(t *testing.T) {
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
-		usersMock.On("GetAll", mock.Anything, (*storage.PaginateCmd)(nil)).
+		usersMock.On("GetAll", mock.Anything, (*sqlstorage.PaginateCmd)(nil)).
 			Return(nil, errs.ErrBadRequest)
 
 		htmlMock.On("WriteHTMLErrorPage", mock.Anything, mock.Anything, fmt.Errorf("failed to Get all the users: %w", errs.ErrBadRequest))
@@ -363,9 +363,9 @@ func Test_SpacesPage(t *testing.T) {
 		}).Return(nil).Once()
 
 		// Render the page
-		usersMock.On("GetAll", mock.Anything, (*storage.PaginateCmd)(nil)).
+		usersMock.On("GetAll", mock.Anything, (*sqlstorage.PaginateCmd)(nil)).
 			Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
-		spacesMock.On("GetAllSpaces", mock.Anything, &users.ExampleAlice, (*storage.PaginateCmd)(nil)).
+		spacesMock.On("GetAllSpaces", mock.Anything, &users.ExampleAlice, (*sqlstorage.PaginateCmd)(nil)).
 			Return([]spaces.Space{spaces.ExampleAlicePersonalSpace, spaces.ExampleBobPersonalSpace}, nil).Once()
 
 		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &spacestmpl.ContentTemplate{

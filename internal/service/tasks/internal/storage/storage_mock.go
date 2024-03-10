@@ -140,7 +140,8 @@ func (_m *MockStorage) Save(ctx context.Context, task *model.Task) error {
 func NewMockStorage(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockStorage {
+},
+) *MockStorage {
 	mock := &MockStorage{}
 	mock.Mock.Test(t)
 

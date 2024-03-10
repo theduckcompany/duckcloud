@@ -8,7 +8,7 @@ import (
 
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -23,7 +23,7 @@ type Service interface {
 	GetByToken(ctx context.Context, token secret.Text) (*Session, error)
 	GetFromReq(r *http.Request) (*Session, error)
 	Logout(r *http.Request, w http.ResponseWriter) error
-	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error)
+	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Session, error)
 	Delete(ctx context.Context, cmd *DeleteCmd) error
 	DeleteAll(ctx context.Context, userID uuid.UUID) error
 }
@@ -31,5 +31,5 @@ type Service interface {
 func Init(tools tools.Tools, db *sql.DB) Service {
 	storage := newSQLStorage(db)
 
-	return NewService(storage, tools)
+	return newService(storage, tools)
 }

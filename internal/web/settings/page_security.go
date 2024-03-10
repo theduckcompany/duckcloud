@@ -14,7 +14,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
@@ -256,7 +256,7 @@ func (h *SecurityPage) renderSecurityPage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	davSessions, err := h.davSessions.GetAllForUser(ctx, cmd.User.ID(), &storage.PaginateCmd{Limit: 20})
+	davSessions, err := h.davSessions.GetAllForUser(ctx, cmd.User.ID(), &sqlstorage.PaginateCmd{Limit: 20})
 	if err != nil {
 		h.html.WriteHTMLErrorPage(w, r, fmt.Errorf("failed to davSessions.GetAllForUser: %w", err))
 		return

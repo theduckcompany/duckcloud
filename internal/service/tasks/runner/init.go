@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/storage"
+	sqlstorage "github.com/theduckcompany/duckcloud/internal/service/tasks/internal/storage"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 )
 
@@ -21,7 +21,7 @@ type TaskRunner interface {
 }
 
 func Init(runners []TaskRunner, tools tools.Tools, db *sql.DB) Service {
-	storage := storage.NewSqlStorage(db)
+	storage := sqlstorage.NewSqlStorage(db)
 
 	return NewService(tools, storage, runners)
 }

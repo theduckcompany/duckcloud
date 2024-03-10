@@ -1,4 +1,4 @@
-package storage
+package sqlstorage
 
 import (
 	"database/sql/driver"

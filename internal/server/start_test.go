@@ -15,7 +15,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 	"go.uber.org/fx"
 )
@@ -24,7 +24,7 @@ var testConfig = Config{
 	FS:       afero.NewMemMapFs(),
 	Listener: router.Config{},
 	Assets:   assets.Config{},
-	Storage:  storage.Config{Path: ":memory:"},
+	Storage:  sqlstorage.Config{Path: ":memory:"},
 	Tools:    tools.Config{Log: logger.Config{Output: io.Discard}},
 	HTML:     html.Config{},
 	Folder:   "/foo",

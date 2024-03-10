@@ -21,7 +21,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
@@ -299,7 +299,7 @@ func (h *BrowserPage) renderBrowserContent(w http.ResponseWriter, r *http.Reques
 
 	var dirContent []dfs.INode
 	if inode.IsDir() {
-		dirContent, err = h.fs.ListDir(r.Context(), cmd, &storage.PaginateCmd{
+		dirContent, err = h.fs.ListDir(r.Context(), cmd, &sqlstorage.PaginateCmd{
 			StartAfter: map[string]string{"name": ""},
 			Limit:      PageSize,
 		})
@@ -338,7 +338,7 @@ func (h *BrowserPage) renderBrowserContent(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *BrowserPage) renderMoreDirContent(w http.ResponseWriter, r *http.Request, folderPath *dfs.PathCmd, lastElem string) {
-	dirContent, err := h.fs.ListDir(r.Context(), folderPath, &storage.PaginateCmd{
+	dirContent, err := h.fs.ListDir(r.Context(), folderPath, &sqlstorage.PaginateCmd{
 		StartAfter: map[string]string{"name": lastElem},
 		Limit:      PageSize,
 	})

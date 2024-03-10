@@ -7,7 +7,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -22,10 +22,10 @@ type Service interface {
 	Bootstrap(ctx context.Context) (*User, error)
 	GetByID(ctx context.Context, userID uuid.UUID) (*User, error)
 	Authenticate(ctx context.Context, username string, password secret.Text) (*User, error)
-	GetAll(ctx context.Context, paginateCmd *storage.PaginateCmd) ([]User, error)
+	GetAll(ctx context.Context, paginateCmd *sqlstorage.PaginateCmd) ([]User, error)
 	AddToDeletion(ctx context.Context, userID uuid.UUID) error
 	HardDelete(ctx context.Context, userID uuid.UUID) error
-	GetAllWithStatus(ctx context.Context, status Status, cmd *storage.PaginateCmd) ([]User, error)
+	GetAllWithStatus(ctx context.Context, status Status, cmd *sqlstorage.PaginateCmd) ([]User, error)
 	MarkInitAsFinished(ctx context.Context, userID uuid.UUID) (*User, error)
 	UpdateUserPassword(ctx context.Context, cmd *UpdatePasswordCmd) error
 }
@@ -37,5 +37,5 @@ func Init(
 ) Service {
 	store := newSqlStorage(db, tools)
 
-	return NewService(tools, store, scheduler)
+	return newService(tools, store, scheduler)
 }

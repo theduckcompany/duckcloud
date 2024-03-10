@@ -12,7 +12,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -23,24 +23,24 @@ type Storage interface {
 	Save(ctx context.Context, session *Session) error
 	GetByToken(ctx context.Context, token secret.Text) (*Session, error)
 	RemoveByToken(ctx context.Context, token secret.Text) error
-	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error)
+	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Session, error)
 }
 
-type WebSessionsService struct {
+type service struct {
 	clock   clock.Clock
 	storage Storage
 	uuid    uuid.Service
 }
 
-func NewService(storage Storage, tools tools.Tools) *WebSessionsService {
-	return &WebSessionsService{
+func newService(storage Storage, tools tools.Tools) *service {
+	return &service{
 		clock:   tools.Clock(),
 		uuid:    tools.UUID(),
 		storage: storage,
 	}
 }
 
-func (s *WebSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*Session, error) {
+func (s *service) Create(ctx context.Context, cmd *CreateCmd) (*Session, error) {
 	err := cmd.Validate()
 	if err != nil {
 		return nil, errs.Validation(err)
@@ -64,7 +64,7 @@ func (s *WebSessionsService) Create(ctx context.Context, cmd *CreateCmd) (*Sessi
 	return session, nil
 }
 
-func (s *WebSessionsService) Delete(ctx context.Context, cmd *DeleteCmd) error {
+func (s *service) Delete(ctx context.Context, cmd *DeleteCmd) error {
 	err := cmd.Validate()
 	if err != nil {
 		return errs.Validation(err)
@@ -91,7 +91,7 @@ func (s *WebSessionsService) Delete(ctx context.Context, cmd *DeleteCmd) error {
 	return nil
 }
 
-func (s *WebSessionsService) GetByToken(ctx context.Context, token secret.Text) (*Session, error) {
+func (s *service) GetByToken(ctx context.Context, token secret.Text) (*Session, error) {
 	session, err := s.storage.GetByToken(ctx, token)
 	if errors.Is(err, errNotFound) {
 		return nil, errs.NotFound(err)
@@ -106,7 +106,7 @@ func (s *WebSessionsService) GetByToken(ctx context.Context, token secret.Text) 
 	return session, nil
 }
 
-func (s *WebSessionsService) GetFromReq(r *http.Request) (*Session, error) {
+func (s *service) GetFromReq(r *http.Request) (*Session, error) {
 	c, err := r.Cookie("session_token")
 	if errors.Is(err, http.ErrNoCookie) {
 		return nil, errs.BadRequest(ErrMissingSessionToken, "invalid_request")
@@ -124,7 +124,7 @@ func (s *WebSessionsService) GetFromReq(r *http.Request) (*Session, error) {
 	return session, nil
 }
 
-func (s *WebSessionsService) Logout(r *http.Request, w http.ResponseWriter) error {
+func (s *service) Logout(r *http.Request, w http.ResponseWriter) error {
 	c, err := r.Cookie("session_token")
 	if errors.Is(err, http.ErrNoCookie) {
 		// There is not session and so nothing to do.
@@ -148,7 +148,7 @@ func (s *WebSessionsService) Logout(r *http.Request, w http.ResponseWriter) erro
 	return nil
 }
 
-func (s *WebSessionsService) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *storage.PaginateCmd) ([]Session, error) {
+func (s *service) GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Session, error) {
 	res, err := s.storage.GetAllForUser(ctx, userID, cmd)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to GetAllForUser: %w", err))
@@ -157,7 +157,7 @@ func (s *WebSessionsService) GetAllForUser(ctx context.Context, userID uuid.UUID
 	return res, nil
 }
 
-func (s *WebSessionsService) DeleteAll(ctx context.Context, userID uuid.UUID) error {
+func (s *service) DeleteAll(ctx context.Context, userID uuid.UUID) error {
 	sessions, err := s.GetAllForUser(ctx, userID, nil)
 	if err != nil {
 		return errs.Internal(err)

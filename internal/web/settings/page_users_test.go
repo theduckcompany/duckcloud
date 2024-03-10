@@ -14,7 +14,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
@@ -34,7 +34,7 @@ func Test_UsersPage(t *testing.T) {
 		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
-		usersMock.On("GetAll", mock.Anything, &storage.PaginateCmd{
+		usersMock.On("GetAll", mock.Anything, &sqlstorage.PaginateCmd{
 			StartAfter: map[string]string{"username": ""},
 			Limit:      20,
 		}).Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
@@ -73,7 +73,7 @@ func Test_UsersPage(t *testing.T) {
 
 		usersMock.On("AddToDeletion", mock.Anything, uuid.UUID("some-user-id")).Return(nil).Once()
 
-		usersMock.On("GetAll", mock.Anything, &storage.PaginateCmd{
+		usersMock.On("GetAll", mock.Anything, &sqlstorage.PaginateCmd{
 			StartAfter: map[string]string{"username": ""},
 			Limit:      20,
 		}).Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
@@ -115,7 +115,7 @@ func Test_UsersPage(t *testing.T) {
 			IsAdmin:   true,
 		}).Return(&users.ExampleAlice, nil).Once()
 
-		usersMock.On("GetAll", mock.Anything, &storage.PaginateCmd{
+		usersMock.On("GetAll", mock.Anything, &sqlstorage.PaginateCmd{
 			StartAfter: map[string]string{"username": ""},
 			Limit:      20,
 		}).Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()

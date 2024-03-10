@@ -11,7 +11,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 )
 
 const gcBatchSize = 10
@@ -86,7 +86,7 @@ func (r *FSGGCTaskRunner) RunArgs(ctx context.Context, args *scheduler.FSGCArgs)
 
 func (r *FSGGCTaskRunner) deleteDirINode(ctx context.Context, inode *INode, deletionDate time.Time) error {
 	for {
-		childs, err := r.storage.GetAllChildrens(ctx, inode.ID(), &storage.PaginateCmd{Limit: gcBatchSize})
+		childs, err := r.storage.GetAllChildrens(ctx, inode.ID(), &sqlstorage.PaginateCmd{Limit: gcBatchSize})
 		if err != nil {
 			return fmt.Errorf("failed to Readdir: %w", err)
 		}

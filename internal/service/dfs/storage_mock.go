@@ -6,8 +6,8 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
-	storage "github.com/theduckcompany/duckcloud/internal/tools/storage"
 
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	uuid "github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -17,15 +17,15 @@ type MockStorage struct {
 }
 
 // GetAllChildrens provides a mock function with given fields: ctx, parent, cmd
-func (_m *MockStorage) GetAllChildrens(ctx context.Context, parent uuid.UUID, cmd *storage.PaginateCmd) ([]INode, error) {
+func (_m *MockStorage) GetAllChildrens(ctx context.Context, parent uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]INode, error) {
 	ret := _m.Called(ctx, parent, cmd)
 
 	var r0 []INode
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) ([]INode, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *sqlstorage.PaginateCmd) ([]INode, error)); ok {
 		return rf(ctx, parent, cmd)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *storage.PaginateCmd) []INode); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *sqlstorage.PaginateCmd) []INode); ok {
 		r0 = rf(ctx, parent, cmd)
 	} else {
 		if ret.Get(0) != nil {
@@ -33,7 +33,7 @@ func (_m *MockStorage) GetAllChildrens(ctx context.Context, parent uuid.UUID, cm
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *storage.PaginateCmd) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *sqlstorage.PaginateCmd) error); ok {
 		r1 = rf(ctx, parent, cmd)
 	} else {
 		r1 = ret.Error(1)

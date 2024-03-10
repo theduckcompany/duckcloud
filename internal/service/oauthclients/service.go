@@ -23,17 +23,17 @@ type Storage interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*Client, error)
 }
 
-type OauthClientService struct {
+type service struct {
 	storage Storage
 	clock   clock.Clock
 	uuid    uuid.Service
 }
 
-func NewService(tools tools.Tools, storage Storage) *OauthClientService {
-	return &OauthClientService{storage, tools.Clock(), tools.UUID()}
+func newService(tools tools.Tools, storage Storage) *service {
+	return &service{storage, tools.Clock(), tools.UUID()}
 }
 
-func (s *OauthClientService) Create(ctx context.Context, cmd *CreateCmd) (*Client, error) {
+func (s *service) Create(ctx context.Context, cmd *CreateCmd) (*Client, error) {
 	err := cmd.Validate()
 	if err != nil {
 		return nil, errs.Validation(err)
@@ -68,7 +68,7 @@ func (s *OauthClientService) Create(ctx context.Context, cmd *CreateCmd) (*Clien
 	return &client, nil
 }
 
-func (s *OauthClientService) GetByID(ctx context.Context, clientID uuid.UUID) (*Client, error) {
+func (s *service) GetByID(ctx context.Context, clientID uuid.UUID) (*Client, error) {
 	client, err := s.storage.GetByID(ctx, clientID)
 	if err != nil {
 		return nil, errs.Internal(fmt.Errorf("failed to get by ID: %w", err))

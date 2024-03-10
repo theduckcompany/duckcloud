@@ -11,7 +11,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
@@ -85,7 +85,7 @@ func (h *moveModalHandler) renderMoveModal(w http.ResponseWriter, r *http.Reques
 		status = http.StatusUnprocessableEntity
 	}
 
-	childs, err := h.fs.ListDir(r.Context(), cmd.Dst, &storage.PaginateCmd{
+	childs, err := h.fs.ListDir(r.Context(), cmd.Dst, &sqlstorage.PaginateCmd{
 		StartAfter: map[string]string{"name": ""},
 		Limit:      PageSize,
 	})
@@ -115,7 +115,7 @@ func (h *moveModalHandler) renderMoveModal(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *moveModalHandler) renderMoreContent(w http.ResponseWriter, r *http.Request, cmd *moveModalCmd, lastElem string) {
-	childs, err := h.fs.ListDir(r.Context(), cmd.Dst, &storage.PaginateCmd{
+	childs, err := h.fs.ListDir(r.Context(), cmd.Dst, &sqlstorage.PaginateCmd{
 		StartAfter: map[string]string{"name": lastElem},
 		Limit:      PageSize,
 	})

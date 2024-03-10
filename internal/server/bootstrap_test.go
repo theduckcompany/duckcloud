@@ -9,7 +9,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 )
 
 func Test_bootstrap(t *testing.T) {
@@ -19,7 +19,7 @@ func Test_bootstrap(t *testing.T) {
 		userMock := users.NewMockService(t)
 		spacesMock := spaces.NewMockService(t)
 
-		userMock.On("GetAll", mock.Anything, &storage.PaginateCmd{Limit: 4}).Return([]users.User{}, nil).Once()
+		userMock.On("GetAll", mock.Anything, &sqlstorage.PaginateCmd{Limit: 4}).Return([]users.User{}, nil).Once()
 		userMock.On("Bootstrap", mock.Anything).Return(&users.ExampleAlice, nil).Once()
 		spacesMock.On("Bootstrap", mock.Anything, &users.ExampleAlice).Return(nil).Once()
 
@@ -32,7 +32,7 @@ func Test_bootstrap(t *testing.T) {
 		userMock := users.NewMockService(t)
 		spacesMock := spaces.NewMockService(t)
 
-		userMock.On("GetAll", mock.Anything, &storage.PaginateCmd{Limit: 4}).Return([]users.User{users.ExampleAlice}, nil).Once()
+		userMock.On("GetAll", mock.Anything, &sqlstorage.PaginateCmd{Limit: 4}).Return([]users.User{users.ExampleAlice}, nil).Once()
 		spacesMock.On("Bootstrap", mock.Anything, &users.ExampleAlice).Return(nil).Once()
 
 		err := bootstrap(ctx, userMock, spacesMock)
@@ -44,7 +44,7 @@ func Test_bootstrap(t *testing.T) {
 		userMock := users.NewMockService(t)
 		spacesMock := spaces.NewMockService(t)
 
-		userMock.On("GetAll", mock.Anything, &storage.PaginateCmd{Limit: 4}).Return([]users.User{users.ExampleBob}, nil).Once()
+		userMock.On("GetAll", mock.Anything, &sqlstorage.PaginateCmd{Limit: 4}).Return([]users.User{users.ExampleBob}, nil).Once()
 
 		err := bootstrap(ctx, userMock, spacesMock)
 		require.ErrorIs(t, err, errs.ErrInternal)
@@ -56,7 +56,7 @@ func Test_bootstrap(t *testing.T) {
 		userMock := users.NewMockService(t)
 		spacesMock := spaces.NewMockService(t)
 
-		userMock.On("GetAll", mock.Anything, &storage.PaginateCmd{Limit: 4}).Return(nil, errs.ErrInternal).Once()
+		userMock.On("GetAll", mock.Anything, &sqlstorage.PaginateCmd{Limit: 4}).Return(nil, errs.ErrInternal).Once()
 
 		err := bootstrap(ctx, userMock, spacesMock)
 		require.ErrorIs(t, err, errs.ErrInternal)
@@ -65,7 +65,7 @@ func Test_bootstrap(t *testing.T) {
 		userMock := users.NewMockService(t)
 		spacesMock := spaces.NewMockService(t)
 
-		userMock.On("GetAll", mock.Anything, &storage.PaginateCmd{Limit: 4}).Return([]users.User{}, nil).Once()
+		userMock.On("GetAll", mock.Anything, &sqlstorage.PaginateCmd{Limit: 4}).Return([]users.User{}, nil).Once()
 		userMock.On("Bootstrap", mock.Anything).Return(nil, errs.ErrInternal).Once()
 
 		err := bootstrap(ctx, userMock, spacesMock)
@@ -76,7 +76,7 @@ func Test_bootstrap(t *testing.T) {
 		userMock := users.NewMockService(t)
 		spacesMock := spaces.NewMockService(t)
 
-		userMock.On("GetAll", mock.Anything, &storage.PaginateCmd{Limit: 4}).Return([]users.User{}, nil).Once()
+		userMock.On("GetAll", mock.Anything, &sqlstorage.PaginateCmd{Limit: 4}).Return([]users.User{}, nil).Once()
 		userMock.On("Bootstrap", mock.Anything).Return(&users.ExampleAlice, nil).Once()
 		spacesMock.On("Bootstrap", mock.Anything, &users.ExampleAlice).Return(errs.ErrInternal).Once()
 

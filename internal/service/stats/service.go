@@ -12,15 +12,15 @@ type Storage interface {
 	Get(ctx context.Context, key statsKey, val any) error
 }
 
-type ConfigService struct {
+type service struct {
 	storage Storage
 }
 
-func NewService(storage Storage) *ConfigService {
-	return &ConfigService{storage}
+func newService(storage Storage) *service {
+	return &service{storage}
 }
 
-func (s *ConfigService) SetTotalSize(ctx context.Context, totalSize uint64) error {
+func (s *service) SetTotalSize(ctx context.Context, totalSize uint64) error {
 	err := s.storage.Save(ctx, totalSizeKey, strconv.FormatUint(totalSize, 10))
 	if err != nil {
 		return fmt.Errorf("failed to Save: %w", err)
@@ -29,7 +29,7 @@ func (s *ConfigService) SetTotalSize(ctx context.Context, totalSize uint64) erro
 	return nil
 }
 
-func (s *ConfigService) GetTotalSize(ctx context.Context) (uint64, error) {
+func (s *service) GetTotalSize(ctx context.Context) (uint64, error) {
 	var resStr string
 
 	err := s.storage.Get(ctx, totalSizeKey, &resStr)

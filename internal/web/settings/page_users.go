@@ -12,7 +12,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
-	"github.com/theduckcompany/duckcloud/internal/tools/storage"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
@@ -132,7 +132,7 @@ func (h *UsersPage) renderUsersRegistrationForm(w http.ResponseWriter, r *http.R
 func (h *UsersPage) renderUsers(w http.ResponseWriter, r *http.Request, cmd renderUsersCmd) {
 	ctx := r.Context()
 
-	allUsers, err := h.users.GetAll(ctx, &storage.PaginateCmd{
+	allUsers, err := h.users.GetAll(ctx, &sqlstorage.PaginateCmd{
 		StartAfter: map[string]string{"username": ""},
 		Limit:      20,
 	})
