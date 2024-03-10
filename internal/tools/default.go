@@ -37,7 +37,7 @@ func NewToolbox(cfg Config) *Toolbox {
 	}
 }
 
-func NewToolboxForTest(t *testing.T) *Toolbox {
+func NewToolboxForTest(t testing.TB) *Toolbox {
 	t.Helper()
 
 	log := slogt.New(t)
