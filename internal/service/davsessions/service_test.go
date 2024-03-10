@@ -22,7 +22,7 @@ func TestDavSessionsService(t *testing.T) {
 
 	t.Run("Create success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
@@ -49,7 +49,7 @@ func TestDavSessionsService(t *testing.T) {
 
 	t.Run("Create with a validation error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
@@ -68,7 +68,7 @@ func TestDavSessionsService(t *testing.T) {
 
 	t.Run("Create with a space not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
@@ -91,7 +91,7 @@ func TestDavSessionsService(t *testing.T) {
 
 	t.Run("Create with a space not owned by the given user", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
@@ -112,7 +112,7 @@ func TestDavSessionsService(t *testing.T) {
 
 	t.Run("GetAllForUser success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
@@ -125,7 +125,7 @@ func TestDavSessionsService(t *testing.T) {
 
 	t.Run("Authenticate success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
@@ -139,7 +139,7 @@ func TestDavSessionsService(t *testing.T) {
 
 	t.Run("Delete success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
@@ -155,7 +155,7 @@ func TestDavSessionsService(t *testing.T) {
 
 	t.Run("Delete with a validation error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
@@ -169,7 +169,7 @@ func TestDavSessionsService(t *testing.T) {
 
 	t.Run("Delete with a session not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
@@ -184,7 +184,7 @@ func TestDavSessionsService(t *testing.T) {
 
 	t.Run("Delete with a session owner by someone else", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
@@ -200,7 +200,7 @@ func TestDavSessionsService(t *testing.T) {
 
 	t.Run("DeleteAll success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
@@ -214,7 +214,7 @@ func TestDavSessionsService(t *testing.T) {
 
 	t.Run("DeleteAll with a GetAll error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
@@ -227,7 +227,7 @@ func TestDavSessionsService(t *testing.T) {
 
 	t.Run("DeleteAll with a revoke error stop directly", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/model"
-	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/storage"
+	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/taskstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 )
@@ -19,13 +19,13 @@ const (
 )
 
 type TasksRunner struct {
-	storage storage.Storage
+	storage taskstorage.Storage
 	runners map[string]TaskRunner
 	clock   clock.Clock
 	log     *slog.Logger
 }
 
-func NewService(tools tools.Tools, storage storage.Storage, runners []TaskRunner) *TasksRunner {
+func NewService(tools tools.Tools, storage taskstorage.Storage, runners []TaskRunner) *TasksRunner {
 	runnerMap := make(map[string]TaskRunner, len(runners))
 
 	for _, runner := range runners {
@@ -43,7 +43,7 @@ func NewService(tools tools.Tools, storage storage.Storage, runners []TaskRunner
 func (t *TasksRunner) Run(ctx context.Context) error {
 	for {
 		task, err := t.storage.GetNext(ctx)
-		if errors.Is(err, storage.ErrNotFound) {
+		if errors.Is(err, taskstorage.ErrNotFound) {
 			// All the tasks have been processed
 			return nil
 		}

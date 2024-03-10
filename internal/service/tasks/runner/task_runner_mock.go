@@ -47,8 +47,7 @@ func (_m *MockTaskRunner) Run(ctx context.Context, args json.RawMessage) error {
 func NewMockTaskRunner(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockTaskRunner {
+}) *MockTaskRunner {
 	mock := &MockTaskRunner{}
 	mock.Mock.Test(t)
 

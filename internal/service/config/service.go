@@ -9,17 +9,17 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 )
 
-//go:generate mockery --name Storage
-type Storage interface {
+//go:generate mockery --name storage
+type storage interface {
 	Save(ctx context.Context, key ConfigKey, value string) error
 	Get(ctx context.Context, key ConfigKey) (string, error)
 }
 
 type service struct {
-	storage Storage
+	storage storage
 }
 
-func newService(storage Storage) *service {
+func newService(storage storage) *service {
 	return &service{storage}
 }
 

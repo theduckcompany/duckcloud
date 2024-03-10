@@ -22,8 +22,8 @@ var (
 	ErrInvalidSpaceID     = errors.New("invalid spaceID")
 )
 
-//go:generate mockery --name Storage
-type Storage interface {
+//go:generate mockery --name storage
+type storage interface {
 	Save(ctx context.Context, session *DavSession) error
 	GetByUsernameAndPassword(ctx context.Context, username string, password secret.Text) (*DavSession, error)
 	GetAllForUser(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]DavSession, error)
@@ -32,13 +32,13 @@ type Storage interface {
 }
 
 type service struct {
-	storage Storage
+	storage storage
 	spaces  spaces.Service
 	uuid    uuid.Service
 	clock   clock.Clock
 }
 
-func newService(storage Storage,
+func newService(storage storage,
 	spaces spaces.Service,
 	tools tools.Tools,
 ) *service {

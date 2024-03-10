@@ -19,7 +19,7 @@ func TestOauthCodeService(t *testing.T) {
 
 	t.Run("Create", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		storage := newMockStorage(t)
 		svc := newService(tools, storage)
 
 		now := time.Now()
@@ -54,7 +54,7 @@ func TestOauthCodeService(t *testing.T) {
 
 	t.Run("Create with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		storage := newMockStorage(t)
 		svc := newService(tools, storage)
 
 		now := time.Now()
@@ -81,7 +81,7 @@ func TestOauthCodeService(t *testing.T) {
 
 	t.Run("RemoveByCode success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		storage := newMockStorage(t)
 		svc := newService(tools, storage)
 
 		storage.On("RemoveByCode", mock.Anything, secret.NewText("some-code")).Return(nil).Once()
@@ -92,7 +92,7 @@ func TestOauthCodeService(t *testing.T) {
 
 	t.Run("RemoveByCode with an error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		storage := newMockStorage(t)
 		svc := newService(tools, storage)
 
 		storage.On("RemoveByCode", mock.Anything, secret.NewText("some-code")).Return(fmt.Errorf("some-error")).Once()
@@ -105,7 +105,7 @@ func TestOauthCodeService(t *testing.T) {
 
 	t.Run("GetByCode", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		storage := newMockStorage(t)
 		svc := newService(tools, storage)
 
 		code := Code{
@@ -128,7 +128,7 @@ func TestOauthCodeService(t *testing.T) {
 
 	t.Run("GetByCode with an error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		storage := newMockStorage(t)
 		svc := newService(tools, storage)
 
 		storage.On("GetByCode", mock.Anything, secret.NewText("some-code")).Return(nil, fmt.Errorf("some-error")).Once()

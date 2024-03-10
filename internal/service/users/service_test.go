@@ -20,7 +20,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("Create success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -48,7 +48,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("Create with a taken username", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -67,7 +67,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("Create with a database error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -86,7 +86,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("Authenticate success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -101,7 +101,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("Authenticate with an invalid username", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -115,7 +115,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("Authenticate with an invalid password", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -130,7 +130,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("Authenticate an unhandled password error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -145,7 +145,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("GetByID success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -158,7 +158,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("GetAll success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -171,7 +171,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("GetAllWithStatus success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -184,7 +184,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("AddToDeletion success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -203,7 +203,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("AddToDeletion with a user not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -216,7 +216,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("AddToDeletion the last admin failed", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -229,7 +229,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("HardDelete success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -242,7 +242,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("HardDelete an non existing user", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -255,7 +255,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("HardDelete an invalid status", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -268,7 +268,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("MarkInitAsFinished success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -284,7 +284,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("MarkInitAsFinished with a user with an invalid status", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -298,7 +298,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("UpdatePassword success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -323,7 +323,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("UpdatePassword with a user not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 
@@ -339,7 +339,7 @@ func Test_Users_Service(t *testing.T) {
 
 	t.Run("UpdatePassword with a patch error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		store := NewMockStorage(t)
+		store := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		service := newService(tools, store, schedulerMock)
 

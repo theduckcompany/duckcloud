@@ -11,12 +11,12 @@ import (
 )
 
 type FSRemoveDuplicateFilesRunner struct {
-	storage   Storage
+	storage   storage
 	files     files.Service
 	scheduler scheduler.Service
 }
 
-func NewFSRemoveDuplicateFileRunner(storage Storage, files files.Service, scheduler scheduler.Service) *FSRemoveDuplicateFilesRunner {
+func NewFSRemoveDuplicateFileRunner(storage storage, files files.Service, scheduler scheduler.Service) *FSRemoveDuplicateFilesRunner {
 	return &FSRemoveDuplicateFilesRunner{storage, files, scheduler}
 }
 

@@ -24,7 +24,7 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 	})
 
 	t.Run("RunArgs success", func(t *testing.T) {
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		filesMock := files.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		runner := NewFSRemoveDuplicateFileRunner(storageMock, filesMock, schedulerMock)
@@ -53,7 +53,7 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 	})
 
 	t.Run("RunArgs with a GetAllstorageWithFileID error", func(t *testing.T) {
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		filesMock := files.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		runner := NewFSRemoveDuplicateFileRunner(storageMock, filesMock, schedulerMock)
@@ -70,7 +70,7 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 	})
 
 	t.Run("RunArgs with a GetMetadata error", func(t *testing.T) {
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		filesMock := files.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		runner := NewFSRemoveDuplicateFileRunner(storageMock, filesMock, schedulerMock)
@@ -90,7 +90,7 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 	})
 
 	t.Run("RunArgs with a PatchFileID error", func(t *testing.T) {
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		filesMock := files.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		runner := NewFSRemoveDuplicateFileRunner(storageMock, filesMock, schedulerMock)
@@ -114,7 +114,7 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 	})
 
 	t.Run("Run success", func(t *testing.T) {
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		filesMock := files.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		runner := NewFSRemoveDuplicateFileRunner(storageMock, filesMock, schedulerMock)
@@ -143,7 +143,7 @@ func Test_FSRemoveDuplicateFilesRunner_Task(t *testing.T) {
 	})
 
 	t.Run("Run with an invalid json", func(t *testing.T) {
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		filesMock := files.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		runner := NewFSRemoveDuplicateFileRunner(storageMock, filesMock, schedulerMock)

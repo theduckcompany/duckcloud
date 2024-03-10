@@ -23,8 +23,8 @@ var (
 	ErrInvalidSpaceAccess = errors.New("no access to space")
 )
 
-//go:generate mockery --name Storage
-type Storage interface {
+//go:generate mockery --name storage
+type storage interface {
 	Save(ctx context.Context, space *Space) error
 	GetByID(ctx context.Context, id uuid.UUID) (*Space, error)
 	GetAllUserSpaces(ctx context.Context, userID uuid.UUID, cmd *sqlstorage.PaginateCmd) ([]Space, error)
@@ -34,13 +34,13 @@ type Storage interface {
 }
 
 type service struct {
-	storage   Storage
+	storage   storage
 	clock     clock.Clock
 	uuid      uuid.Service
 	scheduler scheduler.Service
 }
 
-func newService(tools tools.Tools, storage Storage, scheduler scheduler.Service) *service {
+func newService(tools tools.Tools, storage storage, scheduler scheduler.Service) *service {
 	return &service{storage, tools.Clock(), tools.UUID(), scheduler}
 }
 

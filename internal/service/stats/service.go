@@ -6,17 +6,17 @@ import (
 	"strconv"
 )
 
-//go:generate mockery --name Storage
-type Storage interface {
+//go:generate mockery --name storage
+type storage interface {
 	Save(ctx context.Context, key statsKey, value any) error
 	Get(ctx context.Context, key statsKey, val any) error
 }
 
 type service struct {
-	storage Storage
+	storage storage
 }
 
-func newService(storage Storage) *service {
+func newService(storage storage) *service {
 	return &service{storage}
 }
 

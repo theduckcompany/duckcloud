@@ -14,11 +14,11 @@ import (
 
 type FSRefreshSizeTaskRunner struct {
 	stats   stats.Service
-	storage Storage
+	storage storage
 	files   files.Service
 }
 
-func NewFSRefreshSizeTaskRunner(storage Storage, files files.Service, stats stats.Service) *FSRefreshSizeTaskRunner {
+func NewFSRefreshSizeTaskRunner(storage storage, files files.Service, stats stats.Service) *FSRefreshSizeTaskRunner {
 	return &FSRefreshSizeTaskRunner{
 		storage: storage,
 		files:   files,

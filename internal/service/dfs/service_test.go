@@ -29,7 +29,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
@@ -46,7 +46,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
@@ -62,7 +62,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
@@ -79,7 +79,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
@@ -104,7 +104,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		res, err := spaceFS.CreateDir(ctx, &CreateDirCmd{
@@ -121,7 +121,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
@@ -141,7 +141,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
@@ -162,7 +162,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
@@ -180,7 +180,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
@@ -200,7 +200,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, "/"))
@@ -213,7 +213,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		err := spaceFS.Remove(ctx, NewPathCmd(&spaces.ExampleAlicePersonalSpace, ""))
@@ -226,7 +226,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
@@ -241,7 +241,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
@@ -257,7 +257,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		storageMock.On("GetSpaceRoot", mock.Anything, spaces.ExampleAlicePersonalSpace.ID()).Return(&ExampleAliceRoot, nil).Once()
@@ -278,7 +278,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		// Get /foo
@@ -298,7 +298,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		// Get /foo
@@ -315,7 +315,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		// Get /foo
@@ -333,7 +333,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		// Get /foo
@@ -354,7 +354,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		file, err := afero.TempFile(afero.NewMemMapFs(), "foo", "")
@@ -379,7 +379,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		content := "Hello, World!"
@@ -412,7 +412,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		err := spaceFS.Upload(ctx, &UploadCmd{
@@ -429,7 +429,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		content := "Hello, World!"
@@ -451,7 +451,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		content := "Hello, World!"
@@ -476,7 +476,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		content := "Hello, World!"
@@ -505,7 +505,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		content := "Hello, World!"
@@ -539,7 +539,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		// Get /foo.txt
@@ -568,7 +568,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		err := spaceFS.Move(ctx, &MoveCmd{
@@ -585,7 +585,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		err := spaceFS.Move(ctx, &MoveCmd{
@@ -601,7 +601,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		// Get /foo.txt
@@ -621,7 +621,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		// Get /foo.txt
@@ -651,7 +651,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		storageMock.On("GetByNameAndParent", mock.Anything, "foobar.jpg", *ExampleAliceFile.Parent()).Return(nil, errNotFound).Once()
@@ -674,7 +674,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		res, err := spaceFS.Rename(ctx, &ExampleAliceFile, "")
@@ -689,7 +689,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		res, err := spaceFS.Rename(ctx, &ExampleAliceRoot, "foo")
@@ -703,7 +703,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		storageMock.On("GetByNameAndParent", mock.Anything, "foobar.pdf", *ExampleAliceFile.Parent()).Return(&ExampleAliceFile, nil).Once()
@@ -726,7 +726,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		// Delete the file system
@@ -747,7 +747,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		err := spaceFS.Destroy(ctx, &users.ExampleBob, &spaces.ExampleAlicePersonalSpace)
@@ -759,7 +759,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		// Delete the file system
@@ -775,7 +775,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		// Delete the file system
@@ -792,7 +792,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		// Delete the file system
@@ -814,7 +814,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		rootFS := INode{
@@ -842,7 +842,7 @@ func Test_DFS_Service(t *testing.T) {
 		spacesMock := spaces.NewMockService(t)
 		schedulerMock := scheduler.NewMockService(t)
 		toolsMock := tools.NewMock(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		spaceFS := newService(storageMock, filesMock, spacesMock, schedulerMock, toolsMock)
 
 		toolsMock.ClockMock.On("Now").Return(now).Once()

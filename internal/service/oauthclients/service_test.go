@@ -18,7 +18,7 @@ func TestOauthClientsService(t *testing.T) {
 
 	t.Run("Create success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		storage := newMockStorage(t)
 		svc := newService(tools, storage)
 
 		// Check that the client name is not already taken
@@ -45,7 +45,7 @@ func TestOauthClientsService(t *testing.T) {
 
 	t.Run("Create with a validation error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		storage := newMockStorage(t)
 		svc := newService(tools, storage)
 
 		res, err := svc.Create(ctx, &CreateCmd{
@@ -65,7 +65,7 @@ func TestOauthClientsService(t *testing.T) {
 
 	t.Run("Create with a client id already taken", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		storage := newMockStorage(t)
 		svc := newService(tools, storage)
 
 		storage.On("GetByID", mock.Anything, ExampleAliceClient.id).Return(&ExampleAliceClient, nil).Once()
@@ -86,7 +86,7 @@ func TestOauthClientsService(t *testing.T) {
 
 	t.Run("Create with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		storage := newMockStorage(t)
 		svc := newService(tools, storage)
 
 		// Check that the client name is not already taken
@@ -114,7 +114,7 @@ func TestOauthClientsService(t *testing.T) {
 
 	t.Run("GetByID success", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		storage := newMockStorage(t)
 		svc := newService(tools, storage)
 
 		storage.On("GetByID", mock.Anything, ExampleAliceClient.id).Return(&ExampleAliceClient, nil).Once()
@@ -126,7 +126,7 @@ func TestOauthClientsService(t *testing.T) {
 
 	t.Run("GetByID not found", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		storage := newMockStorage(t)
 		svc := newService(tools, storage)
 
 		storage.On("GetByID", mock.Anything, ExampleAliceClient.id).Return(nil, nil).Once()
@@ -138,7 +138,7 @@ func TestOauthClientsService(t *testing.T) {
 
 	t.Run("GetByID with a storage error", func(t *testing.T) {
 		tools := tools.NewMock(t)
-		storage := NewMockStorage(t)
+		storage := newMockStorage(t)
 		svc := newService(tools, storage)
 
 		storage.On("GetByID", mock.Anything, ExampleAliceClient.id).Return(nil, fmt.Errorf("some-error")).Once()

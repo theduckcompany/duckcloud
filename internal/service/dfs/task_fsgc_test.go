@@ -31,7 +31,7 @@ func TestFSGC(t *testing.T) {
 		tools := tools.NewMock(t)
 		spacesMock := spaces.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		job := NewFSGGCTaskRunner(storageMock, filesMock, spacesMock, schedulerMock, tools)
 
@@ -46,7 +46,7 @@ func TestFSGC(t *testing.T) {
 		tools := tools.NewMock(t)
 		spacesMock := spaces.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		job := NewFSGGCTaskRunner(storageMock, filesMock, spacesMock, schedulerMock, tools)
 
@@ -62,7 +62,7 @@ func TestFSGC(t *testing.T) {
 		tools := tools.NewMock(t)
 		spacesMock := spaces.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		job := NewFSGGCTaskRunner(storageMock, filesMock, spacesMock, schedulerMock, tools)
 
@@ -89,7 +89,7 @@ func TestFSGC(t *testing.T) {
 		tools := tools.NewMock(t)
 		spacesMock := spaces.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		job := NewFSGGCTaskRunner(storageMock, filesMock, spacesMock, schedulerMock, tools)
 
@@ -121,7 +121,7 @@ func TestFSGC(t *testing.T) {
 		tools := tools.NewMock(t)
 		spacesMock := spaces.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		job := NewFSGGCTaskRunner(storageMock, filesMock, spacesMock, schedulerMock, tools)
 
@@ -149,7 +149,7 @@ func TestFSGC(t *testing.T) {
 		tools := tools.NewMock(t)
 		spacesMock := spaces.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		job := NewFSGGCTaskRunner(storageMock, filesMock, spacesMock, schedulerMock, tools)
 
@@ -164,7 +164,7 @@ func TestFSGC(t *testing.T) {
 		tools := tools.NewMock(t)
 		spacesMock := spaces.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		job := NewFSGGCTaskRunner(storageMock, filesMock, spacesMock, schedulerMock, tools)
 
@@ -184,7 +184,7 @@ func TestFSGC(t *testing.T) {
 		tools := tools.NewMock(t)
 		spacesMock := spaces.NewMockService(t)
 		filesMock := files.NewMockService(t)
-		storageMock := NewMockStorage(t)
+		storageMock := newMockStorage(t)
 		schedulerMock := scheduler.NewMockService(t)
 		job := NewFSGGCTaskRunner(storageMock, filesMock, spacesMock, schedulerMock, tools)
 

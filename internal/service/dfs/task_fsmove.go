@@ -15,13 +15,13 @@ import (
 
 type FSMoveTaskRunner struct {
 	fs        Service
-	storage   Storage
+	storage   storage
 	spaces    spaces.Service
 	users     users.Service
 	scheduler scheduler.Service
 }
 
-func NewFSMoveTaskRunner(fs Service, storage Storage, spaces spaces.Service, users users.Service, scheduler scheduler.Service) *FSMoveTaskRunner {
+func NewFSMoveTaskRunner(fs Service, storage storage, spaces spaces.Service, users users.Service, scheduler scheduler.Service) *FSMoveTaskRunner {
 	return &FSMoveTaskRunner{fs, storage, spaces, users, scheduler}
 }
 

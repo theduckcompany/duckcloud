@@ -18,8 +18,8 @@ import (
 
 var ErrConsentNotFound = errors.New("consent not found")
 
-//go:generate mockery --name Storage
-type Storage interface {
+//go:generate mockery --name storage
+type storage interface {
 	Save(ctx context.Context, consent *Consent) error
 	GetByID(ctx context.Context, id uuid.UUID) (*Consent, error)
 	Delete(ctx context.Context, consentID uuid.UUID) error
@@ -27,12 +27,12 @@ type Storage interface {
 }
 
 type OauthConsentsService struct {
-	storage Storage
+	storage storage
 	uuid    uuid.Service
 	clock   clock.Clock
 }
 
-func NewService(storage Storage, tools tools.Tools) *OauthConsentsService {
+func NewService(storage storage, tools tools.Tools) *OauthConsentsService {
 	return &OauthConsentsService{storage, tools.UUID(), tools.Clock()}
 }
 
