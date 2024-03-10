@@ -79,7 +79,7 @@ func (s *UserService) Create(ctx context.Context, cmd *CreateCmd) (*User, error)
 	}
 
 	newUserID := s.uuid.New()
-	return s.createUser(ctx, newUserID, cmd.Username, cmd.Password, cmd.IsAdmin, cmd.User.id)
+	return s.createUser(ctx, newUserID, cmd.Username, cmd.Password, cmd.IsAdmin, cmd.CreatedBy.id)
 }
 
 func (s *UserService) createUser(ctx context.Context, newUserID uuid.UUID, username string, password secret.Text, isAdmin bool, createdBy uuid.UUID) (*User, error) {

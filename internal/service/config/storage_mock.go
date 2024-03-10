@@ -13,26 +13,36 @@ type MockStorage struct {
 	mock.Mock
 }
 
-// Get provides a mock function with given fields: ctx, key, val
-func (_m *MockStorage) Get(ctx context.Context, key ConfigKey, val interface{}) error {
-	ret := _m.Called(ctx, key, val)
+// Get provides a mock function with given fields: ctx, key
+func (_m *MockStorage) Get(ctx context.Context, key ConfigKey) (string, error) {
+	ret := _m.Called(ctx, key)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, ConfigKey, interface{}) error); ok {
-		r0 = rf(ctx, key, val)
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, ConfigKey) (string, error)); ok {
+		return rf(ctx, key)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, ConfigKey) string); ok {
+		r0 = rf(ctx, key)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(string)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, ConfigKey) error); ok {
+		r1 = rf(ctx, key)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // Save provides a mock function with given fields: ctx, key, value
-func (_m *MockStorage) Save(ctx context.Context, key ConfigKey, value interface{}) error {
+func (_m *MockStorage) Save(ctx context.Context, key ConfigKey, value string) error {
 	ret := _m.Called(ctx, key, value)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, ConfigKey, interface{}) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, ConfigKey, string) error); ok {
 		r0 = rf(ctx, key, value)
 	} else {
 		r0 = ret.Error(0)

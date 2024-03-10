@@ -109,10 +109,10 @@ func Test_UsersPage(t *testing.T) {
 		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
 
 		usersMock.On("Create", mock.Anything, &users.CreateCmd{
-			User:     &users.ExampleAlice,
-			Username: "some-username",
-			Password: secret.NewText("my-little-secret"),
-			IsAdmin:  true,
+			CreatedBy: &users.ExampleAlice,
+			Username:  "some-username",
+			Password:  secret.NewText("my-little-secret"),
+			IsAdmin:   true,
 		}).Return(&users.ExampleAlice, nil).Once()
 
 		usersMock.On("GetAll", mock.Anything, &storage.PaginateCmd{

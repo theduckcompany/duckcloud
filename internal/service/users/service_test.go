@@ -36,10 +36,10 @@ func Test_Users_Service(t *testing.T) {
 			Return(nil).Once()
 
 		res, err := service.Create(ctx, &CreateCmd{
-			User:     &ExampleAlice,
-			Username: ExampleBob.Username(),
-			Password: secret.NewText("some-password"),
-			IsAdmin:  false,
+			CreatedBy: &ExampleAlice,
+			Username:  ExampleBob.Username(),
+			Password:  secret.NewText("some-password"),
+			IsAdmin:   false,
 		})
 		require.NoError(t, err)
 
@@ -55,10 +55,10 @@ func Test_Users_Service(t *testing.T) {
 		store.On("GetByUsername", ctx, ExampleBob.Username()).Return(&User{}, nil).Once()
 
 		res, err := service.Create(ctx, &CreateCmd{
-			User:     &ExampleAlice,
-			Username: ExampleBob.Username(),
-			Password: ExampleBob.password,
-			IsAdmin:  false,
+			CreatedBy: &ExampleAlice,
+			Username:  ExampleBob.Username(),
+			Password:  ExampleBob.password,
+			IsAdmin:   false,
 		})
 		require.ErrorIs(t, err, ErrUsernameTaken)
 		require.ErrorIs(t, err, errs.ErrBadRequest)
@@ -74,10 +74,10 @@ func Test_Users_Service(t *testing.T) {
 		store.On("GetByUsername", ctx, ExampleBob.Username()).Return(nil, fmt.Errorf("some-error")).Once()
 
 		res, err := service.Create(ctx, &CreateCmd{
-			User:     &ExampleAlice,
-			Username: ExampleBob.Username(),
-			Password: ExampleBob.password,
-			IsAdmin:  false,
+			CreatedBy: &ExampleAlice,
+			Username:  ExampleBob.Username(),
+			Password:  ExampleBob.password,
+			IsAdmin:   false,
 		})
 		require.ErrorIs(t, err, errs.ErrInternal)
 		require.ErrorContains(t, err, "some-error")
