@@ -4,8 +4,10 @@ import (
 	"testing"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 )
 
 func TestSQLTime(t *testing.T) {
@@ -44,5 +46,46 @@ func TestSQLTime(t *testing.T) {
 
 		err := sqlTime.Scan(12)
 		require.EqualError(t, err, "unsuported type: int")
+	})
+}
+
+func TestIntegrationSQLTime(t *testing.T) {
+	db := NewTestStorage(t)
+
+	now := time.Now().UTC()
+
+	t.Run("Create the table", func(t *testing.T) {
+		_, err := db.Exec(`CREATE TABLE test (
+		key INTEGER NOT NULL,
+		time TEXT NOT NULL
+		)`)
+		require.NoError(t, err)
+	})
+
+	t.Run("Save the date", func(t *testing.T) {
+		_, err := sq.
+			Insert("test").
+			Columns("key", "time").
+			Values(
+				42,
+				ptr.To(SQLTime(now)),
+			).
+			RunWith(db).
+			Exec()
+		require.NoError(t, err)
+	})
+
+	t.Run("Fetch the date", func(t *testing.T) {
+		var res SQLTime
+
+		err := sq.
+			Select("time").
+			From("test").
+			RunWith(db).
+			Where(sq.Eq{"key": 42}).
+			Scan(&res)
+
+		require.NoError(t, err)
+		assert.Equal(t, now, res.Time())
 	})
 }
