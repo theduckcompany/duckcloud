@@ -3,68 +3,67 @@ package websessions
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
-	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 func TestSessionSqlStorage(t *testing.T) {
-	nowData := time.Now().UTC()
-
-	sessionData := Session{
-		token:     secret.NewText("some-token"),
-		userID:    uuid.UUID("some-user-id"),
-		device:    "IOS - Firefox",
-		createdAt: nowData,
-	}
-
 	db := sqlstorage.NewTestStorage(t)
 	storage := newSQLStorage(db)
 
-	t.Run("Create success", func(t *testing.T) {
-		err := storage.Save(context.Background(), &sessionData)
+	user := users.NewFakeUser(t).WithAdminRole().BuildAndStore(db)
+	sessionToken := "some-token"
+	session := NewFakeSession(t).
+		CreatedBy(user).
+		WithToken(sessionToken).
+		Build()
 
+	t.Run("Create success", func(t *testing.T) {
+		// Run
+		err := storage.Save(context.Background(), session)
+
+		// Asserts
 		require.NoError(t, err)
 	})
 
 	t.Run("GetByToken success", func(t *testing.T) {
-		res, err := storage.GetByToken(context.Background(), secret.NewText("some-token"))
+		// Run
+		res, err := storage.GetByToken(context.Background(), secret.NewText(sessionToken))
 
-		require.NotNil(t, res)
-		res.createdAt = res.createdAt.UTC()
-
+		// Asserts
 		require.NoError(t, err)
-		assert.Equal(t, &sessionData, res)
+		assert.Equal(t, session, res)
 	})
 
 	t.Run("GeAllForUser success", func(t *testing.T) {
-		res, err := storage.GetAllForUser(context.Background(), "some-user-id", nil)
+		// Run
+		res, err := storage.GetAllForUser(context.Background(), user.ID(), nil)
 
-		require.NotNil(t, res)
-		for i, r := range res {
-			res[i].createdAt = r.createdAt.UTC()
-		}
-
+		// Asserts
 		require.NoError(t, err)
-		assert.Equal(t, []Session{sessionData}, res)
+		assert.Equal(t, []Session{*session}, res)
 	})
 
 	t.Run("GetByToken not found", func(t *testing.T) {
+		// Run
 		res, err := storage.GetByToken(context.Background(), secret.NewText("some-invalid-token"))
 
+		// Asserts
 		assert.Nil(t, res)
 		require.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("RemoveByToken ", func(t *testing.T) {
-		err := storage.RemoveByToken(context.Background(), secret.NewText("some-token"))
-		require.NoError(t, err)
+		// Run
+		err := storage.RemoveByToken(context.Background(), secret.NewText(sessionToken))
 
-		res, err := storage.GetByToken(context.Background(), secret.NewText("some-token"))
+		// Asserts
+		require.NoError(t, err)
+		res, err := storage.GetByToken(context.Background(), secret.NewText(sessionToken))
 		assert.Nil(t, res)
 		require.ErrorIs(t, err, errNotFound)
 	})
