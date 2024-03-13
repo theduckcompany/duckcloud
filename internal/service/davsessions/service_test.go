@@ -5,11 +5,13 @@ import (
 	"encoding/hex"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/errs"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
@@ -18,48 +20,75 @@ import (
 )
 
 func TestDavSessionsService(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	t.Run("Create success", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
-		spacesMock.On("GetUserSpace", mock.Anything, ExampleAliceSession.userID, spaces.ExampleAlicePersonalSpace.ID()).
-			Return(&spaces.ExampleAlicePersonalSpace, nil).Once()
+		// Data
+		now := time.Now().UTC()
+		user := users.NewFakeUser(t).Build()
+		space := spaces.NewFakeSpace(t).WithOwners(*user).Build()
+		sessionPassword := "some-password"
+		session := NewFakeSession(t).
+			WithName("My Session").
+			WithUsername("some-username").
+			WithSpace(space).
+			WithPassword(sessionPassword).
+			CreatedAt(now).
+			CreatedBy(user).
+			Build()
 
-		tools.UUIDMock.On("New").Return(uuid.UUID("some-password")).Once()
-		tools.UUIDMock.On("New").Return(ExampleAliceSession.ID()).Once()
-		tools.ClockMock.On("Now").Return(ExampleAliceSession.createdAt).Once()
+		// Mocks
+		spacesMock.On("GetUserSpace", mock.Anything, user.ID(), space.ID()).Return(space, nil).Once()
+		tools.UUIDMock.On("New").Return(uuid.UUID(sessionPassword)).Once()
+		tools.UUIDMock.On("New").Return(session.ID()).Once()
+		tools.ClockMock.On("Now").Return(now).Once()
+		storageMock.On("Save", mock.Anything, session).Return(nil).Once()
 
-		storageMock.On("Save", mock.Anything, &ExampleAliceSession).Return(nil).Once()
-
+		// Run
 		res, secret, err := service.Create(ctx, &CreateCmd{
-			Name:     ExampleAliceSession.Name(),
-			UserID:   ExampleAliceSession.userID,
-			Username: ExampleAliceSession.username,
-			SpaceID:  spaces.ExampleAlicePersonalSpace.ID(),
+			Name:     "My Session",
+			UserID:   user.ID(),
+			Username: "some-username",
+			SpaceID:  space.ID(),
 		})
 
+		// Asserts
 		assert.NotEmpty(t, secret)
 		require.NoError(t, err)
-		assert.Equal(t, &ExampleAliceSession, res)
+		assert.Equal(t, session, res)
 	})
 
 	t.Run("Create with a validation error", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
+		// Data
+		space := spaces.NewFakeSpace(t).Build()
+		session := NewFakeSession(t).Build()
+
+		// Mocks
+
+		// Run
 		res, secret, err := service.Create(ctx, &CreateCmd{
-			Name:     ExampleAliceSession.Name(),
+			Name:     session.name,
 			UserID:   "some-invali-id",
-			Username: ExampleAliceSession.username,
-			SpaceID:  spaces.ExampleAlicePersonalSpace.ID(),
+			Username: session.username,
+			SpaceID:  space.ID(),
 		})
 
+		// Assets
 		assert.Nil(t, res)
 		assert.Empty(t, secret)
 		require.ErrorIs(t, err, errs.ErrValidation)
@@ -67,176 +96,284 @@ func TestDavSessionsService(t *testing.T) {
 	})
 
 	t.Run("Create with a space not found", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
-		spacesMock.On("GetUserSpace", mock.Anything, ExampleAliceSession.userID, spaces.ExampleAlicePersonalSpace.ID()).
-			Return(nil, errNotFound).Once()
+		// Data
+		user := users.NewFakeUser(t).Build()
+		space := spaces.NewFakeSpace(t).WithOwners(*user).Build()
+		session := NewFakeSession(t).Build()
 
+		// Mocks
+		spacesMock.On("GetUserSpace", mock.Anything, user.ID(), space.ID()).Return(nil, errNotFound).Once()
+
+		// Run
 		res, secret, err := service.Create(ctx, &CreateCmd{
-			Name:     ExampleAliceSession.Name(),
-			UserID:   ExampleAliceSession.userID,
-			Username: ExampleAliceSession.username,
-			SpaceID:  spaces.ExampleAlicePersonalSpace.ID(),
+			Name:     session.name,
+			UserID:   user.ID(),
+			Username: session.username,
+			SpaceID:  space.ID(),
 		})
 
+		// Assets
 		assert.Nil(t, res)
 		assert.Empty(t, secret)
-
 		require.ErrorIs(t, err, errs.ErrInternal)
 		require.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("Create with a space not owned by the given user", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
-		spacesMock.On("GetUserSpace", mock.Anything, ExampleAliceSession.userID, spaces.ExampleBobPersonalSpace.ID()).
-			Return(&spaces.ExampleBobPersonalSpace, nil).Once()
+		// Data
+		user := users.NewFakeUser(t).Build()
+		space := spaces.NewFakeSpace(t).Build() // The space doesn't have the user as owner
+		session := NewFakeSession(t).Build()
 
+		// Mocks
+		spacesMock.On("GetUserSpace", mock.Anything, user.ID(), space.ID()).Return(space, nil).Once()
+
+		// Run
 		res, secret, err := service.Create(ctx, &CreateCmd{
-			Name:     ExampleAliceSession.Name(),
-			UserID:   ExampleAliceSession.userID,
-			Username: ExampleAliceSession.username,
-			SpaceID:  spaces.ExampleBobPersonalSpace.ID(),
+			Name:     session.name,
+			UserID:   user.ID(),
+			Username: session.username,
+			SpaceID:  space.ID(),
 		})
 
+		// Assets
 		assert.Nil(t, res)
 		assert.Empty(t, secret)
 		require.EqualError(t, err, "bad request: invalid spaceID")
 	})
 
 	t.Run("GetAllForUser success", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.id, &sqlstorage.PaginateCmd{Limit: 10}).Return([]DavSession{ExampleAliceSession}, nil).Once()
+		// Data
+		session := NewFakeSession(t).Build()
 
-		res, err := service.GetAllForUser(ctx, ExampleAliceSession.id, &sqlstorage.PaginateCmd{Limit: 10})
+		// Mocks
+		storageMock.On("GetAllForUser", mock.Anything, session.id, &sqlstorage.PaginateCmd{Limit: 10}).Return([]DavSession{*session}, nil).Once()
+
+		// Run
+		res, err := service.GetAllForUser(ctx, session.id, &sqlstorage.PaginateCmd{Limit: 10})
+
+		// Asserts
 		require.NoError(t, err)
-		assert.Equal(t, []DavSession{ExampleAliceSession}, res)
+		assert.Equal(t, []DavSession{*session}, res)
 	})
 
 	t.Run("Authenticate success", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
-		storageMock.On("GetByUsernameAndPassword", mock.Anything, "some-username", secret.NewText(hex.EncodeToString([]byte("some-password")))).
-			Return(&ExampleAliceSession, nil).Once()
+		// Data
+		sessionPassword := "some-password"
+		session := NewFakeSession(t).
+			WithPassword(sessionPassword).
+			Build()
 
-		res, err := service.Authenticate(ctx, "some-username", secret.NewText("some-password"))
+		// Mocks
+		storageMock.On("GetByUsernameAndPassword", mock.Anything, session.username, secret.NewText(hex.EncodeToString([]byte("some-password")))).
+			Return(session, nil).Once()
+
+		// Run
+		res, err := service.Authenticate(ctx, session.username, secret.NewText(sessionPassword))
+
+		// Asserts
 		require.NoError(t, err)
-		assert.Equal(t, &ExampleAliceSession, res)
+		assert.Equal(t, session, res)
 	})
 
 	t.Run("Delete success", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
-		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(&ExampleAliceSession, nil).Once()
-		storageMock.On("RemoveByID", mock.Anything, ExampleAliceSession.ID()).Return(nil).Once()
+		// Data
+		user := users.NewFakeUser(t).WithAdminRole().Build()
+		session := NewFakeSession(t).CreatedBy(user).Build()
 
+		// Mocks
+		storageMock.On("GetByID", mock.Anything, session.ID()).Return(session, nil).Once()
+		storageMock.On("RemoveByID", mock.Anything, session.ID()).Return(nil).Once()
+
+		// Run
 		err := service.Delete(ctx, &DeleteCmd{
-			UserID:    ExampleAliceSession.UserID(),
-			SessionID: ExampleAliceSession.ID(),
+			UserID:    user.ID(),
+			SessionID: session.ID(),
 		})
+
+		// Asserts
 		require.NoError(t, err)
 	})
 
 	t.Run("Delete with a validation error", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
+		// Data
+		user := users.NewFakeUser(t).WithAdminRole().Build()
+
+		// Mocks
+
+		// Run
 		err := service.Delete(ctx, &DeleteCmd{
-			UserID:    ExampleAliceSession.UserID(),
+			UserID:    user.ID(),
 			SessionID: "some invalid id",
 		})
+
+		// Asserts
 		require.ErrorIs(t, err, errs.ErrValidation)
 		require.ErrorContains(t, err, "SessionID: must be a valid UUID v4.")
 	})
 
 	t.Run("Delete with a session not found", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
-		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(nil, errNotFound).Once()
+		// Data
+		user := users.NewFakeUser(t).WithAdminRole().Build()
+		session := NewFakeSession(t).Build()
 
+		// Mocks
+		storageMock.On("GetByID", mock.Anything, session.ID()).Return(nil, errNotFound).Once()
+
+		// Run
 		err := service.Delete(ctx, &DeleteCmd{
-			UserID:    ExampleAliceSession.UserID(),
-			SessionID: ExampleAliceSession.ID(),
+			UserID:    user.ID(),
+			SessionID: session.ID(),
 		})
+
+		// Asserts
 		require.NoError(t, err)
 	})
 
 	t.Run("Delete with a session owner by someone else", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
-		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(&ExampleAliceSession, nil).Once()
+		// Data
+		user := users.NewFakeUser(t).WithAdminRole().Build()
+		session := NewFakeSession(t).Build() // Session is not created by user
 
+		// Mocks
+		storageMock.On("GetByID", mock.Anything, session.ID()).Return(session, nil).Once()
+
+		// Run
 		err := service.Delete(ctx, &DeleteCmd{
-			UserID:    uuid.UUID("de946548-095f-4fa9-8f03-81d3459f8000"), // some random id
-			SessionID: ExampleAliceSession.ID(),
+			UserID:    user.ID(),
+			SessionID: session.ID(),
 		})
+
+		// Asserts
 		require.EqualError(t, err, "not found: user ids are not matching")
 		require.ErrorIs(t, err, errs.ErrNotFound)
 	})
 
 	t.Run("DeleteAll success", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.UserID(), (*sqlstorage.PaginateCmd)(nil)).Return([]DavSession{ExampleAliceSession}, nil).Once()
-		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(&ExampleAliceSession, nil).Once()
-		storageMock.On("RemoveByID", mock.Anything, ExampleAliceSession.ID()).Return(nil).Once()
+		// Data
+		user := users.NewFakeUser(t).WithAdminRole().Build()
+		session := NewFakeSession(t).CreatedBy(user).Build()
 
-		err := service.DeleteAll(ctx, ExampleAliceSession.UserID())
+		// Mocks
+		storageMock.On("GetAllForUser", mock.Anything, user.ID(), (*sqlstorage.PaginateCmd)(nil)).Return([]DavSession{*session}, nil).Once()
+		storageMock.On("GetByID", mock.Anything, session.ID()).Return(session, nil).Once()
+		storageMock.On("RemoveByID", mock.Anything, session.ID()).Return(nil).Once()
+
+		// Run
+		err := service.DeleteAll(ctx, user.ID())
+
+		// Asserts
 		require.NoError(t, err)
 	})
 
 	t.Run("DeleteAll with a GetAll error", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.UserID(), (*sqlstorage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
+		// Data
+		user := users.NewFakeUser(t).WithAdminRole().Build()
 
-		err := service.DeleteAll(ctx, ExampleAliceSession.UserID())
+		// Mocks
+		storageMock.On("GetAllForUser", mock.Anything, user.ID(), (*sqlstorage.PaginateCmd)(nil)).Return(nil, fmt.Errorf("some-error")).Once()
+
+		// Run
+		err := service.DeleteAll(ctx, user.ID())
+
+		// Asserts
 		require.ErrorIs(t, err, errs.ErrInternal)
 		require.ErrorContains(t, err, "some-error")
 	})
 
 	t.Run("DeleteAll with a revoke error stop directly", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		storageMock := newMockStorage(t)
 		spacesMock := spaces.NewMockService(t)
 		service := newService(storageMock, spacesMock, tools)
 
-		storageMock.On("GetAllForUser", mock.Anything, ExampleAliceSession.UserID(), (*sqlstorage.PaginateCmd)(nil)).Return([]DavSession{ExampleAliceSession, ExampleAliceSession}, nil).Once()
-		storageMock.On("GetByID", mock.Anything, ExampleAliceSession.ID()).Return(&ExampleAliceSession, nil).Once()
-		storageMock.On("RemoveByID", mock.Anything, ExampleAliceSession.ID()).Return(fmt.Errorf("some-error")).Once()
-		// Do not call GetByID and RemoveByID a second time
+		// Data
+		user := users.NewFakeUser(t).WithAdminRole().Build()
+		session := NewFakeSession(t).CreatedBy(user).Build()
+		session2 := NewFakeSession(t).CreatedBy(user).Build()
 
-		err := service.DeleteAll(ctx, ExampleAliceSession.UserID())
+		// Mocks
+		storageMock.On("GetAllForUser", mock.Anything, user.ID(), (*sqlstorage.PaginateCmd)(nil)).Return([]DavSession{*session, *session2}, nil).Once()
+		storageMock.On("GetByID", mock.Anything, session.ID()).Return(session, nil).Once()
+		storageMock.On("RemoveByID", mock.Anything, session.ID()).Return(fmt.Errorf("some-error")).Once()
+		// Do not call GetByID and RemoveByID a session2
+
+		// Run
+		err := service.DeleteAll(ctx, user.ID())
+
+		// Asserts
 		require.ErrorIs(t, err, errs.ErrInternal)
 		require.ErrorContains(t, err, "some-error")
 	})
