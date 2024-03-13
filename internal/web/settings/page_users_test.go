@@ -22,7 +22,11 @@ import (
 )
 
 func Test_UsersPage(t *testing.T) {
+	t.Parallel()
+
 	t.Run("getUsers success", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		usersMock := users.NewMockService(t)
@@ -30,34 +34,41 @@ func Test_UsersPage(t *testing.T) {
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := NewUsersPage(tools, htmlMock, usersMock, auth)
 
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+		// Data
+		user := users.NewFakeUser(t).WithAdminRole().Build()
+		user2 := users.NewFakeUser(t).Build()
+		webSession := websessions.NewFakeSession(t).CreatedBy(user).Build()
 
+		// Mocks
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(webSession, nil).Once()
+		usersMock.On("GetByID", mock.Anything, user.ID()).Return(user, nil).Once()
 		usersMock.On("GetAll", mock.Anything, &sqlstorage.PaginateCmd{
 			StartAfter: map[string]string{"username": ""},
 			Limit:      20,
-		}).Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
-
+		}).Return([]users.User{*user, *user2}, nil).Once()
 		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &userstmpl.ContentTemplate{
-			IsAdmin: users.ExampleAlice.IsAdmin(),
-			Current: &users.ExampleAlice,
-			Users:   []users.User{users.ExampleAlice, users.ExampleBob},
+			IsAdmin: user.IsAdmin(),
+			Current: user,
+			Users:   []users.User{*user, *user2},
 			Error:   nil,
 		}).Once()
 
+		// Run
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/settings/users", nil)
 		srv := chi.NewRouter()
 		handler.Register(srv, nil)
 		srv.ServeHTTP(w, r)
 
+		// Asserts
 		res := w.Result()
 		defer res.Body.Close()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 	})
 
 	t.Run("deleteUser success", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		usersMock := users.NewMockService(t)
@@ -65,38 +76,47 @@ func Test_UsersPage(t *testing.T) {
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := NewUsersPage(tools, htmlMock, usersMock, auth)
 
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+		// Data
+		user := users.NewFakeUser(t).WithAdminRole().Build()
+		user2 := users.NewFakeUser(t).Build()
+		webSession := websessions.NewFakeSession(t).CreatedBy(user).Build()
+		someUserID := "some-user-id"
 
-		tools.UUIDMock.On("Parse", "some-user-id").Return(uuid.UUID("some-user-id"), nil).Once()
+		// Mocks
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(webSession, nil).Once()
+		usersMock.On("GetByID", mock.Anything, user.ID()).Return(user, nil).Once()
+		tools.UUIDMock.On("Parse", someUserID).Return(uuid.UUID(someUserID), nil).Once()
 
-		usersMock.On("AddToDeletion", mock.Anything, uuid.UUID("some-user-id")).Return(nil).Once()
+		usersMock.On("AddToDeletion", mock.Anything, uuid.UUID(someUserID)).Return(nil).Once()
 
 		usersMock.On("GetAll", mock.Anything, &sqlstorage.PaginateCmd{
 			StartAfter: map[string]string{"username": ""},
 			Limit:      20,
-		}).Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
+		}).Return([]users.User{*user, *user2}, nil).Once()
 
 		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &userstmpl.ContentTemplate{
-			IsAdmin: users.ExampleAlice.IsAdmin(),
-			Current: &users.ExampleAlice,
-			Users:   []users.User{users.ExampleAlice, users.ExampleBob},
+			IsAdmin: user.IsAdmin(),
+			Current: user,
+			Users:   []users.User{*user, *user2},
 			Error:   nil,
 		}).Once()
 
+		// Run
 		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodPost, "/settings/users/some-user-id/delete", nil)
+		r := httptest.NewRequest(http.MethodPost, "/settings/users/"+someUserID+"/delete", nil)
 		srv := chi.NewRouter()
 		handler.Register(srv, nil)
 		srv.ServeHTTP(w, r)
 
+		// Asserts
 		res := w.Result()
 		defer res.Body.Close()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 	})
 
 	t.Run("createUser success", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		usersMock := users.NewMockService(t)
@@ -104,33 +124,41 @@ func Test_UsersPage(t *testing.T) {
 		auth := auth.NewAuthenticator(webSessionsMock, usersMock, htmlMock)
 		handler := NewUsersPage(tools, htmlMock, usersMock, auth)
 
-		// Authentication
-		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(&websessions.AliceWebSessionExample, nil).Once()
-		usersMock.On("GetByID", mock.Anything, users.ExampleAlice.ID()).Return(&users.ExampleAlice, nil).Once()
+		// Data
+		user := users.NewFakeUser(t).WithAdminRole().Build()
+		webSession := websessions.NewFakeSession(t).CreatedBy(user).Build()
+		newUserPassword := "some-password"
+		newUser := users.NewFakeUser(t).
+			WithUsername("Alice").
+			WithPassword(newUserPassword).
+			WithAdminRole().
+			Build()
 
+		// Mocks
+		webSessionsMock.On("GetFromReq", mock.Anything, mock.Anything).Return(webSession, nil).Once()
+		usersMock.On("GetByID", mock.Anything, user.ID()).Return(user, nil).Once()
 		usersMock.On("Create", mock.Anything, &users.CreateCmd{
-			CreatedBy: &users.ExampleAlice,
-			Username:  "some-username",
-			Password:  secret.NewText("my-little-secret"),
+			CreatedBy: user,
+			Username:  "Alice",
+			Password:  secret.NewText(newUserPassword),
 			IsAdmin:   true,
-		}).Return(&users.ExampleAlice, nil).Once()
-
+		}).Return(newUser, nil).Once()
 		usersMock.On("GetAll", mock.Anything, &sqlstorage.PaginateCmd{
 			StartAfter: map[string]string{"username": ""},
 			Limit:      20,
-		}).Return([]users.User{users.ExampleAlice, users.ExampleBob}, nil).Once()
-
+		}).Return([]users.User{*user, *newUser}, nil).Once()
 		htmlMock.On("WriteHTMLTemplate", mock.Anything, mock.Anything, http.StatusOK, &userstmpl.ContentTemplate{
-			IsAdmin: users.ExampleAlice.IsAdmin(),
-			Current: &users.ExampleAlice,
-			Users:   []users.User{users.ExampleAlice, users.ExampleBob},
+			IsAdmin: user.IsAdmin(),
+			Current: user,
+			Users:   []users.User{*user, *newUser},
 			Error:   nil,
 		}).Once()
 
+		// Run
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodPost, "/settings/users", strings.NewReader(url.Values{
-			"username": []string{"some-username"},
-			"password": []string{"my-little-secret"},
+			"username": []string{"Alice"},
+			"password": []string{newUserPassword},
 			"role":     []string{"admin"},
 		}.Encode()))
 		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -138,6 +166,7 @@ func Test_UsersPage(t *testing.T) {
 		handler.Register(srv, nil)
 		srv.ServeHTTP(w, r)
 
+		// Asserts
 		res := w.Result()
 		defer res.Body.Close()
 		assert.Equal(t, http.StatusOK, res.StatusCode)

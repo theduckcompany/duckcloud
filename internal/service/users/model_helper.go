@@ -39,6 +39,18 @@ func NewFakeUser(t testing.TB) *FakeUserBuilder {
 	}
 }
 
+func (f *FakeUserBuilder) WithPassword(password string) *FakeUserBuilder {
+	f.user.password = secret.NewText(password)
+
+	return f
+}
+
+func (f *FakeUserBuilder) WithUsername(username string) *FakeUserBuilder {
+	f.user.username = username
+
+	return f
+}
+
 func (f *FakeUserBuilder) WithAdminRole() *FakeUserBuilder {
 	f.user.isAdmin = true
 
