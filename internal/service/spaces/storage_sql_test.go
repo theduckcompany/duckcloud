@@ -12,6 +12,8 @@ import (
 )
 
 func TestSpaceSqlstore(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	tools := tools.NewMock(t)
@@ -23,6 +25,8 @@ func TestSpaceSqlstore(t *testing.T) {
 	space2 := NewFakeSpace(t).Build()
 
 	t.Run("Create success", func(t *testing.T) {
+		t.Parallel()
+
 		// Run
 		err := store.Save(ctx, space)
 
@@ -31,6 +35,8 @@ func TestSpaceSqlstore(t *testing.T) {
 	})
 
 	t.Run("GetByID success", func(t *testing.T) {
+		t.Parallel()
+
 		// Run
 		res, err := store.GetByID(ctx, space.ID())
 
@@ -40,6 +46,8 @@ func TestSpaceSqlstore(t *testing.T) {
 	})
 
 	t.Run("GetByID not found", func(t *testing.T) {
+		t.Parallel()
+
 		// Run
 		res, err := store.GetByID(ctx, "some-invalid-uuid")
 
@@ -49,6 +57,8 @@ func TestSpaceSqlstore(t *testing.T) {
 	})
 
 	t.Run("Create success", func(t *testing.T) {
+		t.Parallel()
+
 		// Run
 		err := store.Save(ctx, space2)
 
@@ -57,6 +67,8 @@ func TestSpaceSqlstore(t *testing.T) {
 	})
 
 	t.Run("GetAllSpaces success", func(t *testing.T) {
+		t.Parallel()
+
 		// Run
 		res, err := store.GetAllSpaces(ctx, nil)
 
@@ -66,6 +78,8 @@ func TestSpaceSqlstore(t *testing.T) {
 	})
 
 	t.Run("GetAllUserSpaces with only personal success", func(t *testing.T) {
+		t.Parallel()
+
 		// Run
 		res, err := store.GetAllUserSpaces(ctx, user.ID(), nil)
 
@@ -75,6 +89,8 @@ func TestSpaceSqlstore(t *testing.T) {
 	})
 
 	t.Run("Patch success", func(t *testing.T) {
+		t.Parallel()
+
 		// Run
 		err := store.Patch(ctx, space.id, map[string]any{"name": "foo"})
 		require.NoError(t, err)
@@ -86,6 +102,8 @@ func TestSpaceSqlstore(t *testing.T) {
 	})
 
 	t.Run("Delete success", func(t *testing.T) {
+		t.Parallel()
+
 		// Run
 		err := store.Delete(ctx, space.ID())
 
