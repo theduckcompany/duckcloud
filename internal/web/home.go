@@ -7,6 +7,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
+	"github.com/theduckcompany/duckcloud/internal/web/html/templates/home"
 )
 
 type HomePage struct {
@@ -40,5 +41,5 @@ func (h *HomePage) getHome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.html.WriteHTML(w, r, http.StatusOK, "home/page", map[string]interface{}{})
+	h.html.WriteHTMLTemplate(w, r, http.StatusOK, &home.HomePageTmpl{})
 }
