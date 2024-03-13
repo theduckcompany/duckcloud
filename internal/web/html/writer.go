@@ -32,7 +32,6 @@ type Config struct {
 
 //go:generate mockery --name Writer
 type Writer interface {
-	WriteHTML(w http.ResponseWriter, r *http.Request, status int, template string, args any)
 	WriteHTMLTemplate(w http.ResponseWriter, r *http.Request, status int, template Templater)
 	WriteHTMLErrorPage(w http.ResponseWriter, r *http.Request, err error)
 }
@@ -110,7 +109,7 @@ func NewRenderer(cfg Config) *Renderer {
 	return &Renderer{renderer}
 }
 
-func (t *Renderer) WriteHTML(w http.ResponseWriter, r *http.Request, status int, template string, args any) {
+func (t *Renderer) writeHTML(w http.ResponseWriter, r *http.Request, status int, template string, args any) {
 	layout := ""
 
 	if strings.Contains(template, "page") {
@@ -137,7 +136,7 @@ func (t *Renderer) WriteHTML(w http.ResponseWriter, r *http.Request, status int,
 }
 
 func (t *Renderer) WriteHTMLTemplate(w http.ResponseWriter, r *http.Request, status int, template Templater) {
-	t.WriteHTML(w, r, status, template.Template(), template)
+	t.writeHTML(w, r, status, template.Template(), template)
 }
 
 func (t *Renderer) WriteHTMLErrorPage(w http.ResponseWriter, r *http.Request, err error) {
