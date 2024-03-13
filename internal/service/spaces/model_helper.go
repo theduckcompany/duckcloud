@@ -1,15 +1,20 @@
 package spaces
 
 import (
+	"context"
+	"database/sql"
 	"testing"
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
+	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
 type FakeSpaceBuilder struct {
+	t     *testing.T
 	space *Space
 }
 
@@ -21,6 +26,7 @@ func NewFakeSpace(t *testing.T) *FakeSpaceBuilder {
 	createdAt := gofakeit.DateRange(time.Now().Add(-time.Hour*1000), time.Now())
 
 	return &FakeSpaceBuilder{
+		t: t,
 		space: &Space{
 			id:        uuidProvider.New(),
 			name:      gofakeit.Animal(),
@@ -62,5 +68,17 @@ func (f *FakeSpaceBuilder) WithOwners(users ...users.User) *FakeSpaceBuilder {
 }
 
 func (f *FakeSpaceBuilder) Build() *Space {
+	return f.space
+}
+
+func (f *FakeSpaceBuilder) BuildAndStore(db *sql.DB) *Space {
+	f.t.Helper()
+
+	tools := tools.NewToolboxForTest(f.t)
+	storage := newSqlStorage(db, tools)
+
+	err := storage.Save(context.Background(), f.space)
+	require.NoError(f.t, err)
+
 	return f.space
 }
