@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
-
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -19,7 +18,6 @@ func NewFakeUser(t testing.TB) *FakeUserBuilder {
 	t.Helper()
 
 	uuidProvider := uuid.NewProvider()
-
 	createdAt := gofakeit.DateRange(time.Now().Add(-time.Hour*1000), time.Now())
 
 	return &FakeUserBuilder{
