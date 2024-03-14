@@ -10,36 +10,54 @@ import (
 )
 
 func TestUserSqlStorage(t *testing.T) {
-	ctx := context.Background()
+	t.Parallel()
 
+	ctx := context.Background()
 	db := sqlstorage.NewTestStorage(t)
 	store := newSqlStorage(db)
 
-	t.Run("Save success", func(t *testing.T) {
-		err := store.Save(ctx, &ExampleFile1)
+	// Data
+	file := NewFakeFile(t).Build()
 
+	t.Run("Save success", func(t *testing.T) {
+		// Run
+		err := store.Save(ctx, file)
+
+		// Asserts
 		require.NoError(t, err)
 	})
 
 	t.Run("GetByID success", func(t *testing.T) {
-		res, err := store.GetByID(ctx, ExampleFile1.ID())
+		// Run
+		res, err := store.GetByID(ctx, file.ID())
+
+		// Asserts
 		require.NoError(t, err)
-		assert.Equal(t, &ExampleFile1, res)
+		assert.Equal(t, file, res)
 	})
 
 	t.Run("GetByID not found", func(t *testing.T) {
+		// Run
 		res, err := store.GetByID(ctx, "some-invalid-id")
+
+		// Asserts
 		assert.Nil(t, res)
 		require.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("Delete success", func(t *testing.T) {
-		err := store.Delete(ctx, ExampleFile1.ID())
+		// Run
+		err := store.Delete(ctx, file.ID())
+
+		// Asserts
 		require.NoError(t, err)
 	})
 
 	t.Run("GetByID a deleted file", func(t *testing.T) {
-		res, err := store.GetByID(ctx, ExampleFile1.ID())
+		// Run
+		res, err := store.GetByID(ctx, file.ID())
+
+		// Asserts
 		assert.Nil(t, res)
 		require.ErrorIs(t, err, errNotFound)
 	})

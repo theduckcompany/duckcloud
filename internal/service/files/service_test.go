@@ -21,10 +21,14 @@ import (
 )
 
 func TestFileService(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	masterPassword := secret.NewText("1superStrongPa$$word!")
 
 	t.Run("Upload and Download success", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
 		db := sqlstorage.NewTestStorage(t)
@@ -36,11 +40,17 @@ func TestFileService(t *testing.T) {
 		require.NoError(t, err)
 		svc := newService(storage, fs, tools, masterkeySvc)
 
+		// Run
 		fileMeta, err := svc.Upload(ctx, bytes.NewReader([]byte("Hello, World!")))
+
+		// Asserts
 		require.NoError(t, err)
 		assert.NotNil(t, fileMeta)
 
+		// Run 2
 		reader, err := svc.Download(ctx, fileMeta)
+
+		// Asserts 2
 		require.NoError(t, err)
 		res, err := io.ReadAll(reader)
 		require.NoError(t, err)
@@ -48,6 +58,8 @@ func TestFileService(t *testing.T) {
 	})
 
 	t.Run("Upload with a fs error", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
 		db := sqlstorage.NewTestStorage(t)
@@ -69,6 +81,8 @@ func TestFileService(t *testing.T) {
 	})
 
 	t.Run("Delete success", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
 		db := sqlstorage.NewTestStorage(t)
@@ -96,6 +110,8 @@ func TestFileService(t *testing.T) {
 	})
 
 	t.Run("Upload with a copy error", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
 		db := sqlstorage.NewTestStorage(t)
@@ -116,6 +132,8 @@ func TestFileService(t *testing.T) {
 	})
 
 	t.Run("GetMetadata success", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
 		db := sqlstorage.NewTestStorage(t)
@@ -127,14 +145,23 @@ func TestFileService(t *testing.T) {
 		require.NoError(t, err)
 		svc := newService(storageMock, fs, tools, masterkeySvc)
 
-		storageMock.On("GetByID", mock.Anything, ExampleFile1.ID()).Return(&ExampleFile1, nil).Once()
+		// Data
+		fileMeta := NewFakeFile(t).Build()
 
-		res, err := svc.GetMetadata(ctx, ExampleFile1.ID())
+		// Mocks
+		storageMock.On("GetByID", mock.Anything, fileMeta.ID()).Return(fileMeta, nil).Once()
+
+		// Run
+		res, err := svc.GetMetadata(ctx, fileMeta.ID())
+
+		// Asserts
 		require.NoError(t, err)
-		assert.Equal(t, &ExampleFile1, res)
+		assert.Equal(t, fileMeta, res)
 	})
 
 	t.Run("GetMetadataByChecksum success", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
 		db := sqlstorage.NewTestStorage(t)
@@ -146,14 +173,23 @@ func TestFileService(t *testing.T) {
 		require.NoError(t, err)
 		svc := newService(storageMock, fs, tools, masterkeySvc)
 
-		storageMock.On("GetByChecksum", mock.Anything, "some-checksum").Return(&ExampleFile1, nil).Once()
+		// Data
+		fileMeta := NewFakeFile(t).Build()
 
-		res, err := svc.GetMetadataByChecksum(ctx, "some-checksum")
+		// Mocks
+		storageMock.On("GetByChecksum", mock.Anything, fileMeta.checksum).Return(fileMeta, nil).Once()
+
+		// Run
+		res, err := svc.GetMetadataByChecksum(ctx, fileMeta.checksum)
+
+		// Asserts
 		require.NoError(t, err)
-		assert.Equal(t, &ExampleFile1, res)
+		assert.Equal(t, fileMeta, res)
 	})
 
 	t.Run("Download an invalid content", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewToolboxForTest(t)
 		fs := afero.NewMemMapFs()
 		db := sqlstorage.NewTestStorage(t)
@@ -165,10 +201,16 @@ func TestFileService(t *testing.T) {
 		require.NoError(t, err)
 		svc := newService(storage, fs, tools, masterkeySvc)
 
-		err = afero.WriteFile(fs, "66/66278d2b-7a4f-4764-ac8a-fc08f224eb66", []byte("not encrypted"), 0o755)
+		// Data
+		content := []byte("not encrypted")
+		fileMeta := NewFakeFile(t).WithContent(content).Build()
+		err = afero.WriteFile(fs, fmt.Sprintf("%s/%s", fileMeta.id[:2], fileMeta.id), content, 0o755)
 		require.NoError(t, err)
 
-		reader, err := svc.Download(ctx, &ExampleFile2)
+		// Run
+		reader, err := svc.Download(ctx, fileMeta)
+
+		// Asserts
 		assert.Nil(t, reader)
 		require.EqualError(t, err, "failed to open the file key: internal: failed to open the sealed key")
 	})
