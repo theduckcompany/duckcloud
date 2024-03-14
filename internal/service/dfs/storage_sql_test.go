@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -18,9 +17,8 @@ func TestINodeSqlstore(t *testing.T) {
 	nowData := time.Now().UTC()
 	ctx := context.Background()
 
-	tools := tools.NewMock(t)
 	db := sqlstorage.NewTestStorage(t)
-	store := newSqlStorage(db, tools)
+	store := newSqlStorage(db)
 
 	t.Run("Create success", func(t *testing.T) {
 		err := store.Save(ctx, &ExampleBobRoot)

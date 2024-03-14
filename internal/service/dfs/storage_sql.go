@@ -8,8 +8,6 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/theduckcompany/duckcloud/internal/tools"
-	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -22,12 +20,11 @@ var errNotFound = errors.New("not found")
 var allFiels = []string{"id", "name", "parent", "space_id", "size", "last_modified_at", "created_at", "created_by", "file_id"}
 
 type sqlStorage struct {
-	db    *sql.DB
-	clock clock.Clock
+	db *sql.DB
 }
 
-func newSqlStorage(db *sql.DB, tools tools.Tools) *sqlStorage {
-	return &sqlStorage{db, tools.Clock()}
+func newSqlStorage(db *sql.DB) *sqlStorage {
+	return &sqlStorage{db}
 }
 
 func (s *sqlStorage) Save(ctx context.Context, i *INode) error {
