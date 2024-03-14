@@ -50,7 +50,7 @@ func Init(db *sql.DB,
 ) (Result,
 	error,
 ) {
-	storage := newSqlStorage(db, tools)
+	storage := newSqlStorage(db)
 	svc := newService(storage, files, spaces, scheduler, tools)
 
 	return Result{
