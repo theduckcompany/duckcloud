@@ -49,11 +49,11 @@ func (f *FakeINodeBuilder) IsRootDirectory() *FakeINodeBuilder {
 	return f
 }
 
-func (f *FakeINodeBuilder) IsDirectory() *FakeINodeBuilder {
-	f.inode.fileID = nil
-
-	return f
-}
+// func (f *FakeINodeBuilder) IsDirectory() *FakeINodeBuilder {
+// 	f.inode.fileID = nil
+//
+// 	return f
+// }
 
 func (f *FakeINodeBuilder) WithSpace(space *spaces.Space) *FakeINodeBuilder {
 	f.inode.spaceID = space.ID()
@@ -103,12 +103,12 @@ func (f *FakeINodeBuilder) Build() *INode {
 	return f.inode
 }
 
-func (f *FakeINodeBuilder) BuildAndStore(db *sql.DB) *INode {
+func (f *FakeINodeBuilder) BuildAndStore(ctx context.Context, db *sql.DB) *INode {
 	f.t.Helper()
 
 	storage := newSqlStorage(db)
 
-	err := storage.Save(context.Background(), f.inode)
+	err := storage.Save(ctx, f.inode)
 	require.NoError(f.t, err)
 
 	return f.inode

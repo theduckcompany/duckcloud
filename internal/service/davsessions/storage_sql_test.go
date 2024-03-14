@@ -16,12 +16,13 @@ import (
 func TestDavSessionSqlStorage(t *testing.T) {
 	t.Parallel()
 
+	ctx := context.Background()
 	db := sqlstorage.NewTestStorage(t)
 	store := newSqlStorage(db)
 
 	// Data
-	user := users.NewFakeUser(t).WithAdminRole().BuildAndStore(db)
-	space := spaces.NewFakeSpace(t).WithOwners(*user).BuildAndStore(db)
+	user := users.NewFakeUser(t).WithAdminRole().BuildAndStore(ctx, db)
+	space := spaces.NewFakeSpace(t).WithOwners(*user).BuildAndStore(ctx, db)
 
 	sessionPassword := "some-password"
 	session := NewFakeSession(t).
