@@ -14,8 +14,9 @@ import (
 func TestSessionSqlStorage(t *testing.T) {
 	db := sqlstorage.NewTestStorage(t)
 	storage := newSQLStorage(db)
+	ctx := context.Background()
 
-	user := users.NewFakeUser(t).WithAdminRole().BuildAndStore(db)
+	user := users.NewFakeUser(t).WithAdminRole().BuildAndStore(ctx, db)
 	sessionToken := "some-token"
 	session := NewFakeSession(t).
 		CreatedBy(user).

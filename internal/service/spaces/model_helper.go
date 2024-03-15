@@ -71,13 +71,13 @@ func (f *FakeSpaceBuilder) Build() *Space {
 	return f.space
 }
 
-func (f *FakeSpaceBuilder) BuildAndStore(db *sql.DB) *Space {
+func (f *FakeSpaceBuilder) BuildAndStore(ctx context.Context, db *sql.DB) *Space {
 	f.t.Helper()
 
 	tools := tools.NewToolboxForTest(f.t)
 	storage := newSqlStorage(db, tools)
 
-	err := storage.Save(context.Background(), f.space)
+	err := storage.Save(ctx, f.space)
 	require.NoError(f.t, err)
 
 	return f.space

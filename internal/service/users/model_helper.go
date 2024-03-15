@@ -67,13 +67,13 @@ func (f *FakeUserBuilder) Build() *User {
 	return f.user
 }
 
-func (f *FakeUserBuilder) BuildAndStore(db *sql.DB) *User {
+func (f *FakeUserBuilder) BuildAndStore(ctx context.Context, db *sql.DB) *User {
 	f.t.Helper()
 
 	tools := tools.NewToolboxForTest(f.t)
 	storage := newSqlStorage(db, tools)
 
-	err := storage.Save(context.Background(), f.user)
+	err := storage.Save(ctx, f.user)
 	require.NoError(f.t, err)
 
 	return f.user
