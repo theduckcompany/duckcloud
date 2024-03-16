@@ -3,31 +3,24 @@ package oauthclients
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 )
 
 func TestOauthClientsSQLStorage(t *testing.T) {
 	ctx := context.Background()
 
-	now := time.Now().UTC()
-	clientExample := Client{
-		id:             "some-client-id",
-		secret:         "some-secret",
-		redirectURI:    "some-url",
-		userID:         "some-user-id",
-		createdAt:      now,
-		scopes:         []string{"scope-a"},
-		public:         true,
-		skipValidation: true,
-	}
-
 	db := sqlstorage.NewTestStorage(t)
-
 	storage := newSqlStorage(db)
+
+	// Data
+	user := users.NewFakeUser(t).BuildAndStore(ctx, db)
+	client := NewFakeClient(t).
+		CreatedBy(user).
+		Build()
 
 	t.Run("GetByID not found", func(t *testing.T) {
 		res, err := storage.GetByID(ctx, "some-invalid-id")
@@ -37,15 +30,15 @@ func TestOauthClientsSQLStorage(t *testing.T) {
 	})
 
 	t.Run("Create", func(t *testing.T) {
-		err := storage.Save(context.Background(), &clientExample)
+		err := storage.Save(ctx, client)
 
 		require.NoError(t, err)
 	})
 
 	t.Run("GetByID success", func(t *testing.T) {
-		res, err := storage.GetByID(ctx, "some-client-id")
+		res, err := storage.GetByID(ctx, client.id)
 
 		require.NoError(t, err)
-		assert.EqualValues(t, &clientExample, res)
+		assert.EqualValues(t, client, res)
 	})
 }
