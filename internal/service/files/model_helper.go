@@ -1,7 +1,9 @@
 package files
 
 import (
+	"context"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/base64"
 	"testing"
 	"time"
@@ -55,13 +57,13 @@ func (f *FakeFileBuilder) Build() *FileMeta {
 	return f.file
 }
 
-//	func (f *FakeFileBuilder) BuildAndStore(db *sql.DB) *FileMeta {
-//		f.t.Helper()
-//
-//		storage := newSqlStorage(db)
-//
-//		err := storage.Save(context.Background(), f.file)
-//		require.NoError(f.t, err)
-//
-//		return f.file
-//	}
+func (f *FakeFileBuilder) BuildAndStore(ctx context.Context, db *sql.DB) *FileMeta {
+	f.t.Helper()
+
+	storage := newSqlStorage(db)
+
+	err := storage.Save(ctx, f.file)
+	require.NoError(f.t, err)
+
+	return f.file
+}
