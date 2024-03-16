@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/theduckcompany/duckcloud/internal/service/oauthclients"
+	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -16,47 +18,63 @@ func TestConsentSqlStorage(t *testing.T) {
 	db := sqlstorage.NewTestStorage(t)
 	storage := newSQLStorage(db)
 
-	t.Run("Create success", func(t *testing.T) {
-		err := storage.Save(ctx, &ExampleAliceConsent)
+	// Data
+	user := users.NewFakeUser(t).BuildAndStore(ctx, db)
+	oauthClient := oauthclients.NewFakeClient(t).CreatedBy(user).BuildAndStore(ctx, db)
+	consent := NewFakeConsent(t).CreatedBy(user).WithClient(oauthClient).Build()
 
+	t.Run("Create success", func(t *testing.T) {
+		// Run
+		err := storage.Save(ctx, consent)
+
+		// Asserts
 		require.NoError(t, err)
 	})
 
 	t.Run("GetByID success", func(t *testing.T) {
-		res, err := storage.GetByID(ctx, ExampleAliceConsent.ID())
+		// Run
+		res, err := storage.GetByID(ctx, consent.ID())
 
-		require.NotNil(t, res)
-		res.createdAt = res.createdAt.UTC()
-
+		// Asserts
 		require.NoError(t, err)
-		assert.Equal(t, &ExampleAliceConsent, res)
+		assert.Equal(t, consent, res)
 	})
 
 	t.Run("GetByID not found", func(t *testing.T) {
+		// Run
 		res, err := storage.GetByID(ctx, "some-invalid-token")
 
+		// Asserts
 		assert.Nil(t, res)
 		require.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("GetAllForUser success", func(t *testing.T) {
-		res, err := storage.GetAllForUser(ctx, ExampleAliceConsent.UserID(), nil)
+		// Run
+		res, err := storage.GetAllForUser(ctx, user.ID(), nil)
 
+		// Asserts
 		require.NoError(t, err)
-		assert.Equal(t, []Consent{ExampleAliceConsent}, res)
+		assert.Equal(t, []Consent{*consent}, res)
 	})
 
 	t.Run("Delete success", func(t *testing.T) {
-		err := storage.Delete(ctx, ExampleAliceConsent.ID())
+		// Run
+		err := storage.Delete(ctx, consent.ID())
+
+		// Asserts
 		require.NoError(t, err)
 
-		res, err := storage.GetByID(ctx, ExampleAliceConsent.ID())
+		res, err := storage.GetByID(ctx, consent.ID())
 		assert.Nil(t, res)
 		require.ErrorIs(t, err, errNotFound)
 	})
 
 	t.Run("Delete with an invalid id", func(t *testing.T) {
+		// Run
 		err := storage.Delete(ctx, uuid.UUID("some-invalid-id"))
+
+		// Asserts
 		require.NoError(t, err)
 	})
 }
