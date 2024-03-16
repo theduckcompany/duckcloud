@@ -24,8 +24,8 @@ func TestINodeSqlstore(t *testing.T) {
 
 	// Data
 	user := users.NewFakeUser(t).BuildAndStore(ctx, db)
+	file := files.NewFakeFile(t).BuildAndStore(ctx, db)
 	space := spaces.NewFakeSpace(t).WithOwners(*user).BuildAndStore(ctx, db)
-	file := files.NewFakeFile(t).Build()
 	now := time.Now().UTC()
 
 	rootInode := NewFakeINode(t).
@@ -117,7 +117,11 @@ func TestINodeSqlstore(t *testing.T) {
 
 	t.Run("GetSumRootsSize success", func(t *testing.T) {
 		// Data
-		anAnotherRoot := NewFakeINode(t).IsRootDirectory().BuildAndStore(ctx, db)
+		anAnotherRoot := NewFakeINode(t).
+			CreatedBy(user).
+			WithSpace(space).
+			IsRootDirectory().
+			BuildAndStore(ctx, db)
 
 		// Run
 		totalSize, err := store.GetSumRootsSize(ctx) // There is two roots: rootInode and  anAnotherRoot
@@ -165,7 +169,12 @@ func TestINodeSqlstore(t *testing.T) {
 
 	t.Run("Patch success", func(t *testing.T) {
 		// Data
-		inode := NewFakeINode(t).Build()
+		inode := NewFakeINode(t).
+			WithSpace(space).
+			WithParent(rootInode).
+			WithFile(file).
+			CreatedBy(user).
+			Build()
 		t.Cleanup(func() {
 			err := store.HardDelete(ctx, inode.ID())
 			require.NoError(t, err)
@@ -186,7 +195,12 @@ func TestINodeSqlstore(t *testing.T) {
 	})
 
 	t.Run("Delete", func(t *testing.T) {
-		deletedInode := NewFakeINode(t).BuildAndStore(ctx, db)
+		deletedInode := NewFakeINode(t).
+			WithSpace(space).
+			WithParent(rootInode).
+			WithFile(file).
+			CreatedBy(user).
+			BuildAndStore(ctx, db)
 
 		t.Run("Delete via a Patch", func(t *testing.T) {
 			// Run
