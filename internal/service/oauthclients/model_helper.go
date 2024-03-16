@@ -1,10 +1,13 @@
 package oauthclients
 
 import (
+	"context"
+	"database/sql"
 	"testing"
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
+	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -46,14 +49,13 @@ func (f *FakeClientBuilder) Build() *Client {
 	return f.client
 }
 
-// func (f *FakeClientBuilder) BuildAndStore(ctx context.Context, db *sql.DB) *Client {
-// 	f.t.Helper()
-//
-// 	tools := tools.NewToolboxForTest(f.t)
-// 	storage := newSqlStorage(db, tools)
-//
-// 	err := storage.Save(ctx, f.client)
-// 	require.NoError(f.t, err)
-//
-// 	return f.client
-// }
+func (f *FakeClientBuilder) BuildAndStore(ctx context.Context, db *sql.DB) *Client {
+	f.t.Helper()
+
+	storage := newSqlStorage(db)
+
+	err := storage.Save(ctx, f.client)
+	require.NoError(f.t, err)
+
+	return f.client
+}
