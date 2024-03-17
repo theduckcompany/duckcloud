@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -11,6 +12,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/service/websessions"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -18,12 +20,15 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/web/html/templates/auth"
 )
 
+const cookieLifeTime = time.Hour * 24 * 365
+
 type LoginPage struct {
 	webSessions websessions.Service
 	uuid        uuid.Service
 	html        html.Writer
 	users       users.Service
 	clients     oauthclients.Service
+	clock       clock.Clock
 }
 
 func NewLoginPage(
@@ -39,6 +44,7 @@ func NewLoginPage(
 		users:       users,
 		clients:     clients,
 		uuid:        tools.UUID(),
+		clock:       tools.Clock(),
 	}
 }
 
@@ -98,10 +104,15 @@ func (h *LoginPage) applyLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Handle the expiration time with the "Remember me" option
+	var expirationDate time.Time
+	if r.FormValue("remember") != "" {
+		expirationDate = h.clock.Now().Add(cookieLifeTime)
+	}
+
 	c := http.Cookie{
 		Name:     "session_token",
 		Value:    session.Token().Raw(),
+		Expires:  expirationDate,
 		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
