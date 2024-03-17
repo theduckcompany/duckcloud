@@ -39,6 +39,12 @@ func NewFakeClient(t testing.TB) *FakeClientBuilder {
 	}
 }
 
+func (f *FakeClientBuilder) SkipValidation() *FakeClientBuilder {
+	f.client.skipValidation = true
+
+	return f
+}
+
 func (f *FakeClientBuilder) CreatedBy(user *users.User) *FakeClientBuilder {
 	f.client.userID = user.ID()
 
