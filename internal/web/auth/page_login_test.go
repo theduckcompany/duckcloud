@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/go-chi/chi/v5"
@@ -24,7 +25,11 @@ import (
 )
 
 func Test_LoginPage(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Login without any session open", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		oauthclientsMock := oauthclients.NewMockService(t)
@@ -52,6 +57,8 @@ func Test_LoginPage(t *testing.T) {
 	})
 
 	t.Run("Login while already being authenticated redirect to the home", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		oauthclientsMock := oauthclients.NewMockService(t)
@@ -81,6 +88,8 @@ func Test_LoginPage(t *testing.T) {
 	})
 
 	t.Run("Login step from the oauth2 dance redirect to the consent page", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		oauthclientsMock := oauthclients.NewMockService(t)
@@ -116,6 +125,8 @@ func Test_LoginPage(t *testing.T) {
 	})
 
 	t.Run("Login step from the oauth2 dance with skip-validation redirect to the /authorize endpoint", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		oauthclientsMock := oauthclients.NewMockService(t)
@@ -151,6 +162,8 @@ func Test_LoginPage(t *testing.T) {
 	})
 
 	t.Run("ApplyLogin success", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		oauthclientsMock := oauthclients.NewMockService(t)
@@ -200,7 +213,64 @@ func Test_LoginPage(t *testing.T) {
 		assert.Empty(t, res.Cookies()[0].Expires)
 	})
 
+	t.Run("ApplyLogin success with the remember option", func(t *testing.T) {
+		t.Parallel()
+
+		tools := tools.NewMock(t)
+		webSessionsMock := websessions.NewMockService(t)
+		oauthclientsMock := oauthclients.NewMockService(t)
+		usersMock := users.NewMockService(t)
+		htmlMock := html.NewMockWriter(t)
+		handler := NewLoginPage(htmlMock, webSessionsMock, usersMock, oauthclientsMock, tools)
+
+		// Data
+		now := time.Now().UTC()
+		userPassword := gofakeit.Password(true, true, true, false, false, 8)
+		user := users.NewFakeUser(t).WithPassword(userPassword).Build()
+		webSession := websessions.NewFakeSession(t).
+			CreatedBy(user).
+			WithDevice("firefox 4.4.4.4").
+			WithIP(httptest.DefaultRemoteAddr).
+			Build()
+
+		// Mocks
+		usersMock.On("Authenticate", mock.Anything, user.Username(), secret.NewText(userPassword)).
+			Return(user, nil).Once()
+		webSessionsMock.On("Create", mock.Anything, &websessions.CreateCmd{
+			UserID:     user.ID(),
+			UserAgent:  "firefox 4.4.4.4",
+			RemoteAddr: httptest.DefaultRemoteAddr,
+		}).Return(webSession, nil).Once()
+		tools.UUIDMock.On("Parse", "").Return(uuid.UUID(""), errors.New("invalid")).Once()
+		tools.ClockMock.On("Now").Return(now).Once()
+
+		// Run
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(url.Values{
+			"username": []string{user.Username()},
+			"password": []string{userPassword},
+			"remember": []string{"on"},
+		}.Encode()))
+		r.RemoteAddr = httptest.DefaultRemoteAddr
+		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		r.Header.Set("User-Agent", "firefox 4.4.4.4")
+		srv := chi.NewRouter()
+		handler.Register(srv, nil)
+		srv.ServeHTTP(w, r)
+
+		// Asserts
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusFound, res.StatusCode)
+		assert.Equal(t, "/", res.Header.Get("Location"))
+		assert.Len(t, res.Cookies(), 1)
+		assert.Equal(t, "session_token", res.Cookies()[0].Name)
+		assert.WithinDuration(t, now.Add(cookieLifeTime), res.Cookies()[0].Expires, 2*time.Second)
+	})
+
 	t.Run("ApplyLogin with an invalid username", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		oauthclientsMock := oauthclients.NewMockService(t)
@@ -240,6 +310,8 @@ func Test_LoginPage(t *testing.T) {
 	})
 
 	t.Run("ApplyLogin with an invalid password", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		oauthclientsMock := oauthclients.NewMockService(t)
@@ -280,6 +352,8 @@ func Test_LoginPage(t *testing.T) {
 	})
 
 	t.Run("ApplyLogin with an authentication error", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		oauthclientsMock := oauthclients.NewMockService(t)
@@ -316,6 +390,8 @@ func Test_LoginPage(t *testing.T) {
 	})
 
 	t.Run("ApplyLogin during a oauth2 dance", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		oauthclientsMock := oauthclients.NewMockService(t)
@@ -371,9 +447,12 @@ func Test_LoginPage(t *testing.T) {
 		assert.Equal(t, "/auth/authorize", res.Header.Get("Location"))
 		assert.Len(t, res.Cookies(), 1)
 		assert.Equal(t, "session_token", res.Cookies()[0].Name)
+		assert.Empty(t, res.Cookies()[0].Expires)
 	})
 
 	t.Run("ApplyLogin during a oauth2 dance with a clients.GetByID error", func(t *testing.T) {
+		t.Parallel()
+
 		tools := tools.NewMock(t)
 		webSessionsMock := websessions.NewMockService(t)
 		oauthclientsMock := oauthclients.NewMockService(t)
