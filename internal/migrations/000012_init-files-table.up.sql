@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS files (
   "id" TEXT NOT NULL,
-  "size" REAL NOT NULL,
+  "size" INTEGER NOT NULL,
   "mimetype" TEXT DEFAULT NULL,
   "checksum" TEXT NOT NULL,
   "key" BLOB NOT NULL,
