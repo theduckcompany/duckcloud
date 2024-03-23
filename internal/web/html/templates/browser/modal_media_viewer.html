@@ -1,0 +1,22 @@
+
+<div class="d-flex bg-black modal-dialog modal-fullscreen">
+  <div class="d-flex flex-column w-100">
+    <div class="d-flex flex-row align-items-center w-100" style="height: 70px;">
+      <i class="fas fa-arrow-left fa-2x ms-3 me-4"></i>
+      <div class="d-flex flex-column">
+        <p class="fs-4 mb-1 text-light">{{.FileName}}</p>
+        <p class="fs-6 mb-1">{{.Folder}}</p>
+      </div>
+    </div>
+    <div class="d-flex vw-100  justify-content-center p-3" style="height: calc(100vh - 70px);">
+      <img id="media-content" class="d-flex" src="{{pathJoin "/download" .Path.Space.ID .Path.Path}}"/>
+    </div>
+  </div>
+</div>
+
+
+<style>
+#media-content {
+object-fit: scale-down;
+}
+</style>

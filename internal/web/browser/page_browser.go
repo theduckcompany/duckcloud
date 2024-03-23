@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/go-chi/chi/v5"
@@ -26,6 +27,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/web/auth"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 	"github.com/theduckcompany/duckcloud/internal/web/html/templates/browser"
+	browsertmpl "github.com/theduckcompany/duckcloud/internal/web/html/templates/browser"
 )
 
 const (
@@ -74,6 +76,7 @@ func (h *BrowserPage) Register(r chi.Router, mids *router.Middlewares) {
 	r.Get("/download/{spaceID}/*", h.download)
 	r.Get("/browser/{spaceID}", h.getBrowserContent)
 	r.Get("/browser/{spaceID}/*", h.getBrowserContent)
+	r.Get("/browser/view/{spaceID}/*", h.showMedia)
 	r.Delete("/browser/{spaceID}/*", h.deleteAll)
 
 	newCreateDirModalHandler(h.auth, h.spaces, h.html, h.uuid, h.fs).Register(r, mids)
@@ -454,4 +457,24 @@ func (h *BrowserPage) serveFolderContent(w http.ResponseWriter, r *http.Request,
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *BrowserPage) showMedia(w http.ResponseWriter, r *http.Request) {
+	user, _, abort := h.auth.GetUserAndSession(w, r, auth.AnyUser)
+	if abort {
+		return
+	}
+
+	filePath := h.getPathFromURL(w, r, user)
+	if filePath == nil {
+		return
+	}
+
+	folder, fileName := path.Split(filePath.Path())
+
+	h.html.WriteHTMLTemplate(w, r, http.StatusOK, &browsertmpl.MediaViewerModal{
+		Path:     filePath,
+		FileName: fileName,
+		Folder:   strings.TrimSuffix(folder, "/"),
+	})
 }

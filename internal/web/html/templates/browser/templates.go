@@ -174,3 +174,11 @@ type MoveRowsTemplate struct {
 }
 
 func (t *MoveRowsTemplate) Template() string { return "browser/modal_move_rows" }
+
+type MediaViewerModal struct {
+	Path     *dfs.PathCmd
+	FileName string
+	Folder   string
+}
+
+func (t *MediaViewerModal) Template() string { return "browser/modal_media_viewer" }

@@ -2,6 +2,7 @@
 {{ $folderURL := pathJoin "/browser" $.Folder.Space.ID $.Folder.Path}}
 {{ $inodeURL := pathJoin $folderURL $inode.Name}}
 {{ $downloadURL := pathJoin "/download" $.Folder.Space.ID $.Folder.Path .Name}}
+{{ $viewInodeURL := pathJoin "/browser/view" $.Folder.Space.ID $.Folder.Path .Name}}
 {{ $lastIdx := sub (len $.Inodes) 1}}
 {{ $filePath := pathJoin $.Folder.Path .Name}}
 
@@ -11,7 +12,9 @@
       <a 
         class="link-dark user-select-none stretched-link col-9 col-sm-10 col-md-11 text-truncate me-0" 
         href="{{$inodeURL}}" 
-        {{if .IsDir}}hx-boost=true hx-swap="outerHTML" hx-target="{{$.ContentTarget}}" {{end}}>
+        {{if .IsDir}}hx-swap="outerHTML" hx-target="{{$.ContentTarget}}" 
+      {{else}} hx-target="#modal-target" data-mdb-target="#modal-target" data-mdb-modal-init
+      hx-trigger="click" hx-swap="innerHTML" hx-get="{{$viewInodeURL}}"{{end}}>
         <span class="fs-6">{{.Name}}</span>
       </a>
   </td>
