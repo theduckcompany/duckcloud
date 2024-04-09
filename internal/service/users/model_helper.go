@@ -8,7 +8,6 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/stretchr/testify/require"
-	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
@@ -70,8 +69,7 @@ func (f *FakeUserBuilder) Build() *User {
 func (f *FakeUserBuilder) BuildAndStore(ctx context.Context, db *sql.DB) *User {
 	f.t.Helper()
 
-	tools := tools.NewToolboxForTest(f.t)
-	storage := newSqlStorage(db, tools)
+	storage := newSqlStorage(db)
 
 	err := storage.Save(ctx, f.user)
 	require.NoError(f.t, err)

@@ -7,8 +7,6 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/theduckcompany/duckcloud/internal/tools"
-	"github.com/theduckcompany/duckcloud/internal/tools/clock"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
 	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
@@ -22,13 +20,12 @@ var allFields = []string{"id", "username", "admin", "status", "password", "passw
 
 // sqlStorage use to save/retrieve Users
 type sqlStorage struct {
-	db    *sql.DB
-	clock clock.Clock
+	db *sql.DB
 }
 
 // newSqlStorage instantiates a new Storage based on sql.
-func newSqlStorage(db *sql.DB, tools tools.Tools) *sqlStorage {
-	return &sqlStorage{db, tools.Clock()}
+func newSqlStorage(db *sql.DB) *sqlStorage {
+	return &sqlStorage{db}
 }
 
 // Save the given User.
