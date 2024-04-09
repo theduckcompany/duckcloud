@@ -6,16 +6,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 )
 
 func TestUserSqlStorage(t *testing.T) {
 	ctx := context.Background()
 
-	tools := tools.NewMock(t)
 	db := sqlstorage.NewTestStorage(t)
-	store := newSqlStorage(db, tools)
+	store := newSqlStorage(db)
 
 	user := NewFakeUser(t).Build()
 
