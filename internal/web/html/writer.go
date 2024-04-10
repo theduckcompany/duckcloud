@@ -131,7 +131,7 @@ func (t *Renderer) writeHTML(w http.ResponseWriter, r *http.Request, status int,
 	}
 
 	if err := t.render.HTML(w, status, template, args, render.HTMLOptions{Layout: layout}); err != nil {
-		logger.LogEntrySetAttrs(r, slog.String("render-error", err.Error()))
+		logger.LogEntrySetAttrs(r.Context(), slog.String("render-error", err.Error()))
 	}
 }
 
@@ -148,11 +148,11 @@ func (t *Renderer) WriteHTMLErrorPage(w http.ResponseWriter, r *http.Request, er
 		layout = path.Join("home/layout")
 	}
 
-	logger.LogEntrySetError(r, err)
+	logger.LogEntrySetError(r.Context(), err)
 
 	if err := t.render.HTML(w, http.StatusInternalServerError, "home/500", map[string]any{
 		"requestID": reqID,
 	}, render.HTMLOptions{Layout: layout}); err != nil {
-		logger.LogEntrySetAttrs(r, slog.String("render-error", err.Error()))
+		logger.LogEntrySetAttrs(r.Context(), slog.String("render-error", err.Error()))
 	}
 }

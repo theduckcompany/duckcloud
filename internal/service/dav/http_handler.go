@@ -32,7 +32,7 @@ func NewHTTPHandler(tools tools.Tools, fs dfs.Service, files files.Service, spac
 			Sessions:   davSessions,
 			Logger: func(r *http.Request, err error) {
 				if err != nil {
-					logger.LogEntrySetError(r, err)
+					logger.LogEntrySetError(r.Context(), err)
 				}
 			},
 		},

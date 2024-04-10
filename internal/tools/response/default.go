@@ -28,7 +28,7 @@ func (t *Default) WriteJSON(w http.ResponseWriter, r *http.Request, statusCode i
 	}
 
 	if err := t.render.JSON(w, statusCode, res); err != nil {
-		logger.LogEntrySetAttrs(r, slog.String("render-error", err.Error()))
+		logger.LogEntrySetAttrs(r.Context(), slog.String("render-error", err.Error()))
 	}
 }
 
@@ -36,7 +36,7 @@ func (t *Default) WriteJSON(w http.ResponseWriter, r *http.Request, statusCode i
 func (t *Default) WriteJSONError(w http.ResponseWriter, r *http.Request, err error) {
 	var ierr *errs.Error
 
-	logger.LogEntrySetError(r, err)
+	logger.LogEntrySetError(r.Context(), err)
 
 	if !errors.As(err, &ierr) {
 		//nolint:errorlint // Is casted just above
@@ -44,6 +44,6 @@ func (t *Default) WriteJSONError(w http.ResponseWriter, r *http.Request, err err
 	}
 
 	if rerr := t.render.JSON(w, ierr.Code(), ierr); rerr != nil {
-		logger.LogEntrySetAttrs(r, slog.String("render-error", err.Error()))
+		logger.LogEntrySetAttrs(r.Context(), slog.String("render-error", err.Error()))
 	}
 }
