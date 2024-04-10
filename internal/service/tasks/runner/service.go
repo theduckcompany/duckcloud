@@ -11,6 +11,8 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/taskstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools"
 	"github.com/theduckcompany/duckcloud/internal/tools/clock"
+	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 )
 
 const (
@@ -81,7 +83,7 @@ func (t *TasksRunner) Run(ctx context.Context) error {
 
 			updateErr = t.storage.Patch(ctx, task.ID, map[string]any{
 				"retries":       task.Retries,
-				"registered_at": time.Now().Add(defaultRetryDelay),
+				"registered_at": ptr.To(sqlstorage.SQLTime(time.Now().Add(defaultRetryDelay))),
 			})
 
 		default:
