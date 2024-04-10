@@ -3,8 +3,10 @@ package commands
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -12,6 +14,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/theduckcompany/duckcloud/internal/tools/startutils"
 )
 
 func Test_NewRunCmd(t *testing.T) {
@@ -25,8 +28,10 @@ func Test_NewRunCmd(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
+		port := startutils.GetFreePort(t)
+
 		// --memory-fs is used to leave no trace to the host
-		cmd.SetArgs([]string{"--dev", "--memory-fs", "--folder=/duckcloud-test"})
+		cmd.SetArgs([]string{"--dev", "--memory-fs", "--folder=/duckcloud-test", fmt.Sprintf("--http-port=%d", port)})
 		var cmdErr error
 		var wg sync.WaitGroup
 		wg.Add(1)
@@ -35,7 +40,7 @@ func Test_NewRunCmd(t *testing.T) {
 			cmdErr = cmd.ExecuteContext(ctx)
 		}()
 
-		req, err := http.NewRequest(http.MethodGet, "http://localhost:5764/", nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://localhost:%d/", port), nil)
 		require.NoError(t, err)
 
 		var res *http.Response
@@ -66,7 +71,9 @@ func Test_NewRunCmd(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		t.Setenv("DUCKCLOUD_HTTP-PORT", "8797")
+		port := startutils.GetFreePort(t)
+
+		t.Setenv("DUCKCLOUD_HTTP-PORT", strconv.Itoa(port))
 		t.Setenv("DUCKCLOUD_LOG-LEVEL", "info")
 		t.Setenv("DUCKCLOUD_FOLDER", "duckloud-test")
 
@@ -79,7 +86,7 @@ func Test_NewRunCmd(t *testing.T) {
 			cmdErr = cmd.ExecuteContext(ctx)
 		}()
 
-		req, err := http.NewRequest(http.MethodGet, "http://localhost:8797/login", nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://localhost:%d/login", port), nil)
 		require.NoError(t, err)
 
 		var res *http.Response
@@ -110,7 +117,9 @@ func Test_NewRunCmd(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		cmd.SetArgs([]string{"--self-signed-cert", "--memory-fs", "--dev", "--folder=/duckcloud-test", "--log-level=info", "--http-port=7979"})
+		port := startutils.GetFreePort(t)
+
+		cmd.SetArgs([]string{"--self-signed-cert", "--memory-fs", "--dev", "--folder=/duckcloud-test", "--log-level=info", fmt.Sprintf("--http-port=%d", port)})
 		var cmdErr error
 		var wg sync.WaitGroup
 		wg.Add(1)
@@ -124,7 +133,7 @@ func Test_NewRunCmd(t *testing.T) {
 		tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 		client := &http.Client{Transport: tr}
 
-		req, err := http.NewRequest(http.MethodGet, "https://localhost:7979/", nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://localhost:%d/", port), nil)
 		require.NoError(t, err)
 
 		var res *http.Response
