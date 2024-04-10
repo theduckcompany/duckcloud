@@ -163,7 +163,7 @@ func (h *BrowserPage) upload(w http.ResponseWriter, r *http.Request) {
 			defer p.Close()
 			err = h.lauchUpload(r.Context(), &cmd)
 			if err != nil {
-				logger.LogEntrySetError(r, fmt.Errorf("upload error: %w", err))
+				logger.LogEntrySetError(r.Context(), fmt.Errorf("upload error: %w", err))
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}

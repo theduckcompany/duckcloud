@@ -110,7 +110,7 @@ func Test_NewRunCmd(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		cmd.SetArgs([]string{"--self-signed-cert", "--memory-fs", "--dev", "--folder=/duckcloud-test", "--log-level=info"})
+		cmd.SetArgs([]string{"--self-signed-cert", "--memory-fs", "--dev", "--folder=/duckcloud-test", "--log-level=info", "--http-port=7979"})
 		var cmdErr error
 		var wg sync.WaitGroup
 		wg.Add(1)
@@ -124,7 +124,7 @@ func Test_NewRunCmd(t *testing.T) {
 		tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 		client := &http.Client{Transport: tr}
 
-		req, err := http.NewRequest(http.MethodGet, "https://localhost:5764/", nil)
+		req, err := http.NewRequest(http.MethodGet, "https://localhost:7979/", nil)
 		require.NoError(t, err)
 
 		var res *http.Response

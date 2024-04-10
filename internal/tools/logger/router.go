@@ -83,14 +83,14 @@ func (l *structuredLoggerEntry) Panic(v interface{}, stack []byte) {
 	)
 }
 
-func LogEntrySetAttrs(r *http.Request, attrs ...slog.Attr) {
-	if entry, ok := r.Context().Value(middleware.LogEntryCtxKey).(*structuredLoggerEntry); ok {
+func LogEntrySetAttrs(ctx context.Context, attrs ...slog.Attr) {
+	if entry, ok := ctx.Value(middleware.LogEntryCtxKey).(*structuredLoggerEntry); ok {
 		entry.logger = entry.logger.WithAttrs(attrs)
 	}
 }
 
-func LogEntrySetError(r *http.Request, err error) {
-	if entry, ok := r.Context().Value(middleware.LogEntryCtxKey).(*structuredLoggerEntry); ok {
+func LogEntrySetError(ctx context.Context, err error) {
+	if entry, ok := ctx.Value(middleware.LogEntryCtxKey).(*structuredLoggerEntry); ok {
 		entry.logger = entry.logger.WithAttrs([]slog.Attr{slog.String("error", err.Error())})
 	}
 }

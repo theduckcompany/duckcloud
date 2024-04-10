@@ -61,7 +61,7 @@ func (h *SpacesPage) getContent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !user.IsAdmin() {
-		logger.LogEntrySetError(r, fmt.Errorf("%q is not an admin", user.Username()))
+		logger.LogEntrySetError(r.Context(), fmt.Errorf("%q is not an admin", user.Username()))
 		http.Redirect(w, r, "/settings", http.StatusUnauthorized)
 		return
 	}
@@ -103,7 +103,7 @@ func (h *SpacesPage) deleteSpace(w http.ResponseWriter, r *http.Request) {
 	spaceID, err := h.uuid.Parse(chi.URLParam(r, "spaceID"))
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		logger.LogEntrySetError(r, fmt.Errorf("spaceID %q not found", chi.URLParam(r, "spaceID")))
+		logger.LogEntrySetError(r.Context(), fmt.Errorf("spaceID %q not found", chi.URLParam(r, "spaceID")))
 		return
 	}
 
