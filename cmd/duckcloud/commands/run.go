@@ -38,9 +38,9 @@ func NewRunCmd(_ string) *cobra.Command {
 				return err
 			}
 
-			server.Run(cmd.Context(), cfg)
+			_, err = server.Run(cmd.Context(), cfg)
 
-			return nil
+			return err
 		},
 	}
 

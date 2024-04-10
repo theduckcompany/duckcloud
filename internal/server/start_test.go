@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -16,6 +17,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/tools/logger"
 	"github.com/theduckcompany/duckcloud/internal/tools/router"
 	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
+	"github.com/theduckcompany/duckcloud/internal/tools/startutils"
 	"github.com/theduckcompany/duckcloud/internal/web/html"
 	"go.uber.org/fx"
 )
@@ -41,14 +43,19 @@ func TestServerRun(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	port := startutils.GetFreePort(t)
+
+	testConfig.Listener.Addr = fmt.Sprintf("localhost:%d", port)
+
 	wg := sync.WaitGroup{}
 	wg.Add(1)
+	var runErr error
 	go func() {
 		defer wg.Done()
-		Run(ctx, testConfig)
+		_, runErr = Run(ctx, testConfig)
 	}()
 
-	req, err := http.NewRequest(http.MethodGet, "http://localhost:8797/login", nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://localhost:%d/login", port), nil)
 	require.NoError(t, err)
 
 	var res *http.Response
@@ -66,4 +73,6 @@ func TestServerRun(t *testing.T) {
 
 	cancel()
 	wg.Wait()
+
+	require.NoError(t, runErr)
 }
