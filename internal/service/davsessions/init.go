@@ -2,7 +2,6 @@ package davsessions
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/tools"
@@ -20,7 +19,7 @@ type Service interface {
 	DeleteAll(ctx context.Context, userID uuid.UUID) error
 }
 
-func Init(db *sql.DB, spaces spaces.Service, tools tools.Tools) Service {
+func Init(db sqlstorage.Querier, spaces spaces.Service, tools tools.Tools) Service {
 	storage := newSqlStorage(db)
 
 	return newService(storage, spaces, tools)

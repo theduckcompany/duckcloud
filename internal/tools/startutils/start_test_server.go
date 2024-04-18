@@ -2,7 +2,6 @@ package startutils
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -29,7 +28,7 @@ import (
 type Server struct {
 	// Main tools
 	Tools *tools.Toolbox
-	DB    *sql.DB
+	DB    sqlstorage.Querier
 	FS    afero.Fs
 
 	// Services

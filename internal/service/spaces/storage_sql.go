@@ -21,11 +21,11 @@ var errNotFound = errors.New("not found")
 var allFields = []string{"id", "name", "owners", "created_at", "created_by"}
 
 type sqlStorage struct {
-	db    *sql.DB
+	db    sqlstorage.Querier
 	clock clock.Clock
 }
 
-func newSqlStorage(db *sql.DB, tools tools.Tools) *sqlStorage {
+func newSqlStorage(db sqlstorage.Querier, tools tools.Tools) *sqlStorage {
 	return &sqlStorage{db, tools.Clock()}
 }
 

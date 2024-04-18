@@ -50,7 +50,7 @@ func (f *FakeConsentBuilder) Build() *Consent {
 	return f.consent
 }
 
-// func (f *FakeConsentBuilder) BuildAndStore(ctx context.Context, db *sql.DB) *Consent {
+// func (f *FakeConsentBuilder) BuildAndStore(ctx context.Context, db sqlstorage.Querier) *Consent {
 // 	f.t.Helper()
 //
 // 	tools := tools.NewToolboxForTest(f.t)

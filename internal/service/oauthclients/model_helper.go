@@ -2,13 +2,13 @@ package oauthclients
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -55,7 +55,7 @@ func (f *FakeClientBuilder) Build() *Client {
 	return f.client
 }
 
-func (f *FakeClientBuilder) BuildAndStore(ctx context.Context, db *sql.DB) *Client {
+func (f *FakeClientBuilder) BuildAndStore(ctx context.Context, db sqlstorage.Querier) *Client {
 	f.t.Helper()
 
 	storage := newSqlStorage(db)

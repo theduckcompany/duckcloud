@@ -1,24 +1,25 @@
 package sqlstorage
 
 import (
-	"database/sql"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/migrations"
 )
 
-func NewTestStorage(t *testing.T) *sql.DB {
+func NewTestStorage(t *testing.T) Querier {
 	cfg := Config{Path: ":memory:"}
 
-	client, err := NewSQliteClient(&cfg)
+	db, err := NewSQliteClient(&cfg)
 	require.NoError(t, err)
 
-	err = client.Ping()
+	err = db.Ping()
 	require.NoError(t, err)
 
-	err = migrations.Run(client, nil)
+	err = migrations.Run(db, nil)
 	require.NoError(t, err)
 
-	return client
+	querier := NewSQLQuerier(db)
+
+	return querier
 }

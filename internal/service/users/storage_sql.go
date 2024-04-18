@@ -20,11 +20,11 @@ var allFields = []string{"id", "username", "admin", "status", "password", "passw
 
 // sqlStorage use to save/retrieve Users
 type sqlStorage struct {
-	db *sql.DB
+	db sqlstorage.Querier
 }
 
 // newSqlStorage instantiates a new Storage based on sql.
-func newSqlStorage(db *sql.DB) *sqlStorage {
+func newSqlStorage(db sqlstorage.Querier) *sqlStorage {
 	return &sqlStorage{db}
 }
 

@@ -31,10 +31,10 @@ type Storage interface {
 }
 
 type sqlStorage struct {
-	db *sql.DB
+	db sqlstorage.Querier
 }
 
-func NewSqlStorage(db *sql.DB) *sqlStorage {
+func NewSqlStorage(db sqlstorage.Querier) *sqlStorage {
 	return &sqlStorage{db}
 }
 

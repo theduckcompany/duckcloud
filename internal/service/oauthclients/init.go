@@ -2,9 +2,9 @@ package oauthclients
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -14,7 +14,7 @@ type Service interface {
 	GetByID(ctx context.Context, clientID uuid.UUID) (*Client, error)
 }
 
-func Init(tools tools.Tools, db *sql.DB) Service {
+func Init(tools tools.Tools, db sqlstorage.Querier) Service {
 	storage := newSqlStorage(db)
 
 	return newService(tools, storage)

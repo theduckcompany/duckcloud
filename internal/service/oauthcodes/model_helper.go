@@ -54,7 +54,7 @@ func (f *FakeCodeBuilder) Build() *Code {
 	return f.code
 }
 
-// func (f *FakeCodeBuilder) BuildAndStore(ctx context.Context, db *sql.DB) *Code {
+// func (f *FakeCodeBuilder) BuildAndStore(ctx context.Context, db sqlstorage.Querier) *Code {
 // 	f.t.Helper()
 //
 // 	tools := tools.NewToolboxForTest(f.t)

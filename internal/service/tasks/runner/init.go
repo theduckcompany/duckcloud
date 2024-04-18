@@ -2,11 +2,11 @@ package runner
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/taskstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 )
 
 //go:generate mockery --name Service
@@ -20,7 +20,7 @@ type TaskRunner interface {
 	Name() string
 }
 
-func Init(runners []TaskRunner, tools tools.Tools, db *sql.DB) Service {
+func Init(runners []TaskRunner, tools tools.Tools, db sqlstorage.Querier) Service {
 	storage := taskstorage.NewSqlStorage(db)
 
 	return NewService(tools, storage, runners)

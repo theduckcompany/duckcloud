@@ -2,7 +2,6 @@ package users
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/tools"
@@ -32,7 +31,7 @@ type Service interface {
 
 func Init(
 	tools tools.Tools,
-	db *sql.DB,
+	db sqlstorage.Querier,
 	scheduler scheduler.Service,
 ) Service {
 	store := newSqlStorage(db)
