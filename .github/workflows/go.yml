@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: '1.22'
+          go-version: '1.22.0'
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: '1.22'
+          go-version: '1.22.0'
       - name: Run tests
         run: go test -count=1 -race -timeout 30s -coverprofile=coverage.out -covermode=atomic ./...
 
@@ -45,7 +45,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: '1.22'
+          go-version: '1.22.0'
       - name: Install mockery
         run: go install github.com/vektra/mockery/v2@v2.42.0
       - name: Run go generate
@@ -67,5 +67,5 @@ jobs:
         uses: lost-coders/deadcode-action@v0.1.0
         with:
           flags: "-test"
-          go-version: "1.22"
+          go-version: "1.22.0"
           go-package: "./..."
