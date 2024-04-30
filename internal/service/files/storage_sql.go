@@ -20,11 +20,11 @@ var allFields = []string{"id", "size", "mimetype", "checksum", "key", "uploaded_
 
 // sqlStorage use to save/retrieve files metadatas
 type sqlStorage struct {
-	db *sql.DB
+	db sqlstorage.Querier
 }
 
 // newSqlStorage instantiates a new Storage based on sql.
-func newSqlStorage(db *sql.DB) *sqlStorage {
+func newSqlStorage(db sqlstorage.Querier) *sqlStorage {
 	return &sqlStorage{db}
 }
 

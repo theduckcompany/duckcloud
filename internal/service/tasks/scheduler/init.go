@@ -2,10 +2,10 @@ package scheduler
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/internal/taskstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 )
 
 //go:generate mockery --name Service
@@ -20,7 +20,7 @@ type Service interface {
 	RegisterSpaceCreateTask(ctx context.Context, args *SpaceCreateArgs) error
 }
 
-func Init(db *sql.DB, tools tools.Tools) Service {
+func Init(db sqlstorage.Querier, tools tools.Tools) Service {
 	storage := taskstorage.NewSqlStorage(db)
 
 	return NewService(storage, tools)

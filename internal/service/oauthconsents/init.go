@@ -2,7 +2,6 @@ package oauthconsents
 
 import (
 	"context"
-	"database/sql"
 	"net/http"
 
 	"github.com/theduckcompany/duckcloud/internal/service/oauthclients"
@@ -21,7 +20,7 @@ type Service interface {
 	DeleteAll(ctx context.Context, userID uuid.UUID) error
 }
 
-func Init(tools tools.Tools, db *sql.DB) Service {
+func Init(tools tools.Tools, db sqlstorage.Querier) Service {
 	storage := newSQLStorage(db)
 
 	return NewService(storage, tools)

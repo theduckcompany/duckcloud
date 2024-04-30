@@ -2,7 +2,6 @@ package spaces
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 	"time"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -71,7 +71,7 @@ func (f *FakeSpaceBuilder) Build() *Space {
 	return f.space
 }
 
-func (f *FakeSpaceBuilder) BuildAndStore(ctx context.Context, db *sql.DB) *Space {
+func (f *FakeSpaceBuilder) BuildAndStore(ctx context.Context, db sqlstorage.Querier) *Space {
 	f.t.Helper()
 
 	tools := tools.NewToolboxForTest(f.t)

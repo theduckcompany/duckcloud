@@ -3,7 +3,6 @@ package files
 import (
 	"context"
 	"crypto/sha256"
-	"database/sql"
 	"encoding/base64"
 	"testing"
 	"time"
@@ -11,6 +10,7 @@ import (
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/stretchr/testify/require"
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -57,7 +57,7 @@ func (f *FakeFileBuilder) Build() *FileMeta {
 	return f.file
 }
 
-func (f *FakeFileBuilder) BuildAndStore(ctx context.Context, db *sql.DB) *FileMeta {
+func (f *FakeFileBuilder) BuildAndStore(ctx context.Context, db sqlstorage.Querier) *FileMeta {
 	f.t.Helper()
 
 	storage := newSqlStorage(db)

@@ -2,7 +2,6 @@ package dfs
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/theduckcompany/duckcloud/internal/service/spaces"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
 	"github.com/theduckcompany/duckcloud/internal/tools/ptr"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 )
 
@@ -103,7 +103,7 @@ func (f *FakeINodeBuilder) Build() *INode {
 	return f.inode
 }
 
-func (f *FakeINodeBuilder) BuildAndStore(ctx context.Context, db *sql.DB) *INode {
+func (f *FakeINodeBuilder) BuildAndStore(ctx context.Context, db sqlstorage.Querier) *INode {
 	f.t.Helper()
 
 	storage := newSqlStorage(db)

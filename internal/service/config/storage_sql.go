@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 )
 
 const tableName = "config"
@@ -14,10 +15,10 @@ const tableName = "config"
 var errNotfound = errors.New("not found")
 
 type sqlStorage struct {
-	db *sql.DB
+	db sqlstorage.Querier
 }
 
-func newSqlStorage(db *sql.DB) *sqlStorage {
+func newSqlStorage(db sqlstorage.Querier) *sqlStorage {
 	return &sqlStorage{db}
 }
 

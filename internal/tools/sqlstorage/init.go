@@ -5,11 +5,13 @@ import (
 	"fmt"
 )
 
-func Init(cfg Config) (*sql.DB, error) {
+func Init(cfg Config) (*sql.DB, Querier, error) {
 	db, err := NewSQliteClient(&cfg)
 	if err != nil {
-		return nil, fmt.Errorf("sqlite error: %w", err)
+		return nil, nil, fmt.Errorf("sqlite error: %w", err)
 	}
 
-	return db, nil
+	querier := NewSQLQuerier(db)
+
+	return db, querier, nil
 }

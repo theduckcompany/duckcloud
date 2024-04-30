@@ -54,7 +54,7 @@ func (f *FakeSessionBuilder) Build() *Session {
 	return f.session
 }
 
-// func (f *FakeSessionBuilder) BuildAndStore(ctx context.Context, db *sql.DB) *Session {
+// func (f *FakeSessionBuilder) BuildAndStore(ctx context.Context, db sqlstorage.Querier) *Session {
 // 	f.t.Helper()
 //
 // 	storage := newSqlStorage(db)

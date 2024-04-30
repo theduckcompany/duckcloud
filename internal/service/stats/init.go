@@ -2,7 +2,8 @@ package stats
 
 import (
 	"context"
-	"database/sql"
+
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 )
 
 //go:generate mockery --name Service
@@ -11,7 +12,7 @@ type Service interface {
 	GetTotalSize(ctx context.Context) (uint64, error)
 }
 
-func Init(db *sql.DB) Service {
+func Init(db sqlstorage.Querier) Service {
 	storage := newSqlStorage(db)
 
 	return newService(storage)

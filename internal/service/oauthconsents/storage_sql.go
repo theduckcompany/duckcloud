@@ -20,10 +20,10 @@ var errNotFound = errors.New("not found")
 var allFields = []string{"id", "user_id", "client_id", "scopes", "session_token", "created_at"}
 
 type sqlStorage struct {
-	db *sql.DB
+	db sqlstorage.Querier
 }
 
-func newSQLStorage(db *sql.DB) *sqlStorage {
+func newSQLStorage(db sqlstorage.Querier) *sqlStorage {
 	return &sqlStorage{db}
 }
 

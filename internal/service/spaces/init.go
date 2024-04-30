@@ -2,7 +2,6 @@ package spaces
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/theduckcompany/duckcloud/internal/service/tasks/scheduler"
 	"github.com/theduckcompany/duckcloud/internal/service/users"
@@ -24,7 +23,7 @@ type Service interface {
 	Delete(ctx context.Context, user *users.User, spaceID uuid.UUID) error
 }
 
-func Init(tools tools.Tools, db *sql.DB, scheduler scheduler.Service) Service {
+func Init(tools tools.Tools, db sqlstorage.Querier, scheduler scheduler.Service) Service {
 	storage := newSqlStorage(db, tools)
 
 	return newService(tools, storage, scheduler)

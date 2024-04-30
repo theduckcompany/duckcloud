@@ -2,7 +2,6 @@ package dfs
 
 import (
 	"context"
-	"database/sql"
 	"io"
 
 	"github.com/theduckcompany/duckcloud/internal/service/files"
@@ -40,7 +39,7 @@ type Result struct {
 	FSRemoveDuplicateFilesRunner runner.TaskRunner `group:"tasks"`
 }
 
-func Init(db *sql.DB,
+func Init(db sqlstorage.Querier,
 	spaces spaces.Service,
 	files files.Service,
 	scheduler scheduler.Service,

@@ -2,7 +2,6 @@ package files
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"io"
@@ -12,6 +11,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/theduckcompany/duckcloud/internal/service/masterkey"
 	"github.com/theduckcompany/duckcloud/internal/tools"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 	"github.com/theduckcompany/duckcloud/internal/tools/uuid"
 	"go.uber.org/fx"
 )
@@ -34,7 +34,7 @@ func Init(
 	dirPath string,
 	fs afero.Fs,
 	tools tools.Tools,
-	db *sql.DB,
+	db sqlstorage.Querier,
 ) (Result, error) {
 	storage := newSqlStorage(db)
 

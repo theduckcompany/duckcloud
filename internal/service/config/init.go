@@ -2,9 +2,9 @@ package config
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/theduckcompany/duckcloud/internal/tools/secret"
+	"github.com/theduckcompany/duckcloud/internal/tools/sqlstorage"
 )
 
 //go:generate mockery --name Service
@@ -13,7 +13,7 @@ type Service interface {
 	GetMasterKey(ctx context.Context) (*secret.SealedKey, error)
 }
 
-func Init(db *sql.DB) Service {
+func Init(db sqlstorage.Querier) Service {
 	storage := newSqlStorage(db)
 
 	return newService(storage)
